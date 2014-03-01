@@ -1,0 +1,261 @@
+##################################################
+##                                              ##
+##  _____ _    _ _____  _____ _                 ##
+## / ____| |  | |_   _|/ ____| |                ##
+##| |  __| |  | | | | | (___ | |__   ___  _ __  ##
+##| | |_ | |  | | | |  \___ \| '_ \ / _ \| '_ \ ##
+##| |__| | |__| |_| |_ ____) | | | | (_) | |_) |##
+## \_____|\____/|_____|_____/|_| |_|\___/| .__/ ##
+##                                       | |    ##
+##                                       |_|    ##
+##################################################
+
+##Title of the inventory in /shop
+title: '&4GUI &5SHOP'
+
+##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
+tag: 'GUIShop'
+
+#Item ID
+17:
+ - qty:64                       #Quantity
+ - name:'&eJungle Wood'         #Name your item. 
+ - price:1000                   #Price
+ - sell:40                      #How much you get for selling
+ - slot:0                       #Slot it goes in. Starts at 0
+ - data:3                       #The data id of the item id. e.g 1 oak log is 17. 1 Jungle log is 17:3. You can find these on google.
+1:
+ - qty:64
+ - name:'&eSmooth Stone'
+ - price:2000
+ - sell:10
+ - slot:1
+4:
+ - qty:64
+ - name:'&eCobblestone'
+ - price:2000
+ - sell:10
+ - slot:2
+337:
+ - qty:64
+ - name:'&eClay'
+ - price:2000
+ - sell:100
+ - slot:3
+35:
+ - qty:16
+ - name:'&eWool'
+ - price:1500
+ - sell:20
+ - slot:4
+13:
+ - qty:64
+ - name:'&eGravel'
+ - price:1000
+ - sell:20
+ - slot:5
+3:
+ - qty:64
+ - name:'&eDirt'
+ - price:1000
+ - sell:28
+ - slot:6
+121:
+ - qty:16
+ - name:'&eEnd Stone'
+ - price:3000
+ - sell:10
+ - slot:7
+79:
+ - qty:16
+ - name:'&eIce'
+ - price:1000
+ - sell:30
+ - slot:8
+12:
+ - qty:64
+ - name:'&eSand'
+ - price:2000
+ - sell:20
+ - slot:9
+25:
+ - qty:1
+ - name:'&eNoteblock'
+ - price:5000
+ - sell:10
+ - slot:10
+47:
+ - qty:16
+ - name:'&eBookshelf'
+ - price:3000
+ - sell:100
+ - slot:11
+20:
+ - qty:64
+ - name:'&eGlass'
+ - price:2000
+ - sell:20
+ - slot:12
+406:
+ - qty:64
+ - name:'&eQuartz'
+ - price:2000
+ - sell:40
+ - slot:13
+155:
+ - qty:16
+ - name:'&eQuartz Block'
+ - price:5000
+ - sell:40
+ - slot:14
+87:
+ - qty:64
+ - name:'&eNetherak'
+ - price:1000
+ - sell:50
+ - slot:15
+88:
+ - qty:64
+ - name:'&eSoul Sand'
+ - price:2000
+ - sell:100
+ - slot:16
+48:
+ - qty:64
+ - name:'&eMossy Cobble'
+ - price:1000
+ - sell:50
+ - slot:17
+89:
+ - qty:4
+ - name:'&eGlowstone'
+ - price:4000
+ - sell:100
+ - slot:18
+348:
+ - qty:64
+ - name:'&eGlowstone Dust'
+ - price:4000
+ - sell:100
+ - slot:19
+123:
+ - qty:4
+ - name:'&eQuartz'
+ - price:3000
+ - sell:100
+ - slot:20
+264:
+ - qty:1
+ - name:'&eDiamond'
+ - price:500
+ - sell:250
+ - slot:21
+41:
+ - qty:8
+ - name:'&eGold Block'
+ - price:3000
+ - sell:50
+ - slot:22
+46:
+ - qty:32
+ - name:'&eTnT'
+ - price:10000
+ - sell:400
+ - slot:23
+326:
+ - qty:1
+ - name:'&eWater Bucket'
+ - price:300
+ - sell:10
+ - slot:24
+327:
+ - qty:1
+ - name:'&eLava Bucket'
+ - price:400
+ - sell:20
+ - slot:25
+289:
+ - qty:64
+ - name:'&eCreeper Powder :)'
+ - price:4000
+ - sell:400
+ - slot:26
+49:
+ - qty:64
+ - name:'&eObsidian'
+ - price:4000
+ - sell:100
+ - slot:27
+22:
+ - qty:16
+ - name:'&eLapis Block'
+ - price:2000
+ - sell:200
+ - slot:28
+173:
+ - qty:16
+ - name:'&eCoal Block'
+ - price:2000
+ - sell:100
+ - slot:29
+42:
+ - qty:16
+ - name:'&eIron Block'
+ - price:3000
+ - sell:200
+ - slot:30
+152:
+ - qty:16
+ - name:'&eRedstone Block'
+ - price:4000
+ - sell:200
+ - slot:31
+133:
+ - qty:1
+ - name:'&eEmerald Block'
+ - price:4000
+ - sell:2000
+ - slot:31
+375:
+ - qty:6
+ - name:'&eSpider Eye'
+ - price:2000
+ - sell:50
+ - slot:32
+349:
+ - qty:6
+ - name:'&ePufferfish'
+ - price:2000
+ - sell:50
+ - slot:33
+ - data:3
+382:
+ - qty:6
+ - name:'&eGlistening Melon'
+ - price:2000
+ - sell:50
+ - slot:34
+378:
+ - qty:6
+ - name:'&eMagma Cream'
+ - price:2000
+ - sell:50
+ - slot:35
+372:
+ - qty:1
+ - name:'&eNether Stalk'
+ - price:1000
+ - sell:5
+ - slot:36
+370:
+ - qty:4
+ - name:'&eGhast Tear'
+ - price:2000
+ - sell:200
+ - slot:37
+ #############################
+ ## Developed by pablo67340 ##
+ ## If you need any support ##
+ ## add 'pablo673400' on    ##
+ ## Skype!                  ##
+ #############################

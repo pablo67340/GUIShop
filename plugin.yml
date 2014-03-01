@@ -1,0 +1,10 @@
+name: GUIShop
+main: com.pablo67340.shop.GUIShop
+version: 0.1
+author: pablo67340
+description: Plugin for any server.
+commands:
+  shop:
+     description: main GUIShop command
+  shopreload:
+     description: reload GUIShop

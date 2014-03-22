@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>com.pablo67340.shop</groupId>
-  <artifactId>BKCommonLib</artifactId>
+  <artifactId>GUIShop</artifactId>
   <version>1.0-SNAPSHOT</version>
   <packaging>jar</packaging>
 

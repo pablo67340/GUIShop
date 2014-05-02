@@ -1,0 +1,60 @@
+Misc:
+    17:
+      - qty:64                       #Quantity
+      - name:'&eJungle Wood'         #Name your item. 
+      - price:1000                   #Price
+      - sell:40                      #How much you get for selling
+      - slot:0                       #Slot it goes in. Starts at 0
+      - data:3                       #The data id of the item id. e.g 1 oak log is 17. 1 Jungle log is 17:3. You can find these on google.
+    1:
+      - qty:64
+      - name:'&eSmooth Stone'
+      - price:2000
+      - sell:10
+      - slot:1
+    4:
+      - qty:64
+      - name:'&eCobblestone'
+      - price:2000
+      - sell:10
+      - slot:2
+Armour:
+    310:
+      - qty:1
+      - name:'&eDiamond Plate'
+      - price:1000
+      - sell:5
+      - slot:0
+    312:
+      - qty:4
+      - name:'&eDiamond legs'
+      - price:2000
+      - sell:200
+      - slot:1
+Woodshop:
+    5:
+      - qty:64
+      - name:'&eWood'
+      - price:1000
+      - sell:5
+      - slot:0
+      - data:2
+    6:
+      - qty:64
+      - name:'&eWood'
+      - price:2000
+      - sell:200
+      - slot:1
+Tools:
+    292:
+      - qty:1
+      - name:'&eIron Hoe'
+      - price:1000
+      - sell:5
+      - slot:0
+    293:
+      - qty:1
+      - name:'&eDiamond Hoe'
+      - price:2000
+      - sell:200
+      - slot:1

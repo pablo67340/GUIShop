@@ -1,6 +1,6 @@
 name: GUIShop
 main: com.pablo67340.shop.GUIShop
-version: 2.0
+version: 2.1
 author: pablo67340
 description: Plugin for any server.
 commands:

@@ -42,6 +42,7 @@ public class GUIShop extends JavaPlugin implements Listener {
 	String tag = this.getConfig().getString("tag");
 	String title = "";
 	String menun = ChatColor.translateAlternateColorCodes('&', this.getConfig().getString("menuname"));
+	Boolean open = false;
 
 	public void onEnable(){
 		sellitems.clear();
@@ -86,6 +87,7 @@ public class GUIShop extends JavaPlugin implements Listener {
 	}
 
 	public void loadMenu(Player plyr){
+		open = true;
 		title = "";
 		shopn = "";
 		if (plyr.hasPermission("guishop.Use"))
@@ -159,6 +161,7 @@ public class GUIShop extends JavaPlugin implements Listener {
 
 	@SuppressWarnings("deprecation")
 	public void loadShop(Player plyr){
+		open = true;
 
 		shopinv.clear();
 
@@ -219,8 +222,8 @@ public class GUIShop extends JavaPlugin implements Listener {
 							if(nodes.get(nodeapi).contains("sell:"))
 							{
 								sell = nodes.get(nodeapi).replace("sell:", "").replace("'", "");
-								if(!sellitems.contains(shopn+"."+i+"$"+sell+")"+qty)) {
-									sellitems.add(shopn+"."+i+"$"+sell+")"+qty);
+								if(!sellitems.contains(i+"$"+sell+")"+qty)) {
+									sellitems.add(i+"$"+sell+")"+qty);
 								}else{
 
 								}
@@ -294,95 +297,105 @@ public class GUIShop extends JavaPlugin implements Listener {
 
 		if(e.getWhoClicked() instanceof Player)
 		{
-
+			if (e.getInventory().getType()==InventoryType.PLAYER){
+				e.setCancelled(false);
+				open = false;
+			}
 			Player p = (Player) e.getWhoClicked();
+			if(open==true){
+				open = false;
 
-			if(e.getInventory().getTitle().contains(menun)){
-				if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
-					if (e.isLeftClick()) {
-						if (!e.isShiftClick())
-						{
-							int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28 };
+				if(e.getInventory().getTitle().contains(menun)){
+					if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
+						if (e.isLeftClick()) {
+							if (!e.isShiftClick())
+							{
+								int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28 };
 
-							for (int slot : row1)
-								if (e.getRawSlot() == slot - 1) {
-									if (this.getConfig().getString(slot + ".Enabled") == "true") {
-										if (p.hasPermission("guishop.slot." + slot)) {
-											e.setCancelled(true);
-											final String shop = this.getConfig().getString(slot + ".Shop");
-											title = "";
-											title = this.getConfig().getString(slot + ".Shop");
-											shopn = shop + ".";
-											loadShop(p);
-											e.setCancelled(true);
+								for (int slot : row1)
+									if (e.getRawSlot() == slot - 1) {
+										if (this.getConfig().getString(slot + ".Enabled") == "true") {
+											if (p.hasPermission("guishop.slot." + slot)) {
+												e.setCancelled(true);
+												final String shop = this.getConfig().getString(slot + ".Shop");
+												title = "";
+												title = this.getConfig().getString(slot + ".Shop");
+												shopn = shop + ".";
+												loadShop(p);
+												e.setCancelled(true);
+											}else{
+												System.out.println("No permission for slots");
+											}
+											break;
 										}else{
-											System.out.println("No permission for slots");
+											System.out.println("Slot not enabled!");
 										}
-										break;
-									}else{
-										System.out.println("Slot not enabled!");
-									}
 
-									e.setCancelled(true);
-									break;
-								}
+										e.setCancelled(true);
+										break;
+									}
+							}
+							else
+							{
+								e.setCancelled(true);
+							}
 						}
-						else
-						{
+						else {
 							e.setCancelled(true);
 						}
 					}
-					else {
+					else
 						e.setCancelled(true);
-					}
-				}
-				else
+				}else{
 					e.setCancelled(true);
-			}else{
-			}
-			if(e.getInventory().getTitle().contains(title)){
-				e.setCancelled(true);
-				p.closeInventory();
+				}
+				if(e.getInventory().getTitle().contains(title)){
+					e.setCancelled(true);
+					p.closeInventory();
 
-				if(e.getSlot() != -999) {
-					ItemStack item = e.getCurrentItem();
-					if(item != null) {
-						trySell(p,item);
-						if(e.getInventory().getItem(e.getSlot()) != null) {
-							if(item.hasItemMeta())
-							{
-								if(item.getItemMeta().hasLore())
+					if(e.getSlot() != -999) {
+						ItemStack item = e.getCurrentItem();
+						if(item != null) {
+							trySell(p,item);
+							if(e.getInventory().getItem(e.getSlot()) != null) {
+								if(item.hasItemMeta())
 								{
-									if(item.getItemMeta().getLore().toString().contains("Price")) {
-										int price = Integer.MAX_VALUE;
-										String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", ""));
-										lorestring = StringUtils.substringBefore(lorestring, ".");
-										price = Integer.parseInt(lorestring.replace("Price: ", "").replace("Sell:", "").replace(" ", "").replace("$", ""));
-										if(econ.getBalance(p.getName()) >= price) {
-											EconomyResponse r = econ.withdrawPlayer(p.getName(), price);
-											if(r.transactionSuccess()) {
-												ItemStack dupeitem = item.clone();
-												p.getInventory().addItem(stripMeta(dupeitem,dupeitem.getAmount()));
-												p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§fYou purchased, §c" + item.getAmount() + " " + item.getType().toString().toLowerCase() + "§f!");
-												p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§c$" + price + "§f taken from your account.");
+									if(item.getItemMeta().hasLore())
+									{
+										if(item.getItemMeta().getLore().toString().contains("Price")) {
+											int price = Integer.MAX_VALUE;
+											String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", ""));
+											lorestring = StringUtils.substringBefore(lorestring, ".");
+											price = Integer.parseInt(lorestring.replace("Price: ", "").replace("Sell:", "").replace(" ", "").replace("$", ""));
+											if(econ.getBalance(p.getName()) >= price) {
+												EconomyResponse r = econ.withdrawPlayer(p.getName(), price);
+												if(r.transactionSuccess()) {
+													ItemStack dupeitem = item.clone();
+													p.getInventory().addItem(stripMeta(dupeitem,dupeitem.getAmount()));
+													p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§fYou purchased, §c" + item.getAmount() + " " + item.getType().toString().toLowerCase() + "§f!");
+													p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§c$" + price + "§f taken from your account.");
+												}else{
+													double dif = price-econ.getBalance(p.getName());
+													p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§fYou need §c$" + dif + "§f more money.");
+												}
 											}else{
 												double dif = price-econ.getBalance(p.getName());
 												p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§fYou need §c$" + dif + "§f more money.");
 											}
-										}else{
-											double dif = price-econ.getBalance(p.getName());
-											p.sendMessage(ChatColor.translateAlternateColorCodes('&', tag) + " " + "§fYou need §c$" + dif + "§f more money.");
 										}
+									}else{
+										System.out.println("Items have no lore");
 									}
-								}else{
-									System.out.println("Items have no lore");
 								}
+								loadShop(p);
 							}
-							loadShop(p);
 						}
 					}
+				}else{
+					e.setCancelled(true);
 				}
 			}else{
+				e.setCancelled(false);
 			}
 		}
 	}

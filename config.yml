@@ -11,8 +11,6 @@
 ##################################################
 
 ##Title of the inventory in /shop
-title: '&4GUI &5SHOP'
-
 menuname: '&4GUI &5Shop &4Menu'
 
 ##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.

@@ -72,6 +72,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 		String command = event.getMessage();
 		if (command.equals("/"+getConfig().getString("Command")) && player.hasPermission("guishop.use") || player.isOp()){
 			loadMenu(player);
+			event.setCancelled(true);
 		}else{
 			player.sendMessage("§cNo Permission!");
 		}

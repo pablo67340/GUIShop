@@ -16,6 +16,11 @@ menuname: '&4GUI &5Shop &4Menu'
 ##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
 tag: '[GUIShop]'
 
+##Print EVERY Action in console (Use only when needed!!!)
+Verbose: false
+## Command used to open shop, DONT PUT A /
+Command: 'shop'
+
 DisabledWorlds:
  - 'world_nether'
 

@@ -14,7 +14,6 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -23,7 +22,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -44,19 +42,20 @@ public class GUIShop extends JavaPlugin implements Listener{
 	String tag = getConfig().getString("tag");
 	String title = "";
 	String menun = ChatColor.translateAlternateColorCodes('&', getConfig().getString("menuname"));
-	Boolean open = Boolean.valueOf(false);
 	Boolean one = Boolean.valueOf(false);
 	String ench = "";
 	String[] enc;
 	int lvl = 0;
-	boolean verbose = false;
+	public static boolean verbose = false;
+	ArrayList sopen = new ArrayList();
+	Shops ss = new Shops();
 
 
 	public void onEnable()
 	{
 		this.sellitems.clear();
 		this.shopinv.clear();
-		getServer().getPluginManager().registerEvents(this, this);
+
 		if (!setupEconomy())
 		{
 			getServer().getPluginManager().disablePlugin(this);
@@ -64,19 +63,25 @@ public class GUIShop extends JavaPlugin implements Listener{
 		}
 		saveDefaultConfig();
 		verbose = getConfig().getBoolean("Verbose");
+		getServer().getPluginManager().registerEvents(this, this);
 	}
 
-	@EventHandler(priority = EventPriority.LOWEST)
+	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onCommand(PlayerCommandPreprocessEvent event) {
 		Player player = event.getPlayer();
 		String command = event.getMessage();
-		if (command.equals("/"+getConfig().getString("Command")) && player.hasPermission("guishop.use") || player.isOp()){
-			loadMenu(player);
-			event.setCancelled(true);
+		if (command.equalsIgnoreCase("/"+getConfig().getString("Command"))){
+			if (player.hasPermission("guishop.use") || player.isOp()){
+				loadMenu(player);
+				event.setCancelled(true);
+			}else{
+				player.sendMessage("§cNo Permission!");
+			}
 		}else{
-			player.sendMessage("§cNo Permission!");
+			// Do nothing if another command.
 		}
 	}
+
 	private boolean setupEconomy()
 	{
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
@@ -92,45 +97,25 @@ public class GUIShop extends JavaPlugin implements Listener{
 
 	public void loadMenu(Player plyr)
 	{
-		this.open = Boolean.valueOf(true);
+		sopen.add(plyr.getName());
 		this.title = "";
 		this.shopn = "";
 		if ((plyr.hasPermission("guishop.use")) || (plyr.isOp())) {
-			this.one = Boolean.valueOf(false);
-		}
-		if (getConfig().getList("DisabledWorlds").contains(plyr.getWorld().getName()))
-		{
-			plyr.sendMessage(ChatColor.DARK_RED + "You cannot use the shop from this world!");
-		}
-		else
-		{
-			List Ls = new ArrayList();
-			Inventory chest = plyr.getPlayer().getServer().createInventory(null, getConfig().getInt("Rows") * 9, this.menun);
 
-			int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
-			int[] row2 = { 10, 11, 12, 13, 14, 15, 16, 17, 18 };
-			int[] row3 = { 19, 20, 21, 23, 24, 25, 26, 27, 28 };
-			for (int slot : row1) {
-				if (getConfig().getString(slot + ".Enabled") == "true")
-				{
-					Ls.clear();
-					String Name = ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Name"));
-					if (getConfig().getString(slot + ".Desc") != "null") {
-						Ls.add(getConfig().getString(slot + ".Desc"));
-					}
-					if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
-					{
-						chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
-					}
-					else
-					{
-						Ls.add("No permission");
-						chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
-					}
-				}
+
+			if (getConfig().getList("DisabledWorlds").contains(plyr.getWorld().getName()))
+			{
+				plyr.sendMessage(ChatColor.DARK_RED + "You cannot use the shop from this world!");
 			}
-			if (getConfig().getInt("Rows") >= 2) {
-				for (int slot : row2) {
+			else
+			{
+				List Ls = new ArrayList();
+				Inventory chest = plyr.getPlayer().getServer().createInventory(null, getConfig().getInt("Rows") * 9, this.menun);
+
+				int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+				int[] row2 = { 10, 11, 12, 13, 14, 15, 16, 17, 18 };
+				int[] row3 = { 19, 20, 21, 23, 24, 25, 26, 27, 28 };
+				for (int slot : row1) {
 					if (getConfig().getString(slot + ".Enabled") == "true")
 					{
 						Ls.clear();
@@ -149,37 +134,63 @@ public class GUIShop extends JavaPlugin implements Listener{
 						}
 					}
 				}
-			}
-			if (getConfig().getInt("Rows") >= 3) {
-				for (int slot : row3) {
-					if (getConfig().getString(slot + ".Enabled") == "true")
-					{
-						Ls.clear();
-						String Name = ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Name"));
-						if (getConfig().getString(slot + ".Desc") != "null") {
-							Ls.add(getConfig().getString(slot + ".Desc"));
-						}
-						if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
+				if (getConfig().getInt("Rows") >= 2) {
+					for (int slot : row2) {
+						if (getConfig().getString(slot + ".Enabled") == "true")
 						{
-							chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
-						}
-						else
-						{
-							Ls.add("No permission");
-							chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
+							Ls.clear();
+							String Name = ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Name"));
+							if (getConfig().getString(slot + ".Desc") != "null") {
+								Ls.add(getConfig().getString(slot + ".Desc"));
+							}
+							if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
+							{
+								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
+							}
+							else
+							{
+								Ls.add("No permission");
+								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
+							}
 						}
 					}
 				}
+				if (getConfig().getInt("Rows") >= 3) {
+					for (int slot : row3) {
+						if (getConfig().getString(slot + ".Enabled") == "true")
+						{
+							Ls.clear();
+							String Name = ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Name"));
+							if (getConfig().getString(slot + ".Desc") != "null") {
+								Ls.add(getConfig().getString(slot + ".Desc"));
+							}
+							if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
+							{
+								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
+							}
+							else
+							{
+								Ls.add("No permission");
+								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
+							}
+						}
+					}
+				}
+				plyr.openInventory(chest);
 			}
-			plyr.openInventory(chest);
+		}else{
+			plyr.sendMessage("No Permission!");
 		}
 	}
 
 
 
-	public void loadShop(Player plyr, Boolean allowUnsafe)
-	{
-		this.open = Boolean.valueOf(true);
+	public void loadShop(Player plyr, Boolean allowUnsafe){
+		if (sopen.contains(plyr.getName())){
+			// Meh
+		}else{
+			sopen.add(plyr.getName());
+		}
 
 		this.shopinv.clear();
 
@@ -188,217 +199,238 @@ public class GUIShop extends JavaPlugin implements Listener{
 		if (this.title.length() > 16) {
 			this.title.substring(0, 16);
 		}
+
 		Inventory shop = Bukkit.getServer().createInventory(plyr, row * size, this.title);
-		if (this.shopinv.isEmpty()) {
-			for (int i = 0; i < 407; i++)
-			{
-				String name = "null";
-				String data = "0";
-				String qty = "1";
-				String slot = "0";
-				String price = "0";
-				String sell = "0";
-				String item = "0";
-				if (getCustomConfig().get(this.shopn + "." + i) != null)
+		String saved = this.shopn.replaceAll("[\\s.]", "");
+		System.out.println("Trying is saved with: "+saved);
+		if(ss.isSaved(saved) == true){
+			if (verbose){
+				System.out.println("isSaved check passed! Attempting to open shop with the saved inventory: "+saved);
+			}
+			shop.setContents(ss.getShop(saved));
+			plyr.openInventory(shop);
+		}else{
+			if (this.shopinv.isEmpty()) {
+				for (int i = 0; i <= 43; i++)
 				{
-
-					List<String> nodes = getCustomConfig().getStringList(this.shopn + "." + i);
-					if (verbose==true){
-						System.out.println("Final item built: "+nodes+" Active!");
-					}
-					if (nodes != null) {
-						for (int nodeapi = 0; nodeapi < nodes.size(); nodeapi++)
-						{
-							if (verbose==true){
-								System.out.println("Scanning shops.yml");
-							}
-							if (((String)nodes.get(nodeapi)).contains("item:")){
-
-								item = ((String)nodes.get(nodeapi)).replace("item:", "");
-								if (verbose==true){
-									System.out.println("Item ID found: " + item);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("slot:")) {
-								slot = ((String)nodes.get(nodeapi)).replace("slot:", "");
-								if (verbose==true){
-									System.out.println("Slot found: " + slot);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("name:")) {
-								name = ((String)nodes.get(nodeapi)).replace("name:", "").replace("'", "");
-								if (verbose==true){
-									System.out.println("Item name found: " + name);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("price:")) {
-								price = ((String)nodes.get(nodeapi)).replace("price:", "").replace("'", "");
-								if (verbose==true){
-									System.out.println("Item price found: " + price);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("data:")) {
-								data = ((String)nodes.get(nodeapi)).replace("data:", "");
-								if (verbose==true){
-									System.out.println("Data value found: " + data);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("enchantments:"))
-							{
-								ench = ((String)nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
-								enc = ench.split(":| ");
-								if (verbose==true){
-									System.out.println("Optional enchants found!: " + ench);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("qty:")) {
-								qty = ((String)nodes.get(nodeapi)).replace("qty:", "");
-								if (verbose==true){
-									System.out.println("Item quantity found: " + qty);
-								}
-							}
-							if (((String)nodes.get(nodeapi)).contains("sell:"))
-							{
-								sell = ((String)nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
-								if (verbose==true){
-									System.out.println("Item sell price found: " + sell);
-								}
-								if (!this.sellitems.contains(i + "$" + sell + ")" + qty)) {
-									this.sellitems.add(i + "$" + sell + ")" + qty);
-								}
-							}
-						}
-					}
-					if (Integer.parseInt(data) != 0)
+					String name = "null";
+					String data = "0";
+					String qty = "1";
+					String slot = "0";
+					String price = "0";
+					String sell = "0";
+					String item = "0";
+					if (getCustomConfig().get(this.shopn + "." + i) != null)
 					{
-						ItemStack itemwithdata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
+						List<String> nodes = getCustomConfig().getStringList(this.shopn + "." + i);
 						if (verbose==true){
-							System.out.println("Adding item: "+nodes+" To inventory");
+							System.out.println("Final item built: "+nodes+" Active!");
 						}
-						addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
-						if (verbose==true){
-							System.out.println("AddPrice Method Passed! ");
-						}
-						if (name != "null")
-						{
-							ItemMeta itemmeta = itemwithdata.getItemMeta();
-							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-							itemwithdata.setItemMeta(itemmeta);
-							if (verbose==true){
-								System.out.println("Item name found! Item meta added!");
-							}
+						if (nodes != null) {
+							for (int nodeapi = 0; nodeapi < nodes.size(); nodeapi++)
+							{
+								if (verbose==true){
+									System.out.println("Scanning shops.yml");
+								}
+								if (((String)nodes.get(nodeapi)).contains("item:")){
 
-
-						}else{
-							if (verbose==true){
-								System.out.println("NO Item name found! Breaking!");
-							}
-						}
-
-
-						if (!(enc==null)){
-							for(int e = -1;e<enc.length;e+=2){
-								if (!(e<0)){
+									item = ((String)nodes.get(nodeapi)).replace("item:", "");
 									if (verbose==true){
-										System.out.println("Enchants split into values!: ");
+										System.out.println("Item ID found: " + item);
 									}
-
-									if (enc[e-1] == null && enc[e] == null){
-										if (verbose==true){
-											System.out.println("Enchantments are null!");
-										}								
-									}else{
-										lvl = Integer.parseInt(enc[e]);
-										itemwithdata.addUnsafeEnchantment(Enchantments.getByName(enc[e-1]), lvl);
-										if (verbose==true){
-											System.out.println("Enchant values: Enchant name: "+enc[e-1]+" Enchant Level: "+lvl);
-										}
-										enc[e] = null;
-										enc[e-1] = null;
+								}
+								if (((String)nodes.get(nodeapi)).contains("slot:")) {
+									slot = ((String)nodes.get(nodeapi)).replace("slot:", "");
+									if (verbose==true){
+										System.out.println("Slot found: " + slot);
+									}
+								}
+								if (((String)nodes.get(nodeapi)).contains("name:")) {
+									name = ((String)nodes.get(nodeapi)).replace("name:", "").replace("'", "");
+									if (verbose==true){
+										System.out.println("Item name found: " + name);
+									}
+								}
+								if (((String)nodes.get(nodeapi)).contains("price:")) {
+									price = ((String)nodes.get(nodeapi)).replace("price:", "").replace("'", "");
+									if (verbose==true){
+										System.out.println("Item price found: " + price);
+									}
+								}
+								if (((String)nodes.get(nodeapi)).contains("data:")) {
+									data = ((String)nodes.get(nodeapi)).replace("data:", "");
+									if (verbose==true){
+										System.out.println("Data value found: " + data);
+									}
+								}
+								if (((String)nodes.get(nodeapi)).contains("enchantments:"))
+								{
+									ench = ((String)nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
+									enc = ench.split(":| ");
+									if (verbose==true){
+										System.out.println("Optional enchants found!: " + ench);
+									}
+								}
+								if (((String)nodes.get(nodeapi)).contains("qty:")) {
+									qty = ((String)nodes.get(nodeapi)).replace("qty:", "");
+									if (verbose==true){
+										System.out.println("Item quantity found: " + qty);
+									}
+								}
+								if (((String)nodes.get(nodeapi)).contains("sell:"))
+								{
+									sell = ((String)nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
+									if (verbose==true){
+										System.out.println("Item sell price found: " + sell);
+									}
+									if (!this.sellitems.contains(i + "$" + sell + ")" + qty)) {
+										this.sellitems.add(i + "$" + sell + ")" + qty);
 									}
 								}
 							}
 						}
-						if (Integer.parseInt(slot)!=44){
-							shop.setItem(Integer.parseInt(slot), itemwithdata);
+						if (Integer.parseInt(data) != 0)
+						{
+							ItemStack itemwithdata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
+							if (verbose==true){
+								System.out.println("Adding item: "+nodes+" To inventory");
+							}
+							addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
+							if (verbose==true){
+								System.out.println("AddPrice Method Passed! ");
+							}
+							if (name != "null")
+							{
+								ItemMeta itemmeta = itemwithdata.getItemMeta();
+								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+								itemwithdata.setItemMeta(itemmeta);
+								if (verbose==true){
+									System.out.println("Item name found! Item meta added!");
+								}
+
+
+							}else{
+								if (verbose==true){
+									System.out.println("NO Item name found! Breaking!");
+								}
+							}
+
+
+							if (!(enc==null)){
+								for(int e = -1;e<enc.length;e+=2){
+									if (!(e<0)){
+										if (verbose==true){
+											System.out.println("Enchants split into values!: ");
+										}
+
+										if (enc[e-1] == null && enc[e] == null){
+											if (verbose==true){
+												System.out.println("Enchantments are null!");
+											}								
+										}else{
+											lvl = Integer.parseInt(enc[e]);
+											itemwithdata.addUnsafeEnchantment(Enchantments.getByName(enc[e-1]), lvl);
+											if (verbose==true){
+												System.out.println("Enchant values: Enchant name: "+enc[e-1]+" Enchant Level: "+lvl);
+											}
+											enc[e] = null;
+											enc[e-1] = null;
+										}
+									}
+								}
+							}
+							if (Integer.parseInt(slot)!=44){
+								shop.setItem(Integer.parseInt(slot), itemwithdata);
+								ItemStack backbutton = new ItemStack(Material.getMaterial(160), 1, (short)14);
+								ItemMeta itemmeta = backbutton.getItemMeta();
+								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&4Back"));
+								backbutton.setItemMeta(itemmeta);
+								shop.setItem(44, backbutton);
+								if (verbose==true){
+									System.out.println("Item with data: "+itemwithdata+" Added to shop!");
+								}
+							}else{
+								if (verbose==true){
+									System.out.println("ERROR: An Item tried to overwrite button slot!");
+								}
+							}
+
+
+
+						}
+						else
+						{
+							if (Material.getMaterial(i) == null) {
+								System.out.print(i);
+							}
+							if (Integer.parseInt(qty) < 1) {
+								System.out.print("its 0");
+							}
+							ItemStack itemnodata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty));
+							addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
+							if (name != "null")
+							{
+								ItemMeta itemmeta = itemnodata.getItemMeta();
+								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+								itemnodata.setItemMeta(itemmeta);
+							}
+
+							if (!(enc==null)){
+								for(int e = -1;e<enc.length;e+=2){
+									if (!(e<0)){
+										if (verbose==true){
+											System.out.println("Enchants split into values!: ");
+										}
+
+
+										if (enc[e-1] == null && enc[e] == null){
+											if (verbose==true){
+												System.out.println("Enchantments are null!");
+											}										
+										}else{
+											lvl = Integer.parseInt(enc[e]);
+											itemnodata.addUnsafeEnchantment(Enchantments.getByName(enc[e-1]), lvl);
+											if (verbose==true){
+												System.out.println("Enchant values: Enchant name: "+enc[e-1]+" Enchant Level: "+lvl);
+											}
+											enc[e-1] = null;
+											enc[e] = null;
+										}
+
+									}
+								}
+							}
+
+							shop.setItem(Integer.parseInt(slot), itemnodata);
 							ItemStack backbutton = new ItemStack(Material.getMaterial(160), 1, (short)14);
 							ItemMeta itemmeta = backbutton.getItemMeta();
 							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&4Back"));
 							backbutton.setItemMeta(itemmeta);
 							shop.setItem(44, backbutton);
 							if (verbose==true){
-								System.out.println("Item with data: "+itemwithdata+" Added to shop!");
-							}
-						}else{
-							if (verbose==true){
-								System.out.println("ERROR: An Item tried to overwrite button slot!");
+								System.out.println("Item with no data: "+itemnodata+" Added to shop!");
 							}
 						}
-
-
-
+						this.shopinv.put(Integer.valueOf(1), shop);
+						plyr.openInventory(shop);
+						plyr.updateInventory();
 					}
-					else
-					{
-						if (Material.getMaterial(i) == null) {
-							System.out.print(i);
-						}
-						if (Integer.parseInt(qty) < 1) {
-							System.out.print("its 0");
-						}
-						ItemStack itemnodata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty));
-						addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
-						if (name != "null")
-						{
-							ItemMeta itemmeta = itemnodata.getItemMeta();
-							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-							itemnodata.setItemMeta(itemmeta);
-						}
-
-						if (!(enc==null)){
-							for(int e = -1;e<enc.length;e+=2){
-								if (!(e<0)){
-									if (verbose==true){
-										System.out.println("Enchants split into values!: ");
-									}
-
-
-									if (enc[e-1] == null && enc[e] == null){
-										if (verbose==true){
-											System.out.println("Enchantments are null!");
-										}										
-									}else{
-										lvl = Integer.parseInt(enc[e]);
-										itemnodata.addUnsafeEnchantment(Enchantments.getByName(enc[e-1]), lvl);
-										if (verbose==true){
-											System.out.println("Enchant values: Enchant name: "+enc[e-1]+" Enchant Level: "+lvl);
-										}
-										enc[e-1] = null;
-										enc[e] = null;
-									}
-
-								}
-							}
-						}
-
-						shop.setItem(Integer.parseInt(slot), itemnodata);
-						ItemStack backbutton = new ItemStack(Material.getMaterial(160), 1, (short)14);
-						ItemMeta itemmeta = backbutton.getItemMeta();
-						itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&4Back"));
-						backbutton.setItemMeta(itemmeta);
-						shop.setItem(44, backbutton);
-						if (verbose==true){
-							System.out.println("Item with no data: "+itemnodata+" Added to shop!");
-						}
-					}
-					this.shopinv.put(Integer.valueOf(1), shop);
-					plyr.openInventory(shop);
 				}
-				plyr.updateInventory();
+			} // End loop
+			if (ss.saveShop(saved, shop)){
+				if (verbose){
+					System.out.println("Saved Shop: "+this.shopn);
+					System.out.println("SHOP CONTENTS: ");
+					System.out.println(ss.getShop(this.shopn));
+				}
+			}else{
+				if (verbose){
+					System.out.println("Shop already exists!");
+				}
 			}
-		} else {
-			plyr.openInventory((Inventory)this.shopinv.get(Integer.valueOf(1)));
-		}
+
+		}// End
+
 	}
 
 	public void addPrice(ItemStack item, Integer price, Integer sell)
@@ -423,15 +455,18 @@ public class GUIShop extends JavaPlugin implements Listener{
 	{
 		if ((e.getWhoClicked() instanceof Player))
 		{
+			Player p = (Player)e.getWhoClicked();
 			if (e.getInventory().getType() == InventoryType.PLAYER)
 			{
 				e.setCancelled(false);
-				this.open = Boolean.valueOf(false);
+				if (sopen.contains(p.getName())){
+					sopen.remove(p.getName());
+				}
 			}
-			Player p = (Player)e.getWhoClicked();
-			if (this.open.booleanValue())
+
+			if (sopen.contains(p.getName()))
 			{
-				this.open = Boolean.valueOf(false);
+				sopen.remove(p.getName());
 				if (e.getInventory().getTitle().contains(this.menun))
 				{
 					if (e.getSlotType() == InventoryType.SlotType.CONTAINER)
@@ -451,7 +486,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 											this.title = "";
 											this.title = getConfig().getString(slot + ".Shop");
 											this.shopn = (shop + ".");
-											loadShop(p, this.one);
+											loadShop(p, true);
 											e.setCancelled(true);
 											break;
 										}
@@ -506,7 +541,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 													price = Integer.parseInt(lorestring.replace("Price: ", "").replace("Sell:", "").replace(" ", "").replace("$", ""));
 													if ((e.isLeftClick()) && (e.isShiftClick()))
 													{
-														this.one = Boolean.valueOf(true);
+
 														ItemStack dupeitem = item.clone();
 														int ammount = dupeitem.getAmount() / dupeitem.getAmount();
 														int price2 = price / dupeitem.getAmount();
@@ -557,7 +592,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 											}
 											/**/
 
-											loadShop(p, Boolean.valueOf(true));
+											loadShop(p, true);
 										}
 
 

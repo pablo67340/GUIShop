@@ -3,8 +3,7 @@ package com.pablo67340.shop;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
+
 import org.bukkit.enchantments.Enchantment;
 
 public class Enchantments
@@ -149,6 +148,7 @@ public class Enchantments
 		ALIASENCHANTMENTS.put("rodlure", Enchantment.LURE);
 	}
 
+	@SuppressWarnings("deprecation")
 	public static Enchantment getByName(String name)
 	{
 		Enchantment enchantment;

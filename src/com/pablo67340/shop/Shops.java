@@ -82,6 +82,16 @@ public class Shops {
 		if (GUIShop.verbose){
 			System.out.println("Getting items for SAVED Shop!");
 		}
-		return shopss.get(input);}
+		return shopss.get(input);
+	}
+
+	public boolean flushData(){
+		if (shopss.isEmpty()){
+			return false;
+		}else{
+			shopss.clear();
+			return true;
+		}
+	}
 }
 

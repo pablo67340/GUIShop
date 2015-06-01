@@ -370,14 +370,31 @@ public class GUIShop extends JavaPlugin implements Listener{
 								}
 							}
 							if (Integer.parseInt(slot) != 44){
-								shop.setItem(Integer.parseInt(slot), itemwithdata);
-								ItemStack backbutton = new ItemStack(Material.getMaterial(160), 1, (short)14);
-								ItemMeta itemmeta = backbutton.getItemMeta();
-								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")));
-								backbutton.setItemMeta(itemmeta);
-								shop.setItem(44, backbutton);
-								if (verbose) {
-									System.out.println("Item with data: " + itemwithdata + " Added to shop!");
+
+								if (getConfig().getString("back-button-item").contains(":")){
+									String[] backi = getConfig().getString("back-button-item").split(":");
+									int bid = Integer.parseInt(backi[0]);
+									int bme = Integer.parseInt(backi[1]);
+									ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)bme);
+									ItemMeta itemmeta = backbutton.getItemMeta();
+									itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")));
+									backbutton.setItemMeta(itemmeta);
+									shop.setItem(44, backbutton);
+
+									if (verbose) {
+										System.out.println("Item with no data: " + itemwithdata + " Added to shop!");
+									}
+								}else{
+									int bid = Integer.parseInt("back-button-item");
+									ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)0);
+									ItemMeta itemmeta = backbutton.getItemMeta();
+									itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")));
+									backbutton.setItemMeta(itemmeta);
+									shop.setItem(44, backbutton);
+
+									if (verbose) {
+										System.out.println("Item with no data: " + itemwithdata + " Added to shop!");
+									}
 								}
 							}else if (verbose){
 								System.out.println("ERROR: An Item tried to overwrite button slot!");
@@ -424,14 +441,32 @@ public class GUIShop extends JavaPlugin implements Listener{
 								}
 							}
 							shop.setItem(Integer.parseInt(slot), itemnodata);
-							ItemStack backbutton = new ItemStack(Material.getMaterial(160), 1, (short)14);
-							ItemMeta itemmeta = backbutton.getItemMeta();
-							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")));
-							backbutton.setItemMeta(itemmeta);
-							shop.setItem(44, backbutton);
-							if (verbose) {
-								System.out.println("Item with no data: " + itemnodata + " Added to shop!");
+							if (getConfig().getString("back-button-item").contains(":")){
+								String[] backi = getConfig().getString("back-button-item").split(":");
+								int bid = Integer.parseInt(backi[0]);
+								int bme = Integer.parseInt(backi[1]);
+								ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)bme);
+								ItemMeta itemmeta = backbutton.getItemMeta();
+								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")));
+								backbutton.setItemMeta(itemmeta);
+								shop.setItem(44, backbutton);
+
+								if (verbose) {
+									System.out.println("Item with no data: " + itemnodata + " Added to shop!");
+								}
+							}else{
+								int bid = Integer.parseInt("back-button-item");
+								ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)0);
+								ItemMeta itemmeta = backbutton.getItemMeta();
+								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")));
+								backbutton.setItemMeta(itemmeta);
+								shop.setItem(44, backbutton);
+
+								if (verbose) {
+									System.out.println("Item with no data: " + itemnodata + " Added to shop!");
+								}
 							}
+
 						}
 
 						this.shopinv.put(Integer.valueOf(1), shop);
@@ -574,7 +609,6 @@ public class GUIShop extends JavaPlugin implements Listener{
 											int price = 2147483647;
 											String lorestring2 = ChatColor.stripColor(item.getItemMeta().getLore().toString());
 											List<String> items = Arrays.asList(lorestring2.split("\\s*,\\s*"));
-											System.out.println("LORE LORE LORE " + items.get(1));
 											String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", "").replace("Shift+Click to buy 1 item", ""));
 											lorestring = StringUtils.substringBefore(lorestring, ".");
 											price = Integer.parseInt(items.get(1));
@@ -627,6 +661,8 @@ public class GUIShop extends JavaPlugin implements Listener{
 									}, 1L);
 
 								}
+							}else{
+								trySell(p, item);
 							}
 						}
 					}
@@ -673,63 +709,72 @@ public class GUIShop extends JavaPlugin implements Listener{
 	{
 		boolean tally = false;
 		boolean err = false;
-		if (item.hasItemMeta()) {
-			if (((item != null) || (item == null)) && (!item.getItemMeta().hasLore()) && (p.getInventory().contains(item)))
+		if (verbose){
+			System.out.println("TrySell: "+item.getTypeId());
+		}
+		if (((item != null) || (item == null)) && (!item.getItemMeta().hasLore()) && (p.getInventory().contains(item)))
+		{
+			if (verbose){
+				System.out.println("Item passed secondary checks!");
+			}
+			for (String str : this.sellitems)
 			{
-				for (String str : this.sellitems)
+				String itemid = StringUtils.substringBefore(str, "$");
+				if (verbose) {
+					System.out.println("Item in hand: " + item.getTypeId() + " compared: " + itemid);
+				}
+				if (item.getTypeId() == Integer.parseInt(itemid))
 				{
-					String itemid = StringUtils.substringBefore(str, "$");
-					if (verbose) {
-						System.out.println("Item in hand: " + item.getTypeId() + " compared: " + itemid);
-					}
-					if (item.getTypeId() == Integer.parseInt(itemid))
+					tally = true;
+					String amount = StringUtils.substringAfter(str, ")");
+					if (Integer.parseInt(amount) == item.getAmount())
 					{
-						tally = true;
-						String amount = StringUtils.substringAfter(str, ")");
-						if (Integer.parseInt(amount) == item.getAmount())
-						{
-							String preprice = StringUtils.substringAfter(str, "$");
-							String price = StringUtils.substringBefore(preprice, ")");
+						String preprice = StringUtils.substringAfter(str, "$");
+						String price = StringUtils.substringBefore(preprice, ")");
 
-							if (!(isInteger(price))){
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
-							}else{
-								p.getInventory().removeItem(new ItemStack[] { item });
-								EconomyResponse r = this.econ.depositPlayer(p.getName(), Integer.parseInt(price));
-								if (r.transactionSuccess())
-								{
-									p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "§f!");
-									p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§a$" + price + ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
-								}
-								else
-								{
-									p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("something-wrong")));
-								}
+						if (!(isInteger(price))){
+							p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
+						}else{
+							p.getInventory().removeItem(new ItemStack[] { item });
+							EconomyResponse r = this.econ.depositPlayer(p.getName(), Integer.parseInt(price));
+							if (r.transactionSuccess())
+							{
+								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "§f!");
+								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§a$" + price + ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
+							}
+							else
+							{
+								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("something-wrong")));
 							}
 						}
-						else
-						{
-							int dif = Integer.parseInt(amount);
-							p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("in-stacks")) + dif);
-							err = true;
-						}
 					}
-				}
-				if (!tally)
-				{
-					if (err != true){
-						p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
-						tally = true;
-					}else{
-
+					else
+					{
+						int dif = Integer.parseInt(amount);
+						p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("in-stacks")) + dif);
+						err = true;
+					}
+				}else{
+					if (verbose){
+						System.out.println("Compared "+item + " to "+itemid + " And did not match!");
 					}
 				}
 			}
-			else if (verbose)
+			if (!tally)
 			{
-				System.out.println("Else Triggered for item!");
+				if (err != true){
+					p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
+					tally = true;
+				}else{
+
+				}
 			}
 		}
+		else if (verbose)
+		{
+			System.out.println("Else Triggered for item!");
+		}
+
 	}
 
 	private ItemStack setName(ItemStack is, String name, List<String> lore){

@@ -60,6 +60,9 @@ line4: 'Shift+Click to buy 1 item'
 #The text back button in the shops
 back: '&4Back'
 
+#The item the back button will be!
+back-button-item: '160:14'
+
 #The messaged displayed before the item amount.
 
 ## E.G "You Purchased 54"

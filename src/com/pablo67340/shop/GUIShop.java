@@ -28,10 +28,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class GUIShop
-extends JavaPlugin
-implements Listener
-{
+public class GUIShop extends JavaPlugin implements Listener{
 	public Economy econ;
 	List<String> sellitems = new ArrayList<String>();
 	private FileConfiguration customConfig = null;
@@ -50,12 +47,10 @@ implements Listener
 	ArrayList<String> sopen = new ArrayList<String>();
 	Shops ss = new Shops();
 
-	public void onEnable()
-	{
+	public void onEnable(){
 		this.sellitems.clear();
 		this.shopinv.clear();
-		if (!setupEconomy())
-		{
+		if (!setupEconomy()){
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
@@ -65,42 +60,43 @@ implements Listener
 	}
 
 	@EventHandler(priority=EventPriority.HIGHEST)
-	public void onCommand(PlayerCommandPreprocessEvent event)
-	{
+	public void onCommand(PlayerCommandPreprocessEvent event){
 		Player player = event.getPlayer();
 		String command = event.getMessage();
 		if (command.equalsIgnoreCase("/" + getConfig().getString("Command"))) {
-			if ((player.hasPermission("guishop.use")) || (player.isOp()))
-			{
+			if ((player.hasPermission("guishop.use")) || (player.isOp())){
 				loadMenu(player);
 				event.setCancelled(true);
-			}
-			else
-			{
+			}else{
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
 			}
-		}else if(command.equalsIgnoreCase("/" + getConfig().getString("Command") + " reload")){
-			if (ss.flushData()){
-				if (verbose){
-					System.out.println("Shop Data exists! Flushing data!");
+		}else if((command.equalsIgnoreCase("/" + getConfig().getString("Command") + " reload"))){
+			if (player.isOp()){
+				if (ss.flushData()){
+					if (verbose){
+						System.out.println("Shop Data exists! Flushing data!");
+					}
+
+				}else{
+					if (verbose){
+						System.out.println("No Shop data existed! No Shops have been opened and cached yet!");
+					}
+					event.setCancelled(true);
 				}
+				this.reloadConfig();
+				this.reloadCustomConfig();
+				if (verbose){
+					System.out.println("Reload Complete!");
+				}
+				player.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag + " &aReloaded!"));
+
 			}else{
-				if (verbose){
-					System.out.println("No Shop data existed! No Shops have been opened and cached yet!");
-				}
-				event.setCancelled(true);
+				player.sendMessage("No Permission! You must be OP!");
 			}
-			this.reloadConfig();
-			this.reloadCustomConfig();
-			if (verbose){
-				System.out.println("Reload Complete!");
-			}
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag + " &aReloaded!"));
 		}
 	}
 
-	private boolean setupEconomy()
-	{
+	private boolean setupEconomy(){
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
 			return false;
 		}
@@ -112,19 +108,14 @@ implements Listener
 		return this.econ != null;
 	}
 
-	public void loadMenu(Player plyr)
-	{
+	public void loadMenu(Player plyr){
 		this.sopen.add(plyr.getName());
 		this.title = "";
 		this.shopn = "";
-		if ((plyr.hasPermission("guishop.use")) || (plyr.isOp()))
-		{
-			if (getConfig().getList("DisabledWorlds").contains(plyr.getWorld().getName()))
-			{
+		if ((plyr.hasPermission("guishop.use")) || (plyr.isOp())){
+			if (getConfig().getList("DisabledWorlds").contains(plyr.getWorld().getName())){
 				plyr.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("disabled-world")));
-			}
-			else
-			{
+			}else{
 				List Ls = new ArrayList();
 				Inventory chest = plyr.getPlayer().getServer().createInventory(null, getConfig().getInt("Rows") * 9, this.menun);
 
@@ -132,19 +123,15 @@ implements Listener
 				int[] row2 = { 10, 11, 12, 13, 14, 15, 16, 17, 18 };
 				int[] row3 = { 19, 20, 21, 23, 24, 25, 26, 27, 28 };
 				for (int slot : row1) {
-					if (getConfig().getString(slot + ".Enabled") == "true")
-					{
+					if (getConfig().getString(slot + ".Enabled") == "true"){
 						Ls.clear();
 						String Name = ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Name"));
 						if (ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Desc")) != "null") {
 							Ls.add(ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Desc")));
 						}
-						if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
-						{
+						if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp())){
 							chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
-						}
-						else
-						{
+						}else{
 							Ls.add(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
 							chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
 						}
@@ -159,12 +146,9 @@ implements Listener
 							if (getConfig().getString(slot + ".Desc") != "null") {
 								Ls.add(ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Desc")));
 							}
-							if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
-							{
+							if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp())){
 								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
-							}
-							else
-							{
+							}else{
 								Ls.add(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
 								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
 							}
@@ -173,19 +157,15 @@ implements Listener
 				}
 				if (getConfig().getInt("Rows") >= 3) {
 					for (int slot : row3) {
-						if (getConfig().getString(slot + ".Enabled") == "true")
-						{
+						if (getConfig().getString(slot + ".Enabled") == "true"){
 							Ls.clear();
 							String Name = ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Name"));
 							if (getConfig().getString(slot + ".Desc") != "null") {
 								Ls.add(ChatColor.translateAlternateColorCodes('&', getConfig().getString(slot + ".Desc")));
 							}
-							if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp()))
-							{
+							if ((plyr.hasPermission("guishop.slot." + slot)) || (plyr.isOp())){
 								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(getConfig().getString(slot + ".Item")), 1), Name, Ls));
-							}
-							else
-							{
+							}else{
 								Ls.add(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
 								chest.setItem(slot - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
 							}
@@ -194,14 +174,12 @@ implements Listener
 				}
 				plyr.openInventory(chest);
 			}
-		}
-		else {
+		}else{
 			plyr.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
 		}
 	}
 
-	public void loadShop(Player plyr, Boolean allowUnsafe)
-	{
+	public void loadShop(Player plyr, Boolean allowUnsafe){
 		if (!this.sopen.contains(plyr.getName())) {
 			this.sopen.add(plyr.getName());
 		}
@@ -221,12 +199,9 @@ implements Listener
 			}
 			shop.setContents(this.ss.getShop(saved));
 			plyr.openInventory(shop);
-		}
-		else
-		{
+		}else{
 			if (this.shopinv.isEmpty()) {
-				for (int i = 0; i <= 43; i++)
-				{
+				for (int i = 0; i <= 43; i++){
 					String name = "null";
 					String data = "0";
 					String qty = "1";
@@ -234,70 +209,60 @@ implements Listener
 					String price = "0";
 					String sell = "0";
 					String item = "0";
-					if (getCustomConfig().get(this.shopn + "." + i) != null)
-					{
+					if (getCustomConfig().get(this.shopn + "." + i) != null){
 						List<String> nodes = getCustomConfig().getStringList(this.shopn + "." + i);
 						if (verbose) {
 							System.out.println("Final item built: " + nodes + " Active!");
 						}
 						if (nodes != null) {
-							for (int nodeapi = 0; nodeapi < nodes.size(); nodeapi++)
-							{
+							for (int nodeapi = 0; nodeapi < nodes.size(); nodeapi++){
 								if (verbose) {
 									System.out.println("Scanning shops.yml");
 								}
-								if (((String)nodes.get(nodeapi)).contains("item:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("item:")){
 									item = ((String)nodes.get(nodeapi)).replace("item:", "");
 									if (verbose) {
 										System.out.println("Item ID found: " + item);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("slot:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("slot:")){
 									slot = ((String)nodes.get(nodeapi)).replace("slot:", "");
 									if (verbose) {
 										System.out.println("Slot found: " + slot);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("name:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("name:")){
 									name = ((String)nodes.get(nodeapi)).replace("name:", "").replace("'", "");
 									if (verbose) {
 										System.out.println("Item name found: " + name);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("price:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("price:")){
 									price = ((String)nodes.get(nodeapi)).replace("price:", "").replace("'", "");
 									if (verbose) {
 										System.out.println("Item price found: " + price);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("data:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("data:")){
 									data = ((String)nodes.get(nodeapi)).replace("data:", "");
 									if (verbose) {
 										System.out.println("Data value found: " + data);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("enchantments:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("enchantments:")){
 									this.ench = ((String)nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
 									this.enc = this.ench.split(":| ");
 									if (verbose) {
 										System.out.println("Optional enchants found!: " + this.ench);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("qty:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("qty:")){
 									qty = ((String)nodes.get(nodeapi)).replace("qty:", "");
 									if (verbose) {
 										System.out.println("Item quantity found: " + qty);
 									}
 								}
-								if (((String)nodes.get(nodeapi)).contains("sell:"))
-								{
+								if (((String)nodes.get(nodeapi)).contains("sell:")){
 									sell = ((String)nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
 									if (verbose) {
 										System.out.println("Item sell price found: " + sell);
@@ -308,8 +273,7 @@ implements Listener
 								}
 							}
 						}
-						if (Integer.parseInt(data) != 0)
-						{
+						if (Integer.parseInt(data) != 0){
 							ItemStack itemwithdata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
 							if (verbose) {
 								System.out.println("Adding item: " + nodes + " To inventory");
@@ -323,8 +287,7 @@ implements Listener
 							if (verbose) {
 								System.out.println("AddPrice Method Passed! ");
 							}
-							if (name != "null")
-							{
+							if (name != "null"){
 								ItemMeta itemmeta = itemwithdata.getItemMeta();
 								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 								itemwithdata.setItemMeta(itemmeta);
@@ -332,25 +295,20 @@ implements Listener
 									System.out.println("Item name found! Item meta added!");
 								}
 							}
-							else if (verbose)
-							{
+							else if (verbose){
 								System.out.println("NO Item name found! Breaking!");
 							}
 							if (this.enc != null) {
 								for (int e = -1; e < this.enc.length; e += 2) {
-									if (e >= 0)
-									{
+									if (e >= 0){
 										if (verbose) {
 											System.out.println("Enchants split into values!: ");
 										}
-										if ((this.enc[(e - 1)] == null) && (this.enc[e] == null))
-										{
+										if ((this.enc[(e - 1)] == null) && (this.enc[e] == null)){
 											if (verbose) {
 												System.out.println("Enchantments are null!");
 											}
-										}
-										else
-										{
+										}else{
 											this.lvl = Integer.parseInt(this.enc[e]);
 											itemwithdata.addUnsafeEnchantment(Enchantments.getByName(this.enc[(e - 1)]), this.lvl);
 											if (verbose) {
@@ -362,8 +320,7 @@ implements Listener
 									}
 								}
 							}
-							if (Integer.parseInt(slot) != 44)
-							{
+							if (Integer.parseInt(slot) != 44){
 								shop.setItem(Integer.parseInt(slot), itemwithdata);
 								ItemStack backbutton = new ItemStack(Material.getMaterial(160), 1, (short)14);
 								ItemMeta itemmeta = backbutton.getItemMeta();
@@ -373,14 +330,10 @@ implements Listener
 								if (verbose) {
 									System.out.println("Item with data: " + itemwithdata + " Added to shop!");
 								}
-							}
-							else if (verbose)
-							{
+							}else if (verbose){
 								System.out.println("ERROR: An Item tried to overwrite button slot!");
 							}
-						}
-						else
-						{
+						}else{
 							if (Material.getMaterial(i) == null) {
 								System.out.print(i);
 							}
@@ -394,27 +347,22 @@ implements Listener
 								addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
 							}
 
-							if (name != "null")
-							{
+							if (name != "null"){
 								ItemMeta itemmeta = itemnodata.getItemMeta();
 								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 								itemnodata.setItemMeta(itemmeta);
 							}
 							if (this.enc != null) {
 								for (int e = -1; e < this.enc.length; e += 2) {
-									if (e >= 0)
-									{
+									if (e >= 0){
 										if (verbose) {
 											System.out.println("Enchants split into values!: ");
 										}
-										if ((this.enc[(e - 1)] == null) && (this.enc[e] == null))
-										{
+										if ((this.enc[(e - 1)] == null) && (this.enc[e] == null)){
 											if (verbose) {
 												System.out.println("Enchantments are null!");
 											}
-										}
-										else
-										{
+										}else{
 											this.lvl = Integer.parseInt(this.enc[e]);
 											itemnodata.addUnsafeEnchantment(Enchantments.getByName(this.enc[(e - 1)]), this.lvl);
 											if (verbose) {
@@ -444,44 +392,39 @@ implements Listener
 				}
 			}
 
-			if (this.ss.saveShop(saved, shop))
-			{
-				if (verbose)
-				{
+			if (this.ss.saveShop(saved, shop)){
+				if (verbose){
 					System.out.println("Saved Shop: " + this.shopn);
 					System.out.println("SHOP CONTENTS: ");
 					System.out.println(this.ss.getShop(this.shopn));
 				}
-			}
-			else if (verbose) {
-				System.out.println("Shop already exists!");
+			}else{
+				if (verbose) {
+					System.out.println("Shop already exists!");
+				}
 			}
 		}
 	}
 
-	public void addPrice(ItemStack item, Integer price, Integer sell)
-	{
+	public void addPrice(ItemStack item, Integer price, Integer sell){
 		ItemMeta itm = item.getItemMeta();
 		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost")) +" §c$§0,§c" + price, ChatColor.translateAlternateColorCodes('&', getConfig().getString("return"))+" §a$§0.§a" + sell, ChatColor.translateAlternateColorCodes('&', getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line4")) });
 		itm.setLore(itmlore);
 		item.setItemMeta(itm);
 	}
 
-	public void addPrice2(ItemStack item, Integer price)
-	{
+	public void addPrice2(ItemStack item, Integer price){
 		ItemMeta itm = item.getItemMeta();
 		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost"))+" §c$§0,§c" + price, "§7Cannot Resell", ChatColor.translateAlternateColorCodes('&', getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line4")) });
 		itm.setLore(itmlore);
 		item.setItemMeta(itm);
 	}
 
-	public void closeDupe(Player p)
-	{
+	public void closeDupe(Player p){
 		p.closeInventory();
 	}
 
-	public ItemStack stripMeta(ItemStack item, Integer amount)
-	{
+	public ItemStack stripMeta(ItemStack item, Integer amount){
 		ItemMeta itm = item.getItemMeta();
 		itm.setLore(null);
 		item.setItemMeta(itm);
@@ -490,35 +433,26 @@ implements Listener
 	}
 
 	@EventHandler(priority=EventPriority.LOWEST)
-	public void onClick(InventoryClickEvent e)
-	{
-		if ((e.getWhoClicked() instanceof Player))
-		{
+	public void onClick(InventoryClickEvent e){
+		if ((e.getWhoClicked() instanceof Player)){
 			final Player p = (Player)e.getWhoClicked();
-			if (e.getInventory().getType() == InventoryType.PLAYER)
-			{
+			if (e.getInventory().getType() == InventoryType.PLAYER){
 				e.setCancelled(false);
-				if (this.sopen.contains(p.getName())) {
+				if (this.sopen.contains(p.getName())){
 					this.sopen.remove(p.getName());
 				}
 			}
 			if (this.sopen.contains(p.getName()))
 			{
 				this.sopen.remove(p.getName());
-				if (e.getInventory().getTitle().contains(this.menun))
-				{
-					if (e.getSlotType() == InventoryType.SlotType.CONTAINER)
-					{
-						if (e.getClickedInventory().getType() == e.getView().getType())
-						{
-							if (e.isLeftClick() || e.isShiftClick() || e.isRightClick())
-							{
+				if (e.getInventory().getTitle().contains(this.menun)){
+					if (e.getSlotType() == InventoryType.SlotType.CONTAINER){
+						if (e.getClickedInventory().getType() == e.getView().getType()){
+							if (e.isLeftClick() || e.isShiftClick() || e.isRightClick()){
 								int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28 };
 								for (int slot : row1) {
-									if (e.getRawSlot() == slot - 1)
-									{
-										if (getConfig().getString(slot + ".Enabled") == "true")
-										{
+									if (e.getRawSlot() == slot - 1){
+										if (getConfig().getString(slot + ".Enabled") == "true"){
 											if ((!p.hasPermission("guishop.slot." + slot)) && (!p.isOp())) {
 												break;
 											}
@@ -541,9 +475,7 @@ implements Listener
 										break;
 									}
 								}
-							}
-							else
-							{
+							}else{
 								Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
 								{
 									public void run()
@@ -561,8 +493,7 @@ implements Listener
 								}
 							}, 1L);
 						}
-					}
-					else {
+					}else{
 						Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
 						{
 							public void run()
@@ -571,12 +502,10 @@ implements Listener
 							}
 						}, 1L);
 					}
-				}
-				else {
+				}else{
 					e.setCancelled(true);
 				}
-				if ((e.getInventory().getTitle().contains(this.title)) && (!e.getInventory().getTitle().contains(this.menun)))
-				{
+				if ((e.getInventory().getTitle().contains(this.title)) && (!e.getInventory().getTitle().contains(this.menun))){
 					e.setCancelled(true);
 					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
 					{
@@ -585,18 +514,13 @@ implements Listener
 							loadShop(p,true);
 						}
 					}, 1L);
-					if (e.getSlot() != -999)
-					{
+					if (e.getSlot() != -999){
 						ItemStack item = e.getCurrentItem();
 						if (item != null) {
-							if ((item.hasItemMeta()) && 
-									(item.getItemMeta().hasDisplayName())) {
-								if (!item.getItemMeta().getDisplayName().equals(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back"))))
-								{
-									if (e.getInventory().getItem(e.getSlot()) != null)
-									{
-										if (item.getItemMeta().hasLore())
-										{
+							if ((item.hasItemMeta()) && (item.getItemMeta().hasDisplayName())) {
+								if (!item.getItemMeta().getDisplayName().equals(ChatColor.translateAlternateColorCodes('&', getConfig().getString("back")))){
+									if (e.getInventory().getItem(e.getSlot()) != null){
+										if (item.getItemMeta().hasLore()){
 											if (item.getItemMeta().getLore().toString().contains(ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost")))) {}
 											int price = 2147483647;
 											String lorestring2 = ChatColor.stripColor(item.getItemMeta().getLore().toString());
@@ -605,65 +529,51 @@ implements Listener
 											String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", "").replace("Shift+Click to buy 1 item", ""));
 											lorestring = StringUtils.substringBefore(lorestring, ".");
 											price = Integer.parseInt(items.get(1));
-											if ((e.isLeftClick()) && (e.isShiftClick()))
-											{
+											if ((e.isLeftClick()) && (e.isShiftClick())){
 												ItemStack dupeitem = item.clone();
 												int ammount = dupeitem.getAmount() / dupeitem.getAmount();
 												int price2 = price / dupeitem.getAmount();
 												dupeitem.setAmount(ammount);
-												if (this.econ.getBalance(p.getName()) >= price2)
-												{
+												if (this.econ.getBalance(p.getName()) >= price2){
 													EconomyResponse r = this.econ.withdrawPlayer(p.getName(), price2);
-													if (r.transactionSuccess())
-													{
+													if (r.transactionSuccess()){
 														p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")) + ammount + " " + item.getType().toString().toLowerCase() + "§f!");
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§c$" + price2 + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
 													}
-												}
-												else
-												{
+												}else{
 													double dif = price2 - this.econ.getBalance(p.getName());
 													p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("not-enough-pre")) + dif + ChatColor.translateAlternateColorCodes('&', getConfig().getString("not-enough-post")));
 													this.one = Boolean.valueOf(false);
 												}
 											}
 											if ((e.isLeftClick()) && (!e.isShiftClick())) {
-												if (this.one.booleanValue())
-												{
+												if (this.one.booleanValue()){
 													e.setCancelled(true);
-												}
-												else if (this.econ.getBalance(p.getName()) >= price)
-												{
+												}else if (this.econ.getBalance(p.getName()) >= price){
 													EconomyResponse r = this.econ.withdrawPlayer(p.getName(), price);
-													if (r.transactionSuccess())
-													{
+													if (r.transactionSuccess()){
 														ItemStack dupeitem = item.clone();
 														p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "§f!");
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§c$" + price + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
 													}
-												}
-												else
-												{
+												}else{
 													double dif = price - this.econ.getBalance(p.getName());
 													p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("not-enough-pre")) + dif + ChatColor.translateAlternateColorCodes('&', getConfig().getString("not-enough-post")));
 												}
 											}
-										}
-										else
-										{
+										}else{
 											trySell(p, item);
 										}
 									}
-								}
-								else
-								{
+								}else{
 									Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
 									{
 										public void run()
 										{
-											loadMenu(p);
+											closeDupe(p);
+											delayMenu(p);
 										}
 									}, 1L);
 
@@ -682,6 +592,16 @@ implements Listener
 				e.setCancelled(false);
 			}
 		}
+	}
+
+	public void delayMenu(final Player p){
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
+		{
+			public void run()
+			{
+				loadMenu(p);
+			}
+		}, 1L);
 	}
 
 	public static boolean isInteger(String s) {
@@ -763,8 +683,7 @@ implements Listener
 		}
 	}
 
-	private ItemStack setName(ItemStack is, String name, List<String> lore)
-	{
+	private ItemStack setName(ItemStack is, String name, List<String> lore){
 		ItemMeta IM = is.getItemMeta();
 		if (name != null) {
 			IM.setDisplayName(name);
@@ -776,8 +695,7 @@ implements Listener
 		return is;
 	}
 
-	public void reloadCustomConfig()
-	{
+	public void reloadCustomConfig(){
 		if (this.customConfigFile == null) {
 			this.customConfigFile = new File(getDataFolder(), "shops.yml");
 		}
@@ -785,23 +703,20 @@ implements Listener
 
 
 		InputStream defConfigStream = getResource("shops.yml");
-		if (defConfigStream != null)
-		{
+		if (defConfigStream != null){
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
 			this.customConfig.setDefaults(defConfig);
 		}
 	}
 
-	public FileConfiguration getCustomConfig()
-	{
+	public FileConfiguration getCustomConfig(){
 		if (this.customConfig == null) {
 			reloadCustomConfig();
 		}
 		return this.customConfig;
 	}
 
-	public void saveDefaultConfig()
-	{
+	public void saveDefaultConfig(){
 		if (this.customConfigFile == null)
 		{
 			this.customConfigFile = new File(getDataFolder(), "shops.yml");

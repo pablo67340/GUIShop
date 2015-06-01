@@ -11,6 +11,7 @@
 ##################################################
 
 
+
 ##################################################
 #   Need a cheap server host? Reliable?          #
 #   Very good Hardware? DDOS protection?         #
@@ -19,46 +20,108 @@
 ##################################################
 
 
+
 ##Title of the inventory in /shop
-menuname: '&4GUI &5Shop &4Menu'
+menuname: '&4GUI &eShop'
 
 ##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
-tag: '[GUIShop]'
+tag: '&7[&4GUI&4Shop&7]'
 
 ##Print EVERY Action in console (Use only when needed!!!)
-Verbose: false
+Verbose: true
 ## Command used to open shop, DONT PUT A /
 Command: 'shop'
+############ Language settings ###############
+
+#No permission message
+no-permission: '&cNo Permission!'
+
+#Disabled world message
+disabled-world: '&cYou cannot use the shop from this world!'
+
+#The message for the amount you lose, E.G Cost, Or Price
+cost: '&7Price'
+
+#The message for the amount you get back AKA. Sell or Returned
+return: '&7Sell'
+
+#The 1st line of the message on shop items
+line1: '&8To sell, click the item in your inv.'
+
+#The 2nd line of the message on shop items
+line2: '&6Must be the same quantity!'
+
+#The 3rd line of the message on shop items
+line3: 'Click to buy item of quantity'
+
+#The 4th line of the message on shop items
+line4: 'Shift+Click to buy 1 item'
+
+#The text back button in the shops
+back: '&4Back'
+
+#The messaged displayed before the item amount.
+
+## E.G "You Purchased 54"
+purchased: '&fYou purchased, &c'
+
+## The second message displayed when you purchase an item.
+
+## E.G 54$ Taken from your account.
+taken: '&ftaken from your account.'
+
+##  The words displayed before the amount needed.
+not-enough-pre: '&fYou need &c$'
+
+## The words displayed AFTER the amount needed.
+not-enough-post: '&f more money.'
+
+## Text displayed before item name.
+sold: '&fYou sold, &c'
+
+##Second message when buying, Words AFTER the amount
+## E.G 54$ "Added to your account"
+added: '&f added to your account.'
+
+#When something magical goes wrong?
+something-wrong: '&fSomething went wrong, contact an admin.'
+
+#Message displayed when a player tries to sell blocks not matching the quantity.
+in-stacks: '&fPlease sell in stacks of &c'
+
+#Message when a player cannot sell a certain item.
+cant-sell: '&fSorry, you cannot sell that item.'
+
+
 
 DisabledWorlds:
- - 'world_nether'
 
 ##Menu Items
 Rows: 1
 1:
   Enabled: true
-  Item: DIAMOND
-  Name: '&4Misc&6shop'
+  Item: STONE
+  Name: '&4Block&6shop'
   Desc: 'Click Me'
-  Shop: 'Misc'
+  Shop: 'Block'
 2:
   Enabled: true
-  Item: DIAMOND_CHESTPLATE
-  Name: '&4Armour&6shop'
+  Item: TNT
+  Name: '&4Raid &aItem &6Shop'
   Desc: 'Click Me'
-  Shop: 'Armour'
+  Shop: 'Raid'
 3:
   Enabled: true
-  Item: WOOD
-  Name: '&2WoodShop'
+  Item: WOOD_AXE
+  Name: '&2Miscellanous'
   Desc: 'Click Me'
-  Shop: 'Woodshop'
+  Shop: 'Misc'
 4:
   Enabled: true
-  Item: WOOD_AXE
-  Name: 'Tool Shop'
+  Item: DIAMOND
+  Name: '&bDonor Shop'
   Desc: 'Click Me'
-  Shop: 'Tools'
+  Shop: 'DShop'
 
  #############################
  ## Developed by pablo67340 ##

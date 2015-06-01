@@ -6,22 +6,27 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+
 import net.milkbowl.vault.economy.Economy;
 import net.milkbowl.vault.economy.EconomyResponse;
+
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
-
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -65,8 +70,13 @@ public class GUIShop extends JavaPlugin implements Listener{
 		String command = event.getMessage();
 		if (command.equalsIgnoreCase("/" + getConfig().getString("Command"))) {
 			if ((player.hasPermission("guishop.use")) || (player.isOp())){
-				loadMenu(player);
-				event.setCancelled(true);
+				if (getConfig().getBoolean("sign-only")){
+					player.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign-only-message")));
+					event.setCancelled(true);
+				}else{
+					loadMenu(player);
+					event.setCancelled(true);
+				}
 			}else{
 				player.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
 			}
@@ -81,10 +91,11 @@ public class GUIShop extends JavaPlugin implements Listener{
 					if (verbose){
 						System.out.println("No Shop data existed! No Shops have been opened and cached yet!");
 					}
-					event.setCancelled(true);
+
 				}
 				this.reloadConfig();
 				this.reloadCustomConfig();
+				event.setCancelled(true);
 				if (verbose){
 					System.out.println("Reload Complete!");
 				}
@@ -94,6 +105,44 @@ public class GUIShop extends JavaPlugin implements Listener{
 				player.sendMessage("No Permission! You must be OP!");
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void eventSignChanged(SignChangeEvent event){  
+		String title = event.getLine(0);
+		Player p = event.getPlayer();
+		if (title.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")))){
+			if (p.hasPermission("guishop.sign.place") || p.isOp()){
+				event.setCancelled(false);
+			}else{
+				p.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
+				event.setCancelled(true);
+			}
+		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onInteract(PlayerInteractEvent e) {
+		Player player = e.getPlayer();
+		Block block = e.getClickedBlock();
+		if(block.getState() instanceof Sign) {
+			Sign sign = (Sign) block.getState();
+			String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
+			if (verbose){
+				System.out.println("Player Clicked sign with line1: "+line1 +" compared to "+ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")));
+			}
+			if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")))){
+				if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
+					loadMenu(player);
+					e.setCancelled(true);
+				}else{
+					player.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
+					e.setCancelled(true);
+				}
+
+			}
+		}
+
 	}
 
 	private boolean setupEconomy(){
@@ -113,7 +162,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 		this.title = "";
 		this.shopn = "";
 		if ((plyr.hasPermission("guishop.use")) || (plyr.isOp())){
-			if (getConfig().getList("DisabledWorlds").contains(plyr.getWorld().getName())){
+			if (getConfig().getStringList("Disabled-Worlds").contains(plyr.getWorld().getName())){
 				plyr.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("disabled-world")));
 			}else{
 				List Ls = new ArrayList();

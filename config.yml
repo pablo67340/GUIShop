@@ -92,9 +92,18 @@ in-stacks: '&fPlease sell in stacks of &c'
 #Message when a player cannot sell a certain item.
 cant-sell: '&fSorry, you cannot sell that item.'
 
+#The title of a sign that players can click to open shop
+sign-title: '[&4GUI&bShop&0]'
+
+#Do want players to be able to access the shop ONLY using the sign? 
+sign-only: false
+
+sign-only-message: '&cYou can only access the shop by clicking a GUIShop sign!'
+
 
 
 DisabledWorlds:
+    -'Test'
 
 ##Menu Items
 Rows: 1

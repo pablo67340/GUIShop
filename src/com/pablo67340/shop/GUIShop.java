@@ -125,7 +125,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();
 		Block block = e.getClickedBlock();
-		if(block.getState() instanceof Sign) {
+		if(block != null && block.getState() instanceof Sign) {
 			Sign sign = (Sign) block.getState();
 			String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
 			if (verbose){

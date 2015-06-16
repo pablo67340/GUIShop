@@ -712,7 +712,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 		if (verbose){
 			System.out.println("TrySell: "+item.getTypeId());
 		}
-		if (((item != null) || (item == null)) && (!item.getItemMeta().hasLore()) && (p.getInventory().contains(item)))
+		if (item != null && item.getItemMeta() != null && !item.getItemMeta().hasLore() && p.getInventory().contains(item))
 		{
 			if (verbose){
 				System.out.println("Item passed secondary checks!");

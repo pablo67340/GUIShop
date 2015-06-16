@@ -125,7 +125,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();
 		Block block = e.getClickedBlock();
-		if(block.getState() instanceof Sign) {
+		if(block != null && block.getState() instanceof Sign) {
 			Sign sign = (Sign) block.getState();
 			String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
 			if (verbose){
@@ -712,7 +712,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 		if (verbose){
 			System.out.println("TrySell: "+item.getTypeId());
 		}
-		if (((item != null) || (item == null)) && (!item.getItemMeta().hasLore()) && (p.getInventory().contains(item)))
+		if (item != null && item.getItemMeta() != null && !item.getItemMeta().hasLore() && p.getInventory().contains(item))
 		{
 			if (verbose){
 				System.out.println("Item passed secondary checks!");
@@ -726,8 +726,8 @@ public class GUIShop extends JavaPlugin implements Listener{
 				if (item.getTypeId() == Integer.parseInt(itemid))
 				{
 					tally = true;
-					String amount = StringUtils.substringAfter(str, ")");
-					if (Integer.parseInt(amount) == item.getAmount())
+					int amount = Integer.parseInt(StringUtils.substringAfter(str, ")"));
+					if (amount == item.getAmount() || getConfig().getBoolean("allow-partial-sell"))
 					{
 						String preprice = StringUtils.substringAfter(str, "$");
 						String price = StringUtils.substringBefore(preprice, ")");
@@ -735,12 +735,16 @@ public class GUIShop extends JavaPlugin implements Listener{
 						if (!(isInteger(price))){
 							p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
 						}else{
+							double payout = Integer.parseInt(price);
+							if(amount != item.getAmount()) {
+								payout *= (item.getAmount() / (double)amount);
+							}
 							p.getInventory().removeItem(new ItemStack[] { item });
-							EconomyResponse r = this.econ.depositPlayer(p.getName(), Integer.parseInt(price));
+							EconomyResponse r = this.econ.depositPlayer(p, payout);
 							if (r.transactionSuccess())
 							{
 								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "§f!");
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§a$" + price + ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
+								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§a$" + payout + ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
 							}
 							else
 							{
@@ -750,8 +754,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 					}
 					else
 					{
-						int dif = Integer.parseInt(amount);
-						p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("in-stacks")) + dif);
+						p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("in-stacks")) + amount);
 						err = true;
 					}
 				}else{

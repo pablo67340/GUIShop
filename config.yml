@@ -31,6 +31,10 @@ tag: '&7[&4GUI&4Shop&7]'
 Verbose: true
 ## Command used to open shop, DONT PUT A /
 Command: 'shop'
+
+##Let users sell for amounts greater or lower than the set amount.
+##e.g 32 Dirt is worth $32 but the player has a stack of 48. They'll recieve $48.
+allow-partial-sell: true
 ############ Language settings ###############
 
 #No permission message

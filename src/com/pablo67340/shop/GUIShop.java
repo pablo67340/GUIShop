@@ -125,7 +125,7 @@ public class GUIShop extends JavaPlugin implements Listener{
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();
 		Block block = e.getClickedBlock();
-		if(block.getState() instanceof Sign) {
+		if(block instanceof Sign) {
 			Sign sign = (Sign) block.getState();
 			String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
 			if (verbose){
@@ -492,14 +492,14 @@ public class GUIShop extends JavaPlugin implements Listener{
 
 	public void addPrice(ItemStack item, Integer price, Integer sell){
 		ItemMeta itm = item.getItemMeta();
-		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost")) +" §c$§0,§c" + price, ChatColor.translateAlternateColorCodes('&', getConfig().getString("return"))+" §a$§0.§a" + sell, ChatColor.translateAlternateColorCodes('&', getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line4")) });
+		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost")) +" Â§c$Â§0,Â§c" + price, ChatColor.translateAlternateColorCodes('&', getConfig().getString("return"))+" Â§a$Â§0.Â§a" + sell, ChatColor.translateAlternateColorCodes('&', getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line4")) });
 		itm.setLore(itmlore);
 		item.setItemMeta(itm);
 	}
 
 	public void addPrice2(ItemStack item, Integer price){
 		ItemMeta itm = item.getItemMeta();
-		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost"))+" §c$§0,§c" + price, "§7Cannot Resell", ChatColor.translateAlternateColorCodes('&', getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line4")) });
+		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', getConfig().getString("cost"))+" Â§c$Â§0,Â§c" + price, "Â§7Cannot Resell", ChatColor.translateAlternateColorCodes('&', getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', getConfig().getString("line4")) });
 		itm.setLore(itmlore);
 		item.setItemMeta(itm);
 	}
@@ -621,8 +621,8 @@ public class GUIShop extends JavaPlugin implements Listener{
 													EconomyResponse r = this.econ.withdrawPlayer(p.getName(), price2);
 													if (r.transactionSuccess()){
 														p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
-														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")) + ammount + " " + item.getType().toString().toLowerCase() + "§f!");
-														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§c$" + price2 + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
+														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")) + ammount + " " + item.getType().toString().toLowerCase() + "Â§f!");
+														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "Â§c$" + price2 + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
 													}
 												}else{
 													double dif = price2 - this.econ.getBalance(p.getName());
@@ -638,8 +638,8 @@ public class GUIShop extends JavaPlugin implements Listener{
 													if (r.transactionSuccess()){
 														ItemStack dupeitem = item.clone();
 														p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
-														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "§f!");
-														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§c$" + price + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
+														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "Â§f!");
+														p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "Â§c$" + price + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
 													}
 												}else{
 													double dif = price - this.econ.getBalance(p.getName());
@@ -739,8 +739,8 @@ public class GUIShop extends JavaPlugin implements Listener{
 							EconomyResponse r = this.econ.depositPlayer(p.getName(), Integer.parseInt(price));
 							if (r.transactionSuccess())
 							{
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "§f!");
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "§a$" + price + ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
+								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + ChatColor.translateAlternateColorCodes('&', getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "Â§f!");
+								p.sendMessage(ChatColor.translateAlternateColorCodes('&', this.tag) + " " + "Â§a$" + price + ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
 							}
 							else
 							{

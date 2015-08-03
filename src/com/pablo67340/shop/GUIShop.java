@@ -60,8 +60,9 @@ public class GUIShop extends JavaPlugin implements Listener{
 			return;
 		}
 		saveDefaultConfig();
-		verbose = getConfig().getBoolean("Verbose");
+
 		getServer().getPluginManager().registerEvents(this, this);
+		verbose = getConfig().getBoolean("Verbose");
 	}
 
 	@EventHandler(priority=EventPriority.HIGHEST)
@@ -125,24 +126,27 @@ public class GUIShop extends JavaPlugin implements Listener{
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();
 		Block block = e.getClickedBlock();
-		if(block.getState() instanceof Sign) {
-			Sign sign = (Sign) block.getState();
-			String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
-			if (verbose){
-				System.out.println("Player Clicked sign with line1: "+line1 +" compared to "+ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")));
-			}
-			if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")))){
-				if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
-					loadMenu(player);
-					e.setCancelled(true);
-				}else{
-					player.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
-					e.setCancelled(true);
-				}
+		if (block != null){
+			if (block.getState() != null){
+				if(block.getState() instanceof Sign) {
+					Sign sign = (Sign) block.getState();
+					String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
+					if (verbose){
+						System.out.println("Player Clicked sign with line1: "+line1 +" compared to "+ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")));
+					}
+					if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',getConfig().getString("sign-title")))){
+						if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
+							loadMenu(player);
+							e.setCancelled(true);
+						}else{
+							player.sendMessage(ChatColor.translateAlternateColorCodes('&', getConfig().getString("no-permission")));
+							e.setCancelled(true);
+						}
 
+					}
+				}
 			}
 		}
-
 	}
 
 	private boolean setupEconomy(){

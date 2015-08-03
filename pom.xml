@@ -4,11 +4,11 @@
 
   <groupId>com.pablo67340.shop</groupId>
   <artifactId>GUIShop</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>3.9.1-SNAPSHOT</version>
   <packaging>jar</packaging>
 
   <name>GUIShop</name>
-  <url>http://dev.bukkit.org/bukkit-plugins/gui-shop/</url>
+  <url>http://www.spigotmc.org/resources/guishop.2451/</url>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

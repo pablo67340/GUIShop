@@ -1,9 +1,0 @@
-Manifest-Version: 1.0
-Bundle-ManifestVersion: 2
-Bundle-Name: GUIShop
-Bundle-SymbolicName: GUIShop
-Bundle-Version: 1.0.0.qualifier
-Bundle-ClassPath: GUIShop.jar,
- Bryce/Desktop/LIBS/Vault.jar,
- Bryce/Desktop/LIBS/craftbukkit-1.7.2-R0.4-20140216.012104-3.jar
-Export-Package: com.pablo67340.shop

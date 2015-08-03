@@ -11,7 +11,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.pablo67340.GUIShop.Main.Main;
 
 public class Item {
-    static Main plugin;
+	static Main plugin;
 
 	protected String name;
 	protected Integer qty;
@@ -65,20 +65,20 @@ public class Item {
 		item2.setItemMeta(itm);
 		item = item2;
 	}
-	
+
 	public static boolean isInteger(String s) {
 		boolean isInt = plugin.utils.isInteger(s,10);
 		return isInt; 
 	}
-	
+
 	public ItemStack getItem(){
 		return item;
 	}
-	
+
 	public int getSlot(){
 		return slot;
 	}
-	
+
 
 
 }

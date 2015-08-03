@@ -44,11 +44,11 @@ public class Shop {
 		plugin = main;
 		itemString = "";
 	}
-	
+
 	public void setShopName(String input){
 		shopn = input;
 	}
-	
+
 	public String getShopName(){
 		return shopn;
 	}
@@ -94,8 +94,10 @@ public class Shop {
 					String price = "0";
 					String sell = "0";
 					String item = "0";
-					if (plugin.getCustomConfig().get(getShopName() + "." + i) != null){
-						List<String> nodes = plugin.getCustomConfig().getStringList(getShopName() + "." + i);
+					System.out.println("TEST TEST: "+getShopName());
+					if (plugin.getCustomConfig().get(getShopName() + i) != null){
+
+						List<String> nodes = plugin.getCustomConfig().getStringList(getShopName() + i);
 						if (plugin.utils.getVerbose()) {
 							System.out.println("Final item built: " + nodes + " Active!");
 						}
@@ -159,14 +161,17 @@ public class Shop {
 							}
 						}
 						if (Integer.parseInt(data) != 0){
+							System.out.println("ItemWithDataSelected!!!!!");
 							ItemStack itemwithdata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
 							if (plugin.utils.getVerbose()) {
 								System.out.println("Adding item: " + nodes + " To inventory");
 							}
 							if (!(isInteger(sell))){
 								plugin.item.addPrice2(itemwithdata, Integer.valueOf(Integer.parseInt(price)));
+								itemwithdata = plugin.item.item;
 							}else{
 								plugin.item.addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
+								itemwithdata = plugin.item.item;
 							}
 
 							if (plugin.utils.getVerbose()) {
@@ -208,6 +213,7 @@ public class Shop {
 							if (Integer.parseInt(slot) != 44){
 
 								if (plugin.getConfig().getString("back-button-item").contains(":")){
+									shop.setItem(Integer.parseInt(slot), itemwithdata);
 									String[] backi = plugin.getConfig().getString("back-button-item").split(":");
 									int bid = Integer.parseInt(backi[0]);
 									int bme = Integer.parseInt(backi[1]);
@@ -236,17 +242,20 @@ public class Shop {
 								System.out.println("ERROR: An Item tried to overwrite button slot!");
 							}
 						}else{
+							System.out.println("ITEM WITHOUT DATA!");
 							if (Material.getMaterial(i) == null) {
 								System.out.print(i);
 							}
 							if (Integer.parseInt(qty) < 1) {
-								System.out.print("its 0");
+
 							}
 							ItemStack itemnodata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty));
 							if (!(isInteger(sell))){
 								plugin.item.addPrice2(itemnodata, Integer.valueOf(Integer.parseInt(price)));
+								itemnodata = plugin.item.item;
 							}else{
 								plugin.item.addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
+								itemnodata = plugin.item.item;
 							}
 
 							if (name != "null"){

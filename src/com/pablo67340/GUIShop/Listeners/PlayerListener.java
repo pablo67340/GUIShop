@@ -9,13 +9,17 @@ import net.milkbowl.vault.economy.EconomyResponse;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -24,8 +28,10 @@ public class PlayerListener implements Listener{
 	Main plugin;
 
 	public ArrayList menuOpen = new ArrayList();
+	public ArrayList shopOpen = new ArrayList();
 	public String title;
 	public boolean one;
+	public boolean close = false;
 
 	public PlayerListener(Main main){
 		plugin = main;
@@ -43,6 +49,9 @@ public class PlayerListener implements Listener{
 				}else{
 					plugin.menu.loadMenu(player);
 					event.setCancelled(true);
+					if (shopOpen.contains(player.getName())){
+						shopOpen.remove(player.getName());
+					}
 					if (menuOpen.contains(player.getName())){
 						// Idk what i could add in here? Any ideas devs?
 					}else{
@@ -79,18 +88,22 @@ public class PlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.HIGHEST)
 	public void onClick(InventoryClickEvent e){
+		System.out.println("Inventory type is player! onClick");
 		if ((e.getWhoClicked() instanceof Player)){
 			final Player p = (Player)e.getWhoClicked();
-			if (e.getInventory().getType() == InventoryType.PLAYER){
-				e.setCancelled(false);
-				if (menuOpen.contains(p.getName())){
-					menuOpen.remove(p.getName());
-				}
+			if (e.getClickedInventory().getType() == InventoryType.PLAYER){
+				close = false;
+				menuOpen.remove(p.getName());
+				shopOpen.remove(p.getName());
 			}
+
 			if (menuOpen.contains(p.getName()))
 			{
+				close = true;
+				System.out.println("MenuOpen passed. Player removed");
 				menuOpen.remove(p.getName());
 				if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())){
+					System.out.println("Title contains menu name");
 					if (e.getSlotType() == InventoryType.SlotType.CONTAINER){
 						if (e.getClickedInventory().getType() == e.getView().getType()){
 							if (e.isLeftClick() || e.isShiftClick() || e.isRightClick()){
@@ -108,6 +121,8 @@ public class PlayerListener implements Listener{
 											String shopn = (shop + ".");
 											plugin.shop.setShopName(shopn);
 											plugin.shop.loadShop(p);
+											menuOpen.remove(p.getName());
+											shopOpen.add(p.getName());
 											e.setCancelled(true);
 											break;
 										}
@@ -125,9 +140,29 @@ public class PlayerListener implements Listener{
 						plugin.closeInventory(p);
 					}
 				}else{
-					e.setCancelled(true);
+
 				}
-				if ((e.getInventory().getTitle().contains(title)) && (!e.getInventory().getTitle().contains(plugin.utils.getMenuName()))){
+
+			}
+			else
+			{
+				e.setCancelled(false);
+			}
+		}
+	}
+
+	@EventHandler(priority=EventPriority.LOWEST)
+	public void onShopClick(InventoryClickEvent e){
+		if (e.getWhoClicked() instanceof Player){
+			System.out.println("e is a player onShopClick");
+			final Player p = (Player) e.getWhoClicked();
+			if (!(shopOpen.contains(p.getName()))){
+				System.out.println("shopOpen DOES contain onShopClick");
+				// Do nothing
+			}else{
+				String properName = plugin.shop.getShopName().replace(".", "");
+				if ((e.getInventory().getTitle().contains(properName)) && (!e.getInventory().getTitle().contains(plugin.utils.getMenuName()))){
+					System.out.println("Shop name is shop name and not menu name");
 					e.setCancelled(true);
 					plugin.closeInventory(p);
 					if (e.getSlot() != -999){
@@ -145,6 +180,7 @@ public class PlayerListener implements Listener{
 											lorestring = StringUtils.substringBefore(lorestring, ".");
 											price = Integer.parseInt(items.get(1));
 											if ((e.isLeftClick()) && (e.isShiftClick())){
+												e.setCancelled(true);
 												ItemStack dupeitem = item.clone();
 												int ammount = dupeitem.getAmount() / dupeitem.getAmount();
 												int price2 = price / dupeitem.getAmount();
@@ -157,6 +193,7 @@ public class PlayerListener implements Listener{
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + "§c$" + price2 + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("taken")));
 													}
 												}else{
+													p.setItemInHand(null);
 													double dif = price2 - plugin.econ.getBalance(p.getName());
 													p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-pre")) + dif + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-post")));
 													one = Boolean.valueOf(false);
@@ -176,6 +213,7 @@ public class PlayerListener implements Listener{
 												}else{
 													double dif = price - plugin.econ.getBalance(p.getName());
 													p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-pre")) + dif + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-post")));
+													p.setItemOnCursor(new ItemStack(Material.AIR));
 												}
 											}
 										}else{
@@ -199,17 +237,33 @@ public class PlayerListener implements Listener{
 							}
 						}
 					}
-				}
+				}// yo
 				else
 				{
+					if (!e.getClickedInventory().getTitle().contains(properName) && !e.getClickedInventory().getTitle().contains(plugin.utils.getMenuName())){
+						shopOpen.remove(p.getName());
+					}
 					e.setCancelled(true);
 				}
 			}
-			else
-			{
-				e.setCancelled(false);
-			}
 		}
+	}
+
+
+	@EventHandler
+	public void onItemDrop(PlayerDropItemEvent e){
+
+		Player p = e.getPlayer();
+		ItemStack item = e.getItemDrop().getItemStack().clone();
+		if (close==true){
+			e.getItemDrop().remove();
+			close = false;
+		}
+
+
+
+
+
 	}
 
 	public ItemStack stripMeta(ItemStack item, Integer amount){

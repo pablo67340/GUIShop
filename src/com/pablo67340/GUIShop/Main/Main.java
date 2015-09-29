@@ -90,6 +90,7 @@ public class Main extends JavaPlugin{
 			public void run()
 			{
 				menu.loadMenu(p);
+
 			}
 		}, 1L);
 	}

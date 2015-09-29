@@ -25,12 +25,14 @@ public class Item {
 	protected String line3;
 	protected String line4;
 	protected ItemStack item;
+	protected boolean isSpawner;
+	protected int mobid;
 
 	public Item(Main main){
 		plugin = main;
 	}
 
-	public void buildItem(String name1, Integer itemID1, Integer qty1, String sell1, Integer buy1, Integer slot1, String line11, String line21, String line31, String line41){
+	public void buildItem(String name1, Integer itemID1, Integer qty1, String sell1, Integer buy1, Integer slot1, String line11, String line21, String line31, String line41, Boolean isSpawner2, Integer mobid2){
 		item = new ItemStack(Material.getMaterial(itemID), qty, data);
 		name = name1;
 		itemID = itemID1;
@@ -42,25 +44,41 @@ public class Item {
 		line2 = line21;
 		line3 = line31;
 		line4 = line41;
+		mobid = mobid2;
+		isSpawner = isSpawner2;
+
+
 		if (!(isInteger(sell))){
-			addPrice2(item, Integer.valueOf(buy));
+			addPrice2(item, Integer.valueOf(buy), isSpawner, mobid);
 		}else{
-			addPrice(item, buy, Integer.parseInt(sell));
+			addPrice(item, buy, Integer.parseInt(sell), isSpawner, mobid);
 		}
 	}
 
 
-	public void addPrice(ItemStack item2, Integer price, Integer sell){
+	public void addPrice(ItemStack item2, Integer price, Integer sell, Boolean isSpawner, Integer mobid){
 		ItemMeta itm = item2.getItemMeta();
-		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost")) +" §c$§0,§c" + price, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("return"))+" §a$§0.§a" + sell, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line4")) });
+		List<String> itmlore;
+		if (isSpawner){
+			itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost")) +" §c$§0,§c" + price, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("return"))+" §a$§0.§a" + sell, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line4")), "Mob ID: "+mobid });
+		}else{
+			itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost")) +" §c$§0,§c" + price, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("return"))+" §a$§0.§a" + sell, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line4")) });
+		}
+
 		itm.setLore(itmlore);
 		item2.setItemMeta(itm);
 		item = item2;
 	}
 
-	public void addPrice2(ItemStack item2, Integer price){
+	public void addPrice2(ItemStack item2, Integer price, Boolean isSpawner, Integer mobid){
 		ItemMeta itm = item2.getItemMeta();
-		List<String> itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost"))+" §c$§0,§c" + price, "§7Cannot Resell", ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line4")) });
+		List<String> itmlore;
+		if (isSpawner){
+			itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost")) +" §c$§0,§c" + price, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("return"))+" §a$§0.§a" + sell, ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line4")), "Mob ID: "+mobid });
+		}else{
+			itmlore = Arrays.asList(new String[] { ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost"))+" §c$§0,§c" + price, "§7Cannot Resell", ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line1")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line2")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line3")), ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("line4")) });
+		}
+
 		itm.setLore(itmlore);
 		item2.setItemMeta(itm);
 		item = item2;

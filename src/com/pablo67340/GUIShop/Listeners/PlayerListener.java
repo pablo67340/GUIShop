@@ -10,6 +10,7 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -23,7 +24,10 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import com.pablo67340.GUIShop.Handlers.Spawners;
 import com.pablo67340.GUIShop.Main.Main;
+
+import de.dustplanet.util.SilkUtil;
 public class PlayerListener implements Listener{
 	Main plugin;
 
@@ -88,47 +92,54 @@ public class PlayerListener implements Listener{
 
 	@EventHandler(priority=EventPriority.HIGHEST)
 	public void onClick(InventoryClickEvent e){
-		System.out.println("Inventory type is player! onClick");
 		if ((e.getWhoClicked() instanceof Player)){
 			final Player p = (Player)e.getWhoClicked();
-			if (e.getClickedInventory().getType() == InventoryType.PLAYER){
-				close = false;
-				menuOpen.remove(p.getName());
-				shopOpen.remove(p.getName());
-			}
+			if (!shopOpen.contains(p.getName())){
+				if (e.getClickedInventory().getType() == InventoryType.PLAYER){
+					close = false;
+					menuOpen.remove(p.getName());
+					shopOpen.remove(p.getName());
+				}
 
-			if (menuOpen.contains(p.getName()))
-			{
-				close = true;
-				System.out.println("MenuOpen passed. Player removed");
-				menuOpen.remove(p.getName());
-				if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())){
-					System.out.println("Title contains menu name");
-					if (e.getSlotType() == InventoryType.SlotType.CONTAINER){
-						if (e.getClickedInventory().getType() == e.getView().getType()){
-							if (e.isLeftClick() || e.isShiftClick() || e.isRightClick()){
-								int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28 };
-								for (int slot : row1) {
-									if (e.getRawSlot() == slot - 1){
-										if (plugin.getConfig().getString(slot + ".Enabled") == "true"){
-											if ((!p.hasPermission("guishop.slot." + slot)) && (!p.isOp())) {
+				if (menuOpen.contains(p.getName()))
+				{
+					close = true;
+					if (plugin.utils.getVerbose()){
+						System.out.println("MenuOpen passed. Player removed");
+					}
+					menuOpen.remove(p.getName());
+					if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())){
+						if (plugin.utils.getVerbose()){
+							System.out.println("Title contains menu name");
+						}
+						if (e.getSlotType() == InventoryType.SlotType.CONTAINER){
+							if (e.getClickedInventory().getType() == e.getView().getType()){
+								if (e.isLeftClick() || e.isShiftClick() || e.isRightClick()){
+									int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28 };
+									for (int slot : row1) {
+										if (e.getRawSlot() == slot - 1){
+											if (plugin.getConfig().getString(slot + ".Enabled") == "true"){
+												if ((!p.hasPermission("guishop.slot." + slot)) && (!p.isOp())) {
+													break;
+												}
+												e.setCancelled(true);
+												String shop = plugin.getConfig().getString(slot + ".Shop");
+												title = "";
+												title = plugin.getConfig().getString(slot + ".Shop");
+												String shopn = (shop + ".");
+												plugin.shop.setShopName(shopn);
+												plugin.shop.loadShop(p);
+												menuOpen.remove(p.getName());
+												shopOpen.add(p.getName());
+												e.setCancelled(true);
 												break;
 											}
-											e.setCancelled(true);
-											String shop = plugin.getConfig().getString(slot + ".Shop");
-											title = "";
-											title = plugin.getConfig().getString(slot + ".Shop");
-											String shopn = (shop + ".");
-											plugin.shop.setShopName(shopn);
-											plugin.shop.loadShop(p);
-											menuOpen.remove(p.getName());
-											shopOpen.add(p.getName());
-											e.setCancelled(true);
+											plugin.closeInventory(p);
 											break;
 										}
-										plugin.closeInventory(p);
-										break;
 									}
+								}else{
+									plugin.closeInventory(p);
 								}
 							}else{
 								plugin.closeInventory(p);
@@ -137,16 +148,14 @@ public class PlayerListener implements Listener{
 							plugin.closeInventory(p);
 						}
 					}else{
-						plugin.closeInventory(p);
+
 					}
-				}else{
 
 				}
-
-			}
-			else
-			{
-				e.setCancelled(false);
+				else
+				{
+					e.setCancelled(false);
+				}
 			}
 		}
 	}
@@ -154,17 +163,23 @@ public class PlayerListener implements Listener{
 	@EventHandler(priority=EventPriority.LOWEST)
 	public void onShopClick(InventoryClickEvent e){
 		if (e.getWhoClicked() instanceof Player){
-			System.out.println("e is a player onShopClick");
+			if (plugin.utils.getVerbose()){
+				System.out.println("e is a player onShopClick");
+			}
 			final Player p = (Player) e.getWhoClicked();
 			if (!(shopOpen.contains(p.getName()))){
-				System.out.println("shopOpen DOES contain onShopClick");
+				if (plugin.utils.getVerbose()){
+					System.out.println("shopOpen DOES contain onShopClick");
+				}
 				// Do nothing
 			}else{
 				String properName = plugin.shop.getShopName().replace(".", "");
 				if ((e.getInventory().getTitle().contains(properName)) && (!e.getInventory().getTitle().contains(plugin.utils.getMenuName()))){
-					System.out.println("Shop name is shop name and not menu name");
+					if (plugin.utils.getVerbose()){
+						System.out.println("Shop name is shop name and not menu name");
+						System.out.println("Menu name: "+plugin.utils.getMenuName() + " Compared to: "+ e.getInventory().getTitle());
+					}
 					e.setCancelled(true);
-					plugin.closeInventory(p);
 					if (e.getSlot() != -999){
 						ItemStack item = e.getCurrentItem();
 						if (item != null) {
@@ -178,6 +193,10 @@ public class PlayerListener implements Listener{
 											List<String> items = Arrays.asList(lorestring2.split("\\s*,\\s*"));
 											String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", "").replace("Shift+Click to buy 1 item", ""));
 											lorestring = StringUtils.substringBefore(lorestring, ".");
+											String mobid = StringUtils.substringAfter(lorestring2, "ID: ").replace("]", "");
+											if (plugin.utils.getVerbose()){
+												System.out.println("LORE LORE LORE LORE!!!!!!!! "+mobid);
+											}
 											price = Integer.parseInt(items.get(1));
 											if ((e.isLeftClick()) && (e.isShiftClick())){
 												e.setCancelled(true);
@@ -185,10 +204,33 @@ public class PlayerListener implements Listener{
 												int ammount = dupeitem.getAmount() / dupeitem.getAmount();
 												int price2 = price / dupeitem.getAmount();
 												dupeitem.setAmount(ammount);
+												e.setCancelled(true);
 												if (plugin.econ.getBalance(p.getName()) >= price2){
 													EconomyResponse r = plugin.econ.withdrawPlayer(p.getName(), price2);
 													if (r.transactionSuccess()){
-														p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
+														e.setCancelled(true);
+														if(dupeitem.getType() == Material.MOB_SPAWNER) {
+															if (plugin.getServer().getPluginManager().getPlugin("SilkSpawners") == null) {
+																if (plugin.utils.getVerbose()){
+																	System.out.println("ERROR: You are trying to purchase a MobSpawner without SilkSpawners installed!");
+																}
+															}else{
+																if (plugin.utils.getVerbose()){
+																	System.out.println("Item IS a MOB_SPAWNER");
+																}
+																SilkUtil su = SilkUtil.hookIntoSilkSpanwers();
+																Spawners sp = new Spawners();
+																ItemStack dupeitem2 = stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount()));
+																p.getInventory().addItem(su.setSpawnerType(dupeitem2, Short.parseShort(mobid), sp.getMobName(Integer.parseInt(mobid))+" Spawner"));
+															}
+														}else{
+															if (plugin.utils.getVerbose()){
+																System.out.println("No Mob Spawner here...");
+															}
+															p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
+														}
+
+
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("purchased")) + ammount + " " + item.getType().toString().toLowerCase() + "§f!");
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + "§c$" + price2 + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("taken")));
 													}
@@ -206,7 +248,26 @@ public class PlayerListener implements Listener{
 													EconomyResponse r = plugin.econ.withdrawPlayer(p.getName(), price);
 													if (r.transactionSuccess()){
 														ItemStack dupeitem = item.clone();
-														p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
+														if(dupeitem.getType() == Material.MOB_SPAWNER) {
+															if (plugin.getServer().getPluginManager().getPlugin("SilkSpawners") == null) {
+																if (plugin.utils.getVerbose()){
+																	System.out.println("ERROR: You are trying to purchase a MobSpawner without SilkSpawners installed!");
+																}
+															}else{
+																if (plugin.utils.getVerbose()){
+																	System.out.println("Item IS a MOB_SPAWNER");
+																}
+																SilkUtil su = SilkUtil.hookIntoSilkSpanwers();
+																Spawners sp = new Spawners();
+																ItemStack dupeitem2 = stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount()));
+																p.getInventory().addItem(su.setSpawnerType(dupeitem2, Short.parseShort(mobid), sp.getMobName(Integer.parseInt(mobid))+" Spawner"));
+															}
+														}else{
+															if (plugin.utils.getVerbose()){
+																System.out.println("No Mob Spawner here...");
+															}
+															p.getInventory().addItem(new ItemStack[] { stripMeta(dupeitem, Integer.valueOf(dupeitem.getAmount())) });
+														}
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "§f!");
 														p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + "§c$" + price + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("taken")));
 													}
@@ -226,8 +287,10 @@ public class PlayerListener implements Listener{
 									{
 										public void run()
 										{
-
+											menuOpen.add(p.getName());
+											shopOpen.remove(p.getName());
 											plugin.delayMenu(p);
+
 										}
 									}, 1L);
 
@@ -237,9 +300,7 @@ public class PlayerListener implements Listener{
 							}
 						}
 					}
-				}// yo
-				else
-				{
+				}else{
 					if (!e.getClickedInventory().getTitle().contains(properName) && !e.getClickedInventory().getTitle().contains(plugin.utils.getMenuName())){
 						shopOpen.remove(p.getName());
 					}

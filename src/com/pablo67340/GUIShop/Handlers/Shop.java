@@ -94,7 +94,10 @@ public class Shop {
 					String price = "0";
 					String sell = "0";
 					String item = "0";
-					System.out.println("TEST TEST: "+getShopName());
+					Boolean isSpawner = false;
+					if (plugin.utils.getVerbose()){
+						System.out.println("TEST TEST: "+getShopName());
+					}
 					if (plugin.getCustomConfig().get(getShopName() + i) != null){
 
 						List<String> nodes = plugin.getCustomConfig().getStringList(getShopName() + i);
@@ -135,6 +138,17 @@ public class Shop {
 									if (plugin.utils.getVerbose()) {
 										System.out.println("Data value found: " + data);
 									}
+									if (item.equalsIgnoreCase("52")){
+										isSpawner = true;
+										if (plugin.utils.verbose){
+											System.out.println("Item IS a mob spawner! Beginning alternate data organizing!");
+										}
+
+									}else{
+										if (plugin.utils.verbose){
+											System.out.println("Bypassed item ID code, Was not a spawner!");
+										}
+									}
 								}
 								if (((String)nodes.get(nodeapi)).contains("enchantments:")){
 									ench = ((String)nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
@@ -161,16 +175,29 @@ public class Shop {
 							}
 						}
 						if (Integer.parseInt(data) != 0){
-							System.out.println("ItemWithDataSelected!!!!!");
+							if (plugin.utils.getVerbose()){
+								System.out.println("ItemWithDataSelected!!!!!");
+							}
 							ItemStack itemwithdata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
 							if (plugin.utils.getVerbose()) {
 								System.out.println("Adding item: " + nodes + " To inventory");
 							}
 							if (!(isInteger(sell))){
-								plugin.item.addPrice2(itemwithdata, Integer.valueOf(Integer.parseInt(price)));
+								if (isSpawner){
+									plugin.item.addPrice2(itemwithdata, Integer.valueOf(Integer.parseInt(price)), true, Integer.parseInt(data));
+
+								}else{
+									plugin.item.addPrice2(itemwithdata, Integer.valueOf(Integer.parseInt(price)), false, 0);
+								}
 								itemwithdata = plugin.item.item;
 							}else{
-								plugin.item.addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
+
+								if (isSpawner){
+									plugin.item.addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), true, Integer.parseInt(data));
+								}else{
+									plugin.item.addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), false, 0);
+
+								}
 								itemwithdata = plugin.item.item;
 							}
 
@@ -242,7 +269,9 @@ public class Shop {
 								System.out.println("ERROR: An Item tried to overwrite button slot!");
 							}
 						}else{
-							System.out.println("ITEM WITHOUT DATA!");
+							if (plugin.utils.getVerbose()){
+								System.out.println("ITEM WITHOUT DATA!");
+							}
 							if (Material.getMaterial(i) == null) {
 								System.out.print(i);
 							}
@@ -251,10 +280,20 @@ public class Shop {
 							}
 							ItemStack itemnodata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty));
 							if (!(isInteger(sell))){
-								plugin.item.addPrice2(itemnodata, Integer.valueOf(Integer.parseInt(price)));
+								if (isSpawner){
+									plugin.item.addPrice2(itemnodata, Integer.valueOf(Integer.parseInt(price)), true, 90);
+								}else{
+									plugin.item.addPrice2(itemnodata, Integer.valueOf(Integer.parseInt(price)), false, 90);
+								}
+
 								itemnodata = plugin.item.item;
 							}else{
-								plugin.item.addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)));
+								if (isSpawner){
+									plugin.item.addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), true, 90);
+								}else{
+									plugin.item.addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), false, 0);
+								}
+
 								itemnodata = plugin.item.item;
 							}
 

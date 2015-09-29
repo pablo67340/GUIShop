@@ -15,7 +15,7 @@ import org.bukkit.ChatColor;
 ////////////////////////////////////////
 
 public class Utils {
-	
+
 	Main plugin;
 	protected boolean verbose;
 	protected String prefix;
@@ -49,39 +49,39 @@ public class Utils {
 	public String getPrefix(){
 		return prefix;
 	}
-	
+
 	public void setMenuName(String input){
 		menuname = ChatColor.translateAlternateColorCodes('&', input);
 	}
-	
+
 	public String getMenuName(){
 		return menuname;
 	}
-	
+
 	public void setCommand(String input){
 		command = input;
 	}
-	
+
 	public String getCommand(){
 		return command;
 	}
-	
+
 	public void setSignTitle(String input){
 		signtitle = ChatColor.translateAlternateColorCodes('&', input);
 	}
-	
+
 	public String getSignTitle(){
 		return signtitle;
 	}
-	
+
 	public void setSignOnly(boolean input){
 		signonly = input;
 	}
-	
+
 	public Boolean getSignOnly(){
 		return signonly;
 	}
-	
+
 	public boolean isInteger(String s, int radix) {
 		if(s.isEmpty()) return false;
 		for(int i = 0; i < s.length(); i++) {

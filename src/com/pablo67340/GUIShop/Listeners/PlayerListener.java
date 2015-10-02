@@ -41,7 +41,7 @@ public class PlayerListener implements Listener{
 		plugin = main;
 	}
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority=EventPriority.LOWEST)
 	public void onCommand(PlayerCommandPreprocessEvent event){
 		Player player = event.getPlayer();
 		String command = event.getMessage();
@@ -90,7 +90,7 @@ public class PlayerListener implements Listener{
 		}
 	}
 
-	@EventHandler(priority=EventPriority.HIGHEST)
+	@EventHandler(priority=EventPriority.LOWEST)
 	public void onClick(InventoryClickEvent e){
 		if ((e.getWhoClicked() instanceof Player)){
 			final Player p = (Player)e.getWhoClicked();

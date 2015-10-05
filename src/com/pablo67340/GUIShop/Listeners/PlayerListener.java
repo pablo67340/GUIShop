@@ -17,7 +17,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -91,6 +93,19 @@ public class PlayerListener implements Listener{
 	}
 
 	@EventHandler(priority=EventPriority.LOWEST)
+	public void onMove(InventoryMoveItemEvent e){
+
+		Player p = (Player)e.getInitiator().getViewers();
+		System.out.println("ITEM MOVED!! "+p.getName());
+		if (menuOpen.contains(p.getName())){
+			e.setCancelled(true);
+		}
+		if (shopOpen.contains(p.getName())){
+			e.setCancelled(true);
+		}
+	}
+
+	@EventHandler(priority=EventPriority.LOWEST)
 	public void onClick(InventoryClickEvent e){
 		if ((e.getWhoClicked() instanceof Player)){
 			final Player p = (Player)e.getWhoClicked();
@@ -107,14 +122,19 @@ public class PlayerListener implements Listener{
 					if (plugin.utils.getVerbose()){
 						System.out.println("MenuOpen passed. Player removed");
 					}
-					menuOpen.remove(p.getName());
+
 					if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())){
 						if (plugin.utils.getVerbose()){
 							System.out.println("Title contains menu name");
 						}
+						if (e.getClick().isKeyboardClick()){
+							e.setCancelled(true);
+							p.closeInventory();
+						}
 						if (e.getSlotType() == InventoryType.SlotType.CONTAINER){
 							if (e.getClickedInventory().getType() == e.getView().getType()){
-								if (e.isLeftClick() || e.isShiftClick() || e.isRightClick()){
+								if (e.isLeftClick() || e.isShiftClick() || e.isRightClick() && (!e.getClick().isKeyboardClick())){
+
 									int[] row1 = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28 };
 									for (int slot : row1) {
 										if (e.getRawSlot() == slot - 1){
@@ -138,12 +158,16 @@ public class PlayerListener implements Listener{
 											break;
 										}
 									}
-								}else{
-									plugin.closeInventory(p);
+
+								}else if (e.getClick().isKeyboardClick()){
+
 								}
+
 							}else{
 								plugin.closeInventory(p);
 							}
+
+
 						}else{
 							plugin.closeInventory(p);
 						}
@@ -157,6 +181,7 @@ public class PlayerListener implements Listener{
 					e.setCancelled(false);
 				}
 			}
+
 		}
 	}
 
@@ -174,6 +199,10 @@ public class PlayerListener implements Listener{
 				// Do nothing
 			}else{
 				String properName = plugin.shop.getShopName().replace(".", "");
+				if (e.getClick().isKeyboardClick()){
+					e.setCancelled(true);
+					p.closeInventory();
+				}
 				if ((e.getInventory().getTitle().contains(properName)) && (!e.getInventory().getTitle().contains(plugin.utils.getMenuName()))){
 					if (plugin.utils.getVerbose()){
 						System.out.println("Shop name is shop name and not menu name");
@@ -198,7 +227,7 @@ public class PlayerListener implements Listener{
 												System.out.println("LORE LORE LORE LORE!!!!!!!! "+mobid);
 											}
 											price = Integer.parseInt(items.get(1));
-											if ((e.isLeftClick()) && (e.isShiftClick())){
+											if ((e.isLeftClick()) && (e.isShiftClick()) && (!e.getClick().isKeyboardClick())){
 												e.setCancelled(true);
 												ItemStack dupeitem = item.clone();
 												int ammount = dupeitem.getAmount() / dupeitem.getAmount();
@@ -241,7 +270,7 @@ public class PlayerListener implements Listener{
 													one = Boolean.valueOf(false);
 												}
 											}
-											if ((e.isLeftClick()) && (!e.isShiftClick())) {
+											if ((e.isLeftClick()) && (!e.isShiftClick()) && (!e.getClick().isKeyboardClick())) {
 												if (one){
 													e.setCancelled(true);
 												}else if (plugin.econ.getBalance(p.getName()) >= price){
@@ -306,6 +335,7 @@ public class PlayerListener implements Listener{
 					}
 					e.setCancelled(true);
 				}
+
 			}
 		}
 	}

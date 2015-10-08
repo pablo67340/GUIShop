@@ -93,19 +93,6 @@ public class PlayerListener implements Listener{
 	}
 
 	@EventHandler(priority=EventPriority.LOWEST)
-	public void onMove(InventoryMoveItemEvent e){
-
-		Player p = (Player)e.getInitiator().getViewers();
-		System.out.println("ITEM MOVED!! "+p.getName());
-		if (menuOpen.contains(p.getName())){
-			e.setCancelled(true);
-		}
-		if (shopOpen.contains(p.getName())){
-			e.setCancelled(true);
-		}
-	}
-
-	@EventHandler(priority=EventPriority.LOWEST)
 	public void onClick(InventoryClickEvent e){
 		if ((e.getWhoClicked() instanceof Player)){
 			final Player p = (Player)e.getWhoClicked();

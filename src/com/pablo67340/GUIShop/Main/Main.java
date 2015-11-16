@@ -1,134 +1,161 @@
 package com.pablo67340.GUIShop.Main;
 
+import com.pablo67340.GUIShop.Handlers.Cache;
+import com.pablo67340.GUIShop.Handlers.DataLoader;
+import com.pablo67340.GUIShop.Handlers.Item;
+import com.pablo67340.GUIShop.Handlers.Menu;
+import com.pablo67340.GUIShop.Handlers.Sell;
+import com.pablo67340.GUIShop.Handlers.Shop;
+import com.pablo67340.GUIShop.Handlers.Utils;
+import com.pablo67340.GUIShop.Listeners.PlayerListener;
 import java.io.File;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
-
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
+
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.Plugin;
+
 import org.bukkit.plugin.RegisteredServiceProvider;
+
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.pablo67340.GUIShop.Handlers.Cache;
-import com.pablo67340.GUIShop.Handlers.Item;
-import com.pablo67340.GUIShop.Handlers.Menu;
-import com.pablo67340.GUIShop.Handlers.Shop;
-import com.pablo67340.GUIShop.Handlers.Utils;
-import com.pablo67340.GUIShop.Listeners.PlayerListener;
 
-public class Main extends JavaPlugin{
+public class Main
+extends JavaPlugin {
+    private FileConfiguration customConfig = null;
+    private File customConfigFile = null;
+    private File defaultConfigFile = null;
+    public Economy econ;
+    public Item item;
+    public Utils utils;
+    public Cache cache;
+    public Shop shop;
+    public Menu menu;
+    public Sell sell;
+    public DataLoader dataLoader;
+    public List<String> sellitems;
 
+    public Main() {
+        item = new Item(this);
+        utils = new Utils(this);
+        cache = new Cache(this);
+        shop = new Shop(this);
+        menu = new Menu(this);
+        sell = new Sell(this);
+        dataLoader = new DataLoader(this);
+        sellitems = new ArrayList<String>();
+    }
 
-	//VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES VARIABLES
-	private FileConfiguration customConfig = null;
-	private File customConfigFile = null;
-	private File defaultConfigFile = null;
-	public Economy econ;
-	public Item item = new Item(this);
-	public Utils utils = new Utils(this);
-	public Cache cache = new Cache(this);
-	public Shop shop = new Shop(this);
-	public Menu menu = new Menu(this);
-	public List<String> sellitems = new ArrayList<String>();
+    public void onEnable() {
+        if (!setupEconomy()) {
+            getServer().getPluginManager().disablePlugin((Plugin)this);
+            return;
+        }
+        saveDefaultConfig();
+        loadDefaults();
+        getServer().getPluginManager().registerEvents((Listener)new PlayerListener(this), (Plugin)this);
+    }
 
-	//METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS METHODS
+    public void onDisable() {
+        cache.flushData();
+    }
 
-	public void onEnable(){
-		if (!setupEconomy()){
-			getServer().getPluginManager().disablePlugin(this);
-			return;
-		}
-		saveDefaultConfig();
-		loadDefaults();
-		this.getServer().getPluginManager().registerEvents(new PlayerListener(this), this);
-	}
+    @SuppressWarnings({ "rawtypes", "unchecked" })
+	private boolean setupEconomy() {
+        if (getServer().getPluginManager().getPlugin("Vault") == null) {
+            return false;
+        }
+        RegisteredServiceProvider rsp = getServer().getServicesManager().getRegistration((Class)Economy.class);
+        if (rsp == null) {
+            return false;
+        }
+        econ = (Economy)rsp.getProvider();
+        if (econ != null) {
+            return true;
+        }
+        return false;
+    }
 
-	private boolean setupEconomy(){
-		if (getServer().getPluginManager().getPlugin("Vault") == null) {
-			return false;
-		}
-		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
-		if (rsp == null) {
-			return false;
-		}
-		econ = ((Economy)rsp.getProvider());
-		return econ != null;
-	}
+    public void loadDefaults() {
+        utils.setCommand(getConfig().getString("Command"));
+        utils.setMenuName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("menuname")));
+        utils.setPrefix(ChatColor.translateAlternateColorCodes('&', getConfig().getString("tag")));
+        utils.setSignOnly(getConfig().getBoolean("sign-only"));
+        utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign-title")));
+        utils.setVerbose(getConfig().getBoolean("Verbose"));
+        utils.setSellCommand(getConfig().getString("sell-command"));
+        utils.setSellTitle(getConfig().getString("sell-title"));
+    }
 
-	public void loadDefaults(){
-		utils.setCommand(getConfig().getString("Command"));
-		utils.setMenuName(ChatColor.translateAlternateColorCodes('&', getConfig().getString("menuname")));
-		utils.setPrefix(ChatColor.translateAlternateColorCodes('&', getConfig().getString("tag")));
-		utils.setSignOnly(getConfig().getBoolean("sign-only"));
-		utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign-title")));
-		utils.setVerbose(getConfig().getBoolean("Verbose"));
-	}
+    public void closeInventory(final Player p) {
+        getServer().getScheduler().scheduleSyncDelayedTask((Plugin)this, new Runnable(){
 
-	public void closeInventory(final Player p){
-		// This schedules the inventory to be closed on the next tick, Reason is this can cause dupes, And is a proper close method.
-		// Player.closeInventory() on the same tick is improper. Sometimes it wont close, Sometimes it will.
-		// This properly closes the players inventory. Your welcome developers who are making plugins similar to this :)
-		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
-		{
-			public void run()
-			{
-				p.closeInventory();
-			}
-		}, 1L);
-	}
+            @Override
+            public void run() {
+                p.closeInventory();
+            }
+        }, 1);
+    }
 
-	public void delayMenu(final Player p){
-		// This schedules the menu to be opened on the next tick, Reason is this can cause dupes, And is a proper close method.
-		// For some reason if one inventory is closed and one is opened on the same tick, the inventory listeners will not register
-		// on the newly opened inventory. Therefor the items can be taken out of the menu. Scheduling on next tick fixes this.
-		this.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable()
-		{
-			public void run()
-			{
-				menu.loadMenu(p);
+    public void delayMenu(final Player p) {
+        getServer().getScheduler().scheduleSyncDelayedTask((Plugin)this, new Runnable(){
 
-			}
-		}, 1L);
-	}
+            @Override
+            public void run() {
+                menu.loadMenu(p);
+            }
+        }, 1);
+    }
+    
+    public void delayShop(final Player p) {
+        getServer().getScheduler().scheduleSyncDelayedTask((Plugin)this, new Runnable(){
 
+            @Override
+            public void run() {
+                shop.loadShop(p);
+            }
+        }, 1);
+    }
 
-	public void reloadCustomConfig(){
-		if (this.customConfigFile == null) {
-			this.customConfigFile = new File(getDataFolder(), "shops.yml");
-		}
-		this.customConfig = YamlConfiguration.loadConfiguration(this.customConfigFile);
+    @SuppressWarnings("deprecation")
+	public void reloadCustomConfig() {
+        if (customConfigFile == null) {
+            customConfigFile = new File(getDataFolder(), "shops.yml");
+        }
+        customConfig = YamlConfiguration.loadConfiguration((File)customConfigFile);
+        InputStream defConfigStream = getResource("shops.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration((InputStream)defConfigStream);
+            customConfig.setDefaults((Configuration)defConfig);
+        }
+    }
 
+    public FileConfiguration getCustomConfig() {
+        if (customConfig == null) {
+            reloadCustomConfig();
+        }
+        return customConfig;
+    }
 
-		InputStream defConfigStream = getResource("shops.yml");
-		if (defConfigStream != null){
-			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-			this.customConfig.setDefaults(defConfig);
-		}
-	}
-	public FileConfiguration getCustomConfig(){
-		if (this.customConfig == null) {
-			reloadCustomConfig();
-		}
-		return this.customConfig;
-	}
+    public void saveDefaultConfig() {
+        if (customConfigFile == null) {
+            customConfigFile = new File(getDataFolder(), "shops.yml");
+            defaultConfigFile = new File(getDataFolder(), "config.yml");
+        }
+        if (!customConfigFile.exists()) {
+            saveResource("shops.yml", false);
+        }
+        if (!defaultConfigFile.exists()) {
+            saveResource("config.yml", false);
+        }
+    }
 
-	public void saveDefaultConfig(){
-		if (this.customConfigFile == null)
-		{
-			this.customConfigFile = new File(getDataFolder(), "shops.yml");
-			this.defaultConfigFile = new File(getDataFolder(), "config.yml");
-		}
-		if (!this.customConfigFile.exists()) {
-			saveResource("shops.yml", false);
-		}
-		if (!this.defaultConfigFile.exists()) {
-			saveResource("config.yml", false);
-		}
-	}
 }
-
 

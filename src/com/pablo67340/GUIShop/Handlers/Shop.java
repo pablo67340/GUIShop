@@ -1,34 +1,38 @@
 package com.pablo67340.GUIShop.Handlers;
 
+
+import com.pablo67340.GUIShop.Handlers.Enchantments;
+
+import com.pablo67340.GUIShop.Main.Main;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
 import net.milkbowl.vault.economy.EconomyResponse;
-
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
+
 import org.bukkit.inventory.ItemStack;
+
 import org.bukkit.inventory.meta.ItemMeta;
-
-import com.pablo67340.GUIShop.Main.Main;
-
 
 public class Shop {
 	static Main plugin;
-
 	protected String itemString;
-	protected HashMap<String, Double> price = new HashMap <>();
-	protected HashMap<String, Double> sell = new HashMap <>();
-	protected HashMap<String, Integer> slot = new HashMap <>();
-	protected HashMap<String, Integer> itemID = new HashMap <>();
-	protected HashMap<String, Integer> dataID = new HashMap <>();
-	protected HashMap<String, Integer> qty = new HashMap <>();
-	protected HashMap<String, String> enchants = new HashMap <>();
+	protected HashMap<String, Double> price = new HashMap<String, Double>();
+	protected HashMap<String, Double> sell = new HashMap<String, Double>();
+	protected HashMap<String, Integer> slot = new HashMap<String, Integer>();
+	protected HashMap<String, Integer> itemID = new HashMap<String, Integer>();
+	protected HashMap<String, Integer> dataID = new HashMap<String, Integer>();
+	protected HashMap<String, Integer> qty = new HashMap<String, Integer>();
+	protected HashMap<String, String> enchants = new HashMap<String, String>();
 	protected Inventory shop;
 	ArrayList<String> sopen = new ArrayList<String>();
 	HashMap<Integer, Inventory> shopinv = new HashMap<Integer, Inventory>();
@@ -37,56 +41,57 @@ public class Shop {
 	String ench = "";
 	String shopn = "";
 
-
-
-
-	public Shop(Main main){
+	public Shop(Main main) {
 		plugin = main;
 		itemString = "";
 	}
 
-	public void setShopName(String input){
+	public void setShopName(String input) {
 		shopn = input;
 	}
 
-	public String getShopName(){
+	public String getShopName() {
 		return shopn;
 	}
 
-	public boolean setName(String input){
+	public boolean setName(String input) {
 		itemString = input;
 		return true;
 	}
 
-	public Boolean addItem(ItemStack item, Integer slot){
-		shop.setItem(slot, item);
+	public Boolean addItem(ItemStack item, Integer slot) {
+		shop.setItem(slot.intValue(), item);
 		return true;
-
 	}
 
-	public void loadShop(Player plyr){
-		if (!this.sopen.contains(plyr.getName())) {
-			this.sopen.add(plyr.getName());
+	@SuppressWarnings("deprecation")
+	public void loadShop(Player plyr) {
+		if (!sopen.contains(plyr.getName())) {
+			sopen.add(plyr.getName());
 		}
-		this.shopinv.clear();
-
+		shopinv.clear();
 		int row = 9;
 		int size = 5;
 		if (plugin.menu.title.length() > 16) {
 			plugin.menu.title.substring(0, 16);
 		}
-		Inventory shop = Bukkit.getServer().createInventory(plyr, row * size, getShopName().replace(".", ""));
+		Inventory shop = Bukkit.getServer().createInventory((InventoryHolder)plyr, row * size, getShopName().replace(".", ""));
 		String saved = getShopName().replaceAll("[\\s.]", "");
-		if (plugin.cache.isSaved(saved))
-		{
-			if (plugin.utils.getVerbose()) {
+		if (plugin.cache.isSaved(saved)) {
+			if (plugin.utils.getVerbose().booleanValue()) {
 				System.out.println("isSaved check passed! Attempting to open shop with the saved inventory: " + saved);
 			}
 			shop.setContents(plugin.cache.getShop(saved));
 			plyr.openInventory(shop);
-		}else{
-			if (this.shopinv.isEmpty()) {
-				for (int i = 0; i <= 43; i++){
+		} else {
+			if (shopinv.isEmpty()) {
+				for (int i = 0; i <= 43; ++i) {
+					ItemMeta itemmeta;
+					int bid;
+					ItemMeta itemmeta2;
+					ItemStack backbutton;
+					String[] backi;
+					int bme;
 					String name = "null";
 					String data = "0";
 					String qty = "1";
@@ -95,361 +100,314 @@ public class Shop {
 					String sell = "0";
 					String item = "0";
 					Boolean isSpawner = false;
-					if (plugin.utils.getVerbose()){
-						System.out.println("TEST TEST: "+getShopName());
+					if (plugin.utils.getVerbose().booleanValue()) {
+						System.out.println("TEST TEST: " + getShopName());
 					}
-					if (plugin.getCustomConfig().get(getShopName() + i) != null){
-
-						List<String> nodes = plugin.getCustomConfig().getStringList(getShopName() + i);
-						if (plugin.utils.getVerbose()) {
-							System.out.println("Final item built: " + nodes + " Active!");
-						}
-						if (nodes != null) {
-							for (int nodeapi = 0; nodeapi < nodes.size(); nodeapi++){
-								if (plugin.utils.getVerbose()) {
-									System.out.println("Scanning shops.yml");
-								}
-								if (((String)nodes.get(nodeapi)).contains("item:")){
-									item = ((String)nodes.get(nodeapi)).replace("item:", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item ID found: " + item);
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("slot:")){
-									slot = ((String)nodes.get(nodeapi)).replace("slot:", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Slot found: " + slot);
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("name:")){
-									name = ((String)nodes.get(nodeapi)).replace("name:", "").replace("'", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item name found: " + name);
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("price:")){
-									price = ((String)nodes.get(nodeapi)).replace("price:", "").replace("'", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item price found: " + price);
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("data:")){
-									data = ((String)nodes.get(nodeapi)).replace("data:", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Data value found: " + data);
-									}
-									if (item.equalsIgnoreCase("52")){
-										isSpawner = true;
-										if (plugin.utils.verbose){
-											System.out.println("Item IS a mob spawner! Beginning alternate data organizing!");
-										}
-
-									}else{
-										if (plugin.utils.verbose){
-											System.out.println("Bypassed item ID code, Was not a spawner!");
-										}
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("enchantments:")){
-									ench = ((String)nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
-									this.enc = ench.split(":| ");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Optional enchants found!: " + this.ench);
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("qty:")){
-									qty = ((String)nodes.get(nodeapi)).replace("qty:", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item quantity found: " + qty);
-									}
-								}
-								if (((String)nodes.get(nodeapi)).contains("sell:")){
-									sell = ((String)nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item sell price found: " + sell);
-									}
-									if (!plugin.sellitems.contains(item + "$" + sell + ")" + qty)) {
-										plugin.sellitems.add(item + "$" + sell + ")" + qty);
-									}
-								}
-							}
-						}
-						if (Integer.parseInt(data) != 0){
-							if (plugin.utils.getVerbose()){
-								System.out.println("ItemWithDataSelected!!!!!");
-							}
-							ItemStack itemwithdata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
-							if (plugin.utils.getVerbose()) {
-								System.out.println("Adding item: " + nodes + " To inventory");
-							}
-							if (!(isInteger(sell))){
-								if (isSpawner){
-									plugin.item.addPrice2(itemwithdata, Integer.valueOf(Integer.parseInt(price)), true, Integer.parseInt(data));
-
-								}else{
-									plugin.item.addPrice2(itemwithdata, Integer.valueOf(Integer.parseInt(price)), false, 0);
-								}
-								itemwithdata = plugin.item.item;
-							}else{
-
-								if (isSpawner){
-									plugin.item.addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), true, Integer.parseInt(data));
-								}else{
-									plugin.item.addPrice(itemwithdata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), false, 0);
-
-								}
-								itemwithdata = plugin.item.item;
-							}
-
-							if (plugin.utils.getVerbose()) {
-								System.out.println("AddPrice Method Passed! ");
-							}
-							if (name != "null"){
-								ItemMeta itemmeta = itemwithdata.getItemMeta();
-								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-								itemwithdata.setItemMeta(itemmeta);
-								if (plugin.utils.getVerbose()) {
-									System.out.println("Item name found! Item meta added!");
-								}
-							}
-							else if (plugin.utils.getVerbose()){
-								System.out.println("NO Item name found! Breaking!");
-							}
-							if (this.enc != null) {
-								for (int e = -1; e < this.enc.length; e += 2) {
-									if (e >= 0){
-										if (plugin.utils.getVerbose()) {
-											System.out.println("Enchants split into values!: ");
-										}
-										if ((this.enc[(e - 1)] == null) && (this.enc[e] == null)){
-											if (plugin.utils.getVerbose()) {
-												System.out.println("Enchantments are null!");
-											}
-										}else{
-											this.lvl = Integer.parseInt(this.enc[e]);
-											itemwithdata.addUnsafeEnchantment(Enchantments.getByName(this.enc[(e - 1)]), this.lvl);
-											if (plugin.utils.getVerbose()) {
-												System.out.println("Enchant values: Enchant name: " + this.enc[(e - 1)] + " Enchant Level: " + this.lvl);
-											}
-											this.enc[e] = null;
-											this.enc[(e - 1)] = null;
-										}
-									}
-								}
-							}
-							if (Integer.parseInt(slot) != 44){
-
-								if (plugin.getConfig().getString("back-button-item").contains(":")){
-									shop.setItem(Integer.parseInt(slot), itemwithdata);
-									String[] backi = plugin.getConfig().getString("back-button-item").split(":");
-									int bid = Integer.parseInt(backi[0]);
-									int bme = Integer.parseInt(backi[1]);
-									ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)bme);
-									ItemMeta itemmeta = backbutton.getItemMeta();
-									itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
-									backbutton.setItemMeta(itemmeta);
-									shop.setItem(44, backbutton);
-
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item with no data: " + itemwithdata + " Added to shop!");
-									}
-								}else{
-									int bid = Integer.parseInt("back-button-item");
-									ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)0);
-									ItemMeta itemmeta = backbutton.getItemMeta();
-									itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
-									backbutton.setItemMeta(itemmeta);
-									shop.setItem(44, backbutton);
-
-									if (plugin.utils.getVerbose()) {
-										System.out.println("Item with no data: " + itemwithdata + " Added to shop!");
-									}
-								}
-							}else if (plugin.utils.getVerbose()){
-								System.out.println("ERROR: An Item tried to overwrite button slot!");
-							}
-						}else{
-							if (plugin.utils.getVerbose()){
-								System.out.println("ITEM WITHOUT DATA!");
-							}
-							if (Material.getMaterial(i) == null) {
-								System.out.print(i);
-							}
-							if (Integer.parseInt(qty) < 1) {
-
-							}
-							ItemStack itemnodata = new ItemStack(Material.getMaterial(Integer.parseInt(item)), Integer.parseInt(qty));
-							if (!(isInteger(sell))){
-								if (isSpawner){
-									plugin.item.addPrice2(itemnodata, Integer.valueOf(Integer.parseInt(price)), true, 90);
-								}else{
-									plugin.item.addPrice2(itemnodata, Integer.valueOf(Integer.parseInt(price)), false, 90);
-								}
-
-								itemnodata = plugin.item.item;
-							}else{
-								if (isSpawner){
-									plugin.item.addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), true, 90);
-								}else{
-									plugin.item.addPrice(itemnodata, Integer.valueOf(Integer.parseInt(price)), Integer.valueOf(Integer.parseInt(sell)), false, 0);
-								}
-
-								itemnodata = plugin.item.item;
-							}
-
-							if (name != "null"){
-								ItemMeta itemmeta = itemnodata.getItemMeta();
-								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
-								itemnodata.setItemMeta(itemmeta);
-							}
-							if (this.enc != null) {
-								for (int e = -1; e < this.enc.length; e += 2) {
-									if (e >= 0){
-										if (plugin.utils.getVerbose()) {
-											System.out.println("Enchants split into values!: ");
-										}
-										if ((this.enc[(e - 1)] == null) && (this.enc[e] == null)){
-											if (plugin.utils.getVerbose()) {
-												System.out.println("Enchantments are null!");
-											}
-										}else{
-											this.lvl = Integer.parseInt(this.enc[e]);
-											itemnodata.addUnsafeEnchantment(Enchantments.getByName(this.enc[(e - 1)]), this.lvl);
-											if (plugin.utils.getVerbose()) {
-												System.out.println("Enchant values: Enchant name: " + this.enc[(e - 1)] + " Enchant Level: " + this.lvl);
-											}
-											this.enc[(e - 1)] = null;
-											this.enc[e] = null;
-										}
-									}
-								}
-							}
-							shop.setItem(Integer.parseInt(slot), itemnodata);
-							if (plugin.getConfig().getString("back-button-item").contains(":")){
-								String[] backi = plugin.getConfig().getString("back-button-item").split(":");
-								int bid = Integer.parseInt(backi[0]);
-								int bme = Integer.parseInt(backi[1]);
-								ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)bme);
-								ItemMeta itemmeta = backbutton.getItemMeta();
-								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
-								backbutton.setItemMeta(itemmeta);
-								shop.setItem(44, backbutton);
-
-								if (plugin.utils.getVerbose()) {
-									System.out.println("Item with no data: " + itemnodata + " Added to shop!");
-								}
-							}else{
-								int bid = Integer.parseInt("back-button-item");
-								ItemStack backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)0);
-								ItemMeta itemmeta = backbutton.getItemMeta();
-								itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
-								backbutton.setItemMeta(itemmeta);
-								shop.setItem(44, backbutton);
-
-								if (plugin.utils.getVerbose()) {
-									System.out.println("Item with no data: " + itemnodata + " Added to shop!");
-								}
-							}
-
-						}
-
-						this.shopinv.put(Integer.valueOf(1), shop);
-						plyr.openInventory(shop);
-						plyr.updateInventory();
+					if (plugin.getCustomConfig().get(String.valueOf(getShopName()) + i) == null) continue;
+					List<String> nodes = plugin.getCustomConfig().getStringList(String.valueOf(getShopName()) + i);
+					if (plugin.utils.getVerbose().booleanValue()) {
+						System.out.println("Final item built: " + nodes + " Active!");
 					}
+					if (nodes != null) {
+						for (int nodeapi = 0; nodeapi < nodes.size(); ++nodeapi) {
+							if (plugin.utils.getVerbose().booleanValue()) {
+								System.out.println("Scanning shops.yml");
+							}
+							if ((nodes.get(nodeapi)).contains("item:")) {
+								item = (nodes.get(nodeapi)).replace("item:", "");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Item ID found: " + item);
+								}
+							}
+							if ((nodes.get(nodeapi)).contains("slot:")) {
+								slot = (nodes.get(nodeapi)).replace("slot:", "");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Slot found: " + slot);
+								}
+							}
+							if ((nodes.get(nodeapi)).contains("name:")) {
+								name = (nodes.get(nodeapi)).replace("name:", "").replace("'", "");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Item name found: " + name);
+								}
+							}
+							if ((nodes.get(nodeapi)).contains("price:")) {
+								price = (nodes.get(nodeapi)).replace("price:", "").replace("'", "");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Item price found: " + price);
+								}
+							}
+							if ((nodes.get(nodeapi)).contains("data:")) {
+								data = (nodes.get(nodeapi)).replace("data:", "");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Data value found: " + data);
+								}
+								if (item.equalsIgnoreCase("52")) {
+									isSpawner = true;
+									if (plugin.utils.verbose) {
+										System.out.println("Item IS a mob spawner! Beginning alternate data organizing!");
+									}
+								} else if (plugin.utils.verbose) {
+									System.out.println("Bypassed item ID code, Was not a spawner!");
+								}
+							}
+							if ((nodes.get(nodeapi)).contains("enchantments:")) {
+								ench = (nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
+								enc = ench.split(":| ");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Optional enchants found!: " + ench);
+								}
+							}
+							if ((nodes.get(nodeapi)).contains("qty:")) {
+								qty = (nodes.get(nodeapi)).replace("qty:", "");
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Item quantity found: " + qty);
+								}
+							}
+							if (!(nodes.get(nodeapi)).contains("sell:")) continue;
+							sell = (nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
+							if (plugin.utils.getVerbose().booleanValue()) {
+								System.out.println("Item sell price found: " + sell);
+							}
+							if (plugin.sellitems.contains(String.valueOf(item) + "$" + sell + ")" + qty)) continue;
+							plugin.sellitems.add(String.valueOf(item) + "$" + sell + ")" + qty);
+						}
+					}
+					if (Integer.parseInt(data) != 0) {
+						if (plugin.utils.getVerbose().booleanValue()) {
+							System.out.println("ItemWithDataSelected!!!!!");
+						}
+						ItemStack itemwithdata = new ItemStack(Material.getMaterial((int)Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
+						if (plugin.utils.getVerbose().booleanValue()) {
+							System.out.println("Adding item: " + nodes + " To inventory");
+						}
+						if (!Shop.isInteger(sell)) {
+							if (isSpawner.booleanValue()) {
+								plugin.item.addPrice2(itemwithdata, Integer.parseInt(price), true, Integer.parseInt(data));
+							} else {
+								plugin.item.addPrice2(itemwithdata, Integer.parseInt(price), false, 0);
+							}
+							itemwithdata = plugin.item.item;
+						} else {
+							if (isSpawner.booleanValue()) {
+								plugin.item.addPrice(itemwithdata, Integer.parseInt(price), Integer.parseInt(sell), true, Integer.parseInt(data));
+							} else {
+								plugin.item.addPrice(itemwithdata, Integer.parseInt(price), Integer.parseInt(sell), false, 0);
+							}
+							itemwithdata = plugin.item.item;
+						}
+						if (plugin.utils.getVerbose().booleanValue()) {
+							System.out.println("AddPrice Method Passed! ");
+						}
+						if (name != "null") {
+							itemmeta = itemwithdata.getItemMeta();
+							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+							itemwithdata.setItemMeta(itemmeta);
+							if (plugin.utils.getVerbose().booleanValue()) {
+								System.out.println("Item name found! Item meta added!");
+							}
+						} else if (plugin.utils.getVerbose().booleanValue()) {
+							System.out.println("NO Item name found! Breaking!");
+						}
+						if (enc != null) {
+							for (int e = -1; e < enc.length; e+=2) {
+								if (e < 0) continue;
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Enchants split into values!: ");
+								}
+								if (enc[e - 1] == null && enc[e] == null) {
+									if (!plugin.utils.getVerbose().booleanValue()) continue;
+									System.out.println("Enchantments are null!");
+									continue;
+								}
+								lvl = Integer.parseInt(enc[e]);
+								itemwithdata.addUnsafeEnchantment(Enchantments.getByName(enc[e - 1]), lvl);
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Enchant values: Enchant name: " + enc[e - 1] + " Enchant Level: " + lvl);
+								}
+								enc[e] = null;
+								enc[e - 1] = null;
+							}
+						}
+						if (Integer.parseInt(slot) != 44) {
+							if (plugin.getConfig().getString("back-button-item").contains(":")) {
+								shop.setItem(Integer.parseInt(slot), itemwithdata);
+								backi = plugin.getConfig().getString("back-button-item").split(":");
+								bid = Integer.parseInt(backi[0]);
+								bme = Integer.parseInt(backi[1]);
+								backbutton = new ItemStack(Material.getMaterial(bid), 1, (short)bme);
+								itemmeta2 = backbutton.getItemMeta();
+								itemmeta2.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
+								backbutton.setItemMeta(itemmeta2);
+								shop.setItem(44, backbutton);
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Item with no data: " + (Object)itemwithdata + " Added to shop!");
+								}
+							} else {
+								int bid2 = Integer.parseInt("back-button-item");
+								ItemStack backbutton2 = new ItemStack(Material.getMaterial(bid2), 1, (short)0);
+								ItemMeta itemmeta3 = backbutton2.getItemMeta();
+								itemmeta3.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
+								backbutton2.setItemMeta(itemmeta3);
+								shop.setItem(44, backbutton2);
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Item with no data: " + (Object)itemwithdata + " Added to shop!");
+								}
+							}
+						} else if (plugin.utils.getVerbose().booleanValue()) {
+							System.out.println("ERROR: An Item tried to overwrite button slot!");
+						}
+					} else {
+						if (plugin.utils.getVerbose().booleanValue()) {
+							System.out.println("ITEM WITHOUT DATA!");
+						}
+						if (Material.getMaterial((int)i) == null) {
+							System.out.print(i);
+						}
+						Integer.parseInt(qty);
+						ItemStack itemnodata = new ItemStack(Material.getMaterial((int)Integer.parseInt(item)), Integer.parseInt(qty));
+						if (!Shop.isInteger(sell)) {
+							if (isSpawner.booleanValue()) {
+								plugin.item.addPrice2(itemnodata, Integer.parseInt(price), true, 90);
+							} else {
+								plugin.item.addPrice2(itemnodata, Integer.parseInt(price), false, 90);
+							}
+							itemnodata = plugin.item.item;
+						} else {
+							if (isSpawner.booleanValue()) {
+								plugin.item.addPrice(itemnodata, Integer.parseInt(price), Integer.parseInt(sell), true, 90);
+							} else {
+								plugin.item.addPrice(itemnodata, Integer.parseInt(price), Integer.parseInt(sell), false, 0);
+							}
+							itemnodata = plugin.item.item;
+						}
+						if (name != "null") {
+							itemmeta = itemnodata.getItemMeta();
+							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+							itemnodata.setItemMeta(itemmeta);
+						}
+						if (enc != null) {
+							for (int e = -1; e < enc.length; e+=2) {
+								if (e < 0) continue;
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Enchants split into values!: ");
+								}
+								if (enc[e - 1] == null && enc[e] == null) {
+									if (!plugin.utils.getVerbose().booleanValue()) continue;
+									System.out.println("Enchantments are null!");
+									continue;
+								}
+								lvl = Integer.parseInt(enc[e]);
+								itemnodata.addUnsafeEnchantment(Enchantments.getByName(enc[e - 1]), lvl);
+								if (plugin.utils.getVerbose().booleanValue()) {
+									System.out.println("Enchant values: Enchant name: " + enc[e - 1] + " Enchant Level: " + lvl);
+								}
+								enc[e - 1] = null;
+								enc[e] = null;
+							}
+						}
+						shop.setItem(Integer.parseInt(slot), itemnodata);
+						if (plugin.getConfig().getString("back-button-item").contains(":")) {
+							backi = plugin.getConfig().getString("back-button-item").split(":");
+							bid = Integer.parseInt(backi[0]);
+							bme = Integer.parseInt(backi[1]);
+							backbutton = new ItemStack(Material.getMaterial((int)bid), 1, (short)bme);
+							itemmeta2 = backbutton.getItemMeta();
+							itemmeta2.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
+							backbutton.setItemMeta(itemmeta2);
+							shop.setItem(44, backbutton);
+							if (plugin.utils.getVerbose().booleanValue()) {
+								System.out.println("Item with no data: " + (Object)itemnodata + " Added to shop!");
+							}
+						} else {
+							int bid3 = Integer.parseInt("back-button-item");
+							ItemStack backbutton3 = new ItemStack(Material.getMaterial(bid3), 1, (short)0);
+							ItemMeta itemmeta4 = backbutton3.getItemMeta();
+							itemmeta4.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
+							backbutton3.setItemMeta(itemmeta4);
+							shop.setItem(44, backbutton3);
+							if (plugin.utils.getVerbose().booleanValue()) {
+								System.out.println("Item with no data: " + (Object)itemnodata + " Added to shop!");
+							}
+						}
+					}
+					shopinv.put(1, shop);
+					plyr.openInventory(shop);
+					plyr.updateInventory();
 				}
 			}
-
-			if (plugin.cache.saveShop(saved, shop)){
-				if (plugin.utils.getVerbose()){
+			if (plugin.cache.saveShop(saved, shop)) {
+				if (plugin.utils.getVerbose().booleanValue()) {
 					System.out.println("Saved Shop: " + getShopName());
 					System.out.println("SHOP CONTENTS: ");
 					System.out.println(plugin.cache.getShop(plugin.menu.shopn));
 				}
-			}else{
-				if (plugin.utils.getVerbose()) {
-					System.out.println("Shop already exists!");
-				}
+			} else if (plugin.utils.getVerbose().booleanValue()) {
+				System.out.println("Shop already exists!");
 			}
 		}
 	}
 
-	public void trySell(Player p, ItemStack item)
-	{
+	@SuppressWarnings("deprecation")
+	public void trySell(Player p, ItemStack item) {
 		boolean tally = false;
 		boolean err = false;
-		if (plugin.utils.verbose){
-			System.out.println("TrySell: "+item.getTypeId());
+		if (plugin.utils.verbose) {
+			System.out.println("TrySell: " + item.getTypeId());
 		}
-		if (((item != null) || (item == null)) && (!item.getItemMeta().hasLore()) && (p.getInventory().contains(item)))
-		{
-			if (plugin.utils.verbose){
-				System.out.println("Item passed secondary checks!");
-			}
-			for (String str : plugin.sellitems)
-			{
-				String itemid = StringUtils.substringBefore(str, "$");
+		if (item!=null && item.hasItemMeta()){
+			if (!item.getItemMeta().hasLore() && p.getInventory().contains(item)) {
 				if (plugin.utils.verbose) {
-					System.out.println("Item in hand: " + item.getTypeId() + " compared: " + itemid);
+					System.out.println("Item passed secondary checks!");
 				}
-				if (item.getTypeId() == Integer.parseInt(itemid))
-				{
-					tally = true;
-					String amount = StringUtils.substringAfter(str, ")");
-					if (Integer.parseInt(amount) == item.getAmount())
-					{
-						String preprice = StringUtils.substringAfter(str, "$");
-						String price = StringUtils.substringBefore(preprice, ")");
-
-						if (!(isInteger(price))){
-							p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cant-sell")));
-						}else{
-							p.getInventory().removeItem(new ItemStack[] { item });
+				for (String str : plugin.sellitems) {
+					String itemid = StringUtils.substringBefore(str, "$");
+					if (plugin.utils.verbose) {
+						System.out.println("Item in hand: " + item.getTypeId() + " compared: " + itemid);
+					}
+					if (item.getTypeId() == Integer.parseInt(itemid)) {
+						tally = true;
+						String amount = StringUtils.substringAfter(str, ")");
+						if (Integer.parseInt(amount) == item.getAmount()) {
+							String preprice = StringUtils.substringAfter(str, "$");
+							String price = StringUtils.substringBefore(preprice, ")");
+							if (!Shop.isInteger(price)) {
+								p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cant-sell")));
+								continue;
+							}
+							p.getInventory().removeItem(new ItemStack[]{item});
 							EconomyResponse r = plugin.econ.depositPlayer(p.getName(), Integer.parseInt(price));
-							if (r.transactionSuccess())
-							{
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "§f!");
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + "§a$" + price + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("added")));
+							if (r.transactionSuccess()) {
+								p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "\u00a7f!");
+								p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + "\u00a7a$" + price + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("added")));
+								continue;
 							}
-							else
-							{
-								p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("something-wrong")));
-							}
+							p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("something-wrong")));
+							continue;
 						}
-					}
-					else
-					{
 						int dif = Integer.parseInt(amount);
-						p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("in-stacks")) + dif);
+						p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("in-stacks")) + dif);
 						err = true;
+						continue;
 					}
-				}else{
-					if (plugin.utils.verbose){
-						System.out.println("Compared "+item + " to "+itemid + " And did not match!");
-					}
+					if (!plugin.utils.verbose) continue;
+					System.out.println("Compared " + (Object)item + " to " + itemid + " And did not match!");
 				}
-			}
-			if (!tally)
-			{
-				if (err != true){
-					p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cant-sell")));
+				if (!(tally || err)) {
+					p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cant-sell")));
 					tally = true;
-				}else{
-
 				}
+			} else if (plugin.utils.verbose) {
+				System.out.println("Else Triggered for item!");
 			}
-		}
-		else if (plugin.utils.verbose)
-		{
-			System.out.println("Else Triggered for item!");
-		}
+		}else{
 
+		}
 	}
 
 	public static boolean isInteger(String s) {
-		boolean isInt = plugin.utils.isInteger(s,10);
-		return isInt; 
+		boolean isInt = plugin.utils.isInteger(s, 10);
+		return isInt;
 	}
-
-
 }
+

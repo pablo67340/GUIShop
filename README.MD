@@ -1,3 +1,8 @@
+<h1>GUIShop 4.1.7</h1>
+FIXES:
+- Changed event priority
+- Concdenced the inventory click event. Will fix most bugs
+
 <h1>GUIShop 4.1.6 E</h1>
 I have been working on the plugin lately trying to implement a new selling system. All is looking good so far.
 Due to a HDD failure i was rolled back a few days, But i have managed to find a copy i sent to someone

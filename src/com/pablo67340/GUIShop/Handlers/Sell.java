@@ -82,7 +82,7 @@ public class Sell {
 		for (ItemStack is : inv) {
 			slot++;
 			if (is == null) {
-				if (!plugin.utils.getVerbose()) {
+				if (plugin.utils.getVerbose()) {
 					System.out.println("Slot: " + slot + " Was null!");
 				}
 			}else{

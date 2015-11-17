@@ -30,7 +30,7 @@ sell-title: 'Sell'
 tag: '&7[&4GUI&4Shop&7]'
 
 ##Print EVERY Action in console (Use only when needed!!!)
-Verbose: true
+Verbose: false
 ## Command used to open shop, DONT PUT A /
 Command: 'shop'
 ## Command to open sell inventory

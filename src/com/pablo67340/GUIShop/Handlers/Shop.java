@@ -177,7 +177,9 @@ public class Shop {
 					}
 					String sellparse = item + ":" + data;
 					plugin.sell.addSell(sellparse, sell);
-					System.out.println("Added ITEM TO SELLABLES: "+sellparse);
+					if (plugin.utils.getVerbose()) {
+						System.out.println("Added ITEM TO SELLABLES: "+sellparse);
+					}
 					plugin.sell.sellqty.put(sellparse, Integer.parseInt(qty));
 					if (Integer.parseInt(data) != 0) {
 						if (plugin.utils.getVerbose()) {

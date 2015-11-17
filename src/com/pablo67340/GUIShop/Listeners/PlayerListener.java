@@ -20,7 +20,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -49,7 +49,7 @@ implements Listener {
 		plugin = main;
 	}
 
-	@EventHandler
+	@EventHandler(priority=EventPriority.HIGH)
 	public void onCommand(PlayerCommandPreprocessEvent event) {
 		Player player = event.getPlayer();
 		String command = event.getMessage();
@@ -93,7 +93,9 @@ implements Listener {
 			}
 		}
 		if (command.equalsIgnoreCase("/" + plugin.utils.getSellCommand())) {
-			System.out.println("ELSE ELSE ELSE");
+			if (plugin.utils.getVerbose()) {
+				System.out.println("ELSE ELSE ELSE");
+			}
 			if (player.isOp() || player.hasPermission("guishop.use")) {
 				if (player.hasPermission("guishop.sell") || player.isOp()) {
 					plugin.sell.loadSell(player);
@@ -117,211 +119,183 @@ implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
+	@EventHandler(priority=EventPriority.HIGH)
+	public void onShopClick(InventoryClickEvent e) {
+		if (e.getWhoClicked() instanceof Player) {
+			Player p = (Player)e.getWhoClicked();
+			if (e.getClickedInventory()==null){
 
-	@EventHandler
-	public void onClick(InventoryClickEvent e) {
-		if (e.getClickedInventory()==null){
+			}else{
+				if (e.getWhoClicked() instanceof Player) {
+					if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
+						e.setCancelled(false);
+					} else {
 
-		}else{
-			if (e.getWhoClicked() instanceof Player) {
-				if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
-					e.setCancelled(false);
-				} else {
-					Player p = (Player)e.getWhoClicked();
-					if (!shopOpen.contains(p.getName())) {
+						if (!shopOpen.contains(p.getName())) {
 
-						if (menuOpen.contains(p.getName())) {
-							if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
-								e.setCancelled(true);
-								close = false;
-								menuOpen.remove(p.getName());
-								shopOpen.remove(p.getName());
-								p.closeInventory();
-
-							}
-							close = true;
-							if (plugin.utils.getVerbose()) {
-								System.out.println("MenuOpen passed. Player removed");
-							}
-							if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
-								if (plugin.utils.getVerbose()) {
-									System.out.println("Title contains menu name");
-								}
-								if (e.getClick().isKeyboardClick()) {
+							if (menuOpen.contains(p.getName())) {
+								if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
 									e.setCancelled(true);
+									close = false;
+									menuOpen.remove(p.getName());
+									shopOpen.remove(p.getName());
 									p.closeInventory();
-								}
-								if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
-									if (e.getClickedInventory().getType() == e.getView().getType()) {
-										if (e.isLeftClick() || e.isShiftClick() || e.isRightClick() && !e.getClick().isKeyboardClick()) {
-											@SuppressWarnings("unused")
-											int[] row1;
-											for (int slot : row1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28}) {
-												if (e.getRawSlot() != slot - 1) continue;
-												if (plugin.getConfig().getString(String.valueOf(slot) + ".Enabled") == "true") {
-													if (p.hasPermission("guishop.slot." + slot) || p.isOp()) {
-														e.setCancelled(true);
-														String shop = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
-														title = "";
-														title = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
-														String shopn = String.valueOf(shop) + ".";
-														plugin.shop.setShopName(shopn);
-														e.setCancelled(true);
-														plugin.delayShop(p);
-														menuOpen.remove(p.getName());
-														shopOpen.add(p.getName());
 
+								}
+								close = true;
+								if (plugin.utils.getVerbose()) {
+									System.out.println("MenuOpen passed. Player removed");
+								}
+								if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
+									if (plugin.utils.getVerbose()) {
+										System.out.println("Title contains menu name");
+									}
+									if (e.getClick().isKeyboardClick()) {
+										e.setCancelled(true);
+										p.closeInventory();
+									}
+									if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
+										if (e.getClickedInventory().getType() == e.getView().getType()) {
+											if (e.isLeftClick() || e.isShiftClick() || e.isRightClick() && !e.getClick().isKeyboardClick()) {
+												@SuppressWarnings("unused")
+												int[] row1;
+												for (int slot : row1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28}) {
+													if (e.getRawSlot() != slot - 1) continue;
+													if (plugin.getConfig().getString(String.valueOf(slot) + ".Enabled") == "true") {
+														if (p.hasPermission("guishop.slot." + slot) || p.isOp()) {
+															e.setCancelled(true);
+															String shop = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
+															title = "";
+															title = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
+															String shopn = String.valueOf(shop) + ".";
+															plugin.shop.setShopName(shopn);
+															e.setCancelled(true);
+															plugin.delayShop(p);
+															menuOpen.remove(p.getName());
+															shopOpen.add(p.getName());
+
+														} else {
+															break;
+														}
 													} else {
-														break;
+														plugin.closeInventory(p);
 													}
-												} else {
-													plugin.closeInventory(p);
+													break;
 												}
-												break;
+											} else {
+												e.getClick().isKeyboardClick();
 											}
 										} else {
-											e.getClick().isKeyboardClick();
+											plugin.closeInventory(p);
 										}
 									} else {
 										plugin.closeInventory(p);
 									}
-								} else {
-									plugin.closeInventory(p);
+								}else{
+
 								}
+							} else {
+								e.setCancelled(false);
 							}
-						} else {
-							e.setCancelled(false);
-						}
-					}else{
-						e.setCancelled(true);
-					}
-				}
-			}
-		}
-	}
+						}else{
+							// here
+							e.setCancelled(true);
+							properName = plugin.shop.getShopName().replace(".", "");
+							if (e.getInventory().getTitle().contains(properName) && !e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
+								ItemStack item;
+								if (plugin.utils.getVerbose()) {
+									System.out.println("Shop name is shop name and not menu name");
+									System.out.println("Menu name: " + plugin.utils.getMenuName() + " Compared to: " + e.getInventory().getTitle());
+								}
+								e.setCancelled(true);
+								if (e.getSlot() != -999 && (item = e.getCurrentItem()) != null) {
+									if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
+										if (!item.getItemMeta().getDisplayName().equals(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")))) {
+											if (e.getInventory().getItem(e.getSlot()) != null) {
+												if (item.getItemMeta().hasLore()) {
+													item.getItemMeta().getLore().toString().contains(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost")));
+													int price = Integer.MAX_VALUE;
+													String lorestring2 = ChatColor.stripColor(item.getItemMeta().getLore().toString());
+													List<String> items = Arrays.asList(lorestring2.split("\\s*,\\s*"));
+													String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", "").replace("Shift+Click to buy 1 item", ""));
+													lorestring = StringUtils.substringBefore(lorestring, ".");
+													String mobid = StringUtils.substringAfter(lorestring2, "ID: ").replace("]", "");
+													if (plugin.utils.getVerbose()) {
+														System.out.println("LORE LORE LORE LORE!!!!!!!! " + mobid);
+													}
+													price = Integer.parseInt(items.get(1));
+													if (!(!e.isLeftClick() || e.isShiftClick() || e.getClick().isKeyboardClick())) {
+														if (one) {
+															e.setCancelled(true);
+														} else if (plugin.econ.getBalance(p.getName()) >= price) {
+															EconomyResponse r = plugin.econ.withdrawPlayer(p.getName(), price);
+															if (r.transactionSuccess()) {
+																ItemStack dupeitem = item.clone();
+																if (dupeitem.getType() == Material.MOB_SPAWNER) {
+																	if (plugin.getServer().getPluginManager().getPlugin("SilkSpawners") == null) {
+																		if (plugin.utils.getVerbose()) {
+																			System.out.println("ERROR: You are trying to purchase a MobSpawner without SilkSpawners installed!");
+																		}
+																	} else {
+																		if (plugin.utils.getVerbose()) {
+																			System.out.println("Item IS a MOB_SPAWNER");
+																		}
+																		SilkUtil su = SilkUtil.hookIntoSilkSpanwers();
 
-	@SuppressWarnings("deprecation")
-	@EventHandler
-	public void onShopClick(InventoryClickEvent e) {
-		if (e.getWhoClicked() instanceof Player) {
-			if (e.getClickedInventory()==null){
-
-
-			}else{
-				if (plugin.utils.getVerbose()) {
-					System.out.println("e is a player onShopClick");
-				}
-				final Player p = (Player)e.getWhoClicked();
-				if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
-					e.setCancelled(false);
-				} else if (!shopOpen.contains(p.getName())) {
-					if (plugin.utils.getVerbose()) {
-						System.out.println("shopOpen DOES NOT contain onShopClick");
-					}
-				} else {
-					e.setCancelled(true);
-
-					properName = plugin.shop.getShopName().replace(".", "");
-					if (e.getClick().isKeyboardClick()) {
-						e.setCancelled(true);
-						p.closeInventory();
-					}
-					if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
-						e.setCancelled(true);
-						close = false;
-						menuOpen.remove(p.getName());
-						shopOpen.remove(p.getName());
-						p.closeInventory();
-
-					}
-					if (e.getInventory().getTitle().contains(properName) && !e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
-						ItemStack item;
-						if (plugin.utils.getVerbose()) {
-							System.out.println("Shop name is shop name and not menu name");
-							System.out.println("Menu name: " + plugin.utils.getMenuName() + " Compared to: " + e.getInventory().getTitle());
-						}
-						e.setCancelled(true);
-						if (e.getSlot() != -999 && (item = e.getCurrentItem()) != null) {
-							if (item.hasItemMeta() && item.getItemMeta().hasDisplayName()) {
-								if (!item.getItemMeta().getDisplayName().equals(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")))) {
-									if (e.getInventory().getItem(e.getSlot()) != null) {
-										if (item.getItemMeta().hasLore()) {
-											item.getItemMeta().getLore().toString().contains(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cost")));
-											int price = Integer.MAX_VALUE;
-											String lorestring2 = ChatColor.stripColor(item.getItemMeta().getLore().toString());
-											List<String> items = Arrays.asList(lorestring2.split("\\s*,\\s*"));
-											String lorestring = ChatColor.stripColor(item.getItemMeta().getLore().toString().replace("[", "").replace("]", "").replace(",", "").replace("To sell, click the item in your inv.", "").replace("Must be the same quantity!", "").replace("Shift+Click to buy 1 item", ""));
-											lorestring = StringUtils.substringBefore(lorestring, ".");
-											String mobid = StringUtils.substringAfter(lorestring2, "ID: ").replace("]", "");
-											if (plugin.utils.getVerbose()) {
-												System.out.println("LORE LORE LORE LORE!!!!!!!! " + mobid);
-											}
-											price = Integer.parseInt(items.get(1));
-											if (!(!e.isLeftClick() || e.isShiftClick() || e.getClick().isKeyboardClick())) {
-												if (one) {
-													e.setCancelled(true);
-												} else if (plugin.econ.getBalance(p.getName()) >= price) {
-													EconomyResponse r = plugin.econ.withdrawPlayer(p.getName(), price);
-													if (r.transactionSuccess()) {
-														ItemStack dupeitem = item.clone();
-														if (dupeitem.getType() == Material.MOB_SPAWNER) {
-															if (plugin.getServer().getPluginManager().getPlugin("SilkSpawners") == null) {
-																if (plugin.utils.getVerbose()) {
-																	System.out.println("ERROR: You are trying to purchase a MobSpawner without SilkSpawners installed!");
+																		ItemStack dupeitem2 = stripMeta(dupeitem, dupeitem.getAmount());
+																		p.getInventory().addItem(new ItemStack[]{su.setSpawnerType(dupeitem2, Short.parseShort(mobid), String.valueOf(Spawners.getMobName(Integer.parseInt(mobid))) + " Spawner")});
+																	}
+																} else {
+																	if (plugin.utils.getVerbose()) {
+																		System.out.println("No Mob Spawner here...");
+																	}
+																	p.getInventory().addItem(new ItemStack[]{stripMeta(dupeitem, dupeitem.getAmount())});
 																}
-															} else {
-																if (plugin.utils.getVerbose()) {
-																	System.out.println("Item IS a MOB_SPAWNER");
-																}
-																SilkUtil su = SilkUtil.hookIntoSilkSpanwers();
+																p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "!");
+																p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + "$" + price + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("taken")));
 
-																ItemStack dupeitem2 = stripMeta(dupeitem, dupeitem.getAmount());
-																p.getInventory().addItem(new ItemStack[]{su.setSpawnerType(dupeitem2, Short.parseShort(mobid), String.valueOf(Spawners.getMobName(Integer.parseInt(mobid))) + " Spawner")});
 															}
 														} else {
-															if (plugin.utils.getVerbose()) {
-																System.out.println("No Mob Spawner here...");
-															}
-															p.getInventory().addItem(new ItemStack[]{stripMeta(dupeitem, dupeitem.getAmount())});
+															double dif = price - plugin.econ.getBalance(p.getName());
+															p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-pre")) + dif + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-post")));
+															p.setItemOnCursor(new ItemStack(Material.AIR));
 														}
-														p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "!");
-														p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + "$" + price + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("taken")));
-
 													}
 												} else {
-													double dif = price - plugin.econ.getBalance(p.getName());
-													p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-pre")) + dif + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("not-enough-post")));
-													p.setItemOnCursor(new ItemStack(Material.AIR));
+													e.setCancelled(true);
 												}
 											}
 										} else {
 											e.setCancelled(true);
+											plugin.closeInventory(p);
+											shopOpen.remove(p.getName());
+											menuOpen.add(p.getName());
+											plugin.delayMenu(p);
 										}
+									} else {
+										// Old trysell here
+										e.setCancelled(true);
+										shopOpen.remove(p.getName());
+										menuOpen.remove(p.getName());
+										plugin.closeInventory(p);
+
 									}
-								} else {
-									e.setCancelled(true);
-									plugin.closeInventory(p);
-									shopOpen.remove(p.getName());
-									menuOpen.add(p.getName());
-									plugin.delayMenu(p);
 								}
 							} else {
-								// Old trysell here
+								if (!(e.getClickedInventory().getTitle().contains(properName) || e.getClickedInventory().getTitle().contains(plugin.utils.getMenuName()))) {
+									shopOpen.remove(p.getName());
+								}
 								e.setCancelled(true);
-								shopOpen.remove(p.getName());
-								menuOpen.remove(p.getName());
-								plugin.closeInventory(p);
-
 							}
+
 						}
-					} else {
-						if (!(e.getClickedInventory().getTitle().contains(properName) || e.getClickedInventory().getTitle().contains(plugin.utils.getMenuName()))) {
-							shopOpen.remove(p.getName());
-						}
-						e.setCancelled(true);
 					}
 				}
 			}
+
+
+
 		}
 	}
 

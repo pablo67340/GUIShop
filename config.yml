@@ -23,6 +23,8 @@
 
 ##Title of the inventory in /shop
 menuname: '&4GUI &eShop'
+## Sell inventory title
+sell-title: 'Sell'
 
 ##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
 tag: '&7[&4GUI&4Shop&7]'
@@ -31,6 +33,9 @@ tag: '&7[&4GUI&4Shop&7]'
 Verbose: true
 ## Command used to open shop, DONT PUT A /
 Command: 'shop'
+## Command to open sell inventory
+sell-command: 'sells'
+
 ############ Language settings ###############
 
 #No permission message
@@ -80,11 +85,11 @@ not-enough-pre: '&fYou need &c$'
 not-enough-post: '&f more money.'
 
 ## Text displayed before item name.
-sold: '&fYou sold, &c'
+sold: '&fItems sold and'
 
 ##Second message when buying, Words AFTER the amount
 ## E.G 54$ "Added to your account"
-added: '&f added to your account.'
+added: '&f was added to your account.'
 
 #When something magical goes wrong?
 something-wrong: '&fSomething went wrong, contact an admin.'

@@ -1,7 +1,6 @@
 package com.pablo67340.GUIShop.Main;
 
 import com.pablo67340.GUIShop.Handlers.Cache;
-import com.pablo67340.GUIShop.Handlers.DataLoader;
 import com.pablo67340.GUIShop.Handlers.Item;
 import com.pablo67340.GUIShop.Handlers.Menu;
 import com.pablo67340.GUIShop.Handlers.Sell;
@@ -39,7 +38,6 @@ extends JavaPlugin {
     public Shop shop;
     public Menu menu;
     public Sell sell;
-    public DataLoader dataLoader;
     public List<String> sellitems;
 
     public Main() {
@@ -49,7 +47,6 @@ extends JavaPlugin {
         shop = new Shop(this);
         menu = new Menu(this);
         sell = new Sell(this);
-        dataLoader = new DataLoader(this);
         sellitems = new ArrayList<String>();
     }
 

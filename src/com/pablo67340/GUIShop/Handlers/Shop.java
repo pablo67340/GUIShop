@@ -9,8 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import net.milkbowl.vault.economy.EconomyResponse;
-import org.apache.commons.lang.StringUtils;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -78,7 +77,7 @@ public class Shop {
 		Inventory shop = Bukkit.getServer().createInventory((InventoryHolder)plyr, row * size, getShopName().replace(".", ""));
 		String saved = getShopName().replaceAll("[\\s.]", "");
 		if (plugin.cache.isSaved(saved)) {
-			if (plugin.utils.getVerbose().booleanValue()) {
+			if (plugin.utils.getVerbose()) {
 				System.out.println("isSaved check passed! Attempting to open shop with the saved inventory: " + saved);
 			}
 			shop.setContents(plugin.cache.getShop(saved));
@@ -100,46 +99,46 @@ public class Shop {
 					String sell = "0";
 					String item = "0";
 					Boolean isSpawner = false;
-					if (plugin.utils.getVerbose().booleanValue()) {
+					if (plugin.utils.getVerbose()) {
 						System.out.println("TEST TEST: " + getShopName());
 					}
 					if (plugin.getCustomConfig().get(String.valueOf(getShopName()) + i) == null) continue;
 					List<String> nodes = plugin.getCustomConfig().getStringList(String.valueOf(getShopName()) + i);
-					if (plugin.utils.getVerbose().booleanValue()) {
+					if (plugin.utils.getVerbose()) {
 						System.out.println("Final item built: " + nodes + " Active!");
 					}
 					if (nodes != null) {
 						for (int nodeapi = 0; nodeapi < nodes.size(); ++nodeapi) {
-							if (plugin.utils.getVerbose().booleanValue()) {
+							if (plugin.utils.getVerbose()) {
 								System.out.println("Scanning shops.yml");
 							}
 							if ((nodes.get(nodeapi)).contains("item:")) {
 								item = (nodes.get(nodeapi)).replace("item:", "");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Item ID found: " + item);
 								}
 							}
 							if ((nodes.get(nodeapi)).contains("slot:")) {
 								slot = (nodes.get(nodeapi)).replace("slot:", "");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Slot found: " + slot);
 								}
 							}
 							if ((nodes.get(nodeapi)).contains("name:")) {
 								name = (nodes.get(nodeapi)).replace("name:", "").replace("'", "");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Item name found: " + name);
 								}
 							}
 							if ((nodes.get(nodeapi)).contains("price:")) {
 								price = (nodes.get(nodeapi)).replace("price:", "").replace("'", "");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Item price found: " + price);
 								}
 							}
 							if ((nodes.get(nodeapi)).contains("data:")) {
 								data = (nodes.get(nodeapi)).replace("data:", "");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Data value found: " + data);
 								}
 								if (item.equalsIgnoreCase("52")) {
@@ -154,75 +153,82 @@ public class Shop {
 							if ((nodes.get(nodeapi)).contains("enchantments:")) {
 								ench = (nodes.get(nodeapi)).replace("enchantments:", "").replace("'", "");
 								enc = ench.split(":| ");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Optional enchants found!: " + ench);
 								}
 							}
 							if ((nodes.get(nodeapi)).contains("qty:")) {
 								qty = (nodes.get(nodeapi)).replace("qty:", "");
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Item quantity found: " + qty);
 								}
 							}
-							if (!(nodes.get(nodeapi)).contains("sell:")) continue;
-							sell = (nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
-							if (plugin.utils.getVerbose().booleanValue()) {
-								System.out.println("Item sell price found: " + sell);
+							if ((nodes.get(nodeapi)).contains("sell:")){
+								sell = (nodes.get(nodeapi)).replace("sell:", "").replace("'", "");
+								if (plugin.utils.getVerbose()) {
+									System.out.println("Item sell price found: " + sell);
+								}
+
+								if (plugin.sellitems.contains(String.valueOf(item) + "$" + sell + ")" + qty)){
+									plugin.sellitems.add(String.valueOf(item) + "$" + sell + ")" + qty);
+								}
 							}
-							if (plugin.sellitems.contains(String.valueOf(item) + "$" + sell + ")" + qty)) continue;
-							plugin.sellitems.add(String.valueOf(item) + "$" + sell + ")" + qty);
 						}
 					}
+					String sellparse = item + ":" + data;
+					plugin.sell.addSell(sellparse, sell);
+					System.out.println("Added ITEM TO SELLABLES: "+sellparse);
+					plugin.sell.sellqty.put(sellparse, Integer.parseInt(qty));
 					if (Integer.parseInt(data) != 0) {
-						if (plugin.utils.getVerbose().booleanValue()) {
+						if (plugin.utils.getVerbose()) {
 							System.out.println("ItemWithDataSelected!!!!!");
 						}
 						ItemStack itemwithdata = new ItemStack(Material.getMaterial((int)Integer.parseInt(item)), Integer.parseInt(qty), (short)Integer.parseInt(data));
-						if (plugin.utils.getVerbose().booleanValue()) {
+						if (plugin.utils.getVerbose()) {
 							System.out.println("Adding item: " + nodes + " To inventory");
 						}
 						if (!Shop.isInteger(sell)) {
-							if (isSpawner.booleanValue()) {
+							if (isSpawner) {
 								plugin.item.addPrice2(itemwithdata, Integer.parseInt(price), true, Integer.parseInt(data));
 							} else {
 								plugin.item.addPrice2(itemwithdata, Integer.parseInt(price), false, 0);
 							}
 							itemwithdata = plugin.item.item;
 						} else {
-							if (isSpawner.booleanValue()) {
+							if (isSpawner) {
 								plugin.item.addPrice(itemwithdata, Integer.parseInt(price), Integer.parseInt(sell), true, Integer.parseInt(data));
 							} else {
 								plugin.item.addPrice(itemwithdata, Integer.parseInt(price), Integer.parseInt(sell), false, 0);
 							}
 							itemwithdata = plugin.item.item;
 						}
-						if (plugin.utils.getVerbose().booleanValue()) {
+						if (plugin.utils.getVerbose()) {
 							System.out.println("AddPrice Method Passed! ");
 						}
 						if (name != "null") {
 							itemmeta = itemwithdata.getItemMeta();
 							itemmeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
 							itemwithdata.setItemMeta(itemmeta);
-							if (plugin.utils.getVerbose().booleanValue()) {
+							if (plugin.utils.getVerbose()) {
 								System.out.println("Item name found! Item meta added!");
 							}
-						} else if (plugin.utils.getVerbose().booleanValue()) {
+						} else if (plugin.utils.getVerbose()) {
 							System.out.println("NO Item name found! Breaking!");
 						}
 						if (enc != null) {
 							for (int e = -1; e < enc.length; e+=2) {
 								if (e < 0) continue;
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Enchants split into values!: ");
 								}
 								if (enc[e - 1] == null && enc[e] == null) {
-									if (!plugin.utils.getVerbose().booleanValue()) continue;
+									if (!plugin.utils.getVerbose()) continue;
 									System.out.println("Enchantments are null!");
 									continue;
 								}
 								lvl = Integer.parseInt(enc[e]);
 								itemwithdata.addUnsafeEnchantment(Enchantments.getByName(enc[e - 1]), lvl);
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Enchant values: Enchant name: " + enc[e - 1] + " Enchant Level: " + lvl);
 								}
 								enc[e] = null;
@@ -240,7 +246,7 @@ public class Shop {
 								itemmeta2.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
 								backbutton.setItemMeta(itemmeta2);
 								shop.setItem(44, backbutton);
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Item with no data: " + (Object)itemwithdata + " Added to shop!");
 								}
 							} else {
@@ -250,15 +256,15 @@ public class Shop {
 								itemmeta3.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
 								backbutton2.setItemMeta(itemmeta3);
 								shop.setItem(44, backbutton2);
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Item with no data: " + (Object)itemwithdata + " Added to shop!");
 								}
 							}
-						} else if (plugin.utils.getVerbose().booleanValue()) {
+						} else if (plugin.utils.getVerbose()) {
 							System.out.println("ERROR: An Item tried to overwrite button slot!");
 						}
 					} else {
-						if (plugin.utils.getVerbose().booleanValue()) {
+						if (plugin.utils.getVerbose()) {
 							System.out.println("ITEM WITHOUT DATA!");
 						}
 						if (Material.getMaterial((int)i) == null) {
@@ -267,14 +273,14 @@ public class Shop {
 						Integer.parseInt(qty);
 						ItemStack itemnodata = new ItemStack(Material.getMaterial((int)Integer.parseInt(item)), Integer.parseInt(qty));
 						if (!Shop.isInteger(sell)) {
-							if (isSpawner.booleanValue()) {
+							if (isSpawner) {
 								plugin.item.addPrice2(itemnodata, Integer.parseInt(price), true, 90);
 							} else {
 								plugin.item.addPrice2(itemnodata, Integer.parseInt(price), false, 90);
 							}
 							itemnodata = plugin.item.item;
 						} else {
-							if (isSpawner.booleanValue()) {
+							if (isSpawner) {
 								plugin.item.addPrice(itemnodata, Integer.parseInt(price), Integer.parseInt(sell), true, 90);
 							} else {
 								plugin.item.addPrice(itemnodata, Integer.parseInt(price), Integer.parseInt(sell), false, 0);
@@ -289,17 +295,17 @@ public class Shop {
 						if (enc != null) {
 							for (int e = -1; e < enc.length; e+=2) {
 								if (e < 0) continue;
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Enchants split into values!: ");
 								}
 								if (enc[e - 1] == null && enc[e] == null) {
-									if (!plugin.utils.getVerbose().booleanValue()) continue;
+									if (!plugin.utils.getVerbose()) continue;
 									System.out.println("Enchantments are null!");
 									continue;
 								}
 								lvl = Integer.parseInt(enc[e]);
 								itemnodata.addUnsafeEnchantment(Enchantments.getByName(enc[e - 1]), lvl);
-								if (plugin.utils.getVerbose().booleanValue()) {
+								if (plugin.utils.getVerbose()) {
 									System.out.println("Enchant values: Enchant name: " + enc[e - 1] + " Enchant Level: " + lvl);
 								}
 								enc[e - 1] = null;
@@ -316,7 +322,7 @@ public class Shop {
 							itemmeta2.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
 							backbutton.setItemMeta(itemmeta2);
 							shop.setItem(44, backbutton);
-							if (plugin.utils.getVerbose().booleanValue()) {
+							if (plugin.utils.getVerbose()) {
 								System.out.println("Item with no data: " + (Object)itemnodata + " Added to shop!");
 							}
 						} else {
@@ -326,7 +332,7 @@ public class Shop {
 							itemmeta4.setDisplayName(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("back")));
 							backbutton3.setItemMeta(itemmeta4);
 							shop.setItem(44, backbutton3);
-							if (plugin.utils.getVerbose().booleanValue()) {
+							if (plugin.utils.getVerbose()) {
 								System.out.println("Item with no data: " + (Object)itemnodata + " Added to shop!");
 							}
 						}
@@ -337,71 +343,14 @@ public class Shop {
 				}
 			}
 			if (plugin.cache.saveShop(saved, shop)) {
-				if (plugin.utils.getVerbose().booleanValue()) {
+				if (plugin.utils.getVerbose()) {
 					System.out.println("Saved Shop: " + getShopName());
 					System.out.println("SHOP CONTENTS: ");
 					System.out.println(plugin.cache.getShop(plugin.menu.shopn));
 				}
-			} else if (plugin.utils.getVerbose().booleanValue()) {
+			} else if (plugin.utils.getVerbose()) {
 				System.out.println("Shop already exists!");
 			}
-		}
-	}
-
-	@SuppressWarnings("deprecation")
-	public void trySell(Player p, ItemStack item) {
-		boolean tally = false;
-		boolean err = false;
-		if (plugin.utils.verbose) {
-			System.out.println("TrySell: " + item.getTypeId());
-		}
-		if (item!=null && item.hasItemMeta()){
-			if (!item.getItemMeta().hasLore() && p.getInventory().contains(item)) {
-				if (plugin.utils.verbose) {
-					System.out.println("Item passed secondary checks!");
-				}
-				for (String str : plugin.sellitems) {
-					String itemid = StringUtils.substringBefore(str, "$");
-					if (plugin.utils.verbose) {
-						System.out.println("Item in hand: " + item.getTypeId() + " compared: " + itemid);
-					}
-					if (item.getTypeId() == Integer.parseInt(itemid)) {
-						tally = true;
-						String amount = StringUtils.substringAfter(str, ")");
-						if (Integer.parseInt(amount) == item.getAmount()) {
-							String preprice = StringUtils.substringAfter(str, "$");
-							String price = StringUtils.substringBefore(preprice, ")");
-							if (!Shop.isInteger(price)) {
-								p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cant-sell")));
-								continue;
-							}
-							p.getInventory().removeItem(new ItemStack[]{item});
-							EconomyResponse r = plugin.econ.depositPlayer(p.getName(), Integer.parseInt(price));
-							if (r.transactionSuccess()) {
-								p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("sold")) + amount + " " + item.getType().toString().toLowerCase() + "\u00a7f!");
-								p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + "\u00a7a$" + price + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("added")));
-								continue;
-							}
-							p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("something-wrong")));
-							continue;
-						}
-						int dif = Integer.parseInt(amount);
-						p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("in-stacks")) + dif);
-						err = true;
-						continue;
-					}
-					if (!plugin.utils.verbose) continue;
-					System.out.println("Compared " + (Object)item + " to " + itemid + " And did not match!");
-				}
-				if (!(tally || err)) {
-					p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("cant-sell")));
-					tally = true;
-				}
-			} else if (plugin.utils.verbose) {
-				System.out.println("Else Triggered for item!");
-			}
-		}else{
-
 		}
 	}
 

@@ -20,14 +20,14 @@ public class Cache {
 		if (shopn.contains(input)) {
 			shopn.clear();
 			cached.clear();
-			if (plugin.utils.getVerbose().booleanValue()) {
+			if (plugin.utils.getVerbose()) {
 				System.out.println("ISSaved Failed! Flushing tables on saveShop to prevent Errors!");
 			}
 			return false;
 		}
 		cached.add(shop.getContents());
 		shopn.add(input);
-		if (plugin.utils.getVerbose().booleanValue()) {
+		if (plugin.utils.getVerbose()) {
 			System.out.println("Shops saved without error! Shop: " + input);
 		}
 		return true;
@@ -35,34 +35,34 @@ public class Cache {
 
 	public boolean isSaved(String input) {
 		if (shopn.isEmpty()) {
-			if (plugin.utils.getVerbose().booleanValue()) {
+			if (plugin.utils.getVerbose()) {
 				System.out.println("HashMap keys didnt exist, Returning false! Shop: " + input);
 			}
 			return false;
 		}
 		if (shopn.contains(input)) {
-			if (plugin.utils.getVerbose().booleanValue()) {
+			if (plugin.utils.getVerbose()) {
 				System.out.println("Shop Existed in Array, Loading inventory: " + input);
 			}
 			return true;
 		}
-		if (plugin.utils.getVerbose().booleanValue()) {
+		if (plugin.utils.getVerbose()) {
 			System.out.println("No Condition could be met, Skipping method to avoid error! Shop: " + input);
 		}
 		return false;
 	}
 
 	public ItemStack[] getShop(String input) {
-		if (plugin.utils.getVerbose().booleanValue()) {
+		if (plugin.utils.getVerbose()) {
 			System.out.println("Getting items for SAVED Shop!");
 		}
 		for (int i = 0; i < shopn.size(); ++i) {
 			String item = shopn.get(i);
-			if (plugin.utils.getVerbose().booleanValue()) {
+			if (plugin.utils.getVerbose()) {
 				System.out.println("Comparing item: " + item + " to " + input);
 			}
 			if (!input.equals(item)) continue;
-			if (plugin.utils.getVerbose().booleanValue()) {
+			if (plugin.utils.getVerbose()) {
 				System.out.println("Inventory found! Loading!");
 			}
 			return cached.get(i);

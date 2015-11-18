@@ -1,3 +1,7 @@
+<h1>GUIShop 4.1.8</h1>
+FIXES:
+- Fixed items not being able to be stacked with items out of the shop
+
 <h1>GUIShop 4.1.7</h1>
 FIXES:
 - Changed event priority

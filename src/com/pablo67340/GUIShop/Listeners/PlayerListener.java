@@ -128,6 +128,28 @@ implements Listener {
 
 			}else{
 				if (e.getWhoClicked() instanceof Player) {
+					// Checks for numberpad, q, and other keyboard dupes
+					if (e.getClick().isKeyboardClick()) {
+						e.setCancelled(true);
+						p.closeInventory();
+						menuOpen.remove(p.getName());
+						shopOpen.remove(p.getName());
+					}
+					// Check for null items, Prevents null item dupe
+					if (e.getCurrentItem().getType() == Material.AIR){
+						e.setCancelled(true);
+						plugin.closeInventory(p);
+						menuOpen.remove(p.getName());
+						shopOpen.remove(p.getName());
+					}
+					// Shift to event cancel lag dupe. Make sure to close on same tick.
+					if (e.isShiftClick()){
+						e.setCancelled(true);
+						p.closeInventory();
+						menuOpen.remove(p.getName());
+						shopOpen.remove(p.getName());
+
+					}
 					if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
 						e.setCancelled(false);
 					} else {
@@ -150,10 +172,6 @@ implements Listener {
 								if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
 									if (plugin.utils.getVerbose()) {
 										System.out.println("Title contains menu name");
-									}
-									if (e.getClick().isKeyboardClick()) {
-										e.setCancelled(true);
-										p.closeInventory();
 									}
 									if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
 										if (e.getClickedInventory().getType() == e.getView().getType()) {

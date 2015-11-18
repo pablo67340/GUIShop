@@ -1,3 +1,10 @@
+<h1>GUIShop 4.1.9</h1>
+FIXES:
+- Fixed a dupe caused by event cancel lag.
+- Fixed a dupe caused by clicking a null slot
+- Fixed a dupe caused by keyboard click checks firing too late.
+
+
 <h1>GUIShop 4.1.8</h1>
 FIXES:
 - Fixed items not being able to be stacked with items out of the shop

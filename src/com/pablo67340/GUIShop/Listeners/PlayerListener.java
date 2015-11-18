@@ -250,7 +250,8 @@ implements Listener {
 																	if (plugin.utils.getVerbose()) {
 																		System.out.println("No Mob Spawner here...");
 																	}
-																	p.getInventory().addItem(new ItemStack[]{stripMeta(dupeitem, dupeitem.getAmount())});
+																	ItemStack dupeitem2 = stripMeta(dupeitem,dupeitem.getAmount());
+																	p.getInventory().addItem(new ItemStack[]{dupeitem2});
 																}
 																p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("purchased")) + item.getAmount() + " " + item.getType().toString().toLowerCase() + "!");
 																p.sendMessage(String.valueOf(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix())) + " " + "$" + price + " " + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("taken")));
@@ -312,6 +313,7 @@ implements Listener {
 	public ItemStack stripMeta(ItemStack item, Integer amount) {
 		ItemMeta itm = item.getItemMeta();
 		itm.setLore(null);
+		itm.setDisplayName(null);
 		item.setItemMeta(itm);
 		item.setAmount(amount.intValue());
 		return item;

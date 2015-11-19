@@ -1,3 +1,7 @@
+<h1>GUIShop 4.2.0</h1>
+FIXES:
+- Fixed inventory closing after pressing an empty slot
+
 <h1>GUIShop 4.1.9</h1>
 FIXES:
 - Fixed a dupe caused by event cancel lag.

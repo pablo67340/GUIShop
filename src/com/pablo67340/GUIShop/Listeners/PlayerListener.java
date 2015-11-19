@@ -127,36 +127,37 @@ implements Listener {
 			if (e.getClickedInventory()==null){
 
 			}else{
-				if (e.getWhoClicked() instanceof Player) {
-					// Checks for numberpad, q, and other keyboard dupes
-					if (e.getClick().isKeyboardClick()) {
-						e.setCancelled(true);
-						p.closeInventory();
-						menuOpen.remove(p.getName());
-						shopOpen.remove(p.getName());
-					}
-					// Check for null items, Prevents null item dupe
-					if (e.getCurrentItem().getType() == Material.AIR){
-						e.setCancelled(true);
-						plugin.closeInventory(p);
-						menuOpen.remove(p.getName());
-						shopOpen.remove(p.getName());
-					}
-					// Shift to event cancel lag dupe. Make sure to close on same tick.
-					if (e.isShiftClick()){
-						e.setCancelled(true);
-						p.closeInventory();
-						menuOpen.remove(p.getName());
-						shopOpen.remove(p.getName());
 
-					}
-					if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
-						e.setCancelled(false);
-					} else {
+				if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
+					e.setCancelled(false);
+				} else {
 
-						if (!shopOpen.contains(p.getName())) {
+					if (!shopOpen.contains(p.getName())) {
 
-							if (menuOpen.contains(p.getName())) {
+						if (menuOpen.contains(p.getName())) {
+							if (e.getWhoClicked() instanceof Player) {
+								// Checks for numberpad, q, and other keyboard dupes
+								if (e.getClick().isKeyboardClick()) {
+									e.setCancelled(true);
+									p.closeInventory();
+									menuOpen.remove(p.getName());
+									shopOpen.remove(p.getName());
+								}
+								// Check for null items, Prevents null item dupe
+								if (e.getCurrentItem().getType() == Material.AIR){
+									e.setCancelled(true);
+									plugin.closeInventory(p);
+									menuOpen.remove(p.getName());
+									shopOpen.remove(p.getName());
+								}
+								// Shift to event cancel lag dupe. Make sure to close on same tick.
+								if (e.isShiftClick()){
+									e.setCancelled(true);
+									p.closeInventory();
+									menuOpen.remove(p.getName());
+									shopOpen.remove(p.getName());
+
+								}
 								if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
 									e.setCancelled(true);
 									close = false;
@@ -309,74 +310,100 @@ implements Listener {
 							}
 
 						}
-					}
-				}
-			}
+					}else{
+						if (e.getWhoClicked() instanceof Player) {
+							// Checks for numberpad, q, and other keyboard dupes
+							if (e.getClick().isKeyboardClick()) {
+								e.setCancelled(true);
+								p.closeInventory();
+								menuOpen.remove(p.getName());
+								shopOpen.remove(p.getName());
+							}
+							// Check for null items, Prevents null item dupe
+							if (e.getCurrentItem().getType() == Material.AIR){
+								e.setCancelled(true);
+								plugin.closeInventory(p);
+								menuOpen.remove(p.getName());
+								shopOpen.remove(p.getName());
+							}
+							// Shift to event cancel lag dupe. Make sure to close on same tick.
+							if (e.isShiftClick()){
+								e.setCancelled(true);
+								p.closeInventory();
+								menuOpen.remove(p.getName());
+								shopOpen.remove(p.getName());
 
-
-
-		}
-	}
-
-	@EventHandler
-	public void onClose(InventoryCloseEvent e) {
-		Player p = (Player)e.getPlayer();
-		if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
-			plugin.sell.trySell(p, plugin.sell.getSellInv());
-		}else if(e.getInventory().getTitle().equalsIgnoreCase(properName)){
-			shopOpen.remove(p.getName());
-		}
-	}
-
-	public ItemStack stripMeta(ItemStack item, Integer amount) {
-		ItemMeta itm = item.getItemMeta();
-		itm.setLore(null);
-		itm.setDisplayName(null);
-		item.setItemMeta(itm);
-		item.setAmount(amount.intValue());
-		return item;
-	}
-
-	@EventHandler
-	public void eventSignChanged(SignChangeEvent event){  
-		String title = event.getLine(0);
-		Player p = event.getPlayer();
-		if (title.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sign-title")))){
-			if (p.hasPermission("guishop.sign.place") || p.isOp()){
-				event.setCancelled(false);
-			}else{
-				p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
-				event.setCancelled(true);
-			}
-		}
-	}
-
-	@EventHandler
-	public void onInteract(PlayerInteractEvent e) {
-		Player player = e.getPlayer();
-		Block block = e.getClickedBlock();
-		if (block != null){
-			if (block.getState() != null){
-				if(block.getState() instanceof Sign) {
-					Sign sign = (Sign) block.getState();
-					String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
-					if (plugin.utils.getVerbose()){
-						System.out.println("Player Clicked sign with line1: "+line1 +" compared to "+ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sign-title")));
-					}
-					if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sign-title")))){
-						if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
-							plugin.menu.loadMenu(player);
-							e.setCancelled(true);
-						}else{
-							player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
-							e.setCancelled(true);
+							}
 						}
+					}
+				}
 
+
+			}
+			}
+		}
+
+		@EventHandler
+		public void onClose(InventoryCloseEvent e) {
+			Player p = (Player)e.getPlayer();
+			if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
+				plugin.sell.trySell(p, plugin.sell.getSellInv());
+			}else if(e.getInventory().getTitle().equalsIgnoreCase(properName)){
+				shopOpen.remove(p.getName());
+			}else if(e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getMenuName())){
+				menuOpen.remove(p.getName());
+			}
+		}
+
+		public ItemStack stripMeta(ItemStack item, Integer amount) {
+			ItemMeta itm = item.getItemMeta();
+			itm.setLore(null);
+			itm.setDisplayName(null);
+			item.setItemMeta(itm);
+			item.setAmount(amount.intValue());
+			return item;
+		}
+
+		@EventHandler
+		public void eventSignChanged(SignChangeEvent event){  
+			String title = event.getLine(0);
+			Player p = event.getPlayer();
+			if (title.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sign-title")))){
+				if (p.hasPermission("guishop.sign.place") || p.isOp()){
+					event.setCancelled(false);
+				}else{
+					p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
+					event.setCancelled(true);
+				}
+			}
+		}
+
+		@EventHandler
+		public void onInteract(PlayerInteractEvent e) {
+			Player player = e.getPlayer();
+			Block block = e.getClickedBlock();
+			if (block != null){
+				if (block.getState() != null){
+					if(block.getState() instanceof Sign) {
+						Sign sign = (Sign) block.getState();
+						String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
+						if (plugin.utils.getVerbose()){
+							System.out.println("Player Clicked sign with line1: "+line1 +" compared to "+ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sign-title")));
+						}
+						if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sign-title")))){
+							if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
+								plugin.menu.loadMenu(player);
+								e.setCancelled(true);
+							}else{
+								player.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
+								e.setCancelled(true);
+							}
+
+						}
 					}
 				}
 			}
 		}
-	}
 
-}
+	}
 

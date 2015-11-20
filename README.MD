@@ -1,3 +1,8 @@
+<h1>GUIShop 4.2.2</h1>
+FIXES:
+- Removed console spam from debugging
+- Made craftbukkit Compliant
+
 <h1>GUIShop 4.2.1</h1>
 FIXES:
 - Pretty much re did 4.2.0 :P

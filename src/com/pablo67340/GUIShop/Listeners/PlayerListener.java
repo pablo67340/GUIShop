@@ -242,7 +242,6 @@ implements Listener {
 						}
 					}else{
 
-
 						properName = plugin.shop.getShopName().replace(".", "");
 						if (e.getInventory().getTitle().contains(properName) && !e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
 							ItemStack item;

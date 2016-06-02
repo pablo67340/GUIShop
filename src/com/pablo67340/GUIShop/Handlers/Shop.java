@@ -32,7 +32,7 @@ public class Shop {
 	protected HashMap<String, Integer> dataID = new HashMap<String, Integer>();
 	protected HashMap<String, Integer> qty = new HashMap<String, Integer>();
 	protected HashMap<String, String> enchants = new HashMap<String, String>();
-	protected Inventory shop;
+	public Inventory shop;
 	ArrayList<String> sopen = new ArrayList<String>();
 	HashMap<Integer, Inventory> shopinv = new HashMap<Integer, Inventory>();
 	String[] enc;
@@ -62,6 +62,10 @@ public class Shop {
 		shop.setItem(slot.intValue(), item);
 		return true;
 	}
+	
+	public Inventory getShop(){
+		return shop;
+	}
 
 	@SuppressWarnings("deprecation")
 	public void loadShop(Player plyr) {
@@ -74,7 +78,7 @@ public class Shop {
 		if (plugin.menu.title.length() > 16) {
 			plugin.menu.title.substring(0, 16);
 		}
-		Inventory shop = Bukkit.getServer().createInventory((InventoryHolder)plyr, row * size, getShopName().replace(".", ""));
+		shop = Bukkit.getServer().createInventory((InventoryHolder)plyr, row * size, getShopName().replace(".", ""));
 		String saved = getShopName().replaceAll("[\\s.]", "");
 		if (plugin.cache.isSaved(saved)) {
 			if (plugin.utils.getVerbose()) {
@@ -359,6 +363,14 @@ public class Shop {
 	public static boolean isInteger(String s) {
 		boolean isInt = plugin.utils.isInteger(s, 10);
 		return isInt;
+	}
+	
+	public void addOpen(String input){
+		sopen.add(input);
+	}
+	
+	public void removeOpen(String input){
+		sopen.remove(input);
 	}
 }
 

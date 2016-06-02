@@ -127,17 +127,16 @@ implements Listener {
 			if (e.getInventory()==null){
 
 			}else{
-
+				System.out.println("Disallow 11");
 				if (e.getInventory().getTitle().equalsIgnoreCase(plugin.utils.getSellTitle())) {
 					e.setCancelled(false);
 				} else {
-
+					System.out.println("Disallow 10");
 					if (!shopOpen.contains(p.getName())) {
 
 						if (menuOpen.contains(p.getName())) {
 							// Checks for numberpad, q, and other keyboard dupes
 							if (e.getClick().isKeyboardClick()) {
-
 								e.setCancelled(true);
 								p.closeInventory();
 
@@ -147,18 +146,18 @@ implements Listener {
 								}
 							}
 							// Check for null items, Prevents null item dupe
-							if (e.getCurrentItem().getType() == Material.AIR){
-								e.setCancelled(true);
-
-								plugin.closeInventory(p);
-								if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
-									menuOpen.remove(p.getName());
-									shopOpen.remove(p.getName());
+							if (e.getCurrentItem() != null){
+								if (e.getCurrentItem().getType() == Material.AIR){
+									e.setCancelled(true);
+									if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
+										menuOpen.remove(p.getName());
+										shopOpen.remove(p.getName());
+									}
 								}
 							}
 							// Shift to event cancel lag dupe. Make sure to close on same tick.
 							if (e.isShiftClick()){
-
+								System.out.println("Closed 4");
 								e.setCancelled(true);
 								p.closeInventory();
 
@@ -212,36 +211,42 @@ implements Listener {
 
 
 													} else {
+														System.out.println("Disallow 4");
 														break;
 													}
 												} else {
-
-													plugin.closeInventory(p);
+													System.out.println("Disallow 3");
+													p.closeInventory();
+													menuOpen.add(p.getName());
+													shopOpen.remove(p.getName());
+													plugin.menu.loadMenu(p);
 												}
+												System.out.println("Disallow 5");
 												break;
 											}
 										} else {
+											System.out.println("Disallow 9");
 											e.getClick().isKeyboardClick();
 										}
 									} else {
-
+										System.out.println("Disallow 2");
 										plugin.closeInventory(p);
 									}
 								} else {
-
-									plugin.closeInventory(p);
+									System.out.println("Disallow 1");
+									e.setCancelled(true);
 								}
 							}else{
-
+								System.out.println("Disallow 6");
 							}
 
 						}else{
 							// here
-
+							System.out.println("Disallow 7");
 
 						}
 					}else{
-
+						System.out.println("Disallow 8");
 						properName = plugin.shop.getShopName().replace(".", "");
 						if (e.getInventory().getTitle().contains(properName) && !e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
 							ItemStack item;
@@ -314,7 +319,7 @@ implements Listener {
 											}
 										}
 									} else {
-
+										System.out.println("Disallow 15");
 										e.setCancelled(true);
 										plugin.closeInventory(p);
 
@@ -337,7 +342,7 @@ implements Listener {
 						}
 						// Checks for numberpad, q, and other keyboard dupes
 						if (e.getClick().isKeyboardClick()) {
-
+							System.out.println("Disallow 16");
 							e.setCancelled(true);
 							p.closeInventory();
 
@@ -347,26 +352,23 @@ implements Listener {
 							}
 						}
 						// Check for null items, Prevents null item dupe
-						if (e.getCurrentItem().getType() == Material.AIR){
-
-							e.setCancelled(true);
-							plugin.closeInventory(p);
-							if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
-								menuOpen.remove(p.getName());
-								shopOpen.remove(p.getName());
+						if (e.getCurrentItem() != null){
+							if (e.getCurrentItem().getType() == Material.AIR){
+								System.out.println("Disallow 17, Cancelled event");
+								e.setCancelled(true);
 							}
-						}
-						// Shift to event cancel lag dupe. Make sure to close on same tick.
-						if (e.isShiftClick()){
+							// Shift to event cancel lag dupe. Make sure to close on same tick.
+							if (e.isShiftClick()){
 
-							e.setCancelled(true);
-							p.closeInventory();
+								e.setCancelled(true);
+								p.closeInventory();
 
-							if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
-								menuOpen.remove(p.getName());
-								shopOpen.remove(p.getName());
+								if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
+									menuOpen.remove(p.getName());
+									shopOpen.remove(p.getName());
+								}
+
 							}
-
 						}
 
 					}

@@ -1,3 +1,12 @@
+<h1>GUIShop 4.2.5</h1>
+FIXES:
+- Fixed errors while clicking out of inventory
+- Fixed errors when clicking an empty slot, Causing inventory to close
+
+<h1>GUIShop 4.2.4</h1>
+FIXES: 
+- Re compiled for Java 1.7 . The #1 problem was caused by this. Most server hosts are not using Java 8... yet.
+
 <h1>GUIShop 4.2.2</h1>
 FIXES:
 - Removed console spam from debugging

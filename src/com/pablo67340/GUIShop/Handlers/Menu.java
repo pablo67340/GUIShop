@@ -14,9 +14,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class Menu {
-	Main plugin;
-	String title;
-	String shopn;
+	protected Main plugin;
+	protected String title;
+	protected String shopn;
+	public ArrayList<String> shops = new ArrayList<>();
+	protected Inventory chest;
 
 	public Menu(Main main) {
 		plugin = main;
@@ -32,7 +34,7 @@ public class Menu {
 			} else {
 				String Name;
 				ArrayList<String> Ls = new ArrayList<String>();
-				Inventory chest = p.getPlayer().getServer().createInventory(null, plugin.getConfig().getInt("Rows") * 9, title);
+				chest = p.getPlayer().getServer().createInventory(null, plugin.getConfig().getInt("Rows") * 9, title);
 				int[] row1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9};
 				int[] row2 = new int[]{10, 11, 12, 13, 14, 15, 16, 17, 18};
 				int[] row3 = new int[]{19, 20, 21, 23, 24, 25, 26, 27, 28};
@@ -40,13 +42,20 @@ public class Menu {
 					if (plugin.getConfig().getString(String.valueOf(slot2) + ".Enabled") != "true") continue;
 					Ls.clear();
 					Name = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Name"));
+
+					if (!shops.contains(plugin.getConfig().getString(String.valueOf(slot2) + ".Shop"))){
+						shops.add(plugin.getConfig().getString(String.valueOf(slot2) + ".Shop"));
+					}
+
 					if (ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Desc")) != "null") {
 						Ls.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Desc")));
+
 					}
 					if (p.hasPermission("guishop.slot." + slot2) || p.isOp()) {
 						chest.setItem(slot2 - 1, setName(new ItemStack(Material.getMaterial(plugin.getConfig().getString(String.valueOf(slot2) + ".Item")), 1), Name, Ls));
 						continue;
 					}
+
 					Ls.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
 					chest.setItem(slot2 - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
 				}
@@ -55,6 +64,9 @@ public class Menu {
 						if (plugin.getConfig().getString(String.valueOf(slot2) + ".Enabled") != "true") continue;
 						Ls.clear();
 						Name = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Name"));
+						if (!shops.contains(plugin.getConfig().getString(String.valueOf(slot2) + ".Shop"))){
+							shops.add(plugin.getConfig().getString(String.valueOf(slot2) + ".Shop"));
+						}
 						if (plugin.getConfig().getString(String.valueOf(slot2) + ".Desc") != "null") {
 							Ls.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Desc")));
 						}
@@ -62,6 +74,7 @@ public class Menu {
 							chest.setItem(slot2 - 1, setName(new ItemStack(Material.getMaterial(plugin.getConfig().getString(String.valueOf(slot2) + ".Item")), 1), Name, Ls));
 							continue;
 						}
+
 						Ls.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
 						chest.setItem(slot2 - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
 					}
@@ -71,6 +84,9 @@ public class Menu {
 						if (plugin.getConfig().getString(String.valueOf(slot2) + ".Enabled") != "true") continue;
 						Ls.clear();
 						Name = ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Name"));
+						if (!shops.contains(plugin.getConfig().getString(String.valueOf(slot2) + ".Shop"))){
+							shops.add(plugin.getConfig().getString(String.valueOf(slot2) + ".Shop"));
+						}
 						if (plugin.getConfig().getString(String.valueOf(slot2) + ".Desc") != "null") {
 							Ls.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString(String.valueOf(slot2) + ".Desc")));
 						}
@@ -78,15 +94,20 @@ public class Menu {
 							chest.setItem(slot2 - 1, setName(new ItemStack(Material.getMaterial(plugin.getConfig().getString(String.valueOf(slot2) + ".Item")), 1), Name, Ls));
 							continue;
 						}
+
 						Ls.add(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
 						chest.setItem(slot2 - 1, setName(new ItemStack(Material.getMaterial(36), 1), Name, Ls));
 					}
 				}
-				p.openInventory(chest);
 			}
 		} else {
 			p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
 		}
+	}
+
+	public void openMenu(Player p){
+		plugin.listene.menuOpen.add(p.getName());
+		p.openInventory(chest);
 	}
 
 	private ItemStack setName(ItemStack is, String name, List<String> lore) {

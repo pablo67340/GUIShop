@@ -64,9 +64,13 @@
 			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
 		</repository>
 		<repository>
-			<id>bukkit-repo</id>
+			<id>ess-repo</id>
 			<url>http://repo.ess3.net/content/groups/public</url>
 		</repository>
+    <repository>
+      <id>bukkit-repo</id>
+      <url>http://repo.bukkit.org/content/groups/public/</url>
+    </repository>
 		<repository>
 			<id>krinsoft</id>
 			<url>http://ci.krincraft.net/plugin/repository/everything/</url>
@@ -85,14 +89,14 @@
 <dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
-			<version>1.8.3-R0.1-SNAPSHOT</version>
+			<version>LATEST</version>
 			<scope>provided</scope>
 		</dependency>
 
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>craftbukkit</artifactId>
-			<version>1.8.3-R0.1-SNAPSHOT</version>
+			<version>LATEST</version>
 			<scope>provided</scope>
 		</dependency>
 		<dependency>

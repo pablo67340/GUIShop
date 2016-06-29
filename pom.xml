@@ -85,7 +85,7 @@
 		<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
-			<version>${bukkitVersion}</version>
+			<version>1.7.9-R0.2</version>
 		</dependency>
 		<dependency>
 			<groupId>net.milkbowl.vault</groupId>

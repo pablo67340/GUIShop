@@ -77,7 +77,7 @@
 		</repository>
 		<repository>
 	        <id>SilkSpawners-Repo</id>
-	        <url>http://ci.dustplanet.de/plugin/repository/everything/</url>
+	        <url>http://ci.dustplanet.de/plugin/repository/everything/de/dustplanet/SilkSpawners-v1_8_R3/</url>
         </repository>
 	</repositories>
 
@@ -101,7 +101,7 @@
         <dependency>
 	       <groupId>de.dustplanet</groupId>
 	       <artifactId>SilkSpawners</artifactId>
-	       <version>3.7-SNAPSHOT</version>
+	       <version>v1_8_R3</version>
         </dependency>
 	</dependencies>
 

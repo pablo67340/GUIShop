@@ -4,7 +4,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<bukkitVersion>1.8.3-R0.1-SNAPSHOT</bukkitVersion>
+		<bukkitVersion>1.7.9-R0.3-SNAPSHOT</bukkitVersion>
 		<mainClass>${project.groupId}.${project.artifactId}</mainClass>
 		<api.version>1.6</api.version>
 	</properties>

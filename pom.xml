@@ -4,7 +4,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<bukkitVersion>1.8-R0.1-SNAPSHOT</bukkitVersion>
+		<bukkitVersion>1.8.3-R0.1-SNAPSHOT</bukkitVersion>
 		<mainClass>${project.groupId}.${project.artifactId}</mainClass>
 		<api.version>1.6</api.version>
 	</properties>
@@ -65,7 +65,7 @@
 		</repository>
 		<repository>
 			<id>bukkit-repo</id>
-			<url>http://repo.bukkit.org/content/groups/public/</url>
+			<url>http://repo.ess3.net/content/groups/public</url>
 		</repository>
 		<repository>
 			<id>krinsoft</id>
@@ -82,10 +82,11 @@
 	</repositories>
 
 	<dependencies>
-		<dependency>
+<dependency>
 			<groupId>org.bukkit</groupId>
 			<artifactId>bukkit</artifactId>
-			<version>1.7.9-R0.2</version>
+			<version>${bukkitVersion}</version>
+			<scope>provided</scope>
 		</dependency>
 		<dependency>
 			<groupId>net.milkbowl.vault</groupId>

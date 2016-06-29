@@ -75,6 +75,10 @@
 			<id>escapecraft-repo</id>
 			<url>http://dev.escapecraft.com/maven</url>
 		</repository>
+		<repository>
+	        <id>SilkSpawners-Repo</id>
+	        <url>http://ci.dustplanet.de/plugin/repository/everything/</url>
+        </repository>
 	</repositories>
 
 	<dependencies>
@@ -93,6 +97,11 @@
            <artifactId>spigot-api</artifactId>
            <version>1.10.2-R0.1-SNAPSHOT</version>
            <scope>provided</scope>
+        </dependency>
+        <dependency>
+	       <groupId>de.dustplanet</groupId>
+	       <artifactId>SilkSpawners</artifactId>
+	       <version>3.7-SNAPSHOT</version>
         </dependency>
 	</dependencies>
 

@@ -75,9 +75,9 @@
 			<id>escapecraft-repo</id>
 			<url>http://dev.escapecraft.com/maven</url>
 		</repository>
-		<repository>
-	        <id>SilkSpawners-Repo</id>
-	        <url>http://ci.dustplanet.de/plugin/repository/everything/de/dustplanet/SilkSpawners-v1_8_R3/</url>
+        <repository>
+            <id>SilkSpawners-Repo</id>
+            <url>https://ci.dustplanet.de/plugin/repository/everything</url>
         </repository>
 	</repositories>
 
@@ -98,11 +98,17 @@
            <version>1.10.2-R0.1-SNAPSHOT</version>
            <scope>provided</scope>
         </dependency>
-        <dependency>
-	       <groupId>de.dustplanet</groupId>
-	       <artifactId>SilkSpawners</artifactId>
-	       <version>v1_8_R3</version>
-        </dependency>
+<dependency>
+      <groupId>de.dustplanet</groupId>
+      <artifactId>SilkSpawners</artifactId>
+      <version>3.8-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
 	</dependencies>
 
 	<build>

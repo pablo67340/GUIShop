@@ -4,7 +4,7 @@
 
   <groupId>com.pablo67340.shop</groupId>
   <artifactId>GUIShop</artifactId>
-  <version>3.9.1-SNAPSHOT</version>
+  <version>4.3</version>
   <packaging>jar</packaging>
 
   <name>GUIShop</name>

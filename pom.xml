@@ -55,10 +55,10 @@
 			<name>Public Releases</name>
 			<url>http://nexus.theyeticave.net/content/repositories/pub_releases/</url>
 		</repository>
-		<repository>
-			<id>spigot-repo</id>
-			<url>https://hub.spigotmc.org/nexus/content/groups/public/</url>
-		</repository>
+		   <repository>
+       <id>spigot-repo</id>
+       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+   </repository>
 		<repository>
 			<id>greatman-repo</id>
 			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
@@ -67,10 +67,6 @@
 			<id>ess-repo</id>
 			<url>http://repo.ess3.net/content/groups/public</url>
 		</repository>
-    <repository>
-      <id>bukkit-repo</id>
-      <url>http://repo.bukkit.org/content/groups/public/</url>
-    </repository>
 		<repository>
 			<id>krinsoft</id>
 			<url>http://ci.krincraft.net/plugin/repository/everything/</url>
@@ -87,29 +83,23 @@
 
 	<dependencies>
 <dependency>
-			<groupId>org.bukkit</groupId>
-			<artifactId>bukkit</artifactId>
-			<version>LATEST</version>
-			<scope>provided</scope>
-		</dependency>
-
-		<dependency>
-			<groupId>org.bukkit</groupId>
-			<artifactId>craftbukkit</artifactId>
-			<version>LATEST</version>
-			<scope>provided</scope>
-		</dependency>
+           <groupId>org.spigotmc</groupId>
+           <artifactId>spigot-api</artifactId>
+           <version>1.9-R0.1-SNAPSHOT</version>
+           <scope>provided</scope>
+   </dependency>
+   <!--Bukkit API-->
+   <dependency>
+           <groupId>org.bukkit</groupId>
+           <artifactId>bukkit</artifactId>
+           <version>1.9-R0.1-SNAPSHOT</version>
+           <scope>provided</scope>
+   </dependency>
 		<dependency>
 			<groupId>net.milkbowl.vault</groupId>
 			<artifactId>VaultAPI</artifactId>
 			<version>${api.version}</version>
 		</dependency>
-		<dependency>
-           <groupId>org.spigotmc</groupId>
-           <artifactId>spigot-api</artifactId>
-           <version>1.9-R0.1-SNAPSHOT</version>
-           <scope>provided</scope>
-        </dependency>
 <dependency>
       <groupId>de.dustplanet</groupId>
       <artifactId>SilkSpawners</artifactId>

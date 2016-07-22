@@ -144,110 +144,112 @@ public class PlayerListener implements Listener {
 							if (e.getClickedInventory()==p.getInventory()){
 								e.setCancelled(true);
 							}else{
-							// Checks for numberpad, q, and other keyboard dupes
-							if (e.getClick().isKeyboardClick()) {
-								e.setCancelled(true);
-								p.closeInventory();
-
-								if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
-									menuOpen.remove(p.getName());
-									shopOpen.remove(p.getName());
-								}
-							}
-							// Check for null items, Prevents null item dupe
-							if (e.getCurrentItem() != null){
-								if (e.getCurrentItem().getType() == Material.AIR){
+								// Checks for numberpad, q, and other keyboard dupes
+								if (e.getClick().isKeyboardClick()) {
 									e.setCancelled(true);
+									p.closeInventory();
+
 									if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
 										menuOpen.remove(p.getName());
 										shopOpen.remove(p.getName());
 									}
 								}
-							}
-							// Shift to event cancel lag dupe. Make sure to close on same tick.
-							if (e.isShiftClick()){
-								if (plugin.utils.getVerbose()){
-									System.out.println("Closed 4");
+								// Check for null items, Prevents null item dupe
+								if (e.getCurrentItem() != null){
+									if (e.getCurrentItem().getType() == Material.AIR){
+										e.setCancelled(true);
+										if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
+											menuOpen.remove(p.getName());
+											shopOpen.remove(p.getName());
+										}
+									}
 								}
-								e.setCancelled(true);
-								p.closeInventory();
+								// Shift to event cancel lag dupe. Make sure to close on same tick.
+								if (e.isShiftClick()){
+									if (plugin.utils.getVerbose()){
+										System.out.println("Closed 4");
+									}
+									e.setCancelled(true);
+									p.closeInventory();
 
-								if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
-									menuOpen.remove(p.getName());
-									shopOpen.remove(p.getName());
+									if (menuOpen.contains(p.getName()) || shopOpen.contains(p.getName())){
+										menuOpen.remove(p.getName());
+										shopOpen.remove(p.getName());
+									}
+
 								}
-
-							}
-							if (plugin.utils.getVerbose()) {
-								System.out.println("MenuOpen passed. Player removed");
-							}
-							if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
 								if (plugin.utils.getVerbose()) {
-									System.out.println("Title contains menu name");
+									System.out.println("MenuOpen passed. Player removed");
 								}
-								if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
-									if (e.getInventory().getType() == e.getView().getType()) {
-										if (e.isLeftClick() || e.isShiftClick() || e.isRightClick() && !e.getClick().isKeyboardClick()) {
-											@SuppressWarnings("unused")
-											int[] row1;
-											for (int slot : row1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28}) {
-												if (e.getRawSlot() != slot - 1) continue;
-												if (plugin.getConfig().getString(String.valueOf(slot) + ".Enabled") == "true") {
-													if (p.hasPermission("guishop.slot." + slot) || p.isOp()) {
-														e.setCancelled(true);
-														String shop = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
-														title = "";
-														title = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
-														String shopn = String.valueOf(shop) + ".";
+								if (e.getInventory().getTitle().contains(plugin.utils.getMenuName())) {
+									if (plugin.utils.getVerbose()) {
+										System.out.println("Title contains menu name");
+									}
+									if (e.getSlotType() == InventoryType.SlotType.CONTAINER) {
+										if (e.getInventory().getType() == e.getView().getType()) {
+											if (e.isLeftClick() || e.isShiftClick() || e.isRightClick() && !e.getClick().isKeyboardClick()) {
+												@SuppressWarnings("unused")
+												int[] row1;
+												for (int slot : row1 = new int[]{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 23, 24, 25, 26, 27, 28}) {
+													if (e.getRawSlot() != slot - 1) continue;
+													if (plugin.getConfig().getString(String.valueOf(slot) + ".Enabled") == "true") {
+														if (p.hasPermission("guishop.slot." + slot) || p.isOp()) {
+															e.setCancelled(true);
+															String shop = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
+															title = "";
+															title = plugin.getConfig().getString(String.valueOf(slot) + ".Shop");
+															String shopn = String.valueOf(shop) + ".";
 
 
-														if (menuOpen.contains(p.getName())){
-															menuOpen.remove(p.getName());
+															if (menuOpen.contains(p.getName())){
+																menuOpen.remove(p.getName());
+															}
+															shopOpen.add(p.getName());
+															plugin.shop.setOpenedShop(shopn);
+															plugin.shop.setShopName(shopn);
+															plugin.shop.openShop(p);
+														} else {
+															if (plugin.utils.getVerbose()){
+																System.out.println("Disallow 4");
+															}
+															e.setCancelled(true);
+															p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("no-permission")));
+															break;
 														}
-														shopOpen.add(p.getName());
-														plugin.shop.setOpenedShop(shopn);
-														plugin.shop.setShopName(shopn);
-														plugin.shop.openShop(p);
 													} else {
 														if (plugin.utils.getVerbose()){
-															System.out.println("Disallow 4");
+															System.out.println("Disallow 3");
 														}
-														break;
+														p.closeInventory();
+														menuOpen.add(p.getName());
+														shopOpen.remove(p.getName());
+														plugin.menu.loadMenu(p);
 													}
-												} else {
-													if (plugin.utils.getVerbose()){
-														System.out.println("Disallow 3");
-													}
-													p.closeInventory();
-													menuOpen.add(p.getName());
-													shopOpen.remove(p.getName());
-													plugin.menu.loadMenu(p);
 												}
+											} else {
+												if (plugin.utils.getVerbose()){
+													System.out.println("Disallow 9");
+												}
+												e.getClick().isKeyboardClick();
 											}
 										} else {
 											if (plugin.utils.getVerbose()){
-												System.out.println("Disallow 9");
+												System.out.println("Disallow 2");
 											}
-											e.getClick().isKeyboardClick();
+											plugin.closeInventory(p);
 										}
 									} else {
 										if (plugin.utils.getVerbose()){
-											System.out.println("Disallow 2");
+											System.out.println("Disallow 1");
 										}
-										plugin.closeInventory(p);
+										e.setCancelled(true);
 									}
-								} else {
+								}else{
 									if (plugin.utils.getVerbose()){
-										System.out.println("Disallow 1");
+										System.out.println("Disallow 6");
 									}
-									e.setCancelled(true);
-								}
-							}else{
-								if (plugin.utils.getVerbose()){
-									System.out.println("Disallow 6");
 								}
 							}
-						}
 						}else{
 							// here
 							if (plugin.utils.getVerbose()){

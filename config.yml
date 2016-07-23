@@ -1,0 +1,150 @@
+##################################################
+##                                              ##
+##  _____ _    _ _____  _____ _                 ##
+## / ____| |  | |_   _|/ ____| |                ##
+##| |  __| |  | | | | | (___ | |__   ___  _ __  ##
+##| | |_ | |  | | | |  \___ \| '_ \ / _ \| '_ \ ##
+##| |__| | |__| |_| |_ ____) | | | | (_) | |_) |##
+## \_____|\____/|_____|_____/|_| |_|\___/| .__/ ##
+##                                       | |    ##
+##                                       |_|    ##
+##################################################
+
+
+
+##################################################
+#        Looking for a Custom Plugin?            #
+#    Look no further! Visit CraftedPlugins       #
+#   To post a Job! A Developer will make it!     #
+#          http://craftedplugins.com/           ##
+##################################################
+
+
+
+##Title of the inventory in /shop
+menuname: '&4GUI &eShop'
+## Sell inventory title
+sell-title: 'Sell'
+
+##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
+tag: '&7[&4GUI&4Shop&7]'
+
+##Print EVERY Action in console (Use only when needed!!!)
+Verbose: false
+## Command used to open shop, DONT PUT A /
+Command: 'shop'
+## Command to open sell inventory
+sell-command: 'sells'
+
+############ Language settings ###############
+
+#No permission message
+no-permission: '&cNo Permission!'
+
+#Disabled world message
+disabled-world: '&cYou cannot use the shop from this world!'
+
+#The message for the amount you lose, E.G Cost, Or Price
+cost: '&7Price'
+
+#The message for the amount you get back AKA. Sell or Returned
+return: '&7Sell'
+
+#The 1st line of the message on shop items
+line1: '&8To sell, click the item in your inv.'
+
+#The 2nd line of the message on shop items
+line2: '&6Must be the same quantity!'
+
+#The 3rd line of the message on shop items
+line3: 'Click to buy item of quantity'
+
+#The 4th line of the message on shop items
+line4: 'Shift+Click to buy 1 item'
+
+#The text back button in the shops
+back: '&4Back'
+
+#The item the back button will be!
+back-button-item: '160:14'
+
+#The messaged displayed before the item amount.
+
+## E.G "You Purchased 54"
+purchased: '&fYou purchased, &c'
+
+## The second message displayed when you purchase an item.
+
+## E.G 54$ Taken from your account.
+taken: '&ftaken from your account.'
+
+##  The words displayed before the amount needed.
+not-enough-pre: '&fYou need &c$'
+
+## The words displayed AFTER the amount needed.
+not-enough-post: '&f more money.'
+
+## Text displayed before item name.
+sold: '&fItems sold and'
+
+##Second message when buying, Words AFTER the amount
+## E.G 54$ "Added to your account"
+added: '&f was added to your account.'
+
+#When something magical goes wrong?
+something-wrong: '&fSomething went wrong, contact an admin.'
+
+#Message displayed when a player tries to sell blocks not matching the quantity.
+in-stacks: '&fPlease sell in stacks of &c'
+
+#Message when a player cannot sell a certain item.
+cant-sell: '&fSorry, you cannot sell that item.'
+
+#The title of a sign that players can click to open shop
+sign-title: '[&4GUI&bShop&0]'
+
+#Do want players to be able to access the shop ONLY using the sign? 
+sign-only: false
+
+sign-only-message: '&cYou can only access the shop by clicking a GUIShop sign!'
+
+
+
+DisabledWorlds:
+    -'Test'
+
+##Menu Items
+Rows: 1
+1:
+  Enabled: true
+  Item: STONE
+  Name: '&4Block&6shop'
+  Desc: 'Click Me'
+  Shop: 'Block'
+2:
+  Enabled: true
+  Item: TNT
+  Name: '&4Raid &aItem &6Shop'
+  Desc: 'Click Me'
+  Shop: 'Raid'
+3:
+  Enabled: true
+  Item: WOOD_AXE
+  Name: '&2Miscellanous'
+  Desc: 'Click Me'
+  Shop: 'Misc'
+4:
+  Enabled: true
+  Item: DIAMOND
+  Name: '&bDonor Shop'
+  Desc: 'Click Me'
+  Shop: 'DShop'
+
+ #############################
+ ## Developed by pablo67340 ##
+ ## If you need any support ##
+ ## join my discord server! ##
+ ##     Url is below!       ##
+ #############################
+
+ ## https://discord.gg/014pG0uCDF3md9jnp ##

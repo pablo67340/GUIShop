@@ -1,126 +1,160 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	<modelVersion>4.0.0</modelVersion>
 
-  <groupId>com.pablo67340.shop</groupId>
-  <artifactId>GUIShop</artifactId>
-  <version>3.9.1-SNAPSHOT</version>
-  <packaging>jar</packaging>
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<bukkitVersion>1.7.9-R0.3-SNAPSHOT</bukkitVersion>
+		<mainClass>${project.groupId}.${project.artifactId}</mainClass>
+		<api.version>1.6</api.version>
+	</properties>
 
-  <name>GUIShop</name>
-  <url>http://www.spigotmc.org/resources/guishop.2451/</url>
+	<!-- Project information -->
+	<groupId>com.pablo67340.GUIShop</groupId>
+	<artifactId>GUIShop</artifactId>
+	<version>4.5</version>
+	<name>GUIShop</name>
+	<url>https://www.spigotmc.org/resources/guishop.2451/</url>
+	<description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
 
-  <properties>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-    <project.mcversion>v1_7_R1</project.mcversion>
-    <project.cbversion>1.7.2-R0.1</project.cbversion>
-    <project.stableversion>1.57</project.stableversion>
-    <project.stableserver>1.7.2-R0.1</project.stableserver>
-    <project.stabledate>1 January 2014</project.stabledate>
-  </properties>
 
-  <repositories>
-    <!-- Repo for access to Objenesis -->
-    <repository>
-      <id>Maven-repo</id>
-      <name>Maven repository</name>
-      <url>http://repo1.maven.org/maven2</url>
-    </repository>
-  </repositories>
 
-  <!-- Build -->
-  <build>
-  	<defaultGoal>clean install</defaultGoal>
+	<!-- Organization -->
+	<organization>
+		<name>pablo67340</name>
+		<url>https://github.com/pablo67340</url>
+	</organization>
 
-	<!-- Resources (the filtering allows us to use project properties in plugin.yml) -->
-	<resources>
-      <resource>
-        <directory>src</directory>
-        <filtering>true</filtering>
-        <includes>
-          <include>plugin.yml</include>
-          <include>config.yml</include>
-        </includes>
-      </resource>
-	</resources>
+	<scm>
+		<url>https://github.com/pablo67340/GUIShop</url>
+		<connection>scm:git:git://github.com:pablo67340/GUIShop.git</connection>
+		<developerConnection>scm:git:git@github.com:pablo67340/GUIShop.git</developerConnection>
+	</scm>
 
-	<!-- Plugins -->
-	<plugins>
-	  <!-- Needed for shading in CGLib -->
+	<issueManagement>
+		<system>GitHub</system>
+		<url>https://github.com/pablo67340/GUIShop/issues</url>
+	</issueManagement>
 
-      <!-- Version image generation -->
- 
-	  <!-- Clean up (this is to make testing easier) -->
-	  <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-clean-plugin</artifactId>
-        <version>2.4.1</version>
-        <executions>
-          <execution>
-            <id>auto-clean</id>
-            <phase>install</phase>
-            <goals>
-              <goal>clean</goal>
-            </goals>
-            <configuration>
-              <excludeDefaultDirectories>true</excludeDefaultDirectories>
-              <filesets>
-                <fileset>
-                  <directory>${project.build.directory}</directory>
-                  <includes>
-                    <include>original-*.jar</include>
-                    <include>*-shaded.jar</include>
-                  </includes>
-                  <followSymlinks>false</followSymlinks>
-                 </fileset>
-               </filesets>
-             </configuration>
-          </execution>
-        </executions>
-      </plugin>
+	<distributionManagement>
+		<repository>
+			<id>pub-repo</id>
+			<name>Public Releases</name>
+			<url>http://nexus.theyeticave.net/content/repositories/pub_releases/</url>
+		</repository>
+		<snapshotRepository>
+			<id>pub-repo</id>
+			<name>Public Snapshots</name>
+			<url>http://nexus.theyeticave.net/content/repositories/pub_snapshots/</url>
+		</snapshotRepository>
+	</distributionManagement>
 
-      <!-- Copy artifacts to non-versioned jar name -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <executions>
-          <execution>
-            <id>copy</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy</goal>
-            </goals>
-            <configuration>
-              <artifactItems>
-                <artifactItem>
-                  <groupId>com.pablo67340.shop</groupId>
-                  <artifactId>GUIShop</artifactId>
-                  <version>${project.version}</version>
-                  <type>jar</type>
-                  <overWrite>true</overWrite>
-                  <outputDirectory>${project.build.directory}</outputDirectory>
-                  <destFileName>${project.name}.jar</destFileName>
-                </artifactItem>
-              </artifactItems>
-              <overWriteReleases>false</overWriteReleases>
-              <overWriteSnapshots>true</overWriteSnapshots>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
+	<repositories>
+		<repository>
+			<id>pub-repo</id>
+			<name>Public Releases</name>
+			<url>http://nexus.theyeticave.net/content/repositories/pub_releases/</url>
+		</repository>
+		   <repository>
+       <id>spigot-repo</id>
+       <url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
+   </repository>
+		<repository>
+			<id>greatman-repo</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+		</repository>
+		<repository>
+			<id>ess-repo</id>
+			<url>http://repo.ess3.net/content/groups/public</url>
+		</repository>
+		<repository>
+			<id>krinsoft</id>
+			<url>http://ci.krincraft.net/plugin/repository/everything/</url>
+		</repository>
+		<repository>
+			<id>escapecraft-repo</id>
+			<url>http://dev.escapecraft.com/maven</url>
+		</repository>
+        <repository>
+            <id>SilkSpawners-Repo</id>
+            <url>https://ci.dustplanet.de/plugin/repository/everything</url>
+        </repository>
+	</repositories>
 
-	  <!-- Compiler plugin -->
-	  <plugin>
-	    <groupId>org.apache.maven.plugins</groupId>
-		<artifactId>maven-compiler-plugin</artifactId>
-		<version>2.4</version>
-		<configuration>
-		  <source>1.6</source>
-		  <target>1.6</target>
-		  <showWarnings>true</showWarnings>
-		  <showDeprecation>false</showDeprecation>
-		</configuration>
-      </plugin>
-    </plugins>
-  </build>
+	<dependencies>
+<dependency>
+           <groupId>org.spigotmc</groupId>
+           <artifactId>spigot-api</artifactId>
+           <version>1.9-R0.1-SNAPSHOT</version>
+           <scope>provided</scope>
+   </dependency>
+   <!--Bukkit API-->
+   <dependency>
+           <groupId>org.bukkit</groupId>
+           <artifactId>bukkit</artifactId>
+           <version>1.9-R0.1-SNAPSHOT</version>
+           <scope>provided</scope>
+   </dependency>
+		<dependency>
+			<groupId>net.milkbowl.vault</groupId>
+			<artifactId>VaultAPI</artifactId>
+			<version>${api.version}</version>
+		</dependency>
+<dependency>
+      <groupId>de.dustplanet</groupId>
+      <artifactId>SilkSpawners</artifactId>
+      <version>3.8-SNAPSHOT</version>
+      <exclusions>
+        <exclusion>
+          <groupId>*</groupId>
+          <artifactId>*</artifactId>
+        </exclusion>
+      </exclusions>
+    </dependency>
+	</dependencies>
+
+	<build>
+		<defaultGoal>clean install</defaultGoal>
+		<sourceDirectory>src/</sourceDirectory>
+		<resources>
+			<resource>
+				<directory>${project.basedir}</directory>
+				<filtering>true</filtering>
+				<includes>
+					<include>plugin.yml</include>
+				</includes>
+			</resource>
+		</resources>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.0.2</version>
+				<configuration>
+					<source>1.7</source>
+					<target>1.7</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-shade-plugin</artifactId>
+				<version>2.3</version>
+				<configuration>
+					<artifactSet>
+						<includes>
+							<include>com.pablo67340.GUIShop</include>
+						</includes>
+					</artifactSet>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>package</phase>
+						<goals>
+							<goal>shade</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

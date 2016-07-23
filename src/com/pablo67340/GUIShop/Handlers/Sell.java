@@ -12,7 +12,7 @@ import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.InventoryHolder;
@@ -100,15 +100,31 @@ public class Sell {
 				price = price + pricep*is.getAmount();
 
 			}
+			if (price==0 || price < 1){
+				System.out.println("[GUIShop]");
+				Material itm;
+				Integer am = 1;
+				if(inv.getItem(slot) != null){
+					itm = inv.getItem(slot).getType();
+					am = inv.getItem(slot).getAmount();
+					p.getInventory().addItem(new ItemStack(itm, am));
+					inv.setItem(slot, new ItemStack(Material.AIR));
+					p.sendMessage(plugin.utils.getPrefix()+ChatColor.translateAlternateColorCodes('&', " "+plugin.getConfig().getString("cant-sell")));
+				}
+			}
 		}
 		if (plugin.utils.getVerbose()) {
 			System.out.println("Total payout: "+price);
 		}
-		EconomyResponse r = plugin.econ.depositPlayer(p.getName(), price);
-		if (r.transactionSuccess()) {
-			p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sold")) + " $" + price + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("added")));
-			price = 0.0;
+		if (price != 0){
+			EconomyResponse r = plugin.econ.depositPlayer(p.getName(), price);
+			if (r.transactionSuccess()) {
+				p.sendMessage(ChatColor.translateAlternateColorCodes('&', plugin.utils.getPrefix()) + " " + ChatColor.translateAlternateColorCodes('&',plugin.getConfig().getString("sold")) + " $" + price + ChatColor.translateAlternateColorCodes('&', plugin.getConfig().getString("added")));
+				price = 0.0;
+			}
 		}
+
+
 	}
 
 	// Need to check if items can be sold and if not, return the item to the player... Economy should work fine. Hopefully. If not thats what i was working on

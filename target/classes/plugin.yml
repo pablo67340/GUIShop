@@ -1,5 +1,9 @@
 name: GUIShop
 main: com.pablo67340.GUIShop.Main.Main
+<<<<<<< HEAD
 version: 4.4
+=======
+version: 4.3
+>>>>>>> origin/master
 author: pablo67340
 description: Plugin for any server.

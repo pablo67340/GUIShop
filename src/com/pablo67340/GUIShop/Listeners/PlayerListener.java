@@ -210,6 +210,7 @@ public class PlayerListener implements Listener {
 															plugin.shop.setShopName(shopn);
 															plugin.shop.openShop(p);
 															properName = shopn.replace(".", "");
+															properName = shopn.replace(".", "");
 														} else {
 															if (plugin.utils.getVerbose()){
 																System.out.println("Disallow 4");
@@ -223,8 +224,7 @@ public class PlayerListener implements Listener {
 															System.out.println("Disallow 3");
 														}
 														p.closeInventory();
-
-														menuOpen.add(p.getName());
+													menuOpen.add(p.getName());
 														shopOpen.remove(p.getName());
 														plugin.menu.loadMenu(p);
 													}
@@ -258,8 +258,19 @@ public class PlayerListener implements Listener {
 							if (plugin.utils.getVerbose()){
 								System.out.println("Disallow 7");
 							}
+
 							e.setCancelled(false);
 							return;
+
+							e.setCancelled(false);
+							return;
+
+							if ((e.getClickedInventory().getTitle() != plugin.utils.getMenuName()) || (e.getClickedInventory().getTitle() != plugin.shop.getOpenedShop())){
+								e.setCancelled(false);
+							}else{
+								e.setCancelled(true);
+							}
+
 						}
 					}else{
 						if (plugin.utils.getVerbose()){
@@ -348,7 +359,6 @@ public class PlayerListener implements Listener {
 										e.setCancelled(true);
 
 										shopOpen.remove(p.getName());
-
 										menuOpen.add(p.getName());
 										plugin.delayMenu(p);
 									}

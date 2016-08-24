@@ -142,7 +142,11 @@ public class PlayerListener implements Listener {
 							System.out.println("User does not exist in shopOpen!");
 						}
 						if (menuOpen.contains(p.getName())) {
+<<<<<<< HEAD
 							if (e.getInventory()==p.getInventory()){
+=======
+							if (e.getClickedInventory()==p.getInventory()){
+>>>>>>> ba20ce48b34a8d70afbca11e75b62f04b1f64cf9
 								e.setCancelled(true);
 							}else{
 								// Checks for numberpad, q, and other keyboard dupes

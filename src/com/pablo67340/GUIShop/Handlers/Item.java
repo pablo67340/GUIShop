@@ -11,7 +11,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 public class Item {
-	static Main plugin;
+	protected Main plugin;
 	protected String name;
 	protected Integer qty;
 	protected Integer itemID;
@@ -46,7 +46,7 @@ public class Item {
 		line4 = line41;
 		mobid = mobid2;
 		isSpawner = isSpawner2;
-		if (!Item.isInteger(sell)) {
+		if (!isInteger(sell)) {
 			addPrice2(item, buy, isSpawner, mobid);
 		} else {
 			addPrice(item, buy, Integer.parseInt(sell), isSpawner, mobid);
@@ -69,9 +69,8 @@ public class Item {
 		item = item2;
 	}
 
-	public static boolean isInteger(String s) {
-		boolean isInt = plugin.utils.isInteger(s, 10);
-		return isInt;
+	public boolean isInteger(String s) {
+		return plugin.utils.isInteger(s, 10);
 	}
 
 	public ItemStack getItem() {

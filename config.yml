@@ -1,40 +1,14 @@
-##################################################
-##                                              ##
-##  _____ _    _ _____  _____ _                 ##
-## / ____| |  | |_   _|/ ____| |                ##
-##| |  __| |  | | | | | (___ | |__   ___  _ __  ##
-##| | |_ | |  | | | |  \___ \| '_ \ / _ \| '_ \ ##
-##| |__| | |__| |_| |_ ____) | | | | (_) | |_) |##
-## \_____|\____/|_____|_____/|_| |_|\___/| .__/ ##
-##                                       | |    ##
-##                                       |_|    ##
-##################################################
+## Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
+prefix: '[&cGUIShop&f]'
 
+## Command used to open shop, DON'T PUT A /
+buy-commands: 
+    - 'buy'
+    - 'shop'
 
-
-##################################################
-#        Looking for a Custom Plugin?            #
-#    Look no further! Visit CraftedPlugins       #
-#   To post a Job! A Developer will make it!     #
-#          http://craftedplugins.com/           ##
-##################################################
-
-
-
-##Title of the inventory in /shop
-menuname: '&4GUI &eShop'
-## Sell inventory title
-sell-title: 'Sell'
-
-##Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
-tag: '&7[&4GUI&4Shop&7]'
-
-##Print EVERY Action in console (Use only when needed!!!)
-Verbose: false
-## Command used to open shop, DONT PUT A /
-Command: 'shop'
-## Command to open sell inventory
-sell-command: 'sells'
+## Command to open sell inventory, DON'T PUT A /
+sell-commands:
+    - 'sell'
 
 ############ Language settings ###############
 
@@ -43,6 +17,9 @@ no-permission: '&cNo Permission!'
 
 #Disabled world message
 disabled-world: '&cYou cannot use the shop from this world!'
+
+#Use the escape key to close the shop instead of the back button.
+escape-only: true
 
 #The message for the amount you lose, E.G Cost, Or Price
 cost: '&7Price'
@@ -63,29 +40,28 @@ line3: 'Click to buy item of quantity'
 line4: 'Shift+Click to buy 1 item'
 
 #The text back button in the shops
-back: '&4Back'
+back: '&cBack'
 
 #The item the back button will be!
 back-button-item: '160:14'
 
 #The messaged displayed before the item amount.
 
-## E.G "You Purchased 54"
-purchased: '&fYou purchased, &c'
+purchased: '&fA purchase was made, and &c$'
 
 ## The second message displayed when you purchase an item.
 
 ## E.G 54$ Taken from your account.
-taken: '&ftaken from your account.'
+taken: '&f was taken from your account.'
 
 ##  The words displayed before the amount needed.
 not-enough-pre: '&fYou need &c$'
 
 ## The words displayed AFTER the amount needed.
-not-enough-post: '&f more money.'
+not-enough-post: '&f to purchase this!'
 
 ## Text displayed before item name.
-sold: '&fItems sold and'
+sold: '&fYour items were sold, and &a$'
 
 ##Second message when buying, Words AFTER the amount
 ## E.G 54$ "Added to your account"
@@ -98,53 +74,55 @@ something-wrong: '&fSomething went wrong, contact an admin.'
 in-stacks: '&fPlease sell in stacks of &c'
 
 #Message when a player cannot sell a certain item.
-cant-sell: '&fSorry, you cannot sell that item.'
+cant-sell: '&fSorry, you are not able to sell that item.'
 
 #The title of a sign that players can click to open shop
-sign-title: '[&4GUI&bShop&0]'
+sign-title: '[&cGUIShop&f]'
 
 #Do want players to be able to access the shop ONLY using the sign? 
-sign-only: false
+signs-only: false
 
-sign-only-message: '&cYou can only access the shop by clicking a GUIShop sign!'
+signs-only-message: '&cYou can only access the shop by clicking a [&cSOF Shop&f] sign!'
 
-
-
-DisabledWorlds:
+disabled-worlds:
     -'Test'
 
-##Menu Items
-Rows: 1
+## Menu Rows
+menu-rows: 1
+
+## Menu Columns
+menu-cols: 9
+
 1:
   Enabled: true
   Item: STONE
-  Name: '&4Block&6shop'
-  Desc: 'Click Me'
-  Shop: 'Block'
+  Name: 'Block'
+  Desc: ''
 2:
   Enabled: true
   Item: TNT
-  Name: '&4Raid &aItem &6Shop'
-  Desc: 'Click Me'
-  Shop: 'Raid'
+  Name: 'Raid'
+  Desc: ''
 3:
   Enabled: true
-  Item: WOOD_AXE
-  Name: '&2Miscellanous'
-  Desc: 'Click Me'
-  Shop: 'Misc'
+  Item: MELON_SEEDS
+  Name: 'Misc'
+  Desc: ''
 4:
   Enabled: true
+  Item: WOOD_AXE
+  Name: 'Food'
+  Desc: ''
+5:
+  Enabled: true
   Item: DIAMOND
-  Name: '&bDonor Shop'
-  Desc: 'Click Me'
-  Shop: 'DShop'
+  Name: 'DShop'
+  Desc: ''
 
- #############################
- ## Developed by pablo67340 ##
- ## If you need any support ##
- ## join my discord server! ##
- ##     Url is below!       ##
- #############################
 
- ## https://discord.gg/014pG0uCDF3md9jnp ##
+
+
+ 
+#####################
+# END OF THE CONFIG #
+#####################

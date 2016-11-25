@@ -12,7 +12,7 @@
 	<!-- Project information -->
 	<groupId>com.pablo67340.GUIShop</groupId>
 	<artifactId>GUIShop</artifactId>
-	<version>4.6</version>
+	<version>4.5</version>
 	<name>GUIShop</name>
 	<url>https://www.spigotmc.org/resources/guishop.2451/</url>
 	<description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -95,11 +95,6 @@
            <version>1.9-R0.1-SNAPSHOT</version>
            <scope>provided</scope>
    </dependency>
-		<dependency>
-			<groupId>net.milkbowl.vault</groupId>
-			<artifactId>VaultAPI</artifactId>
-			<version>${api.version}</version>
-		</dependency>
 <dependency>
       <groupId>de.dustplanet</groupId>
       <artifactId>SilkSpawners</artifactId>

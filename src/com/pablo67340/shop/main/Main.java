@@ -13,12 +13,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.listener.PlayerListener;
 
 public final class Main extends JavaPlugin {
 
-	private File customConfigFile, defaultConfigFile;
+	public static File customConfigFile;
+
+	public File defaultConfigFile;
 
 	private FileConfiguration customConfig;
 
@@ -71,6 +74,17 @@ public final class Main extends JavaPlugin {
 	 * 		The menu.
 	 */
 	public static final Map<String, Menu> MENUS = new HashMap<>();
+	
+	/**
+	 * A {@link Map} that will store our {@link Creator}s
+	 * when the server first starts.
+	 * 
+	 * @key
+	 * 		The name of the {@link Player}.
+	 * @value
+	 * 		The creator.
+	 */
+	public static final Map<String, Creator> CREATOR = new HashMap<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Sell}s

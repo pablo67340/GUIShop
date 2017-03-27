@@ -1,21 +1,665 @@
-Block:
-    1:
-      - slot: 0
-      - id: '17'
-      - buy-price: 850
-    2:
-      - slot: 1
-      - id: '1:2'
-      - buy-price: 100
-    3:
-      - slot: 2
-      - id: '1:3'
-      - buy-price: 100
-      - sell-price: 50
-Raid:
-
-Misc:
-
-Food:
-
-DShop:
+Raiding:
+  '1':
+  - name: '&3Creeper &4Egg'
+  - slot: 0
+  - id: '383:50'
+  - buy-price: 7500
+  '2':
+  - slot: 1
+  - id: '46'
+  - buy-price: 100
+  '3':
+  - slot: 2
+  - id: '356'
+  - buy-price: 200
+  '4':
+  - slot: 3
+  - id: '404'
+  - buy-price: 100
+  '5':
+  - slot: 4
+  - id: '33'
+  - buy-price: 100
+  '6':
+  - slot: 5
+  - id: '29'
+  - buy-price: 132
+  '7':
+  - slot: 6
+  - id: '154'
+  - buy-price: 10000
+  '8':
+  - slot: 7
+  - id: '158'
+  - buy-price: 135
+  '9':
+  - slot: 8
+  - id: '23'
+  - buy-price: 135
+  '10':
+  - slot: 9
+  - id: '69'
+  - buy-price: 5
+  '11':
+  - slot: 10
+  - id: '77'
+  - buy-price: 5
+  '12':
+  - slot: 11
+  - id: '143'
+  - buy-price: 5
+  '13':
+  - slot: 12
+  - id: '70'
+  - buy-price: 5
+  '14':
+  - slot: 13
+  - id: '72'
+  - buy-price: 5
+  '15':
+  - slot: 14
+  - id: '76'
+  - buy-price: 2
+  '16':
+  - slot: 15
+  - id: '131'
+  - buy-price: 50
+  '17':
+  - slot: 16
+  - id: '323'
+  - buy-price: 1
+  '18':
+  - slot: 17
+  - id: '30'
+  - buy-price: 8
+  '19':
+  - slot: 18
+  - id: '331'
+  - buy-price: 1
+  - sell-price: 1
+  '20':
+  - slot: 19
+  - id: '326'
+  - buy-price: 150
+  '21':
+  - slot: 20
+  - id: '327'
+  - buy-price: 150
+  '22':
+  - slot: 21
+  - id: '44'
+  - buy-price: 3
+  '23':
+  - slot: 22
+  - id: '126'
+  - buy-price: 3
+  '24':
+  - slot: 23
+  - id: '123'
+  - buy-price: 100
+Ores:
+  '1':
+  - slot: 0
+  - id: '388'
+  - buy-price: 150
+  - sell-price: 50
+  '2':
+  - slot: 1
+  - id: '264'
+  - buy-price: 375
+  - sell-price: 75
+  '3':
+  - slot: 2
+  - id: '266'
+  - buy-price: 30
+  - sell-price: 10
+  '4':
+  - slot: 3
+  - id: '265'
+  - buy-price: 8
+  - sell-price: 5
+  '5':
+  - slot: 4
+  - id: '263'
+  - buy-price: 4
+  - sell-price: 1
+  '6':
+  - slot: 5
+  - id: '263:1'
+  - buy-price: 4
+  - sell-price: 1
+  '7':
+  - slot: 6
+  - id: '331'
+  - buy-price: 1
+  - sell-price: 1
+  '8':
+  - slot: 7
+  - id: '351:4'
+  - buy-price: 1
+  - sell-price: 1
+  '9':
+  - slot: 8
+  - id: '406'
+  - buy-price: 8
+  - sell-price: 1
+Farming:
+  '1':
+  - slot: 0
+  - id: '6'
+  - buy-price: 3
+  '2':
+  - slot: 1
+  - id: '6:1'
+  - buy-price: 3
+  '3':
+  - slot: 2
+  - id: '6:2'
+  - buy-price: 3
+  '4':
+  - slot: 3
+  - id: '6:3'
+  - buy-price: 3
+  '5':
+  - slot: 4
+  - id: '6:4'
+  - buy-price: 3
+  '6':
+  - slot: 5
+  - id: '6:5'
+  - buy-price: 3
+  '7':
+  - slot: 6
+  - id: '295'
+  - buy-price: 3
+  '8':
+  - slot: 7
+  - id: '361'
+  - buy-price: 31
+  '10':
+  - slot: 9
+  - id: '296'
+  - buy-price: 9
+  - sell-price: 3
+  '11':
+  - slot: 10
+  - id: '86'
+  - buy-price: 150
+  - sell-price: 5
+  '12':
+  - slot: 11
+  - id: '338'
+  - buy-price: 12
+  - sell-price: 4
+  '13':
+  - slot: 12
+  - id: '81'
+  - buy-price: 20
+  - sell-price: 2
+  '14':
+  - slot: 13
+  - id: '372'
+  - buy-price: 12
+  - sell-price: 3
+  '15':
+  - slot: 14
+  - id: '351:3'
+  - buy-price: 3
+  - sell-price: 1
+  '16':
+  - slot: 15
+  - id: '106'
+  - buy-price: 10
+  '17':
+  - slot: 16
+  - id: '39'
+  - buy-price: 75
+  '18':
+  - slot: 17
+  - id: '40'
+  - buy-price: 75
+Drops:
+  '1':
+  - slot: 0
+  - id: '352'
+  - buy-price: 100
+  '2':
+  - slot: 1
+  - id: '262'
+  - buy-price: 100
+  '3':
+  - slot: 2
+  - id: '367'
+  - buy-price: 100
+  '4':
+  - slot: 3
+  - id: '289'
+  - buy-price: 100
+  '5':
+  - slot: 4
+  - id: '369'
+  - buy-price: 100
+  '6':
+  - slot: 5
+  - id: '375'
+  - buy-price: 100
+  '7':
+  - slot: 6
+  - id: '287'
+  - buy-price: 100
+  '8':
+  - slot: 7
+  - id: '368'
+  - buy-price: 100
+  '9':
+  - slot: 8
+  - id: '341'
+  - buy-price: 100
+  '10':
+  - slot: 9
+  - id: '334'
+  - buy-price: 100
+  '11':
+  - slot: 10
+  - id: '288'
+  - buy-price: 100
+  '12':
+  - slot: 11
+  - id: '344'
+  - buy-price: 100
+  '13':
+  - slot: 12
+  - id: '280'
+  - buy-price: 100
+  '14':
+  - slot: 13
+  - id: '351'
+  - buy-price: 100
+  '15':
+  - slot: 14
+  - id: '371'
+  - buy-price: 100
+  '16':
+  - slot: 15
+  - id: '370'
+  - buy-price: 100
+Brewing:
+  '1':
+  - slot: 0
+  - id: '370'
+  - buy-price: 100
+  - sell-price: 20
+  '2':
+  - slot: 1
+  - id: '375'
+  - buy-price: 2
+  '3':
+  - slot: 2
+  - id: '376'
+  - buy-price: 100
+  '4':
+  - slot: 3
+  - id: '396'
+  - buy-price: 25
+  '5':
+  - slot: 4
+  - id: '360'
+  - buy-price: 50
+  '6':
+  - slot: 5
+  - id: '369'
+  - buy-price: 7
+  - sell-price: 2
+  '7':
+  - slot: 6
+  - id: '372'
+  - buy-price: 12
+  - sell-price: 3
+  '8':
+  - slot: 7
+  - id: '378'
+  - buy-price: 20
+  - sell-price: 10
+  '9':
+  - slot: 8
+  - id: '379'
+  - buy-price: 100
+Gear:
+  '1':
+  - slot: 0
+  - id: '310'
+  - buy-price: 100
+  '2':
+  - slot: 1
+  - id: '311'
+  - buy-price: 100
+  '3':
+  - slot: 2
+  - id: '312'
+  - buy-price: 100
+  '4':
+  - slot: 3
+  - id: '313'
+  - buy-price: 100
+  '5':
+  - slot: 4
+  - id: '276'
+  - buy-price: 100
+  '6':
+  - slot: 5
+  - id: '279'
+  - buy-price: 100
+  '7':
+  - slot: 6
+  - id: '278'
+  - buy-price: 100
+  '8':
+  - slot: 7
+  - id: '277'
+  - buy-price: 100
+  '9':
+  - slot: 8
+  - id: '293'
+  - buy-price: 100
+  '10':
+  - slot: 9
+  - id: '306'
+  - buy-price: 100
+  '11':
+  - slot: 10
+  - id: '307'
+  - buy-price: 100
+  '12':
+  - slot: 11
+  - id: '308'
+  - buy-price: 100
+  '13':
+  - slot: 12
+  - id: '309'
+  - buy-price: 100
+  '14':
+  - slot: 13
+  - id: '267'
+  - buy-price: 100
+  '15':
+  - slot: 14
+  - id: '258'
+  - buy-price: 100
+  '16':
+  - slot: 15
+  - id: '257'
+  - buy-price: 100
+  '17':
+  - slot: 16
+  - id: '256'
+  - buy-price: 100
+  '18':
+  - slot: 17
+  - id: '292'
+  - buy-price: 100
+  '19':
+  - slot: 18
+  - id: '261'
+  - buy-price: 100
+  '20':
+  - slot: 19
+  - id: '346'
+  - buy-price: 100
+  '21':
+  - slot: 20
+  - id: '359'
+  - buy-price: 100
+  '22':
+  - slot: 21
+  - id: '421'
+  - buy-price: 100
+  '23':
+  - slot: 22
+  - id: '420'
+  - buy-price: 100
+  '24':
+  - slot: 23
+  - id: '419'
+  - buy-price: 100
+  '25':
+  - slot: 24
+  - id: '418'
+  - buy-price: 100
+  '26':
+  - slot: 25
+  - id: '417'
+  - buy-price: 100
+  '27':
+  - slot: 26
+  - id: '329'
+  - buy-price: 100
+Spawners:
+  '1':
+  - slot: 0
+  - id: 52:90
+  - buy-price: 75000
+  '2':
+  - slot: 1
+  - id: 52:92
+  - buy-price: 100000
+  '3':
+  - slot: 2
+  - id: '52:52'
+  - buy-price: 140000
+  '4':
+  - slot: 3
+  - id: '52:51'
+  - buy-price: 140000
+  '5':
+  - slot: 4
+  - id: '52:54'
+  - buy-price: 140000
+  '6':
+  - slot: 5
+  - id: '52:59'
+  - buy-price: 140000
+  '7':
+  - slot: 6
+  - id: 52:61
+  - buy-price: 180000
+  '8':
+  - slot: 7
+  - id: '52:55'
+  - buy-price: 180000
+  '9':
+  - slot: 8
+  - id: '52:50'
+  - buy-price: 350000
+  '10':
+  - slot: 9
+  - id: '52:58'
+  - buy-price: 150000
+Blocks:
+  '1':
+  - slot: 0
+  - id: '98'
+  - buy-price: 100
+  '2':
+  - slot: 1
+  - id: '98:1'
+  - buy-price: 100
+  '3':
+  - slot: 2
+  - id: '98:2'
+  - buy-price: 100
+  '4':
+  - slot: 3
+  - id: '98:3'
+  - buy-price: 100
+  '5':
+  - slot: 4
+  - id: '1'
+  - buy-price: 100
+  '6':
+  - slot: 5
+  - id: '4'
+  - buy-price: 100
+  '7':
+  - slot: 6
+  - id: '48'
+  - buy-price: 100
+  '8':
+  - slot: 7
+  - id: '110'
+  - buy-price: 100
+  '9':
+  - slot: 8
+  - id: '2'
+  - buy-price: 100
+  '10':
+  - slot: 9
+  - id: '3'
+  - buy-price: 100
+  '11':
+  - slot: 10
+  - id: '17'
+  - buy-price: 100
+  '12':
+  - slot: 11
+  - id: '17:1'
+  - buy-price: 100
+  '13':
+  - slot: 12
+  - id: '17:2'
+  - buy-price: 100
+  '14':
+  - slot: 13
+  - id: '17:3'
+  - buy-price: 100
+  '15':
+  - slot: 14
+  - id: '162'
+  - buy-price: 100
+  '16':
+  - slot: 15
+  - id: '162:1'
+  - buy-price: 100
+  '17':
+  - slot: 16
+  - id: '19'
+  - buy-price: 100
+  '18':
+  - slot: 17
+  - id: '45'
+  - buy-price: 100
+  '19':
+  - slot: 18
+  - id: '5:2'
+  - buy-price: 100
+  '20':
+  - slot: 19
+  - id: '5:3'
+  - buy-price: 100
+  '21':
+  - slot: 20
+  - id: '5:4'
+  - buy-price: 100
+  '22':
+  - slot: 21
+  - id: '5:5'
+  - buy-price: 100
+  '23':
+  - slot: 22
+  - id: '35'
+  - buy-price: 100
+  '24':
+  - slot: 23
+  - id: '82'
+  - buy-price: 100
+  '25':
+  - slot: 24
+  - id: '172'
+  - buy-price: 100
+  '26':
+  - slot: 25
+  - id: '49'
+  - buy-price: 100
+  '27':
+  - slot: 26
+  - id: '24'
+  - buy-price: 100
+  '28':
+  - slot: 27
+  - id: '12'
+  - buy-price: 100
+  '29':
+  - slot: 28
+  - id: '12:1'
+  - buy-price: 100
+  '30':
+  - slot: 29
+  - id: '20'
+  - buy-price: 100
+  '31':
+  - slot: 30
+  - id: '13'
+  - buy-price: 100
+  '32':
+  - slot: 31
+  - id: '155'
+  - buy-price: 100
+  '33':
+  - slot: 32
+  - id: '155:1'
+  - buy-price: 100
+  '34':
+  - slot: 33
+  - id: '155:2'
+  - buy-price: 100
+  '35':
+  - slot: 34
+  - id: '112'
+  - buy-price: 100
+  '36':
+  - slot: 35
+  - id: '87'
+  - buy-price: 100
+  '37':
+  - slot: 36
+  - id: '88'
+  - buy-price: 100
+  '38':
+  - slot: 37
+  - id: '89'
+  - buy-price: 100
+  '39':
+  - slot: 38
+  - id: '116'
+  - buy-price: 100
+  '40':
+  - slot: 39
+  - id: '47'
+  - buy-price: 100
+  '41':
+  - slot: 40
+  - id: '80'
+  - buy-price: 100
+  '42':
+  - slot: 41
+  - id: '79'
+  - buy-price: 100
+  '43':
+  - slot: 42
+  - id: '174'
+  - buy-price: 100
+  '44':
+  - slot: 43
+  - id: '121'
+  - buy-price: 100
+  '45':
+  - slot: 44
+  - id: '138'
+  - buy-price: 100
+  '46':
+  - slot: 45
+  - id: '18'
+  - buy-price: 100
+  '47':
+  - slot: 46
+  - id: '179'
+  - buy-price: 100

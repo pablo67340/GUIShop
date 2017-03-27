@@ -8,6 +8,12 @@ public final class Item {
 	 * presented on the GUI.
 	 */
 	private int slot;
+	
+	/**
+	 * The name of this {@link Item} when
+	 * presented on the GUI.
+	 */
+	private String name;
 
 	/**
 	 * The ID of this {@link Item}.
@@ -49,6 +55,28 @@ public final class Item {
 	 */
 	public void setSlot(int slot) {
 		this.slot = slot;
+	}
+	
+	
+	/**
+	 * Gets the name of this {@link Item}
+	 * on the GUI.
+	 * 
+	 * @return the item's name.
+	 */
+	public String getName() {
+		return name;
+	}
+	
+	/**
+	 * Sets the name of this {@link Item}
+	 * on the GUI.
+	 * 
+	 * @param name
+	 * 		The name to set.
+	 */
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	/**

@@ -42,7 +42,7 @@ public final class Menu {
 
 		for (Entry<Integer, Shop> e : Main.SHOPS.entrySet()) {
 			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp()) {
-				GUI.setItem(e.getKey(), setName(new 					ItemStack(Material.getMaterial(Main.INSTANCE.getConfig().getString(String.valueOf(e.getKey() + 1) 
+				GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Main.INSTANCE.getConfig().getString(String.valueOf(e.getKey() + 1) 
 						+ ".Item")), 1), e.getValue().getName(), e.getValue().getLore()));
 				continue;
 			}

@@ -1,3 +1,26 @@
+##################################################
+##                                              ##
+##  _____ _    _ _____  _____ _                 ##
+## / ____| |  | |_   _|/ ____| |                ##
+##| |  __| |  | | | | | (___ | |__   ___  _ __  ##
+##| | |_ | |  | | | |  \___ \| '_ \ / _ \| '_ \ ##
+##| |__| | |__| |_| |_ ____) | | | | (_) | |_) |##
+## \_____|\____/|_____|_____/|_| |_|\___/| .__/ ##
+##                                       | |    ##
+##                                       |_|    ##
+##################################################
+
+
+
+##################################################
+#        Looking for a Custom Plugin?            #
+#    Look no further! Visit ShulkerBox           #
+#   To hire a Dev! A Developer will make it!     #
+#          http://shulkerbox.org/                #
+##################################################
+
+
+
 ## Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
 prefix: '[&cGUIShop&f]'
 
@@ -82,47 +105,61 @@ sign-title: '[&cGUIShop&f]'
 #Do want players to be able to access the shop ONLY using the sign? 
 signs-only: false
 
-signs-only-message: '&cYou can only access the shop by clicking a [&cSOF Shop&f] sign!'
+signs-only-message: '&cYou can only access the shop by clicking a [&cGUIShop&f] sign!'
 
-disabled-worlds:
-    -'Test'
-
-## Menu Rows
 menu-rows: 1
 
-## Menu Columns
 menu-cols: 9
 
+DisabledWorlds:
+    -'Test'
+
+##Menu Items
+Rows: 1
 1:
   Enabled: true
-  Item: STONE
-  Name: 'Block'
-  Desc: ''
+  Item: TNT
+  Name: 'Raiding'
+  Desc: '&8(&cBlow them up!&8)'
 2:
   Enabled: true
-  Item: TNT
-  Name: 'Raid'
-  Desc: ''
+  Item: EMERALD
+  Name: 'Ores'
+  Desc: '&8(&fOres&8)'
 3:
   Enabled: true
-  Item: MELON_SEEDS
-  Name: 'Misc'
-  Desc: ''
+  Item: SEEDS
+  Name: 'Farming'
+  Desc: '&8(&fFarming&8)'
 4:
   Enabled: true
-  Item: WOOD_AXE
+  Item: COOKED_BEEF
   Name: 'Food'
-  Desc: ''
+  Desc: '&8(&fFood&8)'
 5:
   Enabled: true
-  Item: DIAMOND
-  Name: 'DShop'
-  Desc: ''
+  Item: BONE
+  Name: 'Drops'
+  Desc: '&8(&fDrops&8)'
+6:
+  Enabled: true
+  Item: EXP_BOTTLE
+  Name: 'Brewing'
+  Desc: '&8(&fBrewing&8)'
+7:
+  Enabled: true
+  Item: DIAMOND_HELMET
+  Name: 'Gear'
+  Desc: '&8(&fGear&8)'
+8:
+  Enabled: true
+  Item: MOB_SPAWNER
+  Name: 'Spawners'
+  Desc: '&8(&fSpawners&8)'
 
-
-
-
- 
-#####################
-# END OF THE CONFIG #
-#####################
+ ################################
+ ## Developed by pablo67340    ##
+ ## If you need any support    ##
+ ## join us on discord!        ##
+ ## https://discord.gg/DpNFSQu ##
+ ################################

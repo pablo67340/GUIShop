@@ -12,7 +12,7 @@ import com.pablo67340.shop.main.Main;
 
 public final class Shop {
 
-	public static final int ROW = 4;
+	public static final int ROW = 6;
 
 	public static final int COL = 9;
 
@@ -141,7 +141,6 @@ public final class Shop {
 
 		for (int i = 1; i < GUI.getSize(); i++) {
 			String itemDef = Main.INSTANCE.getCustomConfig().getString(getName() + "." + i);
-
 			if (itemDef == null || itemDef.length() <= 2) {
 				continue;
 			}
@@ -186,6 +185,9 @@ public final class Shop {
 						Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice()));
 					}
 					break;
+				case "name":
+					item.setName(ChatColor.translateAlternateColorCodes('&', args[1]));
+					break;
 				}
 			}
 
@@ -204,6 +206,8 @@ public final class Shop {
 					ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()), 
 					ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice()))
 					);
+			
+			if (item.getName()!=null) itemMeta.setDisplayName(item.getName());
 
 			itemStack.setItemMeta(itemMeta);
 

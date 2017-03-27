@@ -4,21 +4,23 @@ package com.pablo67340.shop.listener;
 
 import java.util.*;
 
-
-
-
-
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
-
+import org.bukkit.block.Block;
+import org.bukkit.block.Sign;
 import org.bukkit.event.*;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.*;
 import org.bukkit.event.inventory.*;
 
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitScheduler;
+
 
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.main.Main;
+
+import de.dustplanet.util.SilkUtil;
 
 public final class PlayerListener implements Listener {
 
@@ -54,6 +56,54 @@ public final class PlayerListener implements Listener {
 			e.setCancelled(true);
 			return;
 		}
+		
+		if (command.contains("guishop")){
+			e.setCancelled(true);
+			String preArgs = StringUtils.substringAfter(command, "guishop ");
+			String[] args = preArgs.split(" ");
+			if (args[0].equalsIgnoreCase("start")){
+				player.sendMessage(Utils.getPrefix()+" Entered creator mode!");
+				Main.CREATOR.put(player.getName(), new Creator(player));
+			}
+			if (args[0].equalsIgnoreCase("setchest")){
+				if (Main.CREATOR.containsKey(player.getName())){
+					Main.CREATOR.get(player.getName()).setChest();
+				}else{
+					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+				}
+			}
+			if (args[0].equalsIgnoreCase("setname")){
+				if (Main.CREATOR.containsKey(player.getName())){
+					Main.CREATOR.get(player.getName()).setShopName(args[1]);
+				}else{
+					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+				} 
+			}
+			if (args[0].equalsIgnoreCase("saveshop")){
+				if (Main.CREATOR.containsKey(player.getName())){
+					Main.CREATOR.get(player.getName()).saveShop();
+					// TODO: Save shop method
+				}else{
+					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+				} 
+			}
+			if (args[0].equalsIgnoreCase("p")){
+				if (Main.CREATOR.containsKey(player.getName())){
+					Main.CREATOR.get(player.getName()).setPrice(Integer.parseInt(args[1]));
+					// TODO: Set price
+				}else{
+					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+				} 
+			}
+			if (args[0].equalsIgnoreCase("s")){
+				if (Main.CREATOR.containsKey(player.getName())){
+					Main.CREATOR.get(player.getName()).setSell(Integer.parseInt(args[1]));
+					// TODO: Set price
+				}else{
+					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+				} 
+			}
+		}
 	}
 
 	@SuppressWarnings("deprecation")
@@ -81,9 +131,6 @@ public final class PlayerListener implements Listener {
 						return;
 					}
 				}else{
-					for (String str : Main.PRICES.keySet()){
-						System.out.println("Item: "+str);
-					}
 					if (e.getClickedInventory() == player.getInventory() && e.getCurrentItem().getType() != Material.AIR && !Main.PRICES.containsKey(Integer.toString(e.getCurrentItem().getTypeId()))) {
 
 						player.sendMessage(Utils.getCantSell());
@@ -191,10 +238,18 @@ public final class PlayerListener implements Listener {
 
 								Map<Integer, ItemStack> returnedItems;
 
-								if (item.getData() > 0){
-									returnedItems = player.getInventory().addItem(new ItemStack(item.getId(), quantity, (short)item.getData()));
+								if (item.getId() != 52){
+
+									if (item.getData() > 0){
+										returnedItems = player.getInventory().addItem(new ItemStack(item.getId(), quantity, (short)item.getData()));
+									}else{
+										returnedItems = player.getInventory().addItem(new ItemStack(item.getId(), quantity));
+									}
 								}else{
-									returnedItems = player.getInventory().addItem(new ItemStack(item.getId(), quantity));
+									ItemStack spawner = new ItemStack(item.getId(), quantity);
+									SilkUtil su = SilkUtil.hookIntoSilkSpanwers();
+									su.setSpawnerType(spawner, (short)item.getData(), "");
+									returnedItems = player.getInventory().addItem(new ItemStack[]{su.setSpawnerType(spawner, (short)item.getData(), String.valueOf(Spawners.getMobName(item.getData())) + " Spawner")});
 								}
 
 
@@ -230,19 +285,40 @@ public final class PlayerListener implements Listener {
 		}
 	}
 
+	ArrayList<String> skipOne = new ArrayList<>();
+
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
-		String playerName = e.getPlayer().getName();
+		final String playerName = e.getPlayer().getName();
 		if (Utils.getEscapeOnly()){
 			if (Main.HAS_SHOP_OPEN.containsKey(playerName)){
-				Main.HAS_MENU_OPEN.add(playerName);
 				Main.HAS_SHOP_OPEN.remove(playerName);
-				Main.MENUS.get(playerName).open();
+				e.getPlayer().closeInventory();
+
+
+				BukkitScheduler scheduler = Main.INSTANCE.getServer().getScheduler();
+				scheduler.scheduleSyncDelayedTask(Main.INSTANCE, new Runnable() {
+					@Override
+					public void run() {
+						// Do something
+						Main.MENUS.get(playerName).open();
+					}
+				}, 1L);
+
+
 				return;
 			}else if (Main.HAS_MENU_OPEN.contains(playerName)){
 				Main.HAS_MENU_OPEN.remove(playerName);
 				Main.HAS_SHOP_OPEN.remove(playerName);
+				return;
+
 			}
+
+			if (Main.HAS_SELL_OPEN.remove(playerName)) {
+				Main.SELLS.get(playerName).sell();
+				Main.HAS_SELL_OPEN.remove(playerName);
+			}
+			return;
 
 		}else{
 			Main.HAS_MENU_OPEN.remove(playerName);
@@ -250,14 +326,35 @@ public final class PlayerListener implements Listener {
 
 			if (Main.HAS_SELL_OPEN.remove(playerName)) {
 				Main.SELLS.get(playerName).sell();
+				Main.HAS_SELL_OPEN.remove(playerName);
 			}
+			return;
 		}
 
 	}
 
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e) {
+		Player player = e.getPlayer();
+		Block block = e.getClickedBlock();
+		if (block != null){
+			if (block.getState() != null){
+				if(block.getState() instanceof Sign) {
+					Sign sign = (Sign) block.getState();
+					String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
+					if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',Main.INSTANCE.getConfig().getString("sign-title")))){
+						if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
+							Main.MENUS.get(player).open();
+							e.setCancelled(true);
+						}else{
+							player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("no-permission")));
+							e.setCancelled(true);
+						}
 
+					}
+				}
+			}
+		}
 	}
 
 }

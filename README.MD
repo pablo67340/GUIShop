@@ -1,3 +1,13 @@
+<h1>GUIShop 5.9.3</h1>
+FIXED:
+- Color code errors
+
+ADDED:
+- Custom Item names
+
+WIP:
+- In-game config creation
+
 <h1>GUIShop 4.2.5</h1>
 FIXES:
 - Fixed errors while clicking out of inventory

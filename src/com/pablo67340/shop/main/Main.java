@@ -155,7 +155,7 @@ public final class Main extends JavaPlugin {
 		return (ECONOMY = (Economy) rsp.getProvider()) != null;
 	}
 
-	private void loadDefaults() {
+	public void loadDefaults() {
 		BUY_COMMANDS.addAll(getConfig().getStringList("buy-commands"));
 		SELL_COMMANDS.addAll(getConfig().getStringList("sell-commands"));
 		Utils.setPrefix(ChatColor.translateAlternateColorCodes('&', getConfig().getString("prefix")));
@@ -169,6 +169,9 @@ public final class Main extends JavaPlugin {
 		Utils.setAdded(ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
 		Utils.setCantSell(ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
 		Utils.setEscapeOnly(getConfig().getBoolean("escape-only"));
+		Utils.setSound(getConfig().getString("purchase-sound"));
+		Utils.setSoundEnabled(getConfig().getBoolean("enable-sound"));
+		Utils.setCreatorEnabled(getConfig().getBoolean("ingame-config"));
 		getDataFolder();
 	}
 

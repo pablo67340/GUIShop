@@ -56,7 +56,7 @@ public final class PlayerListener implements Listener {
 			e.setCancelled(true);
 			return;
 		}
-		
+
 		if (command.contains("guishop")){
 			e.setCancelled(true);
 			String preArgs = StringUtils.substringAfter(command, "guishop ");
@@ -102,6 +102,19 @@ public final class PlayerListener implements Listener {
 				}else{
 					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
 				} 
+			}
+			if (args[0].equalsIgnoreCase("reload")){
+				if (player.hasPermission("guishop.reload") || player.isOp()){
+					Main.INSTANCE.reloadConfig();
+					Main.INSTANCE.reloadCustomConfig();
+					Main.INSTANCE.loadDefaults();
+					Shop.loadShops();
+
+					for (Player p : Bukkit.getOnlinePlayers()){
+						Main.MENUS.get(p.getName()).load();
+					}
+					player.sendMessage("§aGUIShop has been reloaded!");
+				}
 			}
 		}
 	}
@@ -275,6 +288,13 @@ public final class PlayerListener implements Listener {
 								}
 
 								if (Main.getEconomy().withdrawPlayer(player.getName(), priceToPay).transactionSuccess()) {
+									if (Utils.isSoundEnabled()){
+										try{
+											player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1, 1);
+										}catch(Exception ex){
+											System.out.println("[GUIShop] Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+										}
+									}
 									player.sendMessage(Utils.getPurchased() + priceToPay + Utils.getTaken());
 								}
 							}

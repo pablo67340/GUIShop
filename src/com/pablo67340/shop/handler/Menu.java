@@ -42,9 +42,15 @@ public final class Menu {
 
 		for (Entry<Integer, Shop> e : Main.SHOPS.entrySet()) {
 			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp()) {
-				GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Main.INSTANCE.getConfig().getString(String.valueOf(e.getKey() + 1) 
-						+ ".Item")), 1), e.getValue().getName(), e.getValue().getLore()));
-				continue;
+				String itemID = Main.INSTANCE.getConfig().getString(String.valueOf(e.getKey() + 1) + ".Item");
+				if (itemID.contains(":")){
+					String[] ids = itemID.split(":");
+					GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Integer.parseInt(ids[0])), 1, Short.parseShort(ids[1])), e.getValue().getName(), e.getValue().getLore()));
+					continue;
+				}else{
+					GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Integer.parseInt(itemID)), 1), e.getValue().getName(), e.getValue().getLore()));
+					continue;
+				}
 			}
 
 			List<String> lore = new ArrayList<>();

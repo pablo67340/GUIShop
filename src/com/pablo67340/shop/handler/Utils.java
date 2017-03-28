@@ -8,9 +8,9 @@ public final class Utils {
 
 	@SuppressWarnings("unused")
 	private static String added, cantSell, prefix, purchased, menuName, notEnoughPre, notEnoughPost, 
-	signTitle, sellCommand, sellTitle, sold, taken;
+	signTitle, sellCommand, sellTitle, sold, taken, sound;
 	
-	private static Boolean escapeOnly;
+	private static Boolean escapeOnly, enableSound, enableCreator;
 
 	/**
 	 * The text that represents what comes before
@@ -22,6 +22,67 @@ public final class Utils {
 	 */
 	public static String getPrefix() {
 		return prefix;
+	}
+	
+	/**
+	 * Gets the sound on purchase.
+	 * 
+	 * @return the sound name.
+	 */
+	public static String getSound(){
+		return sound;
+	}
+	
+	/**
+	 * Checks if sound is enabled.
+	 * 
+	 * @return sound enabled.
+	 */
+	public static Boolean isSoundEnabled(){
+		return enableSound;
+	}
+	
+	/**
+	 * enables the sound that plays when a purchase is made,
+	 * around the {@link Player}.
+	 * 
+	 * @param input
+	 * 		The boolean to set.
+	 */
+	public static void setSoundEnabled(Boolean input){
+		enableSound = input;
+	}
+	
+	
+	/**
+	 * Sets the sound that plays when a purchase is made,
+	 * around the {@link Player}.
+	 * 
+	 * @param sound
+	 * 		The text to set.
+	 */
+	public static void setSound(String input){
+		sound = input;
+	}
+	
+	/**
+	 * Sets the text that represents what comes
+	 * before messages sent to the {@link Player}.
+	 * 
+	 * @param prefix
+	 * 		The text to set.
+	 */
+	public static void setCreatorEnabled(Boolean input) {
+		enableCreator = input;
+	}
+	
+	/**
+	 * Gets the creator boolean.
+	 * 
+	 * @return the creator boolean.
+	 */
+	public static Boolean getCreatorEnabled() {
+		return enableCreator;
 	}
 
 	/**

@@ -20,6 +20,11 @@ public final class Shop {
 	 * The name of this {@link Shop}.
 	 */
 	private final String name;
+	
+	/**
+	 * The shop name of this {@link Shop}.
+	 */
+	private final String shop;
 
 	/**
 	 * The description of this {@link Shop}.
@@ -53,8 +58,9 @@ public final class Shop {
 	 * @param lore
 	 * 		The lore of the shop.
 	 */
-	public Shop(String name, String description, List<String> lore) {
+	public Shop(String shop, String name, String description, List<String> lore) {
 		this.name = name;
+		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
 	}
@@ -66,6 +72,15 @@ public final class Shop {
 	 */
 	public String getName() {
 		return name;
+	}
+	
+	/**
+	 * Gets the shop of the {@link Shop}.
+	 * 
+	 * @return the shop's shop.
+	 */
+	public String getShop() {
+		return shop;
 	}
 
 	/**
@@ -105,6 +120,7 @@ public final class Shop {
 	}
 
 	public static void loadShops() {
+		Main.SHOPS.clear();
 		int numberOfShops = Main.INSTANCE.getConfig().getInt("menu-rows") * Main.INSTANCE.getConfig().getInt("menu-cols");
 
 		for (int i = 0; i < numberOfShops; i++) {
@@ -112,6 +128,9 @@ public final class Shop {
 				continue;
 			}
 
+			String shop = ChatColor.translateAlternateColorCodes('&', 
+					Main.INSTANCE.getConfig().getString(String.valueOf(i + 1) + ".Shop"));
+			
 			String name = ChatColor.translateAlternateColorCodes('&', 
 					Main.INSTANCE.getConfig().getString(String.valueOf(i + 1) + ".Name"));
 
@@ -124,7 +143,7 @@ public final class Shop {
 				lore.add(description);
 			}
 
-			Main.SHOPS.put(i, new Shop(name, description, lore));
+			Main.SHOPS.put(i, new Shop(shop, name, description, lore));
 		}
 
 		for (Shop s : Main.SHOPS.values()) {
@@ -140,7 +159,7 @@ public final class Shop {
 		ITEMS = new Item[GUI.getSize() - 1];
 
 		for (int i = 1; i < GUI.getSize(); i++) {
-			String itemDef = Main.INSTANCE.getCustomConfig().getString(getName() + "." + i);
+			String itemDef = Main.INSTANCE.getCustomConfig().getString(getShop() + "." + i);
 			if (itemDef == null || itemDef.length() <= 2) {
 				continue;
 			}

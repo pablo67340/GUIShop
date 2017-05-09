@@ -1,6 +1,5 @@
 package com.pablo67340.shop.handler;
 
-
 public final class Item {
 
 	/**
@@ -24,6 +23,11 @@ public final class Item {
 	 * The Data of this {@link Item}.
 	 */
 	private int data;
+	
+	/**
+	 * The Qty of this {@link Item}.
+	 */
+	private int qty;
 
 	/**
 	 * The price to buy this {@link Item}.
@@ -35,6 +39,12 @@ public final class Item {
 	 * selling this {@link Item}.
 	 */
 	private double sellPrice;
+	
+	
+	/**
+	 * The enchantsments on this {@link Item}.
+	 */
+	private String[] enchantments;
 
 	/**
 	 * Gets the slot of this {@link Item}
@@ -55,6 +65,47 @@ public final class Item {
 	 */
 	public void setSlot(int slot) {
 		this.slot = slot;
+	}
+	
+	/**
+	 * Sets the Qty of this {@link Item}
+	 * on the GUI.
+	 * 
+	 * @param qty
+	 * 		The qty to set.
+	 */
+	public void setQty(int qty) {
+		this.qty = qty;
+	}
+	
+	
+	/**
+	 * Gets the qty of this {@link Item}
+	 * on the GUI.
+	 * 
+	 * @return the item's qty.
+	 */
+	public int getQty() {
+		return qty;
+	}
+	
+	/**
+	 * Sets the enchantments of this {@link Item}
+	 * 
+	 * @param enchantments
+	 * 		The enchantments to set.
+	 */
+	public void setEnchantments(String[] input){
+		enchantments = input;
+	}
+	
+	/**
+	 * Gets the enchantments of this {@link Item}
+	 * 
+	 * @return the item's enchantments.
+	 */
+	public String[] getEnchantments(){
+		return enchantments;
 	}
 	
 	

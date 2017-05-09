@@ -16,7 +16,7 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Test/plugins/Vault.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/BattleRoyal/plugins/Vault.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Rhythm/plugins/SilkSpawners.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/BattleRoyal/1.11.jar">
 		<attributes>

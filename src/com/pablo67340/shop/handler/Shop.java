@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -20,7 +21,7 @@ public final class Shop {
 	 * The name of this {@link Shop}.
 	 */
 	private final String name;
-	
+
 	/**
 	 * The shop name of this {@link Shop}.
 	 */
@@ -73,7 +74,7 @@ public final class Shop {
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * Gets the shop of the {@link Shop}.
 	 * 
@@ -119,23 +120,24 @@ public final class Shop {
 		return ITEMS;
 	}
 
+
 	public static void loadShops() {
 		Main.SHOPS.clear();
-		int numberOfShops = Main.INSTANCE.getConfig().getInt("menu-rows") * Main.INSTANCE.getConfig().getInt("menu-cols");
+		int numberOfShops = Main.INSTANCE.getMainConfig().getInt("menu-rows") * Main.INSTANCE.getMainConfig().getInt("menu-cols");
 
 		for (int i = 0; i < numberOfShops; i++) {
-			if (!Main.INSTANCE.getConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
+			if (!Main.INSTANCE.getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
 				continue;
 			}
 
 			String shop = ChatColor.translateAlternateColorCodes('&', 
-					Main.INSTANCE.getConfig().getString(String.valueOf(i + 1) + ".Shop"));
-			
+					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Shop"));
+
 			String name = ChatColor.translateAlternateColorCodes('&', 
-					Main.INSTANCE.getConfig().getString(String.valueOf(i + 1) + ".Name"));
+					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Name"));
 
 			String description = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getConfig().getString(String.valueOf(i + 1) + ".Desc"));
+					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Desc"));
 
 			List<String> lore = new ArrayList<>();
 
@@ -147,98 +149,148 @@ public final class Shop {
 		}
 
 		for (Shop s : Main.SHOPS.values()) {
-			s.loadShop();
+			s.loadShop2();
 		}
 	}
 
-	@SuppressWarnings("deprecation")
-	public void loadShop() {
+	@SuppressWarnings({ "deprecation" })
+	public void loadShop2(){
+
 		GUI = Bukkit.getServer().createInventory(null, ROW * COL, 
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
 		ITEMS = new Item[GUI.getSize() - 1];
 
-		for (int i = 1; i < GUI.getSize(); i++) {
-			String itemDef = Main.INSTANCE.getCustomConfig().getString(getShop() + "." + i);
-			if (itemDef == null || itemDef.length() <= 2) {
-				continue;
-			}
+		Boolean hasData = false;
 
 
-			String[] lines = itemDef.substring(1, itemDef.length() - 1).replaceAll("[{}]", "").split(", ");
+		for (String str : Main.getInstance().getCustomConfig().getKeys(true)){
+			if (str.contains(".") && str.contains(getShop())){
+				Item item = new Item();
+				List<Map<?,?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
+				for (Map<?,?> map : citem){
+					if (map.containsKey("id")){
+						if (((String)map.get("id")).contains(":")){
+							hasData = true;
+							String itemID = (String)map.get("id");
+							itemID = StringUtils.substringBefore(itemID, ":");
+							String data = (String)map.get("id");
+							data = StringUtils.substringAfter(data, ":");
+							item.setId(Integer.parseInt(itemID));
+							item.setData(Integer.parseInt(data));
+						}else{
+							item.setId(Integer.parseInt((String)map.get("id")));
+						}
+					}else if (map.containsKey("slot")){
+						item.setSlot((Integer)map.get("slot"));
+					}else if (map.containsKey("qty")){
+						item.setQty((Integer)map.get("qty"));
+					}else if (map.containsKey("name")){
+						item.setName((String)map.get("name"));
+					}else if (map.containsKey("enchantments")){
+						String preEnc = (String)map.get("enchantments");
+						if (!preEnc.equalsIgnoreCase("")){
+							String[] enchants = preEnc.split(" ");
+							item.setEnchantments(enchants);
+						}
+					}else if (map.containsKey("buy-price")){
+						Integer buy;
+						Double buy2;
+						try{
+							buy = (Integer)map.get("buy-price");
+							item.setBuyPrice(buy);
+						}catch(Exception e){
+							buy2 = (Double)map.get("buy-price");
+							item.setBuyPrice(buy2);
+						}
+					}else if (map.containsKey("sell-price")){
+						Integer sell;
+						Double sell2;
+						if (hasData == true){
+							Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
+						}else{
+							Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice()));
+						}
 
-			if (lines == null || lines.length == 0) {
-				continue;
-			}
-
-			Item item = new Item();
-			Boolean data = false;
-
-			for (String line : lines) {
-				String[] args = line.split("=");
-
-				switch (args[0]) {
-				case "slot":
-					item.setSlot(Integer.parseInt(args[1]));
-					break;
-				case "id":
-					if (args[1].contains(":")){
-						String split = StringUtils.substringAfter(args[1], ":");
-						String id = StringUtils.substringBefore(args[1], ":");
-						item.setId(Integer.parseInt(id));
-						item.setData(Integer.parseInt(split));
-						data = true;
-						break;
-					}else{
-						item.setId(Integer.parseInt(args[1]));
-						break;
+						try{
+							sell = (Integer)map.get("sell-price");
+							item.setSellPrice(sell);
+						}catch(Exception e){
+							sell2 = (Double)map.get("sell-price");
+							item.setSellPrice(sell2);
+						}
 					}
-				case "buy-price":
-					item.setBuyPrice(Double.parseDouble(args[1]));
-					break;
-				case "sell-price":
-					item.setSellPrice(Double.parseDouble(args[1]));
-					if (data == true){
-						Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
-					}else{
-						Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice()));
-					}
-					break;
-				case "name":
-					item.setName(ChatColor.translateAlternateColorCodes('&', args[1]));
-					break;
 				}
+
+				ITEMS[item.getSlot()] = item;
+
+				ItemStack itemStack = new ItemStack(Material.AIR);
+				if (hasData == true){
+					itemStack = new ItemStack(item.getId(), item.getQty(), (short)item.getData());
+				}else{
+					itemStack = new ItemStack(item.getId(), item.getQty());
+				}
+
+				ItemMeta itemMeta = itemStack.getItemMeta();
+
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()), 
+						ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice()))
+						);
+
+				if (item.getName()!=null) itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+
+				itemStack.setItemMeta(itemMeta);
+
+				if (item.getEnchantments() != null){
+
+					for (String enc : item.getEnchantments()){
+						String enchantment = StringUtils.substringBefore(enc, ":");
+						String level = StringUtils.substringAfter(enc, ":");
+						itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+
+					}
+				}
+
+
+
+				GUI.setItem(item.getSlot(), itemStack);
+				if (!Utils.getEscapeOnly()){
+					int backButton = 0;
+					short data = 0;
+
+					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
+
+					if (backButtonId.contains(":")) {
+						String[] args = backButtonId.split(":");
+
+						backButton = Integer.parseInt(args[0]);
+						data = Short.parseShort(args[1]);
+					}
+
+					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+
+					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+
+					backButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+							Main.INSTANCE.getConfig().getString("back")));
+
+					backButtonItem.setItemMeta(backButtonMeta);
+
+					GUI.setItem(ROW * COL - 1, backButtonItem);
+				}
+
 			}
-
-			ITEMS[item.getSlot()] = item;
-
-			ItemStack itemStack = new ItemStack(Material.AIR);
-			if (data == true){
-				itemStack = new ItemStack(item.getId(), 1, (short)item.getData());
-			}else{
-				itemStack = new ItemStack(item.getId(), 1);
-			}
-
-			ItemMeta itemMeta = itemStack.getItemMeta();
-
-			itemMeta.setLore(Arrays.asList(
-					ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()), 
-					ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice()))
-					);
-			
-			if (item.getName()!=null) itemMeta.setDisplayName(item.getName());
-
-			itemStack.setItemMeta(itemMeta);
-
-			GUI.setItem(item.getSlot(), itemStack);
 		}
+
+
 
 
 		if (!Utils.getEscapeOnly()){
 			int backButton = 0;
 			short data = 0;
 
-			String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
+			String backButtonId = Main.INSTANCE.getMainConfig().getString("back-button-item");
 
 			if (backButtonId.contains(":")) {
 				String[] args = backButtonId.split(":");
@@ -252,7 +304,7 @@ public final class Shop {
 			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
 			backButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
-					Main.INSTANCE.getConfig().getString("back")));
+					Main.INSTANCE.getMainConfig().getString("back")));
 
 			backButtonItem.setItemMeta(backButtonMeta);
 
@@ -272,5 +324,6 @@ public final class Shop {
 
 		Main.MENUS.get(player.getName()).open();
 	}
+
 
 }

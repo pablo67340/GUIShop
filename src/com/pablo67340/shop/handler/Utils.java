@@ -1,7 +1,5 @@
 package com.pablo67340.shop.handler;
 
-
-
 public final class Utils {
 
 	private static boolean signsOnly;

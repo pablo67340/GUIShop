@@ -42,7 +42,7 @@ public final class Menu {
 
 		for (Entry<Integer, Shop> e : Main.SHOPS.entrySet()) {
 			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp()) {
-				String itemID = Main.INSTANCE.getConfig().getString(String.valueOf(e.getKey() + 1) + ".Item");
+				String itemID = Main.INSTANCE.getMainConfig().getString(String.valueOf(e.getKey() + 1) + ".Item");
 				if (itemID.contains(":")){
 					String[] ids = itemID.split(":");
 					GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Integer.parseInt(ids[0])), 1, Short.parseShort(ids[1])), e.getValue().getName(), e.getValue().getLore()));
@@ -55,7 +55,7 @@ public final class Menu {
 
 			List<String> lore = new ArrayList<>();
 
-			lore.add(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("no-permission")));
+			lore.add(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("no-permission")));
 
 			GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(36), 1), e.getValue().getName(), lore));
 		}
@@ -63,12 +63,12 @@ public final class Menu {
 
 	public void open() {
 		if (!player.hasPermission("guishop.use") && !player.isOp()) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("no-permission")));
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("no-permission")));
 			return;
 		}
 
-		if (Main.INSTANCE.getConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("disabled-world")));
+		if (Main.INSTANCE.getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("disabled-world")));
 			return;
 		}
 

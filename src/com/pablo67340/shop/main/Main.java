@@ -7,7 +7,7 @@ import java.util.*;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.Configuration;
+import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
@@ -17,15 +17,20 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.listener.PlayerListener;
 
-public final class Main extends JavaPlugin {
+import de.dustplanet.util.SilkUtil;
 
-	public static File customConfigFile;
+public final class Main extends JavaPlugin {
 
 	public File defaultConfigFile;
 
-	private FileConfiguration customConfig;
 
 	private static Economy ECONOMY;
+	
+	
+	/**
+	 * The config converted to JSON
+	 */
+	private static String shops;
 
 	/**
 	 * An instance of this class.
@@ -74,7 +79,7 @@ public final class Main extends JavaPlugin {
 	 * 		The menu.
 	 */
 	public static final Map<String, Menu> MENUS = new HashMap<>();
-	
+
 	/**
 	 * A {@link Map} that will store our {@link Creator}s
 	 * when the server first starts.
@@ -119,6 +124,8 @@ public final class Main extends JavaPlugin {
 	 * 		The item's price object.
 	 */
 	public static final Map<String, Price> PRICES = new HashMap<>();
+	
+	public SilkUtil su;
 
 	@Override
 	public void onEnable() {
@@ -129,11 +136,11 @@ public final class Main extends JavaPlugin {
 			getServer().getPluginManager().disablePlugin(this);
 			return;
 		}
-
-		saveDefaultConfig();
+		createFiles();
 		loadDefaults();
 		getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 		Shop.loadShops();
+		su = SilkUtil.hookIntoSilkSpanwers();
 	}
 
 	@Override
@@ -156,66 +163,82 @@ public final class Main extends JavaPlugin {
 	}
 
 	public void loadDefaults() {
-		BUY_COMMANDS.addAll(getConfig().getStringList("buy-commands"));
-		SELL_COMMANDS.addAll(getConfig().getStringList("sell-commands"));
-		Utils.setPrefix(ChatColor.translateAlternateColorCodes('&', getConfig().getString("prefix")));
-		Utils.setSignsOnly(getConfig().getBoolean("signs-only"));
-		Utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getConfig().getString("sign-title")));
-		Utils.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&', getConfig().getString("not-enough-pre")));
-		Utils.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&', getConfig().getString("not-enough-post")));
-		Utils.setPurchased(ChatColor.translateAlternateColorCodes('&', getConfig().getString("purchased")));
-		Utils.setTaken(ChatColor.translateAlternateColorCodes('&', getConfig().getString("taken")));
-		Utils.setSold(ChatColor.translateAlternateColorCodes('&', getConfig().getString("sold")));
-		Utils.setAdded(ChatColor.translateAlternateColorCodes('&', getConfig().getString("added")));
-		Utils.setCantSell(ChatColor.translateAlternateColorCodes('&', getConfig().getString("cant-sell")));
-		Utils.setEscapeOnly(getConfig().getBoolean("escape-only"));
-		Utils.setSound(getConfig().getString("purchase-sound"));
-		Utils.setSoundEnabled(getConfig().getBoolean("enable-sound"));
-		Utils.setCreatorEnabled(getConfig().getBoolean("ingame-config"));
+		BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
+		SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
+		Utils.setPrefix(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("prefix")));
+		Utils.setSignsOnly(getMainConfig().getBoolean("signs-only"));
+		Utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sign-title")));
+		Utils.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-pre")));
+		Utils.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-post")));
+		Utils.setPurchased(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("purchased")));
+		Utils.setTaken(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("taken")));
+		Utils.setSold(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sold")));
+		Utils.setAdded(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("added")));
+		Utils.setCantSell(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-sell")));
+		Utils.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
+		Utils.setSound(getMainConfig().getString("purchase-sound"));
+		Utils.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
+		Utils.setCreatorEnabled(getMainConfig().getBoolean("ingame-config"));
 		getDataFolder();
 	}
 
-	@SuppressWarnings("deprecation")
-	public void reloadCustomConfig() {
-		if (customConfigFile == null) {
-			customConfigFile = new File(getDataFolder(), "shops.yml");
-		}
+	public File configf, specialf;
+	private FileConfiguration config, special;
 
-		customConfig = YamlConfiguration.loadConfiguration((File) customConfigFile);
-
-		InputStream defConfigStream = getResource("shops.yml");
-
-		if (defConfigStream != null) {
-			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration((InputStream) defConfigStream);
-			customConfig.setDefaults((Configuration) defConfig);
-		}
-	}
 
 	public FileConfiguration getCustomConfig() {
-		if (customConfig == null) {
-			reloadCustomConfig();
-		}
-
-		return customConfig;
+		return this.special;
 	}
 
-	public void saveDefaultConfig() {
-		if (customConfigFile == null) {
-			customConfigFile = new File(getDataFolder(), "shops.yml");
-			defaultConfigFile = new File(getDataFolder(), "config.yml");
+	public FileConfiguration getMainConfig() {
+		return this.config;
+	}
+
+	public void createFiles() {
+
+		configf = new File(getDataFolder(), "config.yml");
+		specialf = new File(getDataFolder(), "shops.yml");
+
+		if (!configf.exists()) {
+			configf.getParentFile().mkdirs();
+			saveResource("config.yml", false);
 		}
 
-		if (!customConfigFile.exists()) {
+		if (!specialf.exists()) {
+			specialf.getParentFile().mkdirs();
 			saveResource("shops.yml", false);
 		}
 
-		if (!defaultConfigFile.exists()) {
-			saveResource("config.yml", false);
+		config = new YamlConfiguration();
+		special = new YamlConfiguration();
+		try {
+			try {
+				config.load(configf);
+				special.load(specialf);
+			} catch (InvalidConfigurationException e) {
+				e.printStackTrace();
+			}
+
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
+
 	public static Economy getEconomy() {
 		return ECONOMY;
+	}
+	
+	public static Main getInstance(){
+		return INSTANCE;
+	}
+	
+	public void setJSON(String input){
+		shops = input;
+	}
+	
+	public String getJSON(){
+		return shops;
 	}
 
 }

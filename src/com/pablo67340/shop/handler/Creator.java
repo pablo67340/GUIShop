@@ -2,13 +2,19 @@ package com.pablo67340.shop.handler;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 
-
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -20,13 +26,13 @@ import com.pablo67340.shop.main.Main;
 public final class Creator {
 
 	private final Player player;
-	private Chest chest;
-	private String name;
-	private ArrayList<ItemStack> items = new ArrayList<>();
+	public Chest chest;
+	public String name;
 	private List<String> lore = new ArrayList<>(2);
 
 	public Creator(Player p){
 		this.player = p;
+		this.lore.add(" ");
 		this.lore.add(" ");
 		this.lore.add(" ");
 	}
@@ -52,12 +58,13 @@ public final class Creator {
 	}
 
 	@SuppressWarnings("deprecation")
-	public void setPrice(Integer price){
+	public void setPrice(Double price){
 		ItemStack item = this.player.getItemInHand();
 		ItemMeta im = item.getItemMeta();
 		if (im.getLore()==null){
 			this.lore.set(0, " ");
 			this.lore.set(1, " ");
+			this.lore.set(2, " ");
 		}
 		this.lore.set(0, price.toString());
 		im.setLore(lore);
@@ -66,12 +73,13 @@ public final class Creator {
 	}
 
 	@SuppressWarnings("deprecation")
-	public void setSell(Integer sell){
+	public void setSell(Double sell){
 		ItemStack item = this.player.getItemInHand();
 		ItemMeta im = item.getItemMeta();
 		if (im.getLore()==null){
 			this.lore.set(0, " ");
 			this.lore.set(1, " ");
+			this.lore.set(2, " ");
 		}
 		this.lore.set(1, sell.toString());
 		im.setLore(lore);
@@ -79,51 +87,212 @@ public final class Creator {
 		this.player.sendMessage(Utils.getPrefix()+" Sell value set: "+sell);
 	}
 
-	// Line 82 is giving null. Check if chest is returning items inside of it
-	// If so, find a new way to check if item has durability
+	@SuppressWarnings("deprecation")
+	public void setName(String name){
+		ItemStack item = this.player.getItemInHand();
+		ItemMeta im = item.getItemMeta();
+		if (im.getLore()==null){
+			this.lore.set(0, " ");
+			this.lore.set(1, " ");
+			this.lore.set(2, " ");
+		}
+		this.lore.set(2, name);
+		im.setLore(lore);
+		item.setItemMeta(im);
+		this.player.sendMessage(Utils.getPrefix()+" name value set: "+name);
+	}
 
+	@SuppressWarnings({ "rawtypes", "deprecation" })
 	public void saveShop(){
-		Integer index = -1;
-		for (ItemStack item : this.chest.getInventory().getContents()){
-			if (item!=null){
-				System.out.println("Item count: "+this.chest.getInventory().getContents().length);
-				index+=1;
-				//Main.INSTANCE.getCustomConfig().getConfigurationSection(this.name+"."+index)
-				HashMap<String, String> id = new HashMap<String, String>();
-				HashMap<String, Integer> buyPrice = new HashMap<String, Integer>();
-				HashMap<String, Integer> sellPrice = new HashMap<String, Integer>();
-				HashMap<String, Integer> slot = new HashMap<String, Integer>();
-				
-				
-				if (item.getDurability() != 0){
-					id.put("id", item.getTypeId()+":"+item.getDurability());
-					
+
+		Integer index = 0;
+		for (ItemStack itm : this.chest.getInventory().getContents()){
+			List<Map> citem = new ArrayList<>(this.chest.getInventory().getContents().length);
+			if (itm!=null){
+				if (itm.hasItemMeta()){
+					index+=1;
+					Map<String, String> iName = new HashMap<>();
+					Map<String, Double> iBuy = new HashMap<>();
+					Map<String, Double> iSell = new HashMap<>();
+					Map<String, String> iItemID = new HashMap<>();
+					Map<String, String> iEnchantments = new HashMap<>();
+					Map<String, Integer> iSlot = new HashMap<>();
+					Map<String, Integer> iQty = new HashMap<>();
+					ItemMeta im = itm.getItemMeta();
+					List<String> lore = im.getLore();
+					Double price = 0.0;
+					Double sell = 0.0;
+					String name = "";
+					if (!lore.get(0).equalsIgnoreCase(" ")){
+						price = Double.parseDouble(lore.get(0));
+					}
+
+					if (!lore.get(1).equalsIgnoreCase(" ")){
+						sell = Double.parseDouble(lore.get(1));
+					}
+
+					if (!lore.get(2).equalsIgnoreCase(" ")){
+						name = lore.get(2);
+					}
+
+					String itemID = Integer.toString(itm.getTypeId());
+					String data = Byte.toString(itm.getData().getData());
+					itemID = itemID +":"+data;
+
+					String enchantments = "";
+
+					for (Enchantment ench : itm.getEnchantments().keySet()){
+						enchantments += ench.getName()+":"+itm.getEnchantmentLevel(ench)+" ";
+					}
+
+					iName.put("name", name);
+					iBuy.put("buy-price", price);
+					iSell.put("sell-price", sell);
+					iSlot.put("slot", index-1);
+					iItemID.put("id", itemID);
+					iEnchantments.put("enchantments", enchantments.trim());
+					iQty.put("qty", itm.getAmount());
+
+					citem.add(iName);
+					citem.add(iBuy);
+					citem.add(iSell);
+					citem.add(iSlot);
+					citem.add(iItemID);
+					citem.add(iEnchantments);
+					citem.add(iQty);
+
+
+					Main.getInstance().getCustomConfig().set(this.name+"."+index, citem);
+
+
+					for (Player p : Bukkit.getOnlinePlayers()){
+						Main.MENUS.get(p.getName()).load();
+					}
 				}else{
 
-					id.put("id", item.getTypeId()+"");
-					
-
-				}
-
-				slot.put("slot", index);
-				buyPrice.put("buy-price", Integer.parseInt(item.getItemMeta().getLore().get(0)));
-
-				if (item.getItemMeta().getLore().size()==2){
-					sellPrice.put("sell-price", Integer.parseInt(item.getItemMeta().getLore().get(1)));
-
-				}
-				
-
-				try {
-					Main.INSTANCE.getCustomConfig().save(Main.customConfigFile);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
 				}
 			}else{
-				System.out.println("Material was null: "+index);
+				Main.getInstance().getCustomConfig().set(this.name+".index", null);
 			}
 		}
+		try {
+			Main.getInstance().getCustomConfig().save(Main.getInstance().specialf);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		Main.INSTANCE.reloadConfig();
+		Main.INSTANCE.createFiles();
+		Main.INSTANCE.loadDefaults();
+		Shop.loadShops();
+		player.sendMessage(Utils.getPrefix()+ " Shop saved!");
+	}
+
+
+	@SuppressWarnings("deprecation")
+	public void loadShop(){
+		Boolean hasData = false;
+		this.chest.getInventory().clear();
+		for (String str : Main.getInstance().getCustomConfig().getKeys(true)){
+			if (str.contains(".") && str.contains(this.name)){
+				Item item = new Item();
+				List<Map<?,?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
+				for (Map<?,?> map : citem){
+					if (map.containsKey("id")){
+						if (((String)map.get("id")).contains(":")){
+							hasData = true;
+							String itemID = (String)map.get("id");
+							itemID = StringUtils.substringBefore(itemID, ":");
+							String data = (String)map.get("id");
+							data = StringUtils.substringAfter(data, ":");
+							item.setId(Integer.parseInt(itemID));
+							item.setData(Integer.parseInt(data));
+						}else{
+							item.setId(Integer.parseInt((String)map.get("id")));
+						}
+					}else if (map.containsKey("slot")){
+						item.setSlot((Integer)map.get("slot"));
+					}else if (map.containsKey("name")){
+						item.setName((String)map.get("name"));
+					}else if (map.containsKey("buy-price")){
+						Integer buy;
+						Double buy2;
+						try{
+							buy = (Integer)map.get("buy-price");
+							item.setBuyPrice(buy);
+						}catch(Exception e){
+							buy2 = (Double)map.get("buy-price");
+							item.setBuyPrice(buy2);
+						}
+					}else if (map.containsKey("sell-price")){
+						Integer sell;
+						Double sell2;
+						if (hasData == true){
+							Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
+						}else{
+							Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice()));
+						}
+
+						try{
+							sell = (Integer)map.get("sell-price");
+							item.setSellPrice(sell);
+						}catch(Exception e){
+							sell2 = (Double)map.get("sell-price");
+							item.setSellPrice(sell2);
+						}
+					}
+				}
+
+				ItemStack itemStack = new ItemStack(Material.AIR);
+				if (hasData == true){
+					itemStack = new ItemStack(item.getId(), 1, (short)item.getData());
+				}else{
+					itemStack = new ItemStack(item.getId(), 1);
+				}
+
+				ItemMeta itemMeta = itemStack.getItemMeta();
+
+				itemMeta.setLore(Arrays.asList(Double.toString(item.getBuyPrice()), Double.toString(item.getSellPrice()),item.getName()));
+
+				if (item.getName()!=null) itemMeta.setDisplayName(item.getName());
+				itemStack.setItemMeta(itemMeta);
+
+				if (item.getEnchantments() != null){
+
+					for (String enc : item.getEnchantments()){
+						String enchantment = StringUtils.substringBefore(enc, ":");
+						String level = StringUtils.substringAfter(enc, ":");
+						itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+					}
+				}
+				this.chest.getInventory().setItem(item.getSlot(), itemStack);
+				if (!Utils.getEscapeOnly()){
+					int backButton = 0;
+					short data = 0;
+
+					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
+
+					if (backButtonId.contains(":")) {
+						String[] args = backButtonId.split(":");
+
+						backButton = Integer.parseInt(args[0]);
+						data = Short.parseShort(args[1]);
+					}
+
+					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+
+					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+
+					backButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+							Main.INSTANCE.getConfig().getString("back")));
+
+					backButtonItem.setItemMeta(backButtonMeta);
+
+					this.chest.getInventory().setItem(this.chest.getInventory().getSize(), backButtonItem);
+				}
+
+			}
+		}
+		player.sendMessage(Utils.getPrefix()+ " Shop loaded!");
 	}
 
 }

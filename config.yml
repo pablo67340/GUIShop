@@ -146,34 +146,34 @@ Rows: 1
   Name: '&eFarming'
 4:
   Enabled: true
-  Item: '364'
-  Shop: 'Food'
-  Desc: '&8(&fFood&8)'
-  Name: '&3Food'
-5:
-  Enabled: true
   Item: '351:15'
   Shop: 'Drops'
   Desc: '&8(&fDrops&8)'
   Name: '&cDrops'
-6:
+5:
   Enabled: true
   Item: '384'
   Shop: 'Brewing'
   Desc: '&8(&fBrewing&8)'
   Name: '&2Brewing'
-7:
+6:
   Enabled: true
   Item: '310'
   Shop: 'Gear'
   Desc: '&8(&fGear&8)'
   Name: '&bGear'
-8:
+7:
   Enabled: true
   Item: '52'
   Shop: 'Spawners'
   Desc: '&8(&fSpawners&8)'
   Name: '&6Spawners'
+8:
+  Enabled: true
+  Item: '1'
+  Shop: 'Blocks'
+  Desc: '&8(&fBlocks&8)'
+  Name: '&6Blocks'
 
  ################################
  ## Developed by pablo67340    ##

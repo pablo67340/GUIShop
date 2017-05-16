@@ -1,6 +1,6 @@
 name: GUIShop
 main: com.pablo67340.shop.main.Main
-version: 6.0.7
+version: 6.0.9
 author: pablo67340
 description: Plugin for any server.
 depend: [SilkSpawners, Vault]

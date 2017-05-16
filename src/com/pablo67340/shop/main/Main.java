@@ -125,13 +125,16 @@ public final class Main extends JavaPlugin {
 	public void onEnable() {
 		INSTANCE = this;
 		createFiles();
-		loadDefaults();
-		getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-		Shop.loadShops();
+
+		if (updateConfig()){
+			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+			loadDefaults();
+			Shop.loadShops();
+		}
 		if (setupEconomy()){
 			su = SilkUtil.hookIntoSilkSpanwers();
 		}
-		updateConfig();
+
 
 	}
 
@@ -175,16 +178,19 @@ public final class Main extends JavaPlugin {
 	 * Check if the config is up to date.
 	 */
 	@SuppressWarnings("unused")
-	public void updateConfig(){
+	public Boolean updateConfig(){
 		Double ver = getMainConfig().getDouble("ver");
 		if (ver != null){
 			if (ver == 1.0){
 				getLogger().info("Config all up to date!");
+				return true;
 			}else{
 				getLogger().warning("The config version is outdated! Please delete your config.yml and restart! "+ver);
+				return false;
 			}
 		}else{
 			getLogger().warning("The config version is outdated! Please delete your config.yml and restart!!");
+			return false;
 		}
 	}
 

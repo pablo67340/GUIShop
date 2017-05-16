@@ -37,6 +37,13 @@ public final class Creator {
 		this.lore.add(" ");
 	}
 
+
+	/**
+	 * 
+	 * @param The chest loc
+	 * 
+	 * Set the chest needed to config GUIShop
+	 */
 	@SuppressWarnings("deprecation")
 	public void setChest(){
 		BlockState potentialchest = this.player.getTargetBlock((HashSet<Byte>)null, 100).getState();
@@ -44,19 +51,43 @@ public final class Creator {
 		this.player.sendMessage(Utils.getPrefix()+" Target chest has been set!");
 	}
 
+	/**
+	 * 
+	 * @param {@link Player}
+	 * 
+	 * Open the player's chest
+	 */
 	public void openChest(){
 		this.player.openInventory(chest.getInventory());
 	}
 
+	/**
+	 * 
+	 * @param {@link Player}
+	 * 
+	 * Clear the player's chest
+	 */
 	public void clearChest(){
 		this.chest.getInventory().clear();
 	}
 
+	/**
+	 * 
+	 * @param The shop name
+	 * 
+	 * Set the current edited shop
+	 */
 	public void setShopName(String input){
 		this.name = input;
 		this.player.sendMessage(Utils.getPrefix()+" Shop name set!");
 	}
 
+	/**
+	 * 
+	 * @param Item Price
+	 * 
+	 * Set an item's buy price
+	 */
 	@SuppressWarnings("deprecation")
 	public void setPrice(Double price){
 		ItemStack item = this.player.getItemInHand();
@@ -72,6 +103,12 @@ public final class Creator {
 		this.player.sendMessage(Utils.getPrefix()+" Price set: "+price);
 	}
 
+	/**
+	 * 
+	 * @param Item Sell value
+	 * 
+	 * Set an item's sell price
+	 */
 	@SuppressWarnings("deprecation")
 	public void setSell(Double sell){
 		ItemStack item = this.player.getItemInHand();
@@ -87,6 +124,12 @@ public final class Creator {
 		this.player.sendMessage(Utils.getPrefix()+" Sell value set: "+sell);
 	}
 
+	/**
+	 * 
+	 * @param Item Name
+	 * 
+	 * Set the item's name
+	 */
 	@SuppressWarnings("deprecation")
 	public void setName(String name){
 		ItemStack item = this.player.getItemInHand();
@@ -102,6 +145,12 @@ public final class Creator {
 		this.player.sendMessage(Utils.getPrefix()+" name value set: "+name);
 	}
 
+	/**
+	 * 
+	 * @param Shop Name
+	 * 
+	 * Save's the specified shop to the config
+	 */
 	@SuppressWarnings({ "rawtypes", "deprecation" })
 	public void saveShop(){
 
@@ -144,20 +193,19 @@ public final class Creator {
 					for (Enchantment ench : itm.getEnchantments().keySet()){
 						enchantments += ench.getName()+":"+itm.getEnchantmentLevel(ench)+" ";
 					}
-
+					iItemID.put("id", itemID);
 					iName.put("name", name);
 					iBuy.put("buy-price", price);
 					iSell.put("sell-price", sell);
 					iSlot.put("slot", index-1);
-					iItemID.put("id", itemID);
 					iEnchantments.put("enchantments", enchantments.trim());
 					iQty.put("qty", itm.getAmount());
 
+					citem.add(iItemID);
+					citem.add(iSlot);
 					citem.add(iName);
 					citem.add(iBuy);
 					citem.add(iSell);
-					citem.add(iSlot);
-					citem.add(iItemID);
 					citem.add(iEnchantments);
 					citem.add(iQty);
 
@@ -187,7 +235,12 @@ public final class Creator {
 		player.sendMessage(Utils.getPrefix()+ " Shop saved!");
 	}
 
-
+	/**
+	 * 
+	 * @param Shop name
+	 * 
+	 * Loads the specific shop from the config
+	 */
 	@SuppressWarnings("deprecation")
 	public void loadShop(){
 		Boolean hasData = false;

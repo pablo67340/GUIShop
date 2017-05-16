@@ -1,5 +1,19 @@
 name: GUIShop
 main: com.pablo67340.shop.main.Main
-version: 5.9.4
+version: 6.0.6
 author: pablo67340
 description: Plugin for any server.
+depend: [SilkSpawners, Vault]
+permissions:
+    guishop.use:
+        default: false
+        description: Grants access to GUIShop
+    guishop.slot.*:
+        default: false
+        description: Grants access to specific items in shop
+    guishop.reload:
+        default: false
+        description: Grants access to reload shops
+    guishop.creator:
+        default: false
+        description: Grants access to GUIShop Creator

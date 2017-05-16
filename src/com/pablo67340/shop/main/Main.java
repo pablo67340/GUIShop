@@ -25,12 +25,6 @@ public final class Main extends JavaPlugin {
 
 
 	private static Economy ECONOMY;
-	
-	
-	/**
-	 * The config converted to JSON
-	 */
-	private static String shops;
 
 	/**
 	 * An instance of this class.
@@ -124,44 +118,80 @@ public final class Main extends JavaPlugin {
 	 * 		The item's price object.
 	 */
 	public static final Map<String, Price> PRICES = new HashMap<>();
-	
+
 	public SilkUtil su;
 
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
-
-		if (!setupEconomy()) {
-			getLogger().info("Plugin couldn't detect Vault or an Economy plugin (Such as Essentials ECO). Disabling.");
-			getServer().getPluginManager().disablePlugin(this);
-			return;
-		}
 		createFiles();
 		loadDefaults();
 		getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 		Shop.loadShops();
-		su = SilkUtil.hookIntoSilkSpanwers();
+		if (setupEconomy()){
+			su = SilkUtil.hookIntoSilkSpanwers();
+		}
+		updateConfig();
+
 	}
 
-	@Override
-	public void onDisable() {
-
+	public void pluginError(String input){
+		getLogger().warning("[GUIShop] "+input+" was not installed! This plugin is required!");
+		getServer().getPluginManager().disablePlugin(this);
 	}
 
-	private boolean setupEconomy() {
+	/**
+	 * 
+	 * Check if Vault, SilkSpawners is enabled
+	 */
+	private Boolean setupEconomy() {
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
+			pluginError("Vault");
+			return false;
+		}
+
+		if (getServer().getPluginManager().getPlugin("SilkSpawners") == null){
+			pluginError("SilkSpawners");
 			return false;
 		}
 
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
 
 		if (rsp == null) {
-			return false;
+
 		}
 
-		return (ECONOMY = (Economy) rsp.getProvider()) != null;
+		ECONOMY = (Economy) rsp.getProvider();
+
+		if (ECONOMY == null ) {
+			pluginError("An economy plugin");
+			return false;
+		}
+		return true;
 	}
 
+	/**
+	 * 
+	 * Check if the config is up to date.
+	 */
+	@SuppressWarnings("unused")
+	public void updateConfig(){
+		Double ver = getMainConfig().getDouble("ver");
+		if (ver != null){
+			if (ver == 1.0){
+				getLogger().info("Config all up to date!");
+			}else{
+				getLogger().warning("The config version is outdated! Please delete your config.yml and restart! "+ver);
+			}
+		}else{
+			getLogger().warning("The config version is outdated! Please delete your config.yml and restart!!");
+		}
+	}
+
+	/**
+	 * 
+	 * Load all deault config values, translate colors, store.
+	 */
 	public void loadDefaults() {
 		BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
 		SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
@@ -179,21 +209,35 @@ public final class Main extends JavaPlugin {
 		Utils.setSound(getMainConfig().getString("purchase-sound"));
 		Utils.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
 		Utils.setCreatorEnabled(getMainConfig().getBoolean("ingame-config"));
+		Utils.setCantBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-buy")));
 		getDataFolder();
 	}
+
 
 	public File configf, specialf;
 	private FileConfiguration config, special;
 
 
+	/**
+	 * 
+	 * Get the CustomConfigFile (Shops)
+	 */
 	public FileConfiguration getCustomConfig() {
 		return this.special;
 	}
 
+	/**
+	 * 
+	 * Get main ConfigFile (Config)
+	 */
 	public FileConfiguration getMainConfig() {
 		return this.config;
 	}
 
+	/**
+	 * 
+	 * Force create all YML files.
+	 */
 	public void createFiles() {
 
 		configf = new File(getDataFolder(), "config.yml");
@@ -225,20 +269,20 @@ public final class Main extends JavaPlugin {
 	}
 
 
+	/**
+	 * 
+	 * Get the current economy object
+	 */
 	public static Economy getEconomy() {
 		return ECONOMY;
 	}
-	
+
+	/**
+	 * 
+	 * Get the Main Instance of GUIShop
+	 */
 	public static Main getInstance(){
 		return INSTANCE;
-	}
-	
-	public void setJSON(String input){
-		shops = input;
-	}
-	
-	public String getJSON(){
-		return shops;
 	}
 
 }

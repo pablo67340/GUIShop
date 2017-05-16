@@ -41,31 +41,16 @@ public final class Sell {
 			if (item == null) {
 				continue;
 			}
-			if (item.getDurability() != 0){
-				if (!Main.PRICES.containsKey(Integer.toString(item.getTypeId())+":"+Integer.toString(item.getDurability()))) {
-					player.getInventory().addItem(item);
-					continue;
+			if (!Main.PRICES.containsKey(item.getData().getItemTypeId()+":"+item.getData().getData())) {
+				player.getInventory().addItem(item);
+				player.sendMessage(Utils.getPrefix()+Utils.getCantSell());
+				continue;
 
 
-				}
-			}else{
-				if (!Main.PRICES.containsKey(Integer.toString(item.getTypeId()))) {
-					player.getInventory().addItem(item);
-					continue;
-
-
-				}
-			}
-			
-			
-			
-			if (item.getDurability() != 0){
-				moneyToGive += Main.PRICES.get(item.getTypeId()+":"+item.getDurability()).getSellPrice() * item.getAmount();
-			}else{
-				moneyToGive += Main.PRICES.get(Integer.toString(item.getTypeId())).getSellPrice() * item.getAmount();
 			}
 
-			
+			moneyToGive += Main.PRICES.get(item.getTypeId()+":"+item.getDurability()).getSellPrice() * item.getAmount();
+
 		}
 
 		Main.getEconomy().depositPlayer(player.getName(), moneyToGive);

@@ -5,9 +5,9 @@ public final class Utils {
 	private static boolean signsOnly;
 
 	@SuppressWarnings("unused")
-	private static String added, cantSell, prefix, purchased, menuName, notEnoughPre, notEnoughPost, 
+	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, 
 	signTitle, sellCommand, sellTitle, sold, taken, sound;
-	
+
 	private static Boolean escapeOnly, enableSound, enableCreator;
 
 	/**
@@ -21,7 +21,27 @@ public final class Utils {
 	public static String getPrefix() {
 		return prefix;
 	}
-	
+
+	/**
+	 * The message sent to the {@link Player}
+	 * if an item cannot be purchased
+	 * 
+	 * @return the {@link Shop}'s prefix.
+	 */
+	public static String getCantBuy() {
+		return cantBuy;
+	}
+
+	/**
+	 * 
+	 * @param Cant Buy String
+	 * 
+	 * Sets the string sent to player when an item cannot be purchased.
+	 */
+	public static void setCantBuy(String input){
+		cantBuy = input;
+	}
+
 	/**
 	 * Gets the sound on purchase.
 	 * 
@@ -30,7 +50,7 @@ public final class Utils {
 	public static String getSound(){
 		return sound;
 	}
-	
+
 	/**
 	 * Checks if sound is enabled.
 	 * 
@@ -39,7 +59,7 @@ public final class Utils {
 	public static Boolean isSoundEnabled(){
 		return enableSound;
 	}
-	
+
 	/**
 	 * enables the sound that plays when a purchase is made,
 	 * around the {@link Player}.
@@ -50,8 +70,8 @@ public final class Utils {
 	public static void setSoundEnabled(Boolean input){
 		enableSound = input;
 	}
-	
-	
+
+
 	/**
 	 * Sets the sound that plays when a purchase is made,
 	 * around the {@link Player}.
@@ -62,7 +82,7 @@ public final class Utils {
 	public static void setSound(String input){
 		sound = input;
 	}
-	
+
 	/**
 	 * Sets the text that represents what comes
 	 * before messages sent to the {@link Player}.
@@ -73,7 +93,7 @@ public final class Utils {
 	public static void setCreatorEnabled(Boolean input) {
 		enableCreator = input;
 	}
-	
+
 	/**
 	 * Gets the creator boolean.
 	 * 
@@ -162,7 +182,7 @@ public final class Utils {
 	public static void setEscapeOnly(Boolean input){
 		escapeOnly = input;
 	}
-	
+
 	/**
 	 * Gets whether the {@link Shop} is closed with
 	 * the escape key
@@ -174,8 +194,8 @@ public final class Utils {
 	public static Boolean getEscapeOnly(){
 		return escapeOnly;
 	}
-	
-	
+
+
 	/**
 	 * Gets whether the {@link Shop} can
 	 * only be opened from a sign.
@@ -199,58 +219,121 @@ public final class Utils {
 		signsOnly = flag;
 	}
 
+	/**
+	 * Gets the response for not enough money.
+	 * 
+	 * @return Response String
+	 */
 	public static String getNotEnoughPre() {
 		return notEnoughPre;
 	}
 
+	/**
+	 * Sets the response for not enough money.
+	 * 
+	 */
 	public static void setNotEnoughPre(String text) {
 		notEnoughPre = text;
 	}
 
+	/**
+	 * Gets the response for not enough money post.
+	 * 
+	 * @return The response string
+	 */
 	public static String getNotEnoughPost() {
 		return notEnoughPost;
 	}
 
+	/**
+	 * Sets the response for not enough money post.
+	 * 
+	 */
 	public static void setNotEnoughPost(String text) {
 		notEnoughPost = text;
 	}
 
+	/**
+	 * Gets the response for item purchase.
+	 * 
+	 * @return The response string
+	 */
 	public static String getPurchased() {
 		return purchased;
 	}
 
+	/**
+	 * Sets the response for item purchased.
+	 * 
+	 */
 	public static void setPurchased(String text) {
 		purchased = text;
 	}
 
+	/**
+	 * Gets the response for amount paid.
+	 * 
+	 * @return The response string
+	 */
 	public static String getTaken() {
 		return taken;
 	}
 
+	/**
+	 * Sets the response for amount paid.
+	 * 
+	 */
 	public static void setTaken(String text) {
 		taken = text;
 	}
 
+	/**
+	 * Gets the response for item sold.
+	 * 
+	 * @return The response string
+	 */
 	public static String getSold() {
 		return sold;
 	}
 
+	/**
+	 * Sets the response for item sold.
+	 * 
+	 */
 	public static void setSold(String text) {
 		sold = text;
 	}
 
+	/**
+	 * Gets the response for money received.
+	 * 
+	 * @return The response string
+	 */
 	public static String getAdded() {
 		return added;
 	}
 
+	/**
+	 * Sets the response for money received.
+	 * 
+	 */
 	public static void setAdded(String text) {
 		added = text;
 	}
 
+	/**
+	 * Gets the response for cant sell.
+	 * 
+	 * @return The response string
+	 */
 	public static String getCantSell() {
 		return cantSell;
 	}
 
+	/**
+	 * Sets the response for cant sell.
+	 * 
+	 */
 	public static void setCantSell(String text) {
 		cantSell = text;
 	}

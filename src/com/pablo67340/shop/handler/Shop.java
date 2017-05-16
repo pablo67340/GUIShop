@@ -121,6 +121,10 @@ public final class Shop {
 	}
 
 
+	/**
+	 * Loads all global shops.
+	 * 
+	 */
 	public static void loadShops() {
 		Main.SHOPS.clear();
 		int numberOfShops = Main.INSTANCE.getMainConfig().getInt("menu-rows") * Main.INSTANCE.getMainConfig().getInt("menu-cols");
@@ -153,6 +157,10 @@ public final class Shop {
 		}
 	}
 
+	/**
+	 * Load the specified shop
+	 * 
+	 */
 	@SuppressWarnings({ "deprecation" })
 	public void loadShop2(){
 
@@ -161,26 +169,18 @@ public final class Shop {
 
 		ITEMS = new Item[GUI.getSize() - 1];
 
-		Boolean hasData = false;
-
-
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)){
 			if (str.contains(".") && str.contains(getShop())){
 				Item item = new Item();
 				List<Map<?,?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
 				for (Map<?,?> map : citem){
 					if (map.containsKey("id")){
-						if (((String)map.get("id")).contains(":")){
-							hasData = true;
-							String itemID = (String)map.get("id");
-							itemID = StringUtils.substringBefore(itemID, ":");
-							String data = (String)map.get("id");
-							data = StringUtils.substringAfter(data, ":");
-							item.setId(Integer.parseInt(itemID));
-							item.setData(Integer.parseInt(data));
-						}else{
-							item.setId(Integer.parseInt((String)map.get("id")));
-						}
+						String itemID = (String)map.get("id");
+						itemID = StringUtils.substringBefore(itemID, ":");
+						String data = (String)map.get("id");
+						data = StringUtils.substringAfter(data, ":");
+						item.setId(Integer.parseInt(itemID));
+						item.setData(Integer.parseInt(data));
 					}else if (map.containsKey("slot")){
 						item.setSlot((Integer)map.get("slot"));
 					}else if (map.containsKey("qty")){
@@ -204,39 +204,40 @@ public final class Shop {
 							item.setBuyPrice(buy2);
 						}
 					}else if (map.containsKey("sell-price")){
-						Integer sell;
 						Double sell2;
-						if (hasData == true){
-							Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
-						}else{
-							Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice()));
-						}
+						sell2 = (Double)map.get("sell-price");
+						item.setSellPrice(sell2);
+						Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
 
-						try{
-							sell = (Integer)map.get("sell-price");
-							item.setSellPrice(sell);
-						}catch(Exception e){
-							sell2 = (Double)map.get("sell-price");
-							item.setSellPrice(sell2);
-						}
 					}
 				}
 
 				ITEMS[item.getSlot()] = item;
 
 				ItemStack itemStack = new ItemStack(Material.AIR);
-				if (hasData == true){
-					itemStack = new ItemStack(item.getId(), item.getQty(), (short)item.getData());
-				}else{
-					itemStack = new ItemStack(item.getId(), item.getQty());
-				}
+
+				itemStack = new ItemStack(item.getId(), item.getQty(), (short)item.getData());
+
 
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
-				itemMeta.setLore(Arrays.asList(
-						ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()), 
-						ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice()))
-						);
+				if (item.getBuyPrice() != 0 && item.getSellPrice() != 0){
+
+					itemMeta.setLore(Arrays.asList(
+							ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()), 
+							ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice()))
+							);
+				}else if (item.getBuyPrice() == 0){
+					itemMeta.setLore(Arrays.asList(
+							ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"), 
+							ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice()))
+							);
+				}else{
+					itemMeta.setLore(Arrays.asList(
+							ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()), 
+							ChatColor.translateAlternateColorCodes('&', "&cCannot be sold"))
+							);
+				}
 
 				if (item.getName()!=null) itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
 
@@ -313,12 +314,20 @@ public final class Shop {
 
 	}
 
+	/**
+	 * Open the player's shop
+	 * 
+	 */
 	public void open(Player player) {
 		player.openInventory(GUI);
 
 		Main.HAS_SHOP_OPEN.put(player.getName(), this);
 	}
 
+	/**
+	 * Safely navigate back to menu.
+	 * 
+	 */
 	public void closeAndOpenMenu(Player player) {
 		Main.HAS_SHOP_OPEN.remove(player.getName());
 

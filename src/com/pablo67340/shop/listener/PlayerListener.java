@@ -21,8 +21,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.main.Main;
 
-import de.dustplanet.util.SilkUtil;
-
 public final class PlayerListener implements Listener {
 
 	/**
@@ -166,39 +164,31 @@ public final class PlayerListener implements Listener {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings({ "deprecation", "unused" })
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onShopClick(InventoryClickEvent e) {
 		if (e.getWhoClicked() instanceof Player) {
 			Player player = (Player) e.getWhoClicked();
 
+			// If the player is in the sell menu
+
 			if (Main.HAS_SELL_OPEN.contains(player.getName())) {
-				if (e.getSlot() < 0 || e.getSlot() >= Sell.ROWS * Sell.COLS) {
-					e.setCancelled(true);
-					return;
-				}
-
-				/*
-				 * If the player clicks on an item in their
-				 * inventory that isn't sellable, then cancel
-				 * the event.
-				 */
-				if (e.getCurrentItem().getDurability() != 0){
-					if (e.getClickedInventory() == player.getInventory() && e.getCurrentItem().getType() != Material.AIR && !Main.PRICES.containsKey(e.getCurrentItem().getTypeId()+":"+e.getCurrentItem().getDurability())) {
-
-						player.sendMessage(Utils.getCantSell());
+				// If the item has a loaded price, or in GUIShop at all
+				if (Main.PRICES.containsKey(e.getCurrentItem().getTypeId()+":"+e.getCurrentItem().getData().getData())){
+					// If the price is set to 0, or disabled.
+					if (Main.PRICES.get(e.getCurrentItem().getTypeId()+":"+e.getCurrentItem().getData().getData()).getSellPrice() == 0){
 						e.setCancelled(true);
+						player.sendMessage(Utils.getPrefix()+" "+Utils.getCantSell());
 						return;
 					}
 				}else{
-					if (e.getClickedInventory() == player.getInventory() && e.getCurrentItem().getType() != Material.AIR && !Main.PRICES.containsKey(Integer.toString(e.getCurrentItem().getTypeId()))) {
-
-						player.sendMessage(Utils.getCantSell());
-						e.setCancelled(true);
-						return;
-					}
+					e.setCancelled(true);
+					player.sendMessage(Utils.getPrefix()+" "+Utils.getCantSell());
+					return;
 				}
-			} else 
+
+
+			} else {
 
 				/*
 				 * If the player has the menu open.
@@ -228,7 +218,7 @@ public final class PlayerListener implements Listener {
 					 * If the player clicks in their own inventory,
 					 * we want to cancel the event.
 					 */
-					if (e.getClickedInventory() == player.getInventory()) {
+					if (e.getInventory() == player.getInventory()) {
 						e.setCancelled(true);
 						return;
 					}
@@ -260,10 +250,8 @@ public final class PlayerListener implements Listener {
 						/*
 						 * If the player clicks in their own inventory,
 						 * we want to cancel the event.
-						 * 
-						 * // TODO: Make an exception for selling items.
 						 */
-						if (e.getClickedInventory() == player.getInventory()) {
+						if (e.getInventory() == player.getInventory()) {
 							e.setCancelled(true);
 							return;
 						}
@@ -279,16 +267,28 @@ public final class PlayerListener implements Listener {
 							if (e.getSlot() == shop.getGUI().getSize() - 1) {
 								shop.closeAndOpenMenu(player);
 							} else {
+
+
 								/*
 								 * If the player has enough money to
 								 * purchase the item, then allow them to.
 								 */
 								Item item = shop.getItems()[e.getSlot()];
 
+								// Check if the item is disabled, or price is 0
+								if (item.getBuyPrice() == 0){
+									player.sendMessage(Utils.getPrefix()+" "+Utils.getCantBuy());
+									player.setItemOnCursor(new ItemStack(Material.AIR));
+									e.setCancelled(true);
+									return;
+								}
+
+								// Does the quantity work out?
 								int quantity = (int) (Main.getEconomy().getBalance(player.getName()) / item.getBuyPrice());
 
 								quantity = Math.min(quantity, e.isShiftClick() ? new ItemStack(item.getId()).getMaxStackSize() : 1);
 
+								// If the quantity is 0
 								if (quantity == 0) {
 									player.sendMessage(Utils.getPrefix() + " " + Utils.getNotEnoughPre() + 
 											item.getBuyPrice() + Utils.getNotEnoughPost());
@@ -299,25 +299,29 @@ public final class PlayerListener implements Listener {
 
 								Map<Integer, ItemStack> returnedItems;
 
+								// If the item is not a mob spawner
 								if (item.getId() != 52){
 
+									// if the item has a data
 									if (item.getData() > 0){
 										ItemStack itemStack = new ItemStack(item.getId(), quantity, (short)item.getData());
-
-										for (String enc : item.getEnchantments()){
-											String enchantment = StringUtils.substringBefore(enc, ":");
-											String level = StringUtils.substringAfter(enc, ":");
-											itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+										if (item.getEnchantments() != null){
+											for (String enc : item.getEnchantments()){
+												String enchantment = StringUtils.substringBefore(enc, ":");
+												String level = StringUtils.substringAfter(enc, ":");
+												itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+											}
 										}
 
 										itemStack.setAmount(item.getQty());
-
+										// If is shift clicking, buy 1
 										if (e.isShiftClick()) itemStack.setAmount(1);
 
 
 										returnedItems = player.getInventory().addItem(itemStack);
 									}else{
 										ItemStack itemStack = new ItemStack(item.getId(), quantity);
+										// If the item has enchantments
 										if (item.getEnchantments() != null){
 											for (String enc : item.getEnchantments()){
 												String enchantment = StringUtils.substringBefore(enc, ":");
@@ -326,12 +330,13 @@ public final class PlayerListener implements Listener {
 											}
 										}
 										itemStack.setAmount(item.getQty());
+										// If is shift clicking, buy 1.
 										if (e.isShiftClick()) itemStack.setAmount(1);
 										returnedItems = player.getInventory().addItem(itemStack);
 									}
 								}else{
 									ItemStack spawner = new ItemStack(item.getId(), quantity);
-									System.out.println("Item Data:"+item.getData());
+
 									returnedItems = player.getInventory().addItem(new ItemStack[]{Main.getInstance().su.setSpawnerType(spawner, (short)item.getData(), String.valueOf(Spawners.getMobName(item.getData())) + " Spawner")});
 								}
 
@@ -347,10 +352,12 @@ public final class PlayerListener implements Listener {
 								 */
 								if (returnedItems.isEmpty()) {
 									priceToPay = item.getBuyPrice();
+									// If the player is shift clicking, take the price, divide by quantity
 									if (e.isShiftClick()) priceToPay = item.getBuyPrice() / item.getQty();
 								} else {
 									double priceToReimburse = 0D;
 
+									// if the item is not a shift click
 									if (!e.isShiftClick()){
 
 										for (ItemStack i : returnedItems.values()) {
@@ -360,7 +367,7 @@ public final class PlayerListener implements Listener {
 										priceToPay = item.getBuyPrice() - priceToReimburse;
 
 									}else{
-
+										// Add all the prices for all purchased items
 										for (ItemStack i : returnedItems.values()) {
 											priceToReimburse += (item.getBuyPrice() / item.getQty());
 										}
@@ -369,7 +376,9 @@ public final class PlayerListener implements Listener {
 									}
 								}
 
+								// Check if the transition was successful
 								if (Main.getEconomy().withdrawPlayer(player.getName(), priceToPay).transactionSuccess()) {
+									// If the player has the sound enabled, play it!
 									if (Utils.isSoundEnabled()){
 										try{
 											player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1, 1);
@@ -379,21 +388,22 @@ public final class PlayerListener implements Listener {
 									}
 									player.sendMessage(Utils.getPurchased() + priceToPay + Utils.getTaken());
 								}
-
-
 								e.setCancelled(true);
 							}
 						}
 					}
+			}
 		}
 	}
 
-	ArrayList<String> skipOne = new ArrayList<>();
+	// When the inventory closes
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
 		final String playerName = e.getPlayer().getName();
+		// If escape only is enabled
 		if (Utils.getEscapeOnly()){
+			// If the player has the shop open
 			if (Main.HAS_SHOP_OPEN.containsKey(playerName)){
 				Main.HAS_SHOP_OPEN.remove(playerName);
 				e.getPlayer().closeInventory();
@@ -410,23 +420,24 @@ public final class PlayerListener implements Listener {
 
 
 				return;
+				// If the player has the menu open
 			}else if (Main.HAS_MENU_OPEN.contains(playerName)){
 				Main.HAS_MENU_OPEN.remove(playerName);
 				Main.HAS_SHOP_OPEN.remove(playerName);
 				return;
 
 			}
-
+			// If the player has the sell menu open
 			if (Main.HAS_SELL_OPEN.remove(playerName)) {
 				Main.SELLS.get(playerName).sell();
 				Main.HAS_SELL_OPEN.remove(playerName);
 			}
 			return;
-
+			// If something else, purge all values, restart
 		}else{
 			Main.HAS_MENU_OPEN.remove(playerName);
 			Main.HAS_SHOP_OPEN.remove(playerName);
-
+			// The player had the sell menu open, Sell items
 			if (Main.HAS_SELL_OPEN.remove(playerName)) {
 				Main.SELLS.get(playerName).sell();
 				Main.HAS_SELL_OPEN.remove(playerName);
@@ -436,16 +447,22 @@ public final class PlayerListener implements Listener {
 
 	}
 
+	// When the player clicks a sign
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();
 		Block block = e.getClickedBlock();
+		// If the block exists
 		if (block != null){
+			// If the block has a state
 			if (block.getState() != null){
+				// If the block state is a Sign
 				if(block.getState() instanceof Sign) {
 					Sign sign = (Sign) block.getState();
 					String line1 = ChatColor.translateAlternateColorCodes('&',sign.getLine(0));
+					// Check if the sign is a GUIShop sign
 					if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',Main.INSTANCE.getMainConfig().getString("sign-title")))){
+						// If the player has Permission to use sign
 						if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use") || player.isOp()){
 							Main.MENUS.get(player).open();
 							e.setCancelled(true);

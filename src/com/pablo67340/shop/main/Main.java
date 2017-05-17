@@ -185,11 +185,11 @@ public final class Main extends JavaPlugin {
 				getLogger().info("Config all up to date!");
 				return true;
 			}else{
-				getLogger().warning("The config version is outdated! Please delete your config.yml and restart! "+ver);
+				getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
 				return false;
 			}
 		}else{
-			getLogger().warning("The config version is outdated! Please delete your config.yml and restart!!");
+			getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
 			return false;
 		}
 	}

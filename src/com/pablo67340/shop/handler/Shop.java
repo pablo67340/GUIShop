@@ -207,10 +207,10 @@ public final class Shop {
 						Double sell2;
 						sell2 = (Double)map.get("sell-price");
 						item.setSellPrice(sell2);
-						Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
-
 					}
 				}
+				
+				Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
 
 				ITEMS[item.getSlot()] = item;
 

@@ -280,9 +280,9 @@ public final class Creator {
 						Integer sell;
 						Double sell2;
 						if (hasData == true){
-							Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice()));
+							Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
 						}else{
-							Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice()));
+							Main.PRICES.put(Integer.toString(item.getId()), new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
 						}
 
 						try{

@@ -48,8 +48,14 @@ public final class Sell {
 
 
 			}
+			Double sellPrice = Main.PRICES.get(item.getTypeId()+":"+item.getData().getData()).getSellPrice();
 
-			moneyToGive += Main.PRICES.get(item.getTypeId()+":"+item.getDurability()).getSellPrice() * item.getAmount();
+			Integer quantity = Main.PRICES.get(item.getTypeId()+":"+item.getData().getData()).getQuantity();
+
+			Double perEach = sellPrice / quantity;
+			
+			moneyToGive = perEach * item.getAmount();
+			
 
 		}
 

@@ -125,15 +125,16 @@ public final class Main extends JavaPlugin {
 	public void onEnable() {
 		INSTANCE = this;
 		createFiles();
-
+		if (setupEconomy()){
+			su = SilkUtil.hookIntoSilkSpanwers();
+		}
+		
 		if (updateConfig()){
 			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 			loadDefaults();
 			Shop.loadShops();
 		}
-		if (setupEconomy()){
-			su = SilkUtil.hookIntoSilkSpanwers();
-		}
+
 
 
 	}

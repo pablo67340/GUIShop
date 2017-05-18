@@ -218,7 +218,7 @@ public final class PlayerListener implements Listener {
 					 * If the player clicks in their own inventory,
 					 * we want to cancel the event.
 					 */
-					if (e.getInventory() == player.getInventory()) {
+					if (e.getClickedInventory() == player.getInventory()) {
 						e.setCancelled(true);
 						return;
 					}
@@ -251,7 +251,7 @@ public final class PlayerListener implements Listener {
 						 * If the player clicks in their own inventory,
 						 * we want to cancel the event.
 						 */
-						if (e.getInventory() == player.getInventory()) {
+						if (e.getClickedInventory() == player.getInventory()) {
 							e.setCancelled(true);
 							return;
 						}

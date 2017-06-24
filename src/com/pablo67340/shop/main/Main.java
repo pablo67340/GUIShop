@@ -120,27 +120,29 @@ public final class Main extends JavaPlugin {
 	public static final Map<String, Price> PRICES = new HashMap<>();
 
 	public SilkUtil su;
-
+	
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
 		createFiles();
 		if (setupEconomy()){
-			su = SilkUtil.hookIntoSilkSpanwers();
+			if (setupSilk()){
+				su = SilkUtil.hookIntoSilkSpanwers();
+				if (updateConfig()){
+					getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+					loadDefaults();
+					Shop.loadShops();
+				}
+			}else{
+				pluginError("SilkSpawners");
+			}
+		}else{
+			pluginError("Vault");
 		}
-		
-		if (updateConfig()){
-			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-			loadDefaults();
-			Shop.loadShops();
-		}
-
-
-
 	}
 
 	public void pluginError(String input){
-		getLogger().warning("[GUIShop] "+input+" was not installed! This plugin is required!");
+		getLogger().warning(input+" was not installed! This plugin is required!");
 		getServer().getPluginManager().disablePlugin(this);
 	}
 
@@ -148,14 +150,17 @@ public final class Main extends JavaPlugin {
 	 * 
 	 * Check if Vault, SilkSpawners is enabled
 	 */
+	public Boolean setupSilk(){
+		if (getServer().getPluginManager().getPlugin("SilkSpawners") == null){
+			return false;
+		}else{
+			return true;
+		}
+	}
+	
+	
 	private Boolean setupEconomy() {
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
-			pluginError("Vault");
-			return false;
-		}
-
-		if (getServer().getPluginManager().getPlugin("SilkSpawners") == null){
-			pluginError("SilkSpawners");
 			return false;
 		}
 
@@ -187,10 +192,12 @@ public final class Main extends JavaPlugin {
 				return true;
 			}else{
 				getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
+				getServer().getPluginManager().disablePlugin(this);
 				return false;
 			}
 		}else{
 			getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
+			getServer().getPluginManager().disablePlugin(this);
 			return false;
 		}
 	}
@@ -274,6 +281,8 @@ public final class Main extends JavaPlugin {
 			e.printStackTrace();
 		}
 	}
+	
+
 
 
 	/**

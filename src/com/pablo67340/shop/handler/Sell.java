@@ -54,7 +54,7 @@ public final class Sell {
 
 			Double perEach = sellPrice / quantity;
 			
-			moneyToGive = perEach * item.getAmount();
+			moneyToGive += perEach * item.getAmount();
 			
 
 		}

@@ -16,7 +16,7 @@ import org.bukkit.event.inventory.*;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
-
+import org.bukkit.util.BlockIterator;
 
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.main.Main;
@@ -42,8 +42,11 @@ public final class PlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onCommand(PlayerCommandPreprocessEvent e) {
 		Player player = e.getPlayer();
+		
+
 
 		String command = e.getMessage().substring(1);
+		String[] cut = command.split(" ");
 		if (Main.BUY_COMMANDS.contains(command)) {
 			Main.MENUS.get(player.getName()).open();
 			e.setCancelled(true);
@@ -56,7 +59,7 @@ public final class PlayerListener implements Listener {
 			return;
 		}
 
-		if (command.contains("guishop") || command.contains("gs")){
+		if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")){
 			e.setCancelled(true);
 			String preArgs = "";
 			if (command.contains("guishop")){
@@ -395,6 +398,22 @@ public final class PlayerListener implements Listener {
 			}
 		}
 	}
+	
+	
+	public final Block getTargetBlock(Player player, int range) {
+        BlockIterator iter = new BlockIterator(player, range);
+        Block lastBlock = iter.next();
+        while (iter.hasNext()) {
+            lastBlock = iter.next();
+            if (lastBlock.getType() == Material.AIR) {
+                continue;
+            }
+            break;
+        }
+        return lastBlock;
+    }
+	
+	
 
 	// When the inventory closes
 

@@ -169,14 +169,20 @@ public final class Shop {
 
 		ITEMS = new Item[GUI.getSize() - 1];
 
+
+		Integer index = 0;
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)){
+			index+=1;
+
 			if (str.contains(".") && str.contains(getShop())){
 				Item item = new Item();
 				List<Map<?,?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
 				for (Map<?,?> map : citem){
 					if (map.containsKey("id")){
 						String itemID = (String)map.get("id");
-						itemID = StringUtils.substringBefore(itemID, ":");
+						if (itemID.contains(":")){
+							itemID = StringUtils.substringBefore(itemID, ":");
+						}
 						String data = (String)map.get("id");
 						data = StringUtils.substringAfter(data, ":");
 						item.setId(Integer.parseInt(itemID));
@@ -209,7 +215,7 @@ public final class Shop {
 						item.setSellPrice(sell2);
 					}
 				}
-				
+
 				Main.PRICES.put(item.getId()+":"+item.getData(), new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
 
 				ITEMS[item.getSlot()] = item;

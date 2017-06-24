@@ -1,7 +1,3 @@
-<h1>GUIShop 6.0.9</h1>
-- Updated to latest version of GUIShop 6.0.9
-
-
 <h1>GUIShop 5.9.3</h1>
 FIXED:
 - Color code errors

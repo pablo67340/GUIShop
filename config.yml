@@ -113,9 +113,6 @@ signs-only-message: '&cYou can only access the shop by clicking a [&cGUIShop&f] 
 #Menu row count
 menu-rows: 1
 
-#Menu column count
-menu-cols: 9
-
 #Enable sound on purchase
 enable-sound: true
 
@@ -179,7 +176,7 @@ Rows: 1
   Name: '&6Blocks'
   
 ## DO NOT TOUCH BELOW THIS LINE!
-ver: 1.0
+ver: 1.1
 
  ################################
  ## Developed by pablo67340    ##

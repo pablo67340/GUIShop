@@ -167,7 +167,7 @@ public final class Main extends JavaPlugin {
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
 
 		if (rsp == null) {
-
+			return false;
 		}
 
 		ECONOMY = (Economy) rsp.getProvider();
@@ -188,6 +188,13 @@ public final class Main extends JavaPlugin {
 		Double ver = getMainConfig().getDouble("ver");
 		if (ver != null){
 			if (ver == 1.0){
+				getLogger().warning("The config version is outdated! Automatically updating config...");
+				getMainConfig().set("menu-cols", null);
+				getMainConfig().set("ver", 1.1);
+				getLogger().warning("Config update successful!");
+				saveMainConfig();
+				return true;
+			}else if (ver == 1.1){
 				getLogger().info("Config all up to date!");
 				return true;
 			}else{
@@ -224,6 +231,7 @@ public final class Main extends JavaPlugin {
 		Utils.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
 		Utils.setCreatorEnabled(getMainConfig().getBoolean("ingame-config"));
 		Utils.setCantBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-buy")));
+		Utils.setMenuRows(getMainConfig().getInt("menu-rows"));
 		getDataFolder();
 	}
 
@@ -246,6 +254,14 @@ public final class Main extends JavaPlugin {
 	 */
 	public FileConfiguration getMainConfig() {
 		return this.config;
+	}
+	
+	public void saveMainConfig(){
+		try {
+			getMainConfig().save(configf);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

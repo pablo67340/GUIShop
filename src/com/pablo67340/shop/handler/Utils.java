@@ -7,6 +7,8 @@ public final class Utils {
 	@SuppressWarnings("unused")
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, 
 	signTitle, sellCommand, sellTitle, sold, taken, sound;
+	
+	private static Integer menuRows;
 
 	private static Boolean escapeOnly, enableSound, enableCreator;
 
@@ -336,6 +338,23 @@ public final class Utils {
 	 */
 	public static void setCantSell(String text) {
 		cantSell = text;
+	}
+	
+	/**
+	 * Gets the number of rows for the menu
+	 * 
+	 * @return The number of rows
+	 */
+	public static Integer getMenuRows() {
+		return menuRows;
+	}
+
+	/**
+	 * Sets the rows for the menu
+	 * 
+	 */
+	public static void setMenuRows(Integer input) {
+		menuRows = input;
 	}
 
 }

@@ -39,206 +39,192 @@ public final class PlayerListener implements Listener {
 	}
 
 
-	@EventHandler(priority = EventPriority.HIGH)
+	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
 	public void onCommand(PlayerCommandPreprocessEvent e) {
 		Player player = e.getPlayer();
-		
 
+		if (!e.isCancelled()){
 
-		String command = e.getMessage().substring(1);
-		String[] cut = command.split(" ");
-		if (Main.BUY_COMMANDS.contains(command)) {
-			Main.MENUS.get(player.getName()).open();
-			e.setCancelled(true);
-			return;
-		}
-
-		if (Main.SELL_COMMANDS.contains(command)) {
-			Main.SELLS.get(player.getName()).open();
-			e.setCancelled(true);
-			return;
-		}
-
-		if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")){
-			e.setCancelled(true);
-			String preArgs = "";
-			if (command.contains("guishop")){
-				preArgs = StringUtils.substringAfter(command, "guishop ");
-			}else if (command.contains("gs")){
-				preArgs = StringUtils.substringAfter(command, "gs ");
+			String command = e.getMessage().substring(1);
+			String[] cut = command.split(" ");
+			if (Main.BUY_COMMANDS.contains(command)) {
+				Main.MENUS.get(player.getName()).open();
+				e.setCancelled(true);
+				return;
 			}
-			String[] args = preArgs.split(" ");
-			if (args[0].equalsIgnoreCase("start")){
-				if (player.hasPermission("guishop.creator")){
-					player.sendMessage(Utils.getPrefix()+" Entered creator mode!");
-					Main.CREATOR.put(player.getName(), new Creator(player));
-				}else{
-					player.sendMessage(Utils.getPrefix()+" No permission!");
-				}
-			}else if (args[0].equalsIgnoreCase("stop")){
-				if (player.hasPermission("guishop.creator")){
-					player.sendMessage(Utils.getPrefix()+" Exited creator mode!");
-					Main.CREATOR.remove(player.getName());
-				}else{
-					player.sendMessage(Utils.getPrefix()+" No permission!");
-				}
-			}else if (args[0].equalsIgnoreCase("setchest")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					Main.CREATOR.get(player.getName()).setChest();
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				}
-			}else if (args[0].equalsIgnoreCase("setshopname")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					Main.CREATOR.get(player.getName()).setShopName(args[1]);
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				} 
-			}else if (args[0].equalsIgnoreCase("saveshop")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					if (Main.CREATOR.get(player.getName()).name == null){
-						player.sendMessage(Utils.getPrefix()+"Set a shop name!");
-					}else if (Main.CREATOR.get(player.getName()).chest == null){
-						player.sendMessage(Utils.getPrefix()+" Set a chest location!");
-					}else{
-						Main.CREATOR.get(player.getName()).saveShop();
-					}
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				} 
-			}else if (args[0].equalsIgnoreCase("p")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					Main.CREATOR.get(player.getName()).setPrice(Double.parseDouble(args[1]));
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				} 
-			}else if (args[0].equalsIgnoreCase("s")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					Main.CREATOR.get(player.getName()).setSell(Double.parseDouble(args[1]));
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				} 
-			}else if (args[0].equalsIgnoreCase("n")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					String name = "";
-					for (String str : args){
-						if (!str.equalsIgnoreCase(args[0])){
-							name += str +" ";
+
+			if (Main.SELL_COMMANDS.contains(command)) {
+				Main.SELLS.get(player.getName()).open();
+				e.setCancelled(true);
+				return;
+			}
+
+			if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")){
+				e.setCancelled(true);
+
+				if (cut.length>1){
+
+					if (cut[1].equalsIgnoreCase("start")){
+						if (player.hasPermission("guishop.creator")){
+							player.sendMessage(Utils.getPrefix()+" Entered creator mode!");
+							Main.CREATOR.put(player.getName(), new Creator(player));
+						}else{
+							player.sendMessage(Utils.getPrefix()+" No permission!");
 						}
-					}
-					Main.CREATOR.get(player.getName()).setName(name.trim());
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				} 
-			}else if (args[0].equalsIgnoreCase("loadshop")){
-				if (Main.CREATOR.containsKey(player.getName())){
-					if (Main.CREATOR.get(player.getName()).name == null){
-						player.sendMessage(Utils.getPrefix()+"Set a shop name!");
-					}else if (Main.CREATOR.get(player.getName()).chest == null){
-						player.sendMessage(Utils.getPrefix()+" Set a chest location!");
-					}else{
-						Main.CREATOR.get(player.getName()).loadShop();
-					}
-				}else{
-					player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
-				} 
-			}else if (args[0].equalsIgnoreCase("reload")){
-				if (player.hasPermission("guishop.reload") || player.isOp()){
-					Main.INSTANCE.reloadConfig();
-					Main.INSTANCE.createFiles();
-					Main.INSTANCE.loadDefaults();
-					Shop.loadShops();
+					}else if (cut[1].equalsIgnoreCase("stop")){
+						if (player.hasPermission("guishop.creator")){
+							player.sendMessage(Utils.getPrefix()+" Exited creator mode!");
+							Main.CREATOR.remove(player.getName());
+						}else{
+							player.sendMessage(Utils.getPrefix()+" No permission!");
+						}
+					}else if (cut[1].equalsIgnoreCase("setchest")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							Main.CREATOR.get(player.getName()).setChest();
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						}
+					}else if (cut[1].equalsIgnoreCase("setshopname")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							Main.CREATOR.get(player.getName()).setShopName(cut[2]);
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						} 
+					}else if (cut[1].equalsIgnoreCase("saveshop")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							if (Main.CREATOR.get(player.getName()).name == null){
+								player.sendMessage(Utils.getPrefix()+"Set a shop name!");
+							}else if (Main.CREATOR.get(player.getName()).chest == null){
+								player.sendMessage(Utils.getPrefix()+" Set a chest location!");
+							}else{
+								Main.CREATOR.get(player.getName()).saveShop();
+							}
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						} 
+					}else if (cut[1].equalsIgnoreCase("p")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							Main.CREATOR.get(player.getName()).setPrice(Double.parseDouble(cut[2]));
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						} 
+					}else if (cut[1].equalsIgnoreCase("s")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							Main.CREATOR.get(player.getName()).setSell(Double.parseDouble(cut[2]));
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						} 
+					}else if (cut[1].equalsIgnoreCase("n")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							String name = "";
+							for (String str : cut){
+								if (!str.equalsIgnoreCase(cut[2])){
+									name += str +" ";
+								}
+							}
+							Main.CREATOR.get(player.getName()).setName(name.trim());
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						} 
+					}else if (cut[1].equalsIgnoreCase("loadshop")){
+						if (Main.CREATOR.containsKey(player.getName())){
+							if (Main.CREATOR.get(player.getName()).name == null){
+								player.sendMessage(Utils.getPrefix()+"Set a shop name!");
+							}else if (Main.CREATOR.get(player.getName()).chest == null){
+								player.sendMessage(Utils.getPrefix()+" Set a chest location!");
+							}else{
+								Main.CREATOR.get(player.getName()).loadShop();
+							}
+						}else{
+							player.sendMessage(Utils.getPrefix()+" You need to start a creator session!");
+						} 
+					}else if (cut[1].equalsIgnoreCase("reload")){
+						if (player.hasPermission("guishop.reload") || player.isOp()){
+							Main.INSTANCE.reloadConfig();
+							Main.INSTANCE.createFiles();
+							Main.INSTANCE.loadDefaults();
+							Shop.loadShops();
 
-					for (Player p : Bukkit.getOnlinePlayers()){
-						Main.MENUS.get(p.getName()).load();
+							for (Player p : Bukkit.getOnlinePlayers()){
+								Main.MENUS.get(p.getName()).load();
+							}
+							player.sendMessage("§aGUIShop has been reloaded!");
+						}
+					}else{
+						printUsage(player);
 					}
-					player.sendMessage("§aGUIShop has been reloaded!");
+				}else{
+					printUsage(player);
 				}
-			}else{
-				player.sendMessage("        Proper Usage:        ");
-				player.sendMessage("/guishop start - Starts creator session");
-				player.sendMessage("/guishop setchest - Sets chest location to chest you look at");
-				player.sendMessage("/guishop setshopname - Sets the current shop you're working in");
-				player.sendMessage("/guishop loadshop - Loads current shop into chest!");
-				player.sendMessage("/guishop p - Set item in hand's buy price");
-				player.sendMessage("/guishop s - Set item in hand's sell price");
-				player.sendMessage("/guishop n - Set item in hand's name");
 			}
 		}
+	}
+
+	public void printUsage(Player player){
+		player.sendMessage("        Proper Usage:        ");
+		player.sendMessage("/guishop start - Starts creator session");
+		player.sendMessage("/guishop setchest - Sets chest location to chest you look at");
+		player.sendMessage("/guishop setshopname - Sets the current shop you're working in");
+		player.sendMessage("/guishop loadshop - Loads current shop into chest!");
+		player.sendMessage("/guishop p - Set item in hand's buy price");
+		player.sendMessage("/guishop s - Set item in hand's sell price");
+		player.sendMessage("/guishop n - Set item in hand's name");
 	}
 
 	@SuppressWarnings({ "deprecation", "unused" })
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onShopClick(InventoryClickEvent e) {
 		if (e.getWhoClicked() instanceof Player) {
-			Player player = (Player) e.getWhoClicked();
+			if (e.getClickedInventory() != null){
+				Player player = (Player) e.getWhoClicked();
 
-			// If the player is in the sell menu
+				// If the player is in the sell menu
 
-			if (Main.HAS_SELL_OPEN.contains(player.getName())) {
-				// If the item has a loaded price, or in GUIShop at all
-				if (Main.PRICES.containsKey(e.getCurrentItem().getTypeId()+":"+e.getCurrentItem().getData().getData())){
-					// If the price is set to 0, or disabled.
-					if (Main.PRICES.get(e.getCurrentItem().getTypeId()+":"+e.getCurrentItem().getData().getData()).getSellPrice() == 0){
+				if (Main.HAS_SELL_OPEN.contains(player.getName())) {
+
+					Integer itemID = 0;
+					byte dataID = 0;
+
+					if (e.getCurrentItem().getType()!=Material.AIR){
+						itemID = e.getCurrentItem().getTypeId();
+						dataID = e.getCurrentItem().getData().getData();
+					}else if (e.getCursor().getType()!=Material.AIR){
+						itemID = e.getCursor().getTypeId();
+						dataID = e.getCursor().getData().getData();
+					}else{
+						// Clicked empty slot
+					}
+					// If the item has a loaded price, or in GUIShop at all
+					if (Main.PRICES.containsKey(itemID+":"+dataID)){
+						// If the price is set to 0, or disabled.
+						if (Main.PRICES.get(itemID+":"+dataID).getSellPrice() == 0){
+							e.setCancelled(true);
+							player.sendMessage(Utils.getPrefix()+" "+Utils.getCantSell());
+							return;
+						}
+					}else{
 						e.setCancelled(true);
 						player.sendMessage(Utils.getPrefix()+" "+Utils.getCantSell());
 						return;
 					}
-				}else{
-					e.setCancelled(true);
-					player.sendMessage(Utils.getPrefix()+" "+Utils.getCantSell());
-					return;
-				}
 
 
-			} else {
 
-				/*
-				 * If the player has the menu open.
-				 */
-				if (Main.HAS_MENU_OPEN.contains(player.getName())) {
-					/*
-					 * If the player clicks somewhere where
-					 * we don't want them to, cancel the event.
-					 */
-					if (!Main.SHOPS.containsKey(e.getSlot())) {
-						e.setCancelled(true);
-						return;
-					}
+				} else {
 
 					/*
-					 * If the player clicks on an empty slot, 
-					 * then cancel the event.
+					 * If the player has the menu open.
 					 */
-					if (e.getCurrentItem() != null) {
-						if (e.getCurrentItem().getType() == Material.AIR) {
+					if (Main.HAS_MENU_OPEN.contains(player.getName())) {
+						/*
+						 * If the player clicks somewhere where
+						 * we don't want them to, cancel the event.
+						 */
+						if (!Main.SHOPS.containsKey(e.getSlot())) {
 							e.setCancelled(true);
 							return;
 						}
-					}
 
-					/*
-					 * If the player clicks in their own inventory,
-					 * we want to cancel the event.
-					 */
-					if (e.getClickedInventory() == player.getInventory()) {
-						e.setCancelled(true);
-						return;
-					}
-
-					if (Main.HAS_MENU_OPEN.remove(player.getName())) {
-
-						Main.SHOPS.get(e.getSlot()).open(player);
-					}
-
-					e.setCancelled(true);
-					return;
-				} else 
-
-					/*
-					 * If the player has the shop open.
-					 */
-					if (Main.HAS_SHOP_OPEN.containsKey(player.getName())) {
 						/*
 						 * If the player clicks on an empty slot, 
 						 * then cancel the event.
@@ -259,161 +245,195 @@ public final class PlayerListener implements Listener {
 							return;
 						}
 
-						Shop shop = Main.HAS_SHOP_OPEN.get(player.getName());
+						if (Main.HAS_MENU_OPEN.remove(player.getName())) {
 
-						if (e.getSlot() >= 0 && e.getSlot() < shop.getGUI().getSize()) {
+							Main.SHOPS.get(e.getSlot()).open(player);
+						}
+
+						e.setCancelled(true);
+						return;
+					} else 
+
+						/*
+						 * If the player has the shop open.
+						 */
+						if (Main.HAS_SHOP_OPEN.containsKey(player.getName())) {
 							/*
-							 * If the player clicks the 'back' button,
-							 * then open the menu. Otherwise, attempt
-							 * to purchase the item they click on.
+							 * If the player clicks on an empty slot, 
+							 * then cancel the event.
 							 */
-							if (e.getSlot() == shop.getGUI().getSize() - 1) {
-								shop.closeAndOpenMenu(player);
-							} else {
-
-
-								/*
-								 * If the player has enough money to
-								 * purchase the item, then allow them to.
-								 */
-								Item item = shop.getItems()[e.getSlot()];
-
-								// Check if the item is disabled, or price is 0
-								if (item.getBuyPrice() == 0){
-									player.sendMessage(Utils.getPrefix()+" "+Utils.getCantBuy());
-									player.setItemOnCursor(new ItemStack(Material.AIR));
+							if (e.getCurrentItem() != null) {
+								if (e.getCurrentItem().getType() == Material.AIR) {
 									e.setCancelled(true);
 									return;
 								}
+							}
 
-								// Does the quantity work out?
-								int quantity = (int) (Main.getEconomy().getBalance(player.getName()) / item.getBuyPrice());
-
-								quantity = Math.min(quantity, e.isShiftClick() ? new ItemStack(item.getId()).getMaxStackSize() : 1);
-
-								// If the quantity is 0
-								if (quantity == 0) {
-									player.sendMessage(Utils.getPrefix() + " " + Utils.getNotEnoughPre() + 
-											item.getBuyPrice() + Utils.getNotEnoughPost());
-									player.setItemOnCursor(new ItemStack(Material.AIR));
-									e.setCancelled(true);
-									return;
-								}
-
-								Map<Integer, ItemStack> returnedItems;
-
-								// If the item is not a mob spawner
-								if (item.getId() != 52){
-
-									// if the item has a data
-									if (item.getData() > 0){
-										ItemStack itemStack = new ItemStack(item.getId(), quantity, (short)item.getData());
-										if (item.getEnchantments() != null){
-											for (String enc : item.getEnchantments()){
-												String enchantment = StringUtils.substringBefore(enc, ":");
-												String level = StringUtils.substringAfter(enc, ":");
-												itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
-											}
-										}
-
-										itemStack.setAmount(item.getQty());
-										// If is shift clicking, buy 1
-										if (e.isShiftClick()) itemStack.setAmount(1);
-
-
-										returnedItems = player.getInventory().addItem(itemStack);
-									}else{
-										ItemStack itemStack = new ItemStack(item.getId(), quantity);
-										// If the item has enchantments
-										if (item.getEnchantments() != null){
-											for (String enc : item.getEnchantments()){
-												String enchantment = StringUtils.substringBefore(enc, ":");
-												String level = StringUtils.substringAfter(enc, ":");
-												itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
-											}
-										}
-										itemStack.setAmount(item.getQty());
-										// If is shift clicking, buy 1.
-										if (e.isShiftClick()) itemStack.setAmount(1);
-										returnedItems = player.getInventory().addItem(itemStack);
-									}
-								}else{
-									ItemStack spawner = new ItemStack(item.getId(), quantity);
-
-									returnedItems = player.getInventory().addItem(new ItemStack[]{Main.getInstance().su.setSpawnerType(spawner, (short)item.getData(), String.valueOf(Spawners.getMobName(item.getData())) + " Spawner")});
-								}
-
-
-
-								double priceToPay = 0;
-
-								/*
-								 * If the map is empty, then the items purchased
-								 * don't overflow the player's inventory. Otherwise,
-								 * we need to reimburse the player (subtract it
-								 * from priceToPay).
-								 */
-								if (returnedItems.isEmpty()) {
-									priceToPay = item.getBuyPrice();
-									// If the player is shift clicking, take the price, divide by quantity
-									if (e.isShiftClick()) priceToPay = item.getBuyPrice() / item.getQty();
-								} else {
-									double priceToReimburse = 0D;
-
-									// if the item is not a shift click
-									if (!e.isShiftClick()){
-
-										for (ItemStack i : returnedItems.values()) {
-											priceToReimburse += item.getBuyPrice();
-										}
-
-										priceToPay = item.getBuyPrice() - priceToReimburse;
-
-									}else{
-										// Add all the prices for all purchased items
-										for (ItemStack i : returnedItems.values()) {
-											priceToReimburse += (item.getBuyPrice() / item.getQty());
-										}
-										priceToPay = (item.getBuyPrice() / item.getQty()) - priceToReimburse;
-
-									}
-								}
-
-								// Check if the transition was successful
-								if (Main.getEconomy().withdrawPlayer(player.getName(), priceToPay).transactionSuccess()) {
-									// If the player has the sound enabled, play it!
-									if (Utils.isSoundEnabled()){
-										try{
-											player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1, 1);
-										}catch(Exception ex){
-											System.out.println("[GUIShop] Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
-										}
-									}
-									player.sendMessage(Utils.getPurchased() + priceToPay + Utils.getTaken());
-								}
+							/*
+							 * If the player clicks in their own inventory,
+							 * we want to cancel the event.
+							 */
+							if (e.getClickedInventory() == player.getInventory()) {
 								e.setCancelled(true);
+								return;
+							}
+
+							Shop shop = Main.HAS_SHOP_OPEN.get(player.getName());
+
+							if (e.getSlot() >= 0 && e.getSlot() < shop.getGUI().getSize()) {
+								/*
+								 * If the player clicks the 'back' button,
+								 * then open the menu. Otherwise, attempt
+								 * to purchase the item they click on.
+								 */
+								if (e.getSlot() == shop.getGUI().getSize() - 1) {
+									shop.closeAndOpenMenu(player);
+								} else {
+
+
+									/*
+									 * If the player has enough money to
+									 * purchase the item, then allow them to.
+									 */
+									Item item = shop.getItems()[e.getSlot()];
+
+									// Check if the item is disabled, or price is 0
+									if (item.getBuyPrice() == 0){
+										player.sendMessage(Utils.getPrefix()+" "+Utils.getCantBuy());
+										player.setItemOnCursor(new ItemStack(Material.AIR));
+										e.setCancelled(true);
+										return;
+									}
+
+									// Does the quantity work out?
+									int quantity = (int) (Main.getEconomy().getBalance(player.getName()) / item.getBuyPrice());
+
+									quantity = Math.min(quantity, e.isShiftClick() ? new ItemStack(item.getId()).getMaxStackSize() : 1);
+
+									// If the quantity is 0
+									if (quantity == 0) {
+										player.sendMessage(Utils.getPrefix() + " " + Utils.getNotEnoughPre() + 
+												item.getBuyPrice() + Utils.getNotEnoughPost());
+										player.setItemOnCursor(new ItemStack(Material.AIR));
+										e.setCancelled(true);
+										return;
+									}
+
+									Map<Integer, ItemStack> returnedItems;
+
+									// If the item is not a mob spawner
+									if (item.getId() != 52){
+
+										// if the item has a data
+										if (item.getData() > 0){
+											ItemStack itemStack = new ItemStack(item.getId(), quantity, (short)item.getData());
+											if (item.getEnchantments() != null){
+												for (String enc : item.getEnchantments()){
+													String enchantment = StringUtils.substringBefore(enc, ":");
+													String level = StringUtils.substringAfter(enc, ":");
+													itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+												}
+											}
+
+											itemStack.setAmount(item.getQty());
+											// If is shift clicking, buy 1
+											if (e.isShiftClick()) itemStack.setAmount(1);
+
+
+											returnedItems = player.getInventory().addItem(itemStack);
+										}else{
+											ItemStack itemStack = new ItemStack(item.getId(), quantity);
+											// If the item has enchantments
+											if (item.getEnchantments() != null){
+												for (String enc : item.getEnchantments()){
+													String enchantment = StringUtils.substringBefore(enc, ":");
+													String level = StringUtils.substringAfter(enc, ":");
+													itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+												}
+											}
+											itemStack.setAmount(item.getQty());
+											// If is shift clicking, buy 1.
+											if (e.isShiftClick()) itemStack.setAmount(1);
+											returnedItems = player.getInventory().addItem(itemStack);
+										}
+									}else{
+										ItemStack spawner = new ItemStack(item.getId(), quantity);
+
+										returnedItems = player.getInventory().addItem(new ItemStack[]{Main.getInstance().su.setSpawnerType(spawner, (short)item.getData(), String.valueOf(Spawners.getMobName(item.getData())) + " Spawner")});
+									}
+
+
+
+									double priceToPay = 0;
+
+									/*
+									 * If the map is empty, then the items purchased
+									 * don't overflow the player's inventory. Otherwise,
+									 * we need to reimburse the player (subtract it
+									 * from priceToPay).
+									 */
+									if (returnedItems.isEmpty()) {
+										priceToPay = item.getBuyPrice();
+										// If the player is shift clicking, take the price, divide by quantity
+										if (e.isShiftClick()) priceToPay = item.getBuyPrice() / item.getQty();
+									} else {
+										double priceToReimburse = 0D;
+
+										// if the item is not a shift click
+										if (!e.isShiftClick()){
+
+											for (ItemStack i : returnedItems.values()) {
+												priceToReimburse += item.getBuyPrice();
+											}
+
+											priceToPay = item.getBuyPrice() - priceToReimburse;
+
+										}else{
+											// Add all the prices for all purchased items
+											for (ItemStack i : returnedItems.values()) {
+												priceToReimburse += (item.getBuyPrice() / item.getQty());
+											}
+											priceToPay = (item.getBuyPrice() / item.getQty()) - priceToReimburse;
+
+										}
+									}
+
+									// Check if the transition was successful
+									if (Main.getEconomy().withdrawPlayer(player.getName(), priceToPay).transactionSuccess()) {
+										// If the player has the sound enabled, play it!
+										if (Utils.isSoundEnabled()){
+											try{
+												player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1, 1);
+											}catch(Exception ex){
+												System.out.println("[GUIShop] Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+											}
+										}
+										player.sendMessage(Utils.getPurchased() + priceToPay + Utils.getTaken());
+									}
+									e.setCancelled(true);
+								}
 							}
 						}
-					}
+				}
 			}
 		}
 	}
-	
-	
+
+
 	public final Block getTargetBlock(Player player, int range) {
-        BlockIterator iter = new BlockIterator(player, range);
-        Block lastBlock = iter.next();
-        while (iter.hasNext()) {
-            lastBlock = iter.next();
-            if (lastBlock.getType() == Material.AIR) {
-                continue;
-            }
-            break;
-        }
-        return lastBlock;
-    }
-	
-	
+		BlockIterator iter = new BlockIterator(player, range);
+		Block lastBlock = iter.next();
+		while (iter.hasNext()) {
+			lastBlock = iter.next();
+			if (lastBlock.getType() == Material.AIR) {
+				continue;
+			}
+			break;
+		}
+		return lastBlock;
+	}
+
+
 
 	// When the inventory closes
 

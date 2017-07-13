@@ -33,11 +33,8 @@ public final class Menu {
 
 	@SuppressWarnings("deprecation")
 	public void load() {
-		if (Main.SHOPS.size() < 9){
-			GUI = player.getServer().createInventory(null, 9, "Menu");
-		}else{
-			GUI = player.getServer().createInventory(null, Main.SHOPS.size(), "Menu");
-		}
+			GUI = player.getServer().createInventory(null, 9 * Utils.getMenuRows(), "Menu");
+
 
 
 		for (Entry<Integer, Shop> e : Main.SHOPS.entrySet()) {

@@ -127,7 +127,7 @@ public final class Shop {
 	 */
 	public static void loadShops() {
 		Main.SHOPS.clear();
-		int numberOfShops = Main.INSTANCE.getMainConfig().getInt("menu-rows") * Main.INSTANCE.getMainConfig().getInt("menu-cols");
+		int numberOfShops = Utils.getMenuRows() * 9;
 
 		for (int i = 0; i < numberOfShops; i++) {
 			if (!Main.INSTANCE.getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {

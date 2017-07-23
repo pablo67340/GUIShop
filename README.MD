@@ -1,3 +1,8 @@
+<h1>GUIShopp 6.1.9</h1>
+ADDED:
+- Added a debugger which will tell you where any errors may be located in your shops.yml file
+
+
 <h1>GUIShop 5.9.3</h1>
 FIXED:
 - Color code errors

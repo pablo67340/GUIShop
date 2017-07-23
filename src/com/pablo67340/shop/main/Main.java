@@ -30,6 +30,11 @@ public final class Main extends JavaPlugin {
 	 * An instance of this class.
 	 */
 	public static Main INSTANCE;
+	
+	/**
+	 * An instance of the Debugger class.
+	 */
+	public static Debugger debugger = new Debugger();
 
 	/**
 	 * A {@link Set} that will store every command that can
@@ -140,10 +145,22 @@ public final class Main extends JavaPlugin {
 			pluginError("Vault");
 		}
 	}
-
+	
+	/**
+	 * 
+	 * Display an error for the plugin.
+	 */
 	public void pluginError(String input){
 		getLogger().warning(input+" was not installed! This plugin is required!");
 		getServer().getPluginManager().disablePlugin(this);
+	}
+	
+	/**
+	 * 
+	 * Get debugger instance;
+	 */
+	public Debugger getDebugger(){
+		return debugger;
 	}
 
 	/**

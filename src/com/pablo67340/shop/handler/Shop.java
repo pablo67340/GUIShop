@@ -4,7 +4,6 @@ import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -260,7 +259,7 @@ public final class Shop {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
 
 					}
 				}

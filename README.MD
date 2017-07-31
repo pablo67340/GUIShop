@@ -1,7 +1,8 @@
-<h1>GUIShopp 6.1.9</h1>
-ADDED:
-- Added a debugger which will tell you where any errors may be located in your shops.yml file
+<h1>GUIShop 6.2.0</h1>
+- Added common enchantment names. Enchants such as "sharp:2" or "durability:2" or "dura:2" can be used.
 
+<h1>GUIShopp 6.1.9</h1>
+ADDED: - Added a debugger which will tell you where any errors may be located in your shops.yml file
 
 <h1>GUIShop 5.9.3</h1>
 FIXED:

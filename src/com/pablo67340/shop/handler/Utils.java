@@ -6,7 +6,7 @@ public final class Utils {
 
 	@SuppressWarnings("unused")
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, 
-	signTitle, sellCommand, sellTitle, sold, taken, sound;
+	signTitle, sellCommand, sellTitle, sold, taken, sound, full;
 	
 	private static Integer menuRows;
 
@@ -355,6 +355,22 @@ public final class Utils {
 	 */
 	public static void setMenuRows(Integer input) {
 		menuRows = input;
+	}
+	
+	/**
+	 * Sets the full inventory message
+	 * 
+	 */
+	public static void setFull(String input) {
+		full = input;
+	}
+	
+	/**
+	 * Gets the rows for the menu
+	 * 
+	 */
+	public static String getFull() {
+		return full;
 	}
 
 }

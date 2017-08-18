@@ -102,6 +102,9 @@ cant-sell: '&fSorry, you are not able to sell that item.'
 #Message when a player cannot buy a certain item.
 cant-buy: '&fSorry, you are not able to buy that item.'
 
+#When a player has a full inventory
+full-inventory: '&cPlease empty your inventory!'
+
 #The title of a sign that players can click to open shop
 sign-title: '[&cGUIShop&f]'
 
@@ -176,7 +179,7 @@ Rows: 1
   Name: '&6Blocks'
   
 ## DO NOT TOUCH BELOW THIS LINE!
-ver: 1.1
+ver: 1.2
 
  ################################
  ## Developed by pablo67340    ##

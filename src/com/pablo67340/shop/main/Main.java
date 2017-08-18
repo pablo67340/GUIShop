@@ -3,9 +3,9 @@ package com.pablo67340.shop.main;
 import java.io.*;
 import java.util.*;
 
-
 import net.milkbowl.vault.economy.Economy;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
@@ -126,6 +126,8 @@ public final class Main extends JavaPlugin {
 
 	public SilkUtil su;
 	
+	private Boolean isOdin = false;
+	
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
@@ -134,6 +136,7 @@ public final class Main extends JavaPlugin {
 			if (setupSilk()){
 				su = SilkUtil.hookIntoSilkSpanwers();
 				if (updateConfig()){
+					checkServerVersion();
 					getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 					loadDefaults();
 					Shop.loadShops();
@@ -155,12 +158,30 @@ public final class Main extends JavaPlugin {
 		getServer().getPluginManager().disablePlugin(this);
 	}
 	
+	public void checkServerVersion() {
+		if (Bukkit.getVersion().contains("1.1")) {
+			isOdin = true;
+			getLogger().info("Server is 1.10+ Implementing fixes.");
+		}else {
+			isOdin = false;
+			getLogger().info("Server is 1.9- Implementing fixes.");
+		}
+	}
+	
 	/**
 	 * 
 	 * Get debugger instance;
 	 */
 	public Debugger getDebugger(){
 		return debugger;
+	}
+	
+	/**
+	 * 
+	 * Gets boolean if version is post 1.8
+	 */
+	public Boolean isOdin() {
+		return isOdin;
 	}
 
 	/**
@@ -208,13 +229,19 @@ public final class Main extends JavaPlugin {
 				getLogger().warning("The config version is outdated! Automatically updating config...");
 				getMainConfig().set("menu-cols", null);
 				getMainConfig().set("ver", 1.1);
-				getLogger().warning("Config update successful!");
 				saveMainConfig();
+				getLogger().warning("Config update successful!");
 				return true;
 			}else if (ver == 1.1){
+				getLogger().warning("The config version is outdated! Automatically updating config...");
+				getMainConfig().set("full-inventory", "&cPlease empty your inventory!");
+				saveMainConfig();
+				getLogger().warning("Config update successful!");
+				return true;
+			}else if (ver == 1.2){
 				getLogger().info("Config all up to date!");
 				return true;
-			}else{
+			}else {
 				getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
 				getServer().getPluginManager().disablePlugin(this);
 				return false;
@@ -249,6 +276,7 @@ public final class Main extends JavaPlugin {
 		Utils.setCreatorEnabled(getMainConfig().getBoolean("ingame-config"));
 		Utils.setCantBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-buy")));
 		Utils.setMenuRows(getMainConfig().getInt("menu-rows"));
+		Utils.setFull(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("full-inventory")));
 		getDataFolder();
 	}
 

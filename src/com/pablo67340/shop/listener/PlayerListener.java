@@ -266,6 +266,12 @@ public final class PlayerListener implements Listener {
 					 * If the player has the shop open.
 					 */
 					if (Main.HAS_SHOP_OPEN.containsKey(player.getName())) {
+						
+						if (player.getInventory().firstEmpty() == -1) {
+							e.setCancelled(true);
+							player.sendMessage(Utils.getFull());
+							return;
+						}
 						/*
 						 * If the player clicks on an empty slot, then cancel
 						 * the event.
@@ -504,6 +510,7 @@ public final class PlayerListener implements Listener {
 	}
 
 	// When the player clicks a sign
+	@SuppressWarnings("unlikely-arg-type")
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();

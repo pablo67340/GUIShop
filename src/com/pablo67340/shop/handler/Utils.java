@@ -2,21 +2,36 @@ package com.pablo67340.shop.handler;
 
 public final class Utils {
 
+	/**
+	 * True/False if GUIShop should use signs only.
+	 */
 	private static boolean signsOnly;
 
+	/**
+	 * Common Language strings set in configuration.
+	 * 
+	 */
 	@SuppressWarnings("unused")
-	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, 
-	signTitle, sellCommand, sellTitle, sold, taken, sound, full;
-	
+	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
+			sellCommand, sellTitle, sold, taken, sound, full, currency;
+
+	/**
+	 * Number of rows for the {@link Menu} GUI.
+	 * 
+	 */
 	private static Integer menuRows;
 
+	/**
+	 * True/False to set escape only mode, purchase sounds, and creator mode.
+	 * 
+	 */
 	private static Boolean escapeOnly, enableSound, enableCreator;
 
 	/**
-	 * The text that represents what comes before
-	 * messages sent to the {@link Player}.
+	 * The text that represents what comes before messages sent to the
+	 * {@link Player}.
 	 * <p>
-	 * i.e. [GUIShop] 
+	 * i.e. [GUIShop]
 	 * 
 	 * @return the {@link Shop}'s prefix.
 	 */
@@ -25,8 +40,7 @@ public final class Utils {
 	}
 
 	/**
-	 * The message sent to the {@link Player}
-	 * if an item cannot be purchased
+	 * The message sent to the {@link Player} if an item cannot be purchased
 	 * 
 	 * @return the {@link Shop}'s prefix.
 	 */
@@ -36,11 +50,12 @@ public final class Utils {
 
 	/**
 	 * 
-	 * @param Cant Buy String
+	 * @param Cant
+	 *            Buy String
 	 * 
-	 * Sets the string sent to player when an item cannot be purchased.
+	 *            Sets the string sent to player when an item cannot be purchased.
 	 */
-	public static void setCantBuy(String input){
+	public static void setCantBuy(String input) {
 		cantBuy = input;
 	}
 
@@ -49,7 +64,7 @@ public final class Utils {
 	 * 
 	 * @return the sound name.
 	 */
-	public static String getSound(){
+	public static String getSound() {
 		return sound;
 	}
 
@@ -58,39 +73,37 @@ public final class Utils {
 	 * 
 	 * @return sound enabled.
 	 */
-	public static Boolean isSoundEnabled(){
+	public static Boolean isSoundEnabled() {
 		return enableSound;
 	}
 
 	/**
-	 * enables the sound that plays when a purchase is made,
-	 * around the {@link Player}.
+	 * enables the sound that plays when a purchase is made, around the
+	 * {@link Player}.
 	 * 
 	 * @param input
-	 * 		The boolean to set.
+	 *            The boolean to set.
 	 */
-	public static void setSoundEnabled(Boolean input){
+	public static void setSoundEnabled(Boolean input) {
 		enableSound = input;
 	}
 
-
 	/**
-	 * Sets the sound that plays when a purchase is made,
-	 * around the {@link Player}.
+	 * Sets the sound that plays when a purchase is made, around the {@link Player}.
 	 * 
 	 * @param sound
-	 * 		The text to set.
+	 *            The text to set.
 	 */
-	public static void setSound(String input){
+	public static void setSound(String input) {
 		sound = input;
 	}
 
 	/**
-	 * Sets the text that represents what comes
-	 * before messages sent to the {@link Player}.
+	 * Sets the text that represents what comes before messages sent to the
+	 * {@link Player}.
 	 * 
 	 * @param prefix
-	 * 		The text to set.
+	 *            The text to set.
 	 */
 	public static void setCreatorEnabled(Boolean input) {
 		enableCreator = input;
@@ -106,11 +119,11 @@ public final class Utils {
 	}
 
 	/**
-	 * Sets the text that represents what comes
-	 * before messages sent to the {@link Player}.
+	 * Sets the text that represents what comes before messages sent to the
+	 * {@link Player}.
 	 * 
 	 * @param prefix
-	 * 		The text to set.
+	 *            The text to set.
 	 */
 	public static void setPrefix(String text) {
 		prefix = text;
@@ -129,7 +142,7 @@ public final class Utils {
 	 * Sets the name of the {@link Menu}.
 	 * 
 	 * @param text
-	 * 		The text to set.
+	 *            The text to set.
 	 */
 	public static void setMenuName(String text) {
 		menuName = text;
@@ -148,15 +161,14 @@ public final class Utils {
 	 * Sets the title of the {@link Sell} menu.
 	 * 
 	 * @param text
-	 * 		The text to set.
+	 *            The text to set.
 	 */
 	public static void setSellTitle(String text) {
 		sellTitle = text;
 	}
 
 	/**
-	 * Gets the title on the sign that
-	 * handles the {@link Shop}.
+	 * Gets the title on the sign that handles the {@link Shop}.
 	 * 
 	 * @return the sign's title.
 	 */
@@ -165,8 +177,7 @@ public final class Utils {
 	}
 
 	/**
-	 * Sets the title on the sign that
-	 * handles the {@link Shop}.
+	 * Sets the title on the sign that handles the {@link Shop}.
 	 * 
 	 * @param text
 	 */
@@ -174,48 +185,40 @@ public final class Utils {
 		signTitle = text;
 	}
 
-
 	/**
-	 * Sets if shops close with escape
-	 * handles the {@link Shop}.
+	 * Sets if shops close with escape handles the {@link Shop}.
 	 * 
 	 * @param boolean
 	 */
-	public static void setEscapeOnly(Boolean input){
+	public static void setEscapeOnly(Boolean input) {
 		escapeOnly = input;
 	}
 
 	/**
-	 * Gets whether the {@link Shop} is closed with
-	 * the escape key
+	 * Gets whether the {@link Shop} is closed with the escape key
 	 * 
-	 * @return {@code true} will be closed
-	 * when the escape key is pressed,
-	 * 		   otherwise, {@code false}.
+	 * @return {@code true} will be closed when the escape key is pressed,
+	 *         otherwise, {@code false}.
 	 */
-	public static Boolean getEscapeOnly(){
+	public static Boolean getEscapeOnly() {
 		return escapeOnly;
 	}
 
-
 	/**
-	 * Gets whether the {@link Shop} can
-	 * only be opened from a sign.
+	 * Gets whether the {@link Shop} can only be opened from a sign.
 	 * 
-	 * @return {@code true} if the shop can
-	 * 		   only be opened from a sign,
-	 * 		   otherwise, {@code false}.
+	 * @return {@code true} if the shop can only be opened from a sign, otherwise,
+	 *         {@code false}.
 	 */
 	public static boolean isSignsOnly() {
 		return signsOnly;
 	}
 
 	/**
-	 * Sets whether the {@link Shop} can
-	 * only be opened from a sign.
+	 * Sets whether the {@link Shop} can only be opened from a sign.
 	 * 
 	 * @param flag
-	 * 		The flag to set.
+	 *            The flag to set.
 	 */
 	public static void setSignsOnly(boolean flag) {
 		signsOnly = flag;
@@ -339,7 +342,7 @@ public final class Utils {
 	public static void setCantSell(String text) {
 		cantSell = text;
 	}
-	
+
 	/**
 	 * Gets the number of rows for the menu
 	 * 
@@ -356,7 +359,7 @@ public final class Utils {
 	public static void setMenuRows(Integer input) {
 		menuRows = input;
 	}
-	
+
 	/**
 	 * Sets the full inventory message
 	 * 
@@ -364,13 +367,29 @@ public final class Utils {
 	public static void setFull(String input) {
 		full = input;
 	}
-	
+
 	/**
 	 * Gets the rows for the menu
 	 * 
 	 */
 	public static String getFull() {
 		return full;
+	}
+
+	/**
+	 * Sets the Currency symbol
+	 * 
+	 */
+	public static void setCurrency(String input) {
+		currency = input;
+	}
+
+	/**
+	 * Gets the currency Symbol
+	 * 
+	 */
+	public static String getCurrency() {
+		return currency;
 	}
 
 }

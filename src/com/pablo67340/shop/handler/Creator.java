@@ -34,7 +34,7 @@ public final class Creator {
 		this.lore.add(" ");
 		this.lore.add(" ");
 	}
-
+	
 	/**
 	 * 
 	 * @param The

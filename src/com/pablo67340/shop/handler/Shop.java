@@ -12,8 +12,14 @@ import com.pablo67340.shop.main.Main;
 
 public final class Shop {
 
+	/**
+	 * Number of rows for the GUI.,
+	 */
 	public static final int ROW = 6;
 
+	/**
+	 * Number of columns for the GUI
+	 */
 	public static final int COL = 9;
 
 	/**
@@ -47,6 +53,26 @@ public final class Shop {
 	private Item[] ITEMS;
 
 	/**
+	 * The list of {@link Page}'s in this {@link Shop}.
+	 */
+	private Page[] pages = new Page[20];
+
+	/**
+	 * True/False if the current {@link Shop} has more than 1 page.
+	 */
+	private Boolean hasPages = false;
+
+	/**
+	 * The current page number a user is currently browsing in their {@link Shop}
+	 */
+	private Integer currentPage;
+
+	/**
+	 * Total loaded page count of this {@link Shop}
+	 */
+	private Integer pageCount;
+
+	/**
 	 * The constructor for a {@link Shop}.
 	 * 
 	 * @param name
@@ -61,6 +87,14 @@ public final class Shop {
 		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
+	}
+
+	public Integer getCurrentPage() {
+		return currentPage;
+	}
+
+	public void setCurrentPage(Integer input) {
+		currentPage = input;
 	}
 
 	/**
@@ -163,16 +197,20 @@ public final class Shop {
 		GUI = Bukkit.getServer().createInventory(null, ROW * COL,
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
-		ITEMS = new Item[GUI.getSize() - 1];
-
+		ITEMS = new Item[45];
+		pageCount = 0;
+		Integer lastIndex = 0;
 		Integer index = 0;
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)) {
-			index += 1;
-
 			if (str.contains(".") && str.contains(getShop())) {
 				Item item = new Item();
 				List<Map<?, ?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
+				index += 1;
+
+				Integer sum = index - lastIndex;
+				System.out.println("INDEX: " + index + " LAST INDEX: " + lastIndex + "TOTAL: " + sum);
 				for (Map<?, ?> map : citem) {
+
 					try {
 						if (map.containsKey("id")) {
 							String itemID = (String) map.get("id");
@@ -217,10 +255,13 @@ public final class Shop {
 							}
 						}
 					} catch (Exception e) {
-						Main.getInstance().getLogger().warning("Error occured while reading item: "+(index-1)+" from shop: "+getShop());
-						Main.getInstance().getLogger().warning("This plugin will not function properly until error is addressed!");
+						Main.getInstance().getLogger().warning(
+								"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
+						Main.getInstance().getLogger()
+								.warning("This plugin will not function properly until error is addressed!");
 						Main.getInstance().getDebugger().setHasExploded(true);
-						Main.getInstance().getDebugger().setErrorMessage("Error occured while reading item: "+(index-1)+" from shop: "+getShop());
+						Main.getInstance().getDebugger().setErrorMessage(
+								"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
 					}
 				}
 
@@ -229,23 +270,27 @@ public final class Shop {
 
 				ITEMS[item.getSlot()] = item;
 
-				ItemStack itemStack = new ItemStack(Material.AIR);
+				System.out.println("Added item: " + item.getId());
 
-				itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+				ItemStack itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
 
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
 				if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
 
 					itemMeta.setLore(Arrays.asList(
-							ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()),
-							ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice())));
+							ChatColor.translateAlternateColorCodes('&',
+									"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+							ChatColor.translateAlternateColorCodes('&',
+									"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
 				} else if (item.getBuyPrice() == 0) {
 					itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
-							ChatColor.translateAlternateColorCodes('&', "&fSell: &a$" + item.getSellPrice())));
+							ChatColor.translateAlternateColorCodes('&',
+									"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
 				} else {
 					itemMeta.setLore(Arrays.asList(
-							ChatColor.translateAlternateColorCodes('&', "&fBuy: &c$" + item.getBuyPrice()),
+							ChatColor.translateAlternateColorCodes('&',
+									"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
 							ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
 				}
 
@@ -289,6 +334,31 @@ public final class Shop {
 
 					GUI.setItem(ROW * COL - 1, backButtonItem);
 				}
+				if ((index - lastIndex) == 45) {
+
+					System.out.println("CREATE A PAGE!");
+
+					Page pageItem = new Page();
+
+					pageItem.setContents(ITEMS);
+					pages[pageCount] = pageItem;
+					ITEMS = new Item[45];
+					GUI.clear();
+					lastIndex = index;
+					pageCount += 1;
+					hasPages = true;
+
+				} else {
+					if (hasPages) {
+						Page pageItem = new Page();
+
+						pageItem.setContents(ITEMS);
+						pages[pageCount] = pageItem;
+
+						GUI.clear();
+					}
+
+				}
 
 			}
 		}
@@ -321,10 +391,95 @@ public final class Shop {
 	}
 
 	/**
+	 * Preload a page into the GUI. This is required before opening a shop.
+	 */
+	@SuppressWarnings("deprecation")
+	public void loadPage(Integer page) {
+		System.out.println("Loading page: " + page);
+		GUI.clear();
+		for (Item item : pages[page].getContents()) {
+			if (item != null) {
+				ItemStack itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+				ItemMeta itemMeta = itemStack.getItemMeta();
+
+				if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
+
+					itemMeta.setLore(Arrays.asList(
+							ChatColor.translateAlternateColorCodes('&',
+									"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+							ChatColor.translateAlternateColorCodes('&',
+									"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+				} else if (item.getBuyPrice() == 0) {
+					itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
+							ChatColor.translateAlternateColorCodes('&',
+									"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+				} else {
+					itemMeta.setLore(Arrays.asList(
+							ChatColor.translateAlternateColorCodes('&',
+									"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+							ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
+				}
+
+				if (item.getName() != null)
+					itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+
+				itemStack.setItemMeta(itemMeta);
+
+				if (item.getEnchantments() != null) {
+
+					for (String enc : item.getEnchantments()) {
+						String enchantment = StringUtils.substringBefore(enc, ":");
+						String level = StringUtils.substringAfter(enc, ":");
+						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+
+					}
+				}
+
+				GUI.setItem(item.getSlot(), itemStack);
+				if (!Utils.getEscapeOnly()) {
+					int backButton = 0;
+					short data = 0;
+
+					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
+
+					if (backButtonId.contains(":")) {
+						String[] args = backButtonId.split(":");
+
+						backButton = Integer.parseInt(args[0]);
+						data = Short.parseShort(args[1]);
+					}
+
+					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+
+					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+
+					backButtonMeta.setDisplayName(
+							ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
+
+					backButtonItem.setItemMeta(backButtonMeta);
+
+					GUI.setItem(ROW * COL - 1, backButtonItem);
+
+				}
+
+			} else {
+				System.out.println("ITem null");
+			}
+		}
+		setCurrentPage(page);
+		applyButtons();
+	}
+
+	/**
 	 * Open the player's shop
 	 * 
 	 */
 	public void open(Player player) {
+		if (hasPages) {
+			System.out.println("Item had pages!");
+			currentPage = 0;
+			loadPage(0);
+		}
 		player.openInventory(GUI);
 
 		Main.HAS_SHOP_OPEN.put(player.getName(), this);
@@ -338,6 +493,54 @@ public final class Shop {
 		Main.HAS_SHOP_OPEN.remove(player.getName());
 
 		Main.MENUS.get(player.getName()).open();
+	}
+
+	/**
+	 * Apply back/forward buttons to the GUI. Check if users are on last or first
+	 * page adjust buttons accordingly.
+	 */
+	@SuppressWarnings("deprecation")
+	public void applyButtons() {
+		ItemStack goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
+
+		ItemMeta goButtonMeta = goButtonItem.getItemMeta();
+
+		System.out.println("Current: " + getCurrentPage() + " Length: " + pageCount);
+
+		if (getCurrentPage() != (pageCount)) {
+			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
+
+			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', ">"));
+
+			goButtonItem.setItemMeta(goButtonMeta);
+
+		} else {
+			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 14);
+
+			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', ">"));
+
+			goButtonItem.setItemMeta(goButtonMeta);
+		}
+
+		GUI.setItem(GUI.getSize() - 2, goButtonItem);
+
+		if (getCurrentPage() != 0) {
+
+			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
+
+			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "<"));
+
+			goButtonItem.setItemMeta(goButtonMeta);
+
+		} else {
+			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 14);
+
+			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "<"));
+
+			goButtonItem.setItemMeta(goButtonMeta);
+		}
+		GUI.setItem(46, goButtonItem);
+
 	}
 
 }

@@ -4,100 +4,220 @@ import org.apache.commons.lang.StringUtils;
 
 public class ConfigItem {
 
+	/**
+	 * The name of this {@link Item}
+	 */
 	private String name;
-	
+
+	/**
+	 * The shop name of this {@link Item}
+	 */
 	private String shop;
-	
+
+	/**
+	 * The Item TypeID of this {@link Item}
+	 */
 	private String id;
-	
+
+	/**
+	 * The description of this {@link Item}
+	 */
 	private String description;
-	
+
+	/**
+	 * The slot of this {@link Item}
+	 */
 	private int slot;
-	
+
+	/**
+	 * The buy price of this {@link Item}
+	 */
 	private Double buy;
-	
+
+	/**
+	 * The sell value of this {@link Item}
+	 */
 	private Double sell;
-	
+
+	/**
+	 * True/False if this {@link Item} is enabled in the shop.
+	 */
 	private Boolean enabled;
-	
+
+	/**
+	 * True/False if this {@link Item} is a {@link Menu} item.
+	 */
 	private Boolean isMenu;
-	
-	public void setName(String input){
+
+	/**
+	 * Set the {@link Item}'s name.
+	 * 
+	 * @param Name
+	 */
+	public void setName(String input) {
 		name = input;
 	}
-	
-	public String getName(){
+
+	/**
+	 * Get the {@link Item}'s name.
+	 * 
+	 * @return Name
+	 */
+	public String getName() {
 		return name;
 	}
-	
-	public void setShop(String input){
+
+	/**
+	 * Set the {@link Item}'s shop name.
+	 * 
+	 * @param ShopName
+	 */
+	public void setShop(String input) {
 		shop = input;
 	}
-	
-	public String getShop(){
+
+	/**
+	 * Get the {@link Item}'s shop name.
+	 * 
+	 * @return ShopName
+	 */
+	public String getShop() {
 		return shop;
 	}
-	
-	public void setDescription(String input){
+
+	/**
+	 * Set the {@link Item}'s description.
+	 * 
+	 * @param description
+	 */
+	public void setDescription(String input) {
 		description = input;
 	}
-	
-	public String getDescription(){
+
+	/**
+	 * Get the {@link Item}'s description.
+	 * 
+	 * @return Description
+	 */
+	public String getDescription() {
 		return description;
 	}
-	
-	public void setEnabled(Boolean input){
+
+	/**
+	 * Set the {@link Item}'s enabled value.
+	 * 
+	 * @param Enabled
+	 */
+	public void setEnabled(Boolean input) {
 		enabled = input;
 	}
-	
-	public Boolean getEnabled(){
+
+	/**
+	 * Get the {@link Item}'s enabled value.
+	 * 
+	 * @return isEnabled
+	 */
+	public Boolean getEnabled() {
 		return enabled;
 	}
-	
-	public void setIsMenu(Boolean input){
+
+	/**
+	 * Set the {@link Item}'s menu boolean value.
+	 * 
+	 * @param isMenu
+	 */
+	public void setIsMenu(Boolean input) {
 		isMenu = input;
 	}
-	
-	public Boolean isMenu(){
+
+	/**
+	 * Get the {@link Item}'s menu value.
+	 * 
+	 * @return isMenu
+	 */
+	public Boolean isMenu() {
 		return isMenu;
 	}
-	
-	public void setSlot(Integer input){
+
+	/**
+	 * Set the {@link Item}'s slot.
+	 * 
+	 * @param Slot
+	 */
+	public void setSlot(Integer input) {
 		slot = input;
 	}
-	
-	public Integer getSlot(){
+
+	/**
+	 * Get the {@link Item}'s slot number.
+	 * 
+	 * @return Slot
+	 */
+	public Integer getSlot() {
 		return slot;
 	}
-	
-	public void setID(String input){
+
+	/**
+	 * Set the {@link Item}'s Item TypeID.
+	 * 
+	 * @param ItemID
+	 */
+	public void setID(String input) {
 		id = input;
 	}
-	
-	public String getID(){
+
+	/**
+	 * Get the {@link Item}'s TypeID.
+	 * 
+	 * @return TypeID
+	 */
+	public String getID() {
 		return StringUtils.substringBefore(id, ":");
 	}
-	
-	public String getData(){
+
+	/**
+	 * Get the {@link Item}'s DataID.
+	 * 
+	 * @return DataID
+	 */
+	public String getData() {
 		return StringUtils.substringAfter(id, ":");
 	}
-	
-	public void setBuy(Double input){
+
+	/**
+	 * Set the {@link Item}'s Buy price.
+	 * 
+	 * @param BuyPrice
+	 */
+	public void setBuy(Double input) {
 		buy = input;
 	}
-	
-	public Double getBuy(){
+
+	/**
+	 * Get the {@link Item}'s buy price.
+	 * 
+	 * @return BuyPrice
+	 */
+	public Double getBuy() {
 		return buy;
 	}
-	
-	public void setSell(Double input){
+
+	/**
+	 * Set the {@link Item}'s sell value.
+	 * 
+	 * @param SellPrice
+	 */
+	public void setSell(Double input) {
 		sell = input;
 	}
-	
-	public Double getSell(){
+
+	/**
+	 * Get the {@link Item}'s sell value.
+	 * 
+	 * @return SellValue
+	 */
+	public Double getSell() {
 		return sell;
 	}
-	
-	
-	
+
 }

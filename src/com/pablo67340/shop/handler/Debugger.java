@@ -2,33 +2,59 @@ package com.pablo67340.shop.handler;
 
 public class Debugger {
 
-	
-	// Well this class is supposed to be some cool debugger one day.
-	// Maybe I should make it display exactly what you did wrong in your configs? 
-	// You think that's too much code? Too overboard? Meh.. whatever
-	// Might as well start the class now and see where it leads (kill me)
+	/**
+	 * The error message
+	 * 
+	 */
 	private String errorMessage;
-	
+
+	/**
+	 * True/False if fatal error
+	 */
 	private Boolean hasExploded;
-	
-	public Debugger(){
+
+	/**
+	 * Default Constructor, Fatal false.
+	 * 
+	 */
+	public Debugger() {
 		hasExploded = false;
 	}
-	
-	public void setErrorMessage(String input){
+
+	/**
+	 * Set the {@link Debugger}'s error message.
+	 * 
+	 * @param Error
+	 */
+	public void setErrorMessage(String input) {
 		errorMessage = input;
 	}
-	
-	public String getErrorMessage(){
+
+	/**
+	 * Get the {@link Debugger}'s error message.
+	 * 
+	 * @return Error
+	 */
+	public String getErrorMessage() {
 		return errorMessage;
 	}
-	
-	public void setHasExploded(Boolean input){
+
+	/**
+	 * Set the {@link Debugger}'s fatal value.
+	 * 
+	 * @param Fatal
+	 */
+	public void setHasExploded(Boolean input) {
 		hasExploded = input;
 	}
-	
-	public Boolean hasExploded(){
+
+	/**
+	 * Set the {@link Debugger}'s fatal value.
+	 * 
+	 * @return hasExploded
+	 */
+	public Boolean hasExploded() {
 		return hasExploded;
 	}
-	
+
 }

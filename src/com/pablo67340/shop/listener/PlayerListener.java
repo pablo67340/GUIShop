@@ -14,7 +14,6 @@ import org.bukkit.event.inventory.*;
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.util.BlockIterator;
 
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.main.Main;
@@ -23,8 +22,8 @@ public final class PlayerListener implements Listener {
 
 	/**
 	 * An instance of a {@link PlayerListener} that will be used to handle this
-	 * specific object reference from other classes, even though methods here
-	 * will be static.
+	 * specific object reference from other classes, even though methods here will
+	 * be static.
 	 */
 	public static final PlayerListener INSTANCE = new PlayerListener();
 
@@ -43,6 +42,10 @@ public final class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Handle any commands sent into the chat, splice and compare to set GUIShop
+	 * commands in config.
+	 */
 	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
 	public void onCommand(PlayerCommandPreprocessEvent e) {
 		Player player = e.getPlayer();
@@ -170,6 +173,9 @@ public final class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Print the usage of the plugin to the player.
+	 */
 	public void printUsage(Player player) {
 		player.sendMessage("        Proper Usage:        ");
 		player.sendMessage("/guishop start - Starts creator session");
@@ -181,6 +187,10 @@ public final class PlayerListener implements Listener {
 		player.sendMessage("/guishop n - Set item in hand's name");
 	}
 
+	/**
+	 * Handle global inventory click events, check if inventory is for GUIShop, if
+	 * so, run logic.
+	 */
 	@SuppressWarnings({ "deprecation", "unused" })
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void onShopClick(InventoryClickEvent e) {
@@ -225,8 +235,7 @@ public final class PlayerListener implements Listener {
 					 */
 					if (Main.HAS_MENU_OPEN.contains(player.getName())) {
 						/*
-						 * If the player clicks somewhere where we don't want
-						 * them to, cancel the event.
+						 * If the player clicks somewhere where we don't want them to, cancel the event.
 						 */
 						if (!Main.SHOPS.containsKey(e.getSlot())) {
 							e.setCancelled(true);
@@ -234,8 +243,7 @@ public final class PlayerListener implements Listener {
 						}
 
 						/*
-						 * If the player clicks on an empty slot, then cancel
-						 * the event.
+						 * If the player clicks on an empty slot, then cancel the event.
 						 */
 						if (e.getCurrentItem() != null) {
 							if (e.getCurrentItem().getType() == Material.AIR) {
@@ -245,8 +253,7 @@ public final class PlayerListener implements Listener {
 						}
 
 						/*
-						 * If the player clicks in their own inventory, we want
-						 * to cancel the event.
+						 * If the player clicks in their own inventory, we want to cancel the event.
 						 */
 						if (e.getClickedInventory() == player.getInventory()) {
 							e.setCancelled(true);
@@ -266,15 +273,14 @@ public final class PlayerListener implements Listener {
 					 * If the player has the shop open.
 					 */
 					if (Main.HAS_SHOP_OPEN.containsKey(player.getName())) {
-						
+
 						if (player.getInventory().firstEmpty() == -1) {
 							e.setCancelled(true);
 							player.sendMessage(Utils.getFull());
 							return;
 						}
 						/*
-						 * If the player clicks on an empty slot, then cancel
-						 * the event.
+						 * If the player clicks on an empty slot, then cancel the event.
 						 */
 						if (e.getCurrentItem() != null) {
 							if (e.getCurrentItem().getType() == Material.AIR) {
@@ -284,8 +290,7 @@ public final class PlayerListener implements Listener {
 						}
 
 						/*
-						 * If the player clicks in their own inventory, we want
-						 * to cancel the event.
+						 * If the player clicks in their own inventory, we want to cancel the event.
 						 */
 						if (e.getClickedInventory() == player.getInventory()) {
 							e.setCancelled(true);
@@ -295,18 +300,31 @@ public final class PlayerListener implements Listener {
 						Shop shop = Main.HAS_SHOP_OPEN.get(player.getName());
 
 						if (e.getSlot() >= 0 && e.getSlot() < shop.getGUI().getSize()) {
-							/*
-							 * If the player clicks the 'back' button, then open
-							 * the menu. Otherwise, attempt to purchase the item
-							 * they click on.
+							/**
+							 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
+							 * user clicks the forward button, load and open next page, Otherwise, If the
+							 * user clicks the backward button, load and open the previous page, Otherwise
+							 * Attempt to purchase the clicked item.
 							 */
 							if (e.getSlot() == shop.getGUI().getSize() - 1) {
 								shop.closeAndOpenMenu(player);
+							} else if (e.getSlot() == shop.getGUI().getSize() - 2) {
+								e.setCancelled(true);
+								if (e.getCurrentItem().getData().getData() != 14) {
+									Main.HAS_SHOP_OPEN.get(player.getName())
+											.loadPage(Main.HAS_SHOP_OPEN.get(player.getName()).getCurrentPage() + 1);
+								}
+
+							} else if (e.getSlot() == 46) {
+								e.setCancelled(true);
+								if (e.getCurrentItem().getData().getData() != 14) {
+									Main.HAS_SHOP_OPEN.get(player.getName())
+											.loadPage(Main.HAS_SHOP_OPEN.get(player.getName()).getCurrentPage() - 1);
+								}
 							} else {
 
 								/*
-								 * If the player has enough money to purchase
-								 * the item, then allow them to.
+								 * If the player has enough money to purchase the item, then allow them to.
 								 */
 								Item item = shop.getItems()[e.getSlot()];
 
@@ -388,10 +406,9 @@ public final class PlayerListener implements Listener {
 								double priceToPay = 0;
 
 								/*
-								 * If the map is empty, then the items purchased
-								 * don't overflow the player's inventory.
-								 * Otherwise, we need to reimburse the player
-								 * (subtract it from priceToPay).
+								 * If the map is empty, then the items purchased don't overflow the player's
+								 * inventory. Otherwise, we need to reimburse the player (subtract it from
+								 * priceToPay).
 								 */
 								if (returnedItems.isEmpty()) {
 									priceToPay = item.getBuyPrice();
@@ -445,19 +462,6 @@ public final class PlayerListener implements Listener {
 				}
 			}
 		}
-	}
-
-	public final Block getTargetBlock(Player player, int range) {
-		BlockIterator iter = new BlockIterator(player, range);
-		Block lastBlock = iter.next();
-		while (iter.hasNext()) {
-			lastBlock = iter.next();
-			if (lastBlock.getType() == Material.AIR) {
-				continue;
-			}
-			break;
-		}
-		return lastBlock;
 	}
 
 	// When the inventory closes

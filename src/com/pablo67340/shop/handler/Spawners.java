@@ -4,8 +4,17 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Spawners {
+	/**
+	 * {@link Map} of aliases for MobSpawners.
+	 * 
+	 */
 	private static final Map<Integer, String> ALIASNAMES = new HashMap<Integer, String>();
 
+	/**
+	 * Statically fill mob spawner map. Need to keep updated for latest Minecraft
+	 * versions.
+	 * 
+	 */
 	static {
 		ALIASNAMES.put(50, "Creeper");
 		ALIASNAMES.put(51, "Skeleton");
@@ -43,6 +52,12 @@ public class Spawners {
 		ALIASNAMES.put(120, "Villager");
 	}
 
+	/**
+	 * Get the name of the mob based on ItemID
+	 * 
+	 * @return MobName
+	 * 
+	 */
 	public static String getMobName(Integer name) {
 		String mobName = null;
 		mobName = ALIASNAMES.get(name);

@@ -3,15 +3,15 @@
 <p>GUIShop adds a basic shop system to your server via Chest GUI's. You can buy &amp; sell items for any preset value. You can enchant &amp; rename any item which will be applied to the item upon purchase.</p>
 <p>GUIShop is almost self-sufficient. However, it still has requirements:</p>
 <ul>
-<li>
-<p><strong>GUIShop requires&nbsp;<a href="http://dev.bukkit.org/bukkit-plugins/vault/">Vault</a>&nbsp;to enable the plugin to hook into your economly so it can withdraw/deposit cash into your player's accounts.&nbsp;</strong></p>
-</li>
-<li>
-<p><strong>GUIShop also requires&nbsp;<a title="SilkSpawners" href="https://dev.bukkit.org/projects/silkspawners">SilkSpawners</a>&nbsp;which allows the plugin to sell mob spawners to players, as mob spawners require a special method of setting their entity ID.&nbsp;</strong></p>
-</li>
-<li>
-<p><strong>GUIShop requires Java 7+.</strong></p>
-</li>
+    <li>
+        <p><strong>GUIShop requires&nbsp;<a href="http://dev.bukkit.org/bukkit-plugins/vault/">Vault</a>&nbsp;to enable the plugin to hook into your economly so it can withdraw/deposit cash into your player's accounts.&nbsp;</strong></p>
+    </li>
+    <li>
+        <p><strong>GUIShop also requires&nbsp;<a title="SilkSpawners" href="https://dev.bukkit.org/projects/silkspawners">SilkSpawners</a>&nbsp;which allows the plugin to sell mob spawners to players, as mob spawners require a special method of setting their entity ID.&nbsp;</strong></p>
+    </li>
+    <li>
+        <p><strong>GUIShop requires Java 7+.</strong></p>
+    </li>
 </ul>
 <h2><a id="user-content-building" class="anchor" href="https://github.com/drtshock/Essentials#building" aria-hidden="true"></a>Building</h2>
 <p>GUIShop can easily be compiled by cloning this repository to a folder, navigating to the folder in your command prompt/terminal and running:</p>

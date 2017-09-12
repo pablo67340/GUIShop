@@ -8,9 +8,20 @@ import java.util.Set;
 import org.bukkit.enchantments.Enchantment;
 
 public class Enchantments {
+	/**
+	 * Official enchantment names/enchantment objects.
+	 */
 	private static final Map<String, Enchantment> ENCHANTMENTS = new HashMap<String, Enchantment>();
+
+	/**
+	 * Nickname enchantment names/enchantment objects.
+	 */
 	private static final Map<String, Enchantment> ALIASENCHANTMENTS = new HashMap<String, Enchantment>();
 
+	/**
+	 * Statically set aliases.
+	 * 
+	 */
 	static {
 		ENCHANTMENTS.put("alldamage", Enchantment.DAMAGE_ALL);
 		ALIASENCHANTMENTS.put("alldmg", Enchantment.DAMAGE_ALL);
@@ -147,6 +158,13 @@ public class Enchantments {
 		ALIASENCHANTMENTS.put("rodlure", Enchantment.LURE);
 	}
 
+	/**
+	 * Get enchantment by name or nickname.
+	 * 
+	 * @param Name
+	 * 
+	 * @return {@link Enchantment}
+	 */
 	@SuppressWarnings("deprecation")
 	public static Enchantment getByName(String name) {
 		Enchantment enchantment;
@@ -164,10 +182,19 @@ public class Enchantments {
 		return enchantment;
 	}
 
+	/**
+	 * Get entire {@link Enchantments} Alias {@link Set}.
+	 * 
+	 */
 	public static Set<Entry<String, Enchantment>> entrySet() {
 		return ENCHANTMENTS.entrySet();
 	}
 
+	/**
+	 * Check if String is integer.
+	 * 
+	 * @param StringToInteger
+	 */
 	public static boolean isInt(final String sInt) {
 		try {
 			Integer.parseInt(sInt);

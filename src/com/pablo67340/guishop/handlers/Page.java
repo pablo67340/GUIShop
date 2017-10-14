@@ -1,4 +1,4 @@
-package com.pablo67340.shop.handler;
+package com.pablo67340.guishop.handlers;
 
 public class Page {
 
@@ -31,7 +31,7 @@ public class Page {
 	public void setContents(Item[] inventoryContents) {
 		contents = new Item[inventoryContents.length];
 		contents = inventoryContents;
-
+		
 	}
 
 }

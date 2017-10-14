@@ -1,4 +1,4 @@
-package com.pablo67340.shop.handler;
+package com.pablo67340.guishop.handlers;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.pablo67340.shop.main.Main;
+import com.pablo67340.guishop.Main;
 
 public final class Creator {
 

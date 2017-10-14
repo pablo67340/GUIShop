@@ -1,4 +1,4 @@
-package com.pablo67340.shop.handler;
+package com.pablo67340.guishop.handlers;
 
 import java.util.HashMap;
 import java.util.Map;

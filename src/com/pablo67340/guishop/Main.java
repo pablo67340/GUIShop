@@ -1,4 +1,4 @@
-package com.pablo67340.shop.main;
+package com.pablo67340.guishop;
 
 import java.io.*;
 import java.util.*;
@@ -13,8 +13,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.pablo67340.shop.handler.*;
-import com.pablo67340.shop.listener.PlayerListener;
+import com.pablo67340.guishop.handlers.*;
+import com.pablo67340.guishop.listeners.PlayerListener;
 
 import de.dustplanet.util.SilkUtil;
 

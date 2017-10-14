@@ -1,4 +1,4 @@
-package com.pablo67340.shop.listener;
+package com.pablo67340.guishop.listeners;
 
 import java.util.*;
 
@@ -15,8 +15,8 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import com.pablo67340.shop.handler.*;
-import com.pablo67340.shop.main.Main;
+import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.handlers.*;
 
 public final class PlayerListener implements Listener {
 
@@ -465,7 +465,6 @@ public final class PlayerListener implements Listener {
 	}
 
 	// When the inventory closes
-
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
 		final String playerName = e.getPlayer().getName();
@@ -514,7 +513,6 @@ public final class PlayerListener implements Listener {
 	}
 
 	// When the player clicks a sign
-	@SuppressWarnings("unlikely-arg-type")
 	@EventHandler
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();

@@ -127,6 +127,10 @@ purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 
 ingame-config: true
 
+#Using SilkSpawners? If false, you must use EpicSpawners
+silkspawners: true
+
+
 DisabledWorlds:
     -'Test'
 
@@ -182,7 +186,7 @@ Rows: 1
   Name: '&6Blocks'
   
 ## DO NOT TOUCH BELOW THIS LINE!
-ver: 1.3
+ver: 1.4
 
  ################################
  ## Developed by pablo67340    ##

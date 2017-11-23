@@ -31,7 +31,6 @@ public class Page {
 	public void setContents(Item[] inventoryContents) {
 		contents = new Item[inventoryContents.length];
 		contents = inventoryContents;
-
 	}
 
 }

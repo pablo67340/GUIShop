@@ -141,17 +141,27 @@ public final class Main extends JavaPlugin {
 		INSTANCE = this;
 		createFiles();
 		if (setupEconomy()) {
-			if (setupSilk()) {
-				su = SilkUtil.hookIntoSilkSpanwers();
-				if (updateConfig()) {
-					checkServerVersion();
-					getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-					loadDefaults();
-					Shop.loadShops();
+
+			if (updateConfig()) {
+				checkServerVersion();
+				getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+				loadDefaults();
+				
+			}
+
+			if (Utils.getSilkSpawners()) {
+				if (setupSilk()) {
+					su = SilkUtil.hookIntoSilkSpanwers();
+				} else {
+					pluginError("SilkSpawners");
 				}
 			} else {
-				pluginError("SilkSpawners");
+				if (!setupSilk()) {
+					pluginError("EpicSpawners");
+				}
 			}
+
+			Shop.loadShops();
 		} else {
 			pluginError("Vault");
 		}
@@ -200,8 +210,15 @@ public final class Main extends JavaPlugin {
 	 * Check if Vault, SilkSpawners is enabled
 	 */
 	public Boolean setupSilk() {
-		if (getServer().getPluginManager().getPlugin("SilkSpawners") == null) {
+		if (getServer().getPluginManager().getPlugin("SilkSpawners") == null
+				&& getServer().getPluginManager().getPlugin("EpicSpawners") == null) {
 			return false;
+		} else if (getServer().getPluginManager().getPlugin("SilkSpawners") != null
+				&& getServer().getPluginManager().getPlugin("EpicSpawners") == null) {
+			return true;
+		} else if (getServer().getPluginManager().getPlugin("SilkSpawners") == null
+				&& getServer().getPluginManager().getPlugin("EpicSpawners") != null) {
+			return true;
 		} else {
 			return true;
 		}
@@ -263,9 +280,19 @@ public final class Main extends JavaPlugin {
 				getLogger().warning("Config update successful!");
 				return true;
 			} else if (ver == 1.3) {
+				getLogger().warning("The config version is outdated! Automatically updating config...");
+				getMainConfig().set("silkspawners", true);
+				getMainConfig().set("ver", 1.4);
+				updateConfig();
+				saveMainConfig();
+				getLogger().warning("Config update successful!");
+				return true;
+			} else if (ver == 1.4) {
 				getLogger().info("Config all up to date!");
 				return true;
+
 			} else {
+
 				getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
 				getServer().getPluginManager().disablePlugin(this);
 				return false;
@@ -303,6 +330,7 @@ public final class Main extends JavaPlugin {
 		Utils.setMenuRows(getMainConfig().getInt("menu-rows"));
 		Utils.setFull(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("full-inventory")));
 		Utils.setCurrency(getMainConfig().getString("currency"));
+		Utils.setSilkSpawners(getConfig().getBoolean("silkspawners"));
 		getDataFolder();
 	}
 

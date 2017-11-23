@@ -5,7 +5,7 @@ public final class Utils {
 	/**
 	 * True/False if GUIShop should use signs only.
 	 */
-	private static boolean signsOnly;
+	private static boolean signsOnly, silkSpawners;
 
 	/**
 	 * Common Language strings set in configuration.
@@ -390,6 +390,14 @@ public final class Utils {
 	 */
 	public static String getCurrency() {
 		return currency;
+	}
+	
+	public static void setSilkSpawners(Boolean usingSilk) {
+		silkSpawners = usingSilk;
+	}
+	
+	public static Boolean getSilkSpawners() {
+		return silkSpawners;
 	}
 
 }

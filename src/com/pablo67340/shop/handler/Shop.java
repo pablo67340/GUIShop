@@ -198,17 +198,22 @@ public final class Shop {
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
 		ITEMS = new Item[45];
+
 		pageCount = 0;
+
 		Integer lastIndex = 0;
+
 		Integer index = 0;
+
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)) {
 			if (str.contains(".") && str.contains(getShop())) {
+
 				Item item = new Item();
+
 				List<Map<?, ?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
+
 				index += 1;
 
-				Integer sum = index - lastIndex;
-				System.out.println("INDEX: " + index + " LAST INDEX: " + lastIndex + "TOTAL: " + sum);
 				for (Map<?, ?> map : citem) {
 
 					try {
@@ -269,10 +274,13 @@ public final class Shop {
 						new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
 
 				ITEMS[item.getSlot()] = item;
-
-				System.out.println("Added item: " + item.getId());
-
 				ItemStack itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+				
+				if (item.getId() == 52) {
+					itemStack = Main.getInstance().su.setSpawnerType(itemStack, (short) item.getData(),
+							Spawners.getMobName(item.getData()));
+
+				}
 
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
@@ -335,17 +343,20 @@ public final class Shop {
 					GUI.setItem(ROW * COL - 1, backButtonItem);
 				}
 				if ((index - lastIndex) == 45) {
-
-					System.out.println("CREATE A PAGE!");
-
 					Page pageItem = new Page();
 
 					pageItem.setContents(ITEMS);
+
 					pages[pageCount] = pageItem;
+
 					ITEMS = new Item[45];
+
 					GUI.clear();
+
 					lastIndex = index;
+
 					pageCount += 1;
+
 					hasPages = true;
 
 				} else {
@@ -353,6 +364,7 @@ public final class Shop {
 						Page pageItem = new Page();
 
 						pageItem.setContents(ITEMS);
+
 						pages[pageCount] = pageItem;
 
 						GUI.clear();
@@ -395,11 +407,18 @@ public final class Shop {
 	 */
 	@SuppressWarnings("deprecation")
 	public void loadPage(Integer page) {
-		System.out.println("Loading page: " + page);
 		GUI.clear();
 		for (Item item : pages[page].getContents()) {
 			if (item != null) {
-				ItemStack itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+				ItemStack itemStack;
+				if (item.getId() != 52) {
+
+					itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+				} else {
+					itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+					itemStack = Main.getInstance().su.setSpawnerType(itemStack, (short) item.getData(),
+							Spawners.getMobName(item.getData()));
+				}
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
 				if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
@@ -462,8 +481,6 @@ public final class Shop {
 
 				}
 
-			} else {
-				System.out.println("ITem null");
 			}
 		}
 		setCurrentPage(page);
@@ -476,8 +493,8 @@ public final class Shop {
 	 */
 	public void open(Player player) {
 		if (hasPages) {
-			System.out.println("Item had pages!");
 			currentPage = 0;
+
 			loadPage(0);
 		}
 		player.openInventory(GUI);
@@ -504,8 +521,6 @@ public final class Shop {
 		ItemStack goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
 
 		ItemMeta goButtonMeta = goButtonItem.getItemMeta();
-
-		System.out.println("Current: " + getCurrentPage() + " Length: " + pageCount);
 
 		if (getCurrentPage() != (pageCount)) {
 			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);

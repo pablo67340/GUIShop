@@ -56,16 +56,29 @@ public final class PlayerListener implements Listener {
 
 				String command = e.getMessage().substring(1);
 				String[] cut = command.split(" ");
+
 				if (Main.BUY_COMMANDS.contains(command)) {
-					Main.MENUS.get(player.getName()).open();
-					e.setCancelled(true);
-					return;
+					if (player.hasPermission("guishop.use") || player.isOp()) {
+						Main.MENUS.get(player.getName()).open();
+						e.setCancelled(true);
+						return;
+					}else {
+						player.sendMessage(Utils.getNoPermission());
+						e.setCancelled(true);
+						return;
+					}
 				}
 
 				if (Main.SELL_COMMANDS.contains(command)) {
-					Main.SELLS.get(player.getName()).open();
-					e.setCancelled(true);
-					return;
+					if (player.hasPermission("guishop.sell") || player.isOp()) {
+						Main.SELLS.get(player.getName()).open();
+						e.setCancelled(true);
+						return;
+					}else {
+						player.sendMessage(Utils.getNoPermission());
+						e.setCancelled(true);
+						return;
+					}
 				}
 
 				if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")) {
@@ -74,18 +87,20 @@ public final class PlayerListener implements Listener {
 					if (cut.length > 1) {
 
 						if (cut[1].equalsIgnoreCase("start")) {
-							if (player.hasPermission("guishop.creator")) {
+							if (player.hasPermission("guishop.creator") || player.isOp()) {
 								player.sendMessage(Utils.getPrefix() + " Entered creator mode!");
 								Main.CREATOR.put(player.getName(), new Creator(player));
 							} else {
-								player.sendMessage(Utils.getPrefix() + " No permission!");
+								player.sendMessage(Utils.getPrefix() + " "+Utils.getNoPermission());
+								e.setCancelled(true);
+								return;
 							}
 						} else if (cut[1].equalsIgnoreCase("stop")) {
 							if (player.hasPermission("guishop.creator")) {
 								player.sendMessage(Utils.getPrefix() + " Exited creator mode!");
 								Main.CREATOR.remove(player.getName());
 							} else {
-								player.sendMessage(Utils.getPrefix() + " No permission!");
+								player.sendMessage(Utils.getPrefix() + " "+Utils.getNoPermission());
 							}
 						} else if (cut[1].equalsIgnoreCase("setchest")) {
 							if (Main.CREATOR.containsKey(player.getName())) {
@@ -449,8 +464,7 @@ public final class PlayerListener implements Listener {
 											player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1,
 													1);
 										} catch (Exception ex) {
-											System.out.println(
-													"[GUIShop] Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+											Main.getInstance().getLogger().warning("Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
 										}
 									}
 									player.sendMessage(Utils.getPurchased() + priceToPay + Utils.getTaken());
@@ -536,8 +550,7 @@ public final class PlayerListener implements Listener {
 							Main.MENUS.get(player).open();
 							e.setCancelled(true);
 						} else {
-							player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-									Main.INSTANCE.getMainConfig().getString("no-permission")));
+							player.sendMessage(Utils.getPrefix()+" "+Utils.getNoPermission());
 							e.setCancelled(true);
 						}
 

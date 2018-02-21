@@ -215,17 +215,19 @@ public final class Shop {
 				index += 1;
 
 				for (Map<?, ?> map : citem) {
-
 					try {
 						if (map.containsKey("id")) {
 							String itemID = (String) map.get("id");
 							if (itemID.contains(":")) {
 								itemID = StringUtils.substringBefore(itemID, ":");
+								String data = (String) map.get("id");
+								data = StringUtils.substringAfter(data, ":");
+								item.setId(Integer.parseInt(itemID));
+								item.setData(Integer.parseInt(data));
+							}else {
+								item.setId(Integer.parseInt(itemID));
 							}
-							String data = (String) map.get("id");
-							data = StringUtils.substringAfter(data, ":");
-							item.setId(Integer.parseInt(itemID));
-							item.setData(Integer.parseInt(data));
+							
 						} else if (map.containsKey("slot")) {
 							item.setSlot((Integer) map.get("slot"));
 						} else if (map.containsKey("qty")) {

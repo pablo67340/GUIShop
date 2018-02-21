@@ -13,7 +13,7 @@ public final class Utils {
 	 */
 	@SuppressWarnings("unused")
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
-			sellCommand, sellTitle, sold, taken, sound, full, currency;
+			sellCommand, sellTitle, sold, taken, sound, full, currency, nopermission;
 
 	/**
 	 * Number of rows for the {@link Menu} GUI.
@@ -27,6 +27,28 @@ public final class Utils {
 	 */
 	private static Boolean escapeOnly, enableSound, enableCreator;
 
+	/**
+	 * The text that represents a "No Permission" message.
+	 * {@link Player}.
+	 * <p>
+	 * 
+	 * @return No permission message.
+	 */
+	public static String getNoPermission() {
+		return nopermission;
+	}
+	
+	/**
+	 * The text that represents a "No Permission" message.
+	 * {@link Player}.
+	 * <p>
+	 * 
+	 * @return No permission message.
+	 */
+	public static void setNoPermission(String input) {
+		nopermission = input;
+	}
+	
 	/**
 	 * The text that represents what comes before messages sent to the
 	 * {@link Player}.

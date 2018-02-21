@@ -329,6 +329,7 @@ public final class Main extends JavaPlugin {
 		Utils.setCantBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-buy")));
 		Utils.setMenuRows(getMainConfig().getInt("menu-rows"));
 		Utils.setFull(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("full-inventory")));
+		Utils.setNoPermission(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("no-permission")));
 		Utils.setCurrency(getMainConfig().getString("currency"));
 		Utils.setSilkSpawners(getConfig().getBoolean("silkspawners"));
 		getDataFolder();

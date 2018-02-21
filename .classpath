@@ -19,5 +19,6 @@
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/BattleRoyal/plugins/Vault.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/BattleRoyal/plugins/SilkSpawners.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.12/1.12.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/VehiclesAPI(8.0).jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

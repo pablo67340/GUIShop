@@ -65,7 +65,7 @@ public final class Shop {
 	/**
 	 * The current page number a user is currently browsing in their {@link Shop}
 	 */
-	private Integer currentPage;
+	private Integer currentPage = 0;
 
 	/**
 	 * Total loaded page count of this {@link Shop}
@@ -88,11 +88,24 @@ public final class Shop {
 		this.description = description;
 		this.lore = lore;
 	}
-
+	
+	/**
+	 * Return the current page number of this {@link Shop}
+	 */
 	public Integer getCurrentPage() {
 		return currentPage;
 	}
+	
+	/**
+	 * Returns true if this {@link Shop} has pages.
+	 */
+	public Boolean hasPages() {
+		return hasPages;
+	}
 
+	/**
+	 * Sets current page number loaded {@link Shop}
+	 */
 	public void setCurrentPage(Integer input) {
 		currentPage = input;
 	}
@@ -150,6 +163,13 @@ public final class Shop {
 	public Item[] getItems() {
 		return ITEMS;
 	}
+	
+	/**
+	 * Returns the page object for this {@link Shop}
+	 */
+	public Page getPage(Integer input) {
+		return pages[input];
+	}
 
 	/**
 	 * Loads all global shops.
@@ -204,7 +224,7 @@ public final class Shop {
 		Integer lastIndex = 0;
 
 		Integer index = 0;
-
+		Map<String, Price> PRICES = new HashMap<>();
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)) {
 			if (str.contains(".") && str.contains(getShop())) {
 
@@ -272,7 +292,7 @@ public final class Shop {
 					}
 				}
 
-				Main.PRICES.put(item.getId() + ":" + item.getData(),
+				PRICES.put(item.getId() + ":" + item.getData(),
 						new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
 
 				ITEMS[item.getSlot()] = item;
@@ -401,6 +421,8 @@ public final class Shop {
 
 			GUI.setItem(ROW * COL - 1, backButtonItem);
 		}
+		
+		Main.PRICETABLE.put(getShop(), PRICES);
 
 	}
 

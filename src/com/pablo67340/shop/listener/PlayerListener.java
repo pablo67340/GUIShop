@@ -1,6 +1,7 @@
 package com.pablo67340.shop.listener;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -62,7 +63,7 @@ public final class PlayerListener implements Listener {
 						Main.MENUS.get(player.getName()).open();
 						e.setCancelled(true);
 						return;
-					}else {
+					} else {
 						player.sendMessage(Utils.getNoPermission());
 						e.setCancelled(true);
 						return;
@@ -74,7 +75,7 @@ public final class PlayerListener implements Listener {
 						Main.SELLS.get(player.getName()).open();
 						e.setCancelled(true);
 						return;
-					}else {
+					} else {
 						player.sendMessage(Utils.getNoPermission());
 						e.setCancelled(true);
 						return;
@@ -91,7 +92,7 @@ public final class PlayerListener implements Listener {
 								player.sendMessage(Utils.getPrefix() + " Entered creator mode!");
 								Main.CREATOR.put(player.getName(), new Creator(player));
 							} else {
-								player.sendMessage(Utils.getPrefix() + " "+Utils.getNoPermission());
+								player.sendMessage(Utils.getPrefix() + " " + Utils.getNoPermission());
 								e.setCancelled(true);
 								return;
 							}
@@ -100,7 +101,7 @@ public final class PlayerListener implements Listener {
 								player.sendMessage(Utils.getPrefix() + " Exited creator mode!");
 								Main.CREATOR.remove(player.getName());
 							} else {
-								player.sendMessage(Utils.getPrefix() + " "+Utils.getNoPermission());
+								player.sendMessage(Utils.getPrefix() + " " + Utils.getNoPermission());
 							}
 						} else if (cut[1].equalsIgnoreCase("setchest")) {
 							if (Main.CREATOR.containsKey(player.getName())) {
@@ -229,10 +230,19 @@ public final class PlayerListener implements Listener {
 					} else {
 						// Clicked empty slot
 					}
+					float isSellable = 0;
+					String selectedShop = "";
+					for (Entry<String, Map<String, Price>> cmap : Main.PRICETABLE.entrySet()) {
+						if (cmap.getValue().containsKey(itemID + ":" + dataID)) {
+							isSellable = 1;
+							selectedShop = cmap.getKey();
+						}
+					}
+
 					// If the item has a loaded price, or in GUIShop at all
-					if (Main.PRICES.containsKey(itemID + ":" + dataID)) {
+					if (Main.PRICETABLE.get(selectedShop).containsKey(itemID + ":" + dataID)) {
 						// If the price is set to 0, or disabled.
-						if (Main.PRICES.get(itemID + ":" + dataID).getSellPrice() == 0) {
+						if (Main.PRICETABLE.get(selectedShop).get(itemID + ":" + dataID).getSellPrice() == 0) {
 							e.setCancelled(true);
 							player.sendMessage(Utils.getPrefix() + " " + Utils.getCantSell());
 							return;
@@ -341,7 +351,12 @@ public final class PlayerListener implements Listener {
 								/*
 								 * If the player has enough money to purchase the item, then allow them to.
 								 */
-								Item item = shop.getItems()[e.getSlot()];
+								Item item;
+								if (shop.hasPages()) {
+									item = shop.getPage(shop.getCurrentPage()).getContents()[e.getSlot()];
+								} else {
+									item = shop.getItems()[e.getSlot()];
+								}
 
 								// Check if the item is disabled, or price is 0
 								if (item.getBuyPrice() == 0) {
@@ -464,7 +479,8 @@ public final class PlayerListener implements Listener {
 											player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1,
 													1);
 										} catch (Exception ex) {
-											Main.getInstance().getLogger().warning("Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+											Main.getInstance().getLogger().warning(
+													"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
 										}
 									}
 									player.sendMessage(Utils.getPurchased() + priceToPay + Utils.getTaken());
@@ -550,7 +566,7 @@ public final class PlayerListener implements Listener {
 							Main.MENUS.get(player).open();
 							e.setCancelled(true);
 						} else {
-							player.sendMessage(Utils.getPrefix()+" "+Utils.getNoPermission());
+							player.sendMessage(Utils.getPrefix() + " " + Utils.getNoPermission());
 							e.setCancelled(true);
 						}
 

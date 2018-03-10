@@ -91,7 +91,7 @@ public final class Main extends JavaPlugin {
 	public static final Map<String, Shop> HAS_SHOP_OPEN = new HashMap<>();
 
 	/**
-	 * A {@link Map} that will store our {@link Menu}s when the server first starts.
+	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
 	 * 
 	 * @key The name of the {@link Player}.
 	 * @value The menu.
@@ -123,6 +123,7 @@ public final class Main extends JavaPlugin {
 	 */
 	public static final Map<Integer, Shop> SHOPS = new HashMap<>();
 
+	
 	/**
 	 * A {@link Map} that holds the prices to buy and sell an {@link Item} to/from a
 	 * {@link Shop}.
@@ -130,7 +131,7 @@ public final class Main extends JavaPlugin {
 	 * @key The item's ID.
 	 * @value The item's price object.
 	 */
-	public static final Map<String, Price> PRICES = new HashMap<>();
+	public static final Map<String, Map<String, Price>> PRICETABLE = new HashMap<>();
 
 	/**
 	 * Override onEnable, run GUIShop code.
@@ -156,9 +157,7 @@ public final class Main extends JavaPlugin {
 					pluginError("SilkSpawners");
 				}
 			} else {
-				if (!setupSilk()) {
-					pluginError("EpicSpawners");
-				}
+				
 			}
 
 			Shop.loadShops();
@@ -315,8 +314,7 @@ public final class Main extends JavaPlugin {
 		Utils.setSignsOnly(getMainConfig().getBoolean("signs-only"));
 		Utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sign-title")));
 		Utils.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-pre")));
-		Utils.setNotEnoughPost(
-				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-post")));
+		Utils.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-post")));
 		Utils.setPurchased(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("purchased")));
 		Utils.setTaken(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("taken")));
 		Utils.setSold(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sold")));

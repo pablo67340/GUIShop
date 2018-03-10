@@ -1,5 +1,8 @@
 package com.pablo67340.shop.handler;
 
+import java.util.Map;
+import java.util.Map.Entry;
+
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
@@ -71,20 +74,29 @@ public final class Sell {
 	@SuppressWarnings("deprecation")
 	public void sell() {
 		double moneyToGive = 0;
-
+		float isSellable = 0;
+		String selectedShop = "";
 		for (ItemStack item : GUI.getContents()) {
 			if (item == null) {
 				continue;
 			}
-			if (!Main.PRICES.containsKey(item.getData().getItemTypeId() + ":" + item.getData().getData())) {
+			
+			for (Entry<String, Map<String, Price>> cmap  : Main.PRICETABLE.entrySet()) {
+				if (cmap.getValue().containsKey(item.getData().getItemTypeId() + ":" + item.getData().getData())) {
+					isSellable = 1;
+					selectedShop = cmap.getKey();
+				}
+			}
+			
+			if (isSellable != 1) {
 				player.getInventory().addItem(item);
 				player.sendMessage(Utils.getPrefix() + Utils.getCantSell());
 				continue;
 
 			}
-			Double sellPrice = Main.PRICES.get(item.getTypeId() + ":" + item.getData().getData()).getSellPrice();
+			Double sellPrice = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData()).getSellPrice();
 
-			Integer quantity = Main.PRICES.get(item.getTypeId() + ":" + item.getData().getData()).getQuantity();
+			Integer quantity = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData()).getQuantity();
 
 			Double perEach = sellPrice / quantity;
 

@@ -38,7 +38,7 @@ public final class Menu {
 
 
 		for (Entry<Integer, Shop> e : Main.SHOPS.entrySet()) {
-			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp()) {
+			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp() || player.hasPermission("guishop.slot.*")) {
 				String itemID = Main.INSTANCE.getMainConfig().getString(String.valueOf(e.getKey() + 1) + ".Item");
 				if (itemID.contains(":")){
 					String[] ids = itemID.split(":");

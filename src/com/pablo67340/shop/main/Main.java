@@ -2,6 +2,7 @@ package com.pablo67340.shop.main;
 
 import java.io.*;
 import java.util.*;
+import java.util.logging.Level;
 
 import net.milkbowl.vault.economy.Economy;
 
@@ -15,6 +16,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.listener.PlayerListener;
+import com.songoda.epicspawners.API.EpicSpawnersAPI;
 
 import de.dustplanet.util.SilkUtil;
 
@@ -46,9 +48,14 @@ public final class Main extends JavaPlugin {
 	public static Main INSTANCE;
 
 	/**
-	 * An instance of SilkSpawners.
+	 * An instance of a spawners plugin.
 	 */
-	public SilkUtil su;
+	private Object su;
+
+	/**
+	 * True/False if plugin is utilizing mob spawners.
+	 */
+	private Boolean useSpawners = true;
 
 	/**
 	 * True/False if Minecraft version is pre 1.9
@@ -123,7 +130,6 @@ public final class Main extends JavaPlugin {
 	 */
 	public static final Map<Integer, Shop> SHOPS = new HashMap<>();
 
-	
 	/**
 	 * A {@link Map} that holds the prices to buy and sell an {@link Item} to/from a
 	 * {@link Shop}.
@@ -141,38 +147,35 @@ public final class Main extends JavaPlugin {
 	public void onEnable() {
 		INSTANCE = this;
 		createFiles();
-		if (setupEconomy()) {
+		if (Dependencies.hasDependency("Vault")) {
+
+			if (!setupEconomy()) {
+				getLogger().log(Level.INFO, "Vault could not detect an economy plugin!");
+				getServer().getPluginManager().disablePlugin(this);
+				return;
+			}
 
 			if (updateConfig()) {
 				checkServerVersion();
 				getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 				loadDefaults();
-				
 			}
 
-			if (Utils.getSilkSpawners()) {
-				if (setupSilk()) {
-					su = SilkUtil.hookIntoSilkSpanwers();
-				} else {
-					pluginError("SilkSpawners");
-				}
+			if (Dependencies.hasDependency("SilkSpawners")) {
+				su = (SilkUtil) Dependencies.getDependencyInstance("SilkSpawners");
+				getLogger().log(Level.INFO, "SilkSpawners hooked!");
+			} else if (Dependencies.hasDependency("EpicSpawners")) {
+				su = (EpicSpawnersAPI) Dependencies.getDependencyInstance("EpicSpawners");
+				getLogger().log(Level.INFO, "EpicSpawners hooked!");
 			} else {
-				
+				getLogger().log(Level.INFO, "SilkSpawners or EpicSpawners was not installed. Spawners disabled!");
+				useSpawners = false;
 			}
 
 			Shop.loadShops();
 		} else {
-			pluginError("Vault");
+			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
 		}
-	}
-
-	/**
-	 * 
-	 * Display an error for the plugin.
-	 */
-	public void pluginError(String input) {
-		getLogger().warning(input + " was not installed! This plugin is required!");
-		getServer().getPluginManager().disablePlugin(this);
 	}
 
 	/**
@@ -205,25 +208,6 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 * 
-	 * Check if Vault, SilkSpawners is enabled
-	 */
-	public Boolean setupSilk() {
-		if (getServer().getPluginManager().getPlugin("SilkSpawners") == null
-				&& getServer().getPluginManager().getPlugin("EpicSpawners") == null) {
-			return false;
-		} else if (getServer().getPluginManager().getPlugin("SilkSpawners") != null
-				&& getServer().getPluginManager().getPlugin("EpicSpawners") == null) {
-			return true;
-		} else if (getServer().getPluginManager().getPlugin("SilkSpawners") == null
-				&& getServer().getPluginManager().getPlugin("EpicSpawners") != null) {
-			return true;
-		} else {
-			return true;
-		}
-	}
-
-	/**
 	 * Check if Vault is present, Check if an Economy plugin is present, if so Hook.
 	 */
 	private Boolean setupEconomy() {
@@ -240,7 +224,7 @@ public final class Main extends JavaPlugin {
 		ECONOMY = (Economy) rsp.getProvider();
 
 		if (ECONOMY == null) {
-			pluginError("An economy plugin");
+			getLogger().log(Level.WARNING, "Vault was unable to hook into an economy plugin!");
 			return false;
 		}
 		return true;
@@ -280,7 +264,6 @@ public final class Main extends JavaPlugin {
 				return true;
 			} else if (ver == 1.3) {
 				getLogger().warning("The config version is outdated! Automatically updating config...");
-				getMainConfig().set("silkspawners", true);
 				getMainConfig().set("ver", 1.4);
 				updateConfig();
 				saveMainConfig();
@@ -314,7 +297,8 @@ public final class Main extends JavaPlugin {
 		Utils.setSignsOnly(getMainConfig().getBoolean("signs-only"));
 		Utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sign-title")));
 		Utils.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-pre")));
-		Utils.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-post")));
+		Utils.setNotEnoughPost(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-post")));
 		Utils.setPurchased(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("purchased")));
 		Utils.setTaken(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("taken")));
 		Utils.setSold(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sold")));
@@ -408,6 +392,22 @@ public final class Main extends JavaPlugin {
 	 */
 	public static Main getInstance() {
 		return INSTANCE;
+	}
+
+	/**
+	 * Gets the global spawner object.
+	 */
+	public Object getSpawnerObject() {
+		return su;
+	}
+
+	/**
+	 * True/False if plugin utilizes mob spawners.
+	 * 
+	 * @return If the plugin utilizes mob spawners.
+	 */
+	public Boolean usesSpawners() {
+		return useSpawners;
 	}
 
 }

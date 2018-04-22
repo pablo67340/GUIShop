@@ -127,8 +127,6 @@ purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 
 ingame-config: true
 
-#Using SilkSpawners? If false, you must use EpicSpawners
-silkspawners: true
 
 
 DisabledWorlds:

@@ -14,14 +14,13 @@ import com.pablo67340.shop.main.Main;
 public final class Menu {
 
 	/**
-	 * The GUI that is projected onto the screen when
-	 * a {@link Player} opens the {@link Menu}.
+	 * The GUI that is projected onto the screen when a {@link Player} opens the
+	 * {@link Menu}.
 	 */
 	private Inventory GUI;
 
 	/**
-	 * The {@link Player} that this {@link Menu} is 
-	 * created for.
+	 * The {@link Player} that this {@link Menu} is created for.
 	 */
 	private final Player player;
 
@@ -33,26 +32,29 @@ public final class Menu {
 
 	@SuppressWarnings("deprecation")
 	public void load() {
-			GUI = player.getServer().createInventory(null, 9 * Utils.getMenuRows(), "Menu");
-
-
+		GUI = player.getServer().createInventory(null, 9 * Utils.getMenuRows(), "Menu");
 
 		for (Entry<Integer, Shop> e : Main.SHOPS.entrySet()) {
-			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp() || player.hasPermission("guishop.slot.*")) {
+			if (player.hasPermission("guishop.slot." + (e.getKey() + 1)) || player.isOp()
+					|| player.hasPermission("guishop.slot.*")) {
 				String itemID = Main.INSTANCE.getMainConfig().getString(String.valueOf(e.getKey() + 1) + ".Item");
-				if (itemID.contains(":")){
+				if (itemID.contains(":")) {
 					String[] ids = itemID.split(":");
-					GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Integer.parseInt(ids[0])), 1, Short.parseShort(ids[1])), e.getValue().getName(), e.getValue().getLore()));
+					GUI.setItem(e.getKey(), setName(
+							new ItemStack(Material.getMaterial(Integer.parseInt(ids[0])), 1, Short.parseShort(ids[1])),
+							e.getValue().getName(), e.getValue().getLore()));
 					continue;
-				}else{
-					GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Integer.parseInt(itemID)), 1), e.getValue().getName(), e.getValue().getLore()));
+				} else {
+					GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(Integer.parseInt(itemID)), 1),
+							e.getValue().getName(), e.getValue().getLore()));
 					continue;
 				}
 			}
 
 			List<String> lore = new ArrayList<>();
 
-			lore.add(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("no-permission")));
+			lore.add(ChatColor.translateAlternateColorCodes('&',
+					Main.INSTANCE.getMainConfig().getString("no-permission")));
 
 			GUI.setItem(e.getKey(), setName(new ItemStack(Material.getMaterial(36), 1), e.getValue().getName(), lore));
 		}
@@ -60,12 +62,14 @@ public final class Menu {
 
 	public void open() {
 		if (!player.hasPermission("guishop.use") && !player.isOp()) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("no-permission")));
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+					Main.INSTANCE.getMainConfig().getString("no-permission")));
 			return;
 		}
 
 		if (Main.INSTANCE.getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("disabled-world")));
+			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+					Main.INSTANCE.getMainConfig().getString("disabled-world")));
 			return;
 		}
 

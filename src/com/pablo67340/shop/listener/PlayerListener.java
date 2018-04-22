@@ -9,6 +9,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.Sign;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.*;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.*;
 import org.bukkit.event.inventory.*;
@@ -18,6 +19,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.main.Main;
+import com.songoda.epicspawners.API.EpicSpawnersAPI;
+
+import de.dustplanet.util.SilkUtil;
 
 public final class PlayerListener implements Listener {
 
@@ -41,6 +45,15 @@ public final class PlayerListener implements Listener {
 				player.sendMessage("§c" + Main.getInstance().getDebugger().getErrorMessage());
 			}
 		}
+	}
+
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onQuitLoad(PlayerQuitEvent event) {
+		Player player = event.getPlayer();
+
+		Main.MENUS.remove(player.getName());
+		Main.SELLS.remove(player.getName());
+
 	}
 
 	/**
@@ -332,7 +345,9 @@ public final class PlayerListener implements Listener {
 							 * Attempt to purchase the clicked item.
 							 */
 							if (e.getSlot() == shop.getGUI().getSize() - 1) {
+								e.setCancelled(true);
 								shop.closeAndOpenMenu(player);
+								return;
 							} else if (e.getSlot() == shop.getGUI().getSize() - 2) {
 								e.setCancelled(true);
 								if (e.getCurrentItem().getData().getData() != 14) {
@@ -425,12 +440,24 @@ public final class PlayerListener implements Listener {
 									}
 								} else {
 									ItemStack spawner = new ItemStack(item.getId(), quantity);
+									if (Main.getInstance().usesSpawners()) {
+										if (Dependencies.hasDependency("SilkSpawners")) {
+											SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+											spawner = su.setSpawnerType(spawner, (short) item.getData(),
+													Spawners.getMobName(item.getData()));
+										} else if (Dependencies.hasDependency("EpicSpawners")) {
+											EpicSpawnersAPI es = (EpicSpawnersAPI) Main.getInstance()
+													.getSpawnerObject();
+											spawner = es.newSpawnerItem(EntityType.fromId(item.getData()), quantity);
 
-									returnedItems = player.getInventory()
-											.addItem(new ItemStack[] { Main.getInstance().su.setSpawnerType(spawner,
-													(short) item.getData(),
-													String.valueOf(Spawners.getMobName(item.getData()))
-															+ " Spawner") });
+										}
+
+										returnedItems = player.getInventory().addItem(spawner);
+									} else {
+										player.sendMessage("Spawners Disabled! Depencies not installed!");
+										e.setCancelled(true);
+										return;
+									}
 								}
 
 								double priceToPay = 0;

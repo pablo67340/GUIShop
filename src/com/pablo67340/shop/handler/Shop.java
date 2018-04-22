@@ -4,11 +4,15 @@ import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.pablo67340.shop.main.Main;
+import com.songoda.epicspawners.API.EpicSpawnersAPI;
+
+import de.dustplanet.util.SilkUtil;
 
 public final class Shop {
 
@@ -88,14 +92,14 @@ public final class Shop {
 		this.description = description;
 		this.lore = lore;
 	}
-	
+
 	/**
 	 * Return the current page number of this {@link Shop}
 	 */
 	public Integer getCurrentPage() {
 		return currentPage;
 	}
-	
+
 	/**
 	 * Returns true if this {@link Shop} has pages.
 	 */
@@ -163,7 +167,7 @@ public final class Shop {
 	public Item[] getItems() {
 		return ITEMS;
 	}
-	
+
 	/**
 	 * Returns the page object for this {@link Shop}
 	 */
@@ -244,10 +248,10 @@ public final class Shop {
 								data = StringUtils.substringAfter(data, ":");
 								item.setId(Integer.parseInt(itemID));
 								item.setData(Integer.parseInt(data));
-							}else {
+							} else {
 								item.setId(Integer.parseInt(itemID));
 							}
-							
+
 						} else if (map.containsKey("slot")) {
 							item.setSlot((Integer) map.get("slot"));
 						} else if (map.containsKey("qty")) {
@@ -297,10 +301,19 @@ public final class Shop {
 
 				ITEMS[item.getSlot()] = item;
 				ItemStack itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
-				
+
 				if (item.getId() == 52) {
-					itemStack = Main.getInstance().su.setSpawnerType(itemStack, (short) item.getData(),
-							Spawners.getMobName(item.getData()));
+					if (Main.getInstance().usesSpawners()) {
+						if (Dependencies.hasDependency("SilkSpawners")) {
+							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
+									Spawners.getMobName(item.getData()));
+						} else if (Dependencies.hasDependency("EpicSpawners")) {
+							EpicSpawnersAPI es = (EpicSpawnersAPI) Main.getInstance().getSpawnerObject();
+							itemStack = es.newSpawnerItem(EntityType.fromId(item.getData()), 1);
+
+						}
+					}
 
 				}
 
@@ -421,7 +434,7 @@ public final class Shop {
 
 			GUI.setItem(ROW * COL - 1, backButtonItem);
 		}
-		
+
 		Main.PRICETABLE.put(getShop(), PRICES);
 
 	}
@@ -440,8 +453,19 @@ public final class Shop {
 					itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
 				} else {
 					itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
-					itemStack = Main.getInstance().su.setSpawnerType(itemStack, (short) item.getData(),
-							Spawners.getMobName(item.getData()));
+
+					if (Main.getInstance().usesSpawners()) {
+						if (Dependencies.hasDependency("SilkSpawners")) {
+							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
+									Spawners.getMobName(item.getData()));
+						} else if (Dependencies.hasDependency("EpicSpawners")) {
+							EpicSpawnersAPI es = (EpicSpawnersAPI) Main.getInstance().getSpawnerObject();
+							itemStack = es.newSpawnerItem(EntityType.fromId(item.getData()), 1);
+
+						}
+					}
+
 				}
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
@@ -532,6 +556,7 @@ public final class Shop {
 	 */
 	public void closeAndOpenMenu(Player player) {
 		Main.HAS_SHOP_OPEN.remove(player.getName());
+		player.closeInventory();
 
 		Main.MENUS.get(player.getName()).open();
 	}

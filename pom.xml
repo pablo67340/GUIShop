@@ -9,7 +9,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>6.3.5a</version>
+    <version>6.3.6</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -69,8 +69,8 @@
         </dependency>
         <dependency>
             <groupId>de.dustplanet</groupId>
-            <artifactId>SilkSpawners</artifactId>
-            <version>5.0.1-SNAPSHOT</version>
+            <artifactId>SilkSpawners-v1_10_R1</artifactId>
+            <version>v1_10_R1</version>
             <exclusions>
                 <exclusion>
                     <groupId>*</groupId>
@@ -94,6 +94,8 @@
                 <filtering>true</filtering>
                 <includes>
                     <include>plugin.yml</include>
+                    <include>config.yml</include>
+                    <include>shops.yml</include>
                 </includes>
             </resource>
         </resources>

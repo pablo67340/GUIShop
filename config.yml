@@ -125,6 +125,7 @@ enable-sound: true
 #Purchase sound effect (You can find them here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)
 purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 
+#Enable the in-game config creator.
 ingame-config: true
 
 

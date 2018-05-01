@@ -253,7 +253,8 @@ public final class PlayerListener implements Listener {
 					}
 
 					// If the item has a loaded price, or in GUIShop at all
-					if (Main.PRICETABLE.get(selectedShop).containsKey(itemID + ":" + dataID)) {
+					
+					if (Main.PRICETABLE.containsKey(selectedShop) && Main.PRICETABLE.get(selectedShop).containsKey(itemID + ":" + dataID)) {
 						// If the price is set to 0, or disabled.
 						if (Main.PRICETABLE.get(selectedShop).get(itemID + ":" + dataID).getSellPrice() == 0) {
 							e.setCancelled(true);

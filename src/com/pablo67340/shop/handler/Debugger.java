@@ -56,5 +56,6 @@ public class Debugger {
 	public Boolean hasExploded() {
 		return hasExploded;
 	}
+	
 
 }

@@ -6,6 +6,12 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -14,7 +20,7 @@ import com.songoda.epicspawners.API.EpicSpawnersAPI;
 
 import de.dustplanet.util.SilkUtil;
 
-public final class Shop {
+public final class Shop implements Listener {
 
 	/**
 	 * Number of rows for the GUI.,
@@ -70,6 +76,11 @@ public final class Shop {
 	 * The current page number a user is currently browsing in their {@link Shop}
 	 */
 	private Integer currentPage = 0;
+
+	/**
+	 * The current shop the user is browsing.
+	 */
+	private Integer currentShop;
 
 	/**
 	 * Total loaded page count of this {@link Shop}
@@ -176,42 +187,6 @@ public final class Shop {
 	}
 
 	/**
-	 * Loads all global shops.
-	 * 
-	 */
-	public static void loadShops() {
-		Main.SHOPS.clear();
-		int numberOfShops = Utils.getMenuRows() * 9;
-
-		for (int i = 0; i < numberOfShops; i++) {
-			if (!Main.INSTANCE.getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
-				continue;
-			}
-
-			String shop = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Shop"));
-
-			String name = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Name"));
-
-			String description = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Desc"));
-
-			List<String> lore = new ArrayList<>();
-
-			if (description != null && description.length() > 0) {
-				lore.add(description);
-			}
-
-			Main.SHOPS.put(i, new Shop(shop, name, description, lore));
-		}
-
-		for (Shop s : Main.SHOPS.values()) {
-			s.loadShop2();
-		}
-	}
-
-	/**
 	 * Load the specified shop
 	 * 
 	 */
@@ -254,8 +229,6 @@ public final class Shop {
 
 						} else if (map.containsKey("slot")) {
 							item.setSlot((Integer) map.get("slot"));
-						} else if (map.containsKey("qty")) {
-							item.setQty((Integer) map.get("qty"));
 						} else if (map.containsKey("name")) {
 							item.setName((String) map.get("name"));
 						} else if (map.containsKey("enchantments")) {
@@ -296,11 +269,10 @@ public final class Shop {
 					}
 				}
 
-				PRICES.put(item.getId() + ":" + item.getData(),
-						new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
+				PRICES.put(item.getId() + ":" + item.getData(), new Price(item.getBuyPrice(), item.getSellPrice(), 1));
 
 				ITEMS[item.getSlot()] = item;
-				ItemStack itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+				ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
 
 				if (item.getId() == 52) {
 					if (Main.getInstance().usesSpawners()) {
@@ -450,9 +422,9 @@ public final class Shop {
 				ItemStack itemStack;
 				if (item.getId() != 52) {
 
-					itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+					itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
 				} else {
-					itemStack = new ItemStack(item.getId(), item.getQty(), (short) item.getData());
+					itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
 
 					if (Main.getInstance().usesSpawners()) {
 						if (Dependencies.hasDependency("SilkSpawners")) {
@@ -539,26 +511,30 @@ public final class Shop {
 	 * Open the player's shop
 	 * 
 	 */
-	public void open(Player player) {
+	public void open(Player player, Integer currentShop) {
 		if (hasPages) {
 			currentPage = 0;
 
 			loadPage(0);
 		}
 		player.openInventory(GUI);
+		this.currentShop = currentShop;
 
-		Main.HAS_SHOP_OPEN.put(player.getName(), this);
+		Main.HAS_SHOP_OPEN.add(player.getName());
 	}
 
 	/**
 	 * Safely navigate back to menu.
 	 * 
 	 */
-	public void closeAndOpenMenu(Player player) {
-		Main.HAS_SHOP_OPEN.remove(player.getName());
-		player.closeInventory();
+	public void closeAndOpenMenu(String player) {
 
-		Main.MENUS.get(player.getName()).open();
+		Bukkit.getPlayer(player).closeInventory();
+
+		Main.HAS_MENU_OPEN.add(player);
+		Menu menu = new Menu(player);
+		menu.open();
+		Main.HAS_SHOP_OPEN.remove(player);
 	}
 
 	/**
@@ -605,6 +581,123 @@ public final class Shop {
 		}
 		GUI.setItem(46, goButtonItem);
 
+	}
+
+	/**
+	 * The click listener for the Shop inventory.
+	 */
+	@SuppressWarnings({ "deprecation" })
+	@EventHandler(priority = EventPriority.HIGHEST)
+	public void onShopClick(InventoryClickEvent e) {
+		if (e.getWhoClicked() instanceof Player) {
+			if (e.getClickedInventory() != null) {
+				Player player = (Player) e.getWhoClicked();
+
+				/*
+				 * If the player has the shop open.
+				 */
+				if (Main.HAS_SHOP_OPEN.contains(player.getName())) {
+					e.setCancelled(true);
+					if (player.getInventory().firstEmpty() == -1) {
+						e.setCancelled(true);
+						player.sendMessage(Utils.getFull());
+						return;
+					}
+					/*
+					 * If the player clicks on an empty slot, then cancel the event.
+					 */
+					if (e.getCurrentItem() != null) {
+						if (e.getCurrentItem().getType() == Material.AIR) {
+							e.setCancelled(true);
+							return;
+						}
+					}
+
+					/*
+					 * If the player clicks in their own inventory, we want to cancel the event.
+					 */
+					if (e.getClickedInventory() == player.getInventory()) {
+						e.setCancelled(true);
+						return;
+					}
+
+					if (e.getSlot() >= 0 && e.getSlot() < getGUI().getSize()) {
+						/**
+						 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
+						 * user clicks the forward button, load and open next page, Otherwise, If the
+						 * user clicks the backward button, load and open the previous page, Otherwise
+						 * Attempt to purchase the clicked item.
+						 */
+						if (e.getSlot() == getGUI().getSize() - 1) {
+							e.setCancelled(true);
+							closeAndOpenMenu(player.getName());
+							return;
+						} else if (e.getSlot() == getGUI().getSize() - 2) {
+							e.setCancelled(true);
+							if (e.getCurrentItem().getData().getData() != 14) {
+
+								loadPage(getCurrentPage() + 1);
+							}
+
+						} else if (e.getSlot() == 46) {
+							e.setCancelled(true);
+							if (e.getCurrentItem().getData().getData() != 14) {
+
+								loadPage(getCurrentPage() - 1);
+							}
+						} else {
+
+							/*
+							 * If the player has enough money to purchase the item, then allow them to.
+							 */
+							Item item;
+							if (hasPages()) {
+								item = getPage(getCurrentPage()).getContents()[e.getSlot()];
+							} else {
+								item = getItems()[e.getSlot()];
+							}
+
+							Quantity qty = new Quantity(player.getName(), item, currentShop);
+							Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
+							unregisterClass(player.getName());
+							qty.open();
+							Main.HAS_QTY_OPEN.add(player.getName());
+
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Inventory close handler for the Shop
+	 */
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onClose(InventoryCloseEvent e) {
+		String playerName = e.getPlayer().getName();
+		if (Main.HAS_SHOP_OPEN.contains(playerName)) {
+			if (!Utils.getEscapeOnly()) {
+				HandlerList.unregisterAll(this);
+				Main.HAS_SHOP_OPEN.remove(playerName);
+				return;
+			} else {
+				HandlerList.unregisterAll(this);
+				Main.HAS_SHOP_OPEN.remove(playerName);
+				Menu men = new Menu(playerName);
+				men.open();
+				return;
+			}
+
+		}
+	}
+
+	/**
+	 * Stops listening and garbages class.
+	 */
+	public void unregisterClass(String playerName) {
+		HandlerList.unregisterAll(this);
+		Main.HAS_SHOP_OPEN.remove(playerName);
 	}
 
 }

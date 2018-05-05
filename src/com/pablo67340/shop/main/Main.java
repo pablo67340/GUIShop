@@ -87,6 +87,12 @@ public final class Main extends JavaPlugin {
 
 	/**
 	 * A {@link Set} that holds the names of each {@link Player} that currently has
+	 * the {@link Menu} open.
+	 */
+	public static final Set<String> HAS_QTY_OPEN = new HashSet<>();
+
+	/**
+	 * A {@link Set} that holds the names of each {@link Player} that currently has
 	 * the {@link Sell} GUI open.
 	 */
 	public static final Set<String> HAS_SELL_OPEN = new HashSet<>();
@@ -95,15 +101,7 @@ public final class Main extends JavaPlugin {
 	 * A {@link Map} that holds the names of each {@link Player} that currently has
 	 * a {@link Shop} open as well as the shop that is open.
 	 */
-	public static final Map<String, Shop> HAS_SHOP_OPEN = new HashMap<>();
-
-	/**
-	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
-	 * 
-	 * @key The name of the {@link Player}.
-	 * @value The menu.
-	 */
-	public static final Map<String, Menu> MENUS = new HashMap<>();
+	public static final Set<String> HAS_SHOP_OPEN = new HashSet<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
@@ -113,22 +111,6 @@ public final class Main extends JavaPlugin {
 	 * @value The creator.
 	 */
 	public static final Map<String, Creator> CREATOR = new HashMap<>();
-
-	/**
-	 * A {@link Map} that will store our {@link Sell}s when the server first starts.
-	 * 
-	 * @key The name of the {@link Player}.
-	 * @value The sell menu.
-	 */
-	public static final Map<String, Sell> SELLS = new HashMap<>();
-
-	/**
-	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
-	 * 
-	 * @key The index on the {@link Menu} that this shop is located at.
-	 * @value The shop.
-	 */
-	public static final Map<Integer, Shop> SHOPS = new HashMap<>();
 
 	/**
 	 * A {@link Map} that holds the prices to buy and sell an {@link Item} to/from a
@@ -172,7 +154,6 @@ public final class Main extends JavaPlugin {
 				useSpawners = false;
 			}
 
-			Shop.loadShops();
 		} else {
 			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
 		}
@@ -270,9 +251,17 @@ public final class Main extends JavaPlugin {
 				getLogger().warning("Config update successful!");
 				return true;
 			} else if (ver == 1.4) {
+				getLogger().warning("The config version is outdated! Automatically updating config...");
+				getMainConfig().set("ver", 1.5);
+				getMainConfig().set("currency-suffix", "");
+				getMainConfig().set("qty-title", "&4Select Amount");
+				updateConfig();
+				saveMainConfig();
+				getLogger().warning("Config update successful!");
+				return true;
+			} else if (ver == 1.5) {
 				getLogger().info("Config all up to date!");
 				return true;
-
 			} else {
 
 				getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
@@ -313,6 +302,9 @@ public final class Main extends JavaPlugin {
 		Utils.setFull(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("full-inventory")));
 		Utils.setNoPermission(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("no-permission")));
 		Utils.setCurrency(getMainConfig().getString("currency"));
+		Utils.setCurrencySuffix(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("currency-suffix")));
+		Utils.setQtyTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("qty-title")));
 		Utils.setSilkSpawners(getConfig().getBoolean("silkspawners"));
 		getDataFolder();
 	}

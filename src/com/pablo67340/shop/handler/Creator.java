@@ -34,7 +34,7 @@ public final class Creator {
 		this.lore.add(" ");
 		this.lore.add(" ");
 	}
-	
+
 	/**
 	 * 
 	 * @param The
@@ -231,7 +231,9 @@ public final class Creator {
 					Main.getInstance().getCustomConfig().set(this.name + "." + index, citem);
 
 					for (Player p : Bukkit.getOnlinePlayers()) {
-						Main.MENUS.get(p.getName()).load();
+
+						Menu menu = new Menu(p.getName());
+						menu.preLoad();
 					}
 				} else {
 
@@ -248,7 +250,7 @@ public final class Creator {
 		Main.INSTANCE.reloadConfig();
 		Main.INSTANCE.createFiles();
 		Main.INSTANCE.loadDefaults();
-		Shop.loadShops();
+
 		player.sendMessage(Utils.getPrefix() + " Shop saved!");
 	}
 
@@ -299,10 +301,10 @@ public final class Creator {
 						Double sell2;
 						if (hasData == true) {
 							Main.PRICETABLE.get(this.name).put(item.getId() + ":" + item.getData(),
-									new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
+									new Price(item.getBuyPrice(), item.getSellPrice(), 1));
 						} else {
 							Main.PRICETABLE.get(this.name).put(Integer.toString(item.getId()),
-									new Price(item.getBuyPrice(), item.getSellPrice(), item.getQty()));
+									new Price(item.getBuyPrice(), item.getSellPrice(), 1));
 						}
 
 						try {

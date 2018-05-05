@@ -108,6 +108,9 @@ full-inventory: '&cPlease empty your inventory!'
 #The currency symbol
 currency: '$'
 
+#The suffix after the currency. E.G Dollars. Yen, etc.
+currency-suffix: ''
+
 #The title of a sign that players can click to open shop
 sign-title: '[&cGUIShop&f]'
 
@@ -125,8 +128,11 @@ enable-sound: true
 #Purchase sound effect (You can find them here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)
 purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 
-#Enable the in-game config creator.
+#Enable in-game creator.
 ingame-config: true
+
+#The title of the quantity inventory.
+qty-title: "&4Select Amount"
 
 
 

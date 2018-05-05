@@ -3,13 +3,19 @@ package com.pablo67340.shop.handler;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 
 import com.pablo67340.shop.main.Main;
 
-public final class Sell {
+public final class Sell implements Listener {
 
 	/**
 	 * Number of rows for the {@link Sell} GUI.
@@ -62,6 +68,7 @@ public final class Sell {
 	 * 
 	 */
 	public void open() {
+		Bukkit.getServer().getPluginManager().registerEvents(this, Main.getInstance());
 		player.openInventory(GUI);
 
 		Main.HAS_SELL_OPEN.add(player.getName());
@@ -80,23 +87,25 @@ public final class Sell {
 			if (item == null) {
 				continue;
 			}
-			
-			for (Entry<String, Map<String, Price>> cmap  : Main.PRICETABLE.entrySet()) {
+
+			for (Entry<String, Map<String, Price>> cmap : Main.PRICETABLE.entrySet()) {
 				if (cmap.getValue().containsKey(item.getData().getItemTypeId() + ":" + item.getData().getData())) {
 					isSellable = 1;
 					selectedShop = cmap.getKey();
 				}
 			}
-			
+
 			if (isSellable != 1) {
 				player.getInventory().addItem(item);
 				player.sendMessage(Utils.getPrefix() + Utils.getCantSell());
 				continue;
 
 			}
-			Double sellPrice = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData()).getSellPrice();
+			Double sellPrice = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData())
+					.getSellPrice();
 
-			Integer quantity = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData()).getQuantity();
+			Integer quantity = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData())
+					.getQuantity();
 
 			Double perEach = sellPrice / quantity;
 
@@ -121,6 +130,16 @@ public final class Sell {
 	 */
 	public Inventory getGUI() {
 		return GUI;
+	}
+
+	@EventHandler(priority = EventPriority.HIGH)
+	public void onSellClose(InventoryCloseEvent event) {
+		if (Main.HAS_SELL_OPEN.contains(player.getName())) {
+			HandlerList.unregisterAll(this);
+			sell();
+			Main.HAS_SELL_OPEN.remove(player.getName());
+			return;
+		}
 	}
 
 }

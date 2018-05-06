@@ -129,9 +129,9 @@ public class Quantity implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onQuantityClick(InventoryClickEvent e) {
 		if (Main.HAS_QTY_OPEN.contains(playerName)) {
+			e.setCancelled(true);
 			if (!Utils.getEscapeOnly()) {
 				if (e.getSlot() == (GUI.getSize() - 1)) {
-					e.setCancelled(true);
 					Main.HAS_QTY_OPEN.remove(playerName);
 					HandlerList.unregisterAll(this);
 					reOpen();
@@ -139,8 +139,11 @@ public class Quantity implements Listener {
 				}
 			}
 
+			if (e.getClickedInventory() == null) {
+				return;
+			}
+
 			if (player.getInventory().firstEmpty() == -1) {
-				e.setCancelled(true);
 				player.sendMessage(Utils.getFull());
 				return;
 			}
@@ -149,7 +152,6 @@ public class Quantity implements Listener {
 			 */
 			if (e.getCurrentItem() != null) {
 				if (e.getCurrentItem().getType() == Material.AIR) {
-					e.setCancelled(true);
 					return;
 				}
 			}
@@ -158,7 +160,6 @@ public class Quantity implements Listener {
 			 * If the player clicks in their own inventory, we want to cancel the event.
 			 */
 			if (e.getClickedInventory() == player.getInventory()) {
-				e.setCancelled(true);
 				return;
 			}
 
@@ -166,7 +167,6 @@ public class Quantity implements Listener {
 			if (item.getBuyPrice() == 0) {
 				player.sendMessage(Utils.getPrefix() + " " + Utils.getCantBuy());
 				player.setItemOnCursor(new ItemStack(Material.AIR));
-				e.setCancelled(true);
 				return;
 			}
 
@@ -178,18 +178,19 @@ public class Quantity implements Listener {
 				player.sendMessage(Utils.getPrefix() + " " + Utils.getNotEnoughPre() + item.getBuyPrice()
 						+ Utils.getNotEnoughPost());
 				player.setItemOnCursor(new ItemStack(Material.AIR));
-				e.setCancelled(true);
 				return;
 			}
 
-			Map<Integer, ItemStack> returnedItems;
+			Map<Integer, ItemStack> returnedItems = new HashMap<>();
+
+			ItemStack itemStack = null;
 
 			// If the item is not a mob spawner
 			if (item.getId() != 52) {
 
 				// if the item has a data
 				if (item.getData() > 0) {
-					ItemStack itemStack = new ItemStack(item.getId(), quantity, (short) item.getData());
+					itemStack = new ItemStack(item.getId(), quantity, (short) item.getData());
 					if (item.getEnchantments() != null) {
 						for (String enc : item.getEnchantments()) {
 							String enchantment = StringUtils.substringBefore(enc, ":");
@@ -203,9 +204,8 @@ public class Quantity implements Listener {
 					if (e.isShiftClick())
 						itemStack.setAmount(1);
 
-					returnedItems = player.getInventory().addItem(itemStack);
 				} else {
-					ItemStack itemStack = new ItemStack(item.getId(), quantity);
+					itemStack = new ItemStack(item.getId(), quantity);
 					// If the item has enchantments
 					if (item.getEnchantments() != null) {
 						for (String enc : item.getEnchantments()) {
@@ -216,25 +216,23 @@ public class Quantity implements Listener {
 					}
 					itemStack.setAmount(e.getCurrentItem().getAmount());
 					// If is shift clicking, buy 1.
-					returnedItems = player.getInventory().addItem(itemStack);
+
 				}
 			} else {
-				ItemStack spawner = new ItemStack(item.getId(), quantity);
+				itemStack = new ItemStack(item.getId(), quantity);
 				if (Main.getInstance().usesSpawners()) {
 					if (Dependencies.hasDependency("SilkSpawners")) {
 						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-						spawner = su.setSpawnerType(spawner, (short) item.getData(),
+						itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
 								Spawners.getMobName(item.getData()));
 					} else if (Dependencies.hasDependency("EpicSpawners")) {
 						EpicSpawnersAPI es = (EpicSpawnersAPI) Main.getInstance().getSpawnerObject();
-						spawner = es.newSpawnerItem(EntityType.fromId(item.getData()), quantity);
+						itemStack = es.newSpawnerItem(EntityType.fromId(item.getData()), quantity);
 
 					}
 
-					returnedItems = player.getInventory().addItem(spawner);
 				} else {
 					player.sendMessage("Spawners Disabled! Depencies not installed!");
-					e.setCancelled(true);
 					return;
 				}
 			}
@@ -246,28 +244,25 @@ public class Quantity implements Listener {
 			 * inventory. Otherwise, we need to reimburse the player (subtract it from
 			 * priceToPay).
 			 */
-			if (returnedItems.isEmpty()) {
-				priceToPay = item.getBuyPrice() * e.getCurrentItem().getAmount();
-				// If the player is shift clicking, take the
-			} else {
-				double priceToReimburse = 0D;
 
-				// if the item is not a shift click
+			double priceToReimburse = 0D;
 
-				while (returnedItems.values().iterator().hasNext()) {
-					priceToReimburse += (item.getBuyPrice() / e.getCurrentItem().getAmount());
-				}
-				priceToPay = (item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+			// if the item is not a shift click
 
+			while (returnedItems.values().iterator().hasNext()) {
+				priceToReimburse += (item.getBuyPrice() / e.getCurrentItem().getAmount());
 			}
+			priceToPay = (item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
 
 			// Check if the transition was successful
-			if (Main.getEconomy().withdrawPlayer(player.getName(), priceToPay).transactionSuccess()) {
+
+			if (Main.getEconomy().withdrawPlayer(player, priceToPay).transactionSuccess()) {
 				// If the player has the sound enabled, play
 				// it!
 				if (Utils.isSoundEnabled()) {
 					try {
 						player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1, 1);
+
 					} catch (Exception ex) {
 						Main.getInstance().getLogger().warning(
 								"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
@@ -275,8 +270,10 @@ public class Quantity implements Listener {
 				}
 				player.sendMessage(Utils.getPrefix() + Utils.getPurchased() + priceToPay + Utils.getTaken()
 						+ Utils.getCurrencySuffix());
+				returnedItems = player.getInventory().addItem(itemStack);
+			} else {
+				player.sendMessage(Utils.getPrefix() + Utils.getNotEnoughPre() + priceToPay + Utils.getNotEnoughPost());
 			}
-			e.setCancelled(true);
 
 		}
 	}

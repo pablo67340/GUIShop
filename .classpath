@@ -16,9 +16,9 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.12/plugins/Vault-1.6.6.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.12/plugins/SilkSpawners.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Buildtools/spigot-1.12.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/EpicSpawners 4.2.5.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/Vault.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/SilkSpawners.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/buildtools/spigot-1.12.2.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/EpicSpawners 4.2.5.5.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

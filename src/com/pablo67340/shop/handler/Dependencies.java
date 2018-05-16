@@ -2,7 +2,7 @@ package com.pablo67340.shop.handler;
 
 import org.bukkit.Bukkit;
 
-import com.songoda.epicspawners.EpicSpawners;
+import com.songoda.epicspawners.api.EpicSpawnersAPI;
 
 import de.dustplanet.util.SilkUtil;
 
@@ -27,7 +27,7 @@ public final class Dependencies {
 		if (name.equalsIgnoreCase("SilkSpawners")) {
 			return SilkUtil.hookIntoSilkSpanwers();
 		} else if (name.equalsIgnoreCase("EpicSpawners")) {
-			return EpicSpawners.pl().getApi();
+			return EpicSpawnersAPI.getImplementation();
 		} else {
 			return null;
 		}

@@ -16,7 +16,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.shop.handler.*;
 import com.pablo67340.shop.listener.PlayerListener;
-import com.songoda.epicspawners.API.EpicSpawnersAPI;
+import com.songoda.epicspawners.EpicSpawnersPlugin;
+
 
 import de.dustplanet.util.SilkUtil;
 
@@ -147,7 +148,7 @@ public final class Main extends JavaPlugin {
 				su = (SilkUtil) Dependencies.getDependencyInstance("SilkSpawners");
 				getLogger().log(Level.INFO, "SilkSpawners hooked!");
 			} else if (Dependencies.hasDependency("EpicSpawners")) {
-				su = (EpicSpawnersAPI) Dependencies.getDependencyInstance("EpicSpawners");
+				su = (EpicSpawnersPlugin) Dependencies.getDependencyInstance("EpicSpawners");
 				getLogger().log(Level.INFO, "EpicSpawners hooked!");
 			} else {
 				getLogger().log(Level.INFO, "SilkSpawners or EpicSpawners was not installed. Spawners disabled!");

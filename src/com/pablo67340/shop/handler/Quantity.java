@@ -11,7 +11,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -25,7 +24,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.pablo67340.shop.main.Main;
-import com.songoda.epicspawners.API.EpicSpawnersAPI;
+import com.songoda.epicspawners.EpicSpawnersPlugin;
+import com.songoda.epicspawners.api.EpicSpawnersAPI;
 
 import de.dustplanet.util.SilkUtil;
 
@@ -226,8 +226,8 @@ public class Quantity implements Listener {
 						itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
 								Spawners.getMobName(item.getData()));
 					} else if (Dependencies.hasDependency("EpicSpawners")) {
-						EpicSpawnersAPI es = (EpicSpawnersAPI) Main.getInstance().getSpawnerObject();
-						itemStack = es.newSpawnerItem(EntityType.fromId(item.getData()), quantity);
+						EpicSpawnersPlugin es = (EpicSpawnersPlugin) Main.getInstance().getSpawnerObject();
+						itemStack = es.newSpawnerItem(EpicSpawnersAPI.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), quantity);
 
 					}
 

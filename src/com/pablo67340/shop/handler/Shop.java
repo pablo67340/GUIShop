@@ -15,8 +15,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.pablo67340.shop.main.Main;
-import com.songoda.epicspawners.EpicSpawnersPlugin;
-
+import com.songoda.epicspawners.api.EpicSpawners;
 
 import de.dustplanet.util.SilkUtil;
 
@@ -281,7 +280,7 @@ public final class Shop implements Listener {
 							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
 									Spawners.getMobName(item.getData()));
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
-							EpicSpawnersPlugin es = (EpicSpawnersPlugin) Main.getInstance().getSpawnerObject();
+							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
 
 						}
@@ -432,7 +431,7 @@ public final class Shop implements Listener {
 							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
 									Spawners.getMobName(item.getData()));
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
-							EpicSpawnersPlugin es = (EpicSpawnersPlugin) Main.getInstance().getSpawnerObject();
+							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
 
 						}

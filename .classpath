@@ -19,6 +19,6 @@
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/Vault.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/SilkSpawners.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/buildtools/spigot-1.12.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/EpicSpawners 5.0.1.3.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/EpicSpawners-API-5.0.1.1.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

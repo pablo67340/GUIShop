@@ -14,6 +14,10 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 
 import com.pablo67340.shop.main.Main;
+import com.songoda.epicspawners.api.EpicSpawners;
+import com.songoda.epicspawners.api.spawner.SpawnerData;
+
+import de.dustplanet.util.SilkUtil;
 
 public final class Sell implements Listener {
 
@@ -84,12 +88,31 @@ public final class Sell implements Listener {
 		float isSellable = 0;
 		String selectedShop = "";
 		for (ItemStack item : GUI.getContents()) {
+			Integer data = 0;
 			if (item == null) {
 				continue;
 			}
 
 			for (Entry<String, Map<String, Price>> cmap : Main.PRICETABLE.entrySet()) {
-				if (cmap.getValue().containsKey(item.getData().getItemTypeId() + ":" + item.getData().getData())) {
+
+				if (item.getData().getItemTypeId() == 52) {
+
+					if (Dependencies.hasDependency("SilkSpawners")) {
+						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+						data = (int) su.getStoredSpawnerItemEntityID(item);
+					} else if (Dependencies.hasDependency("EpicSpawners")) {
+						EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
+						SpawnerData spawnerData = es.getSpawnerDataFromItem(item);
+						String name = spawnerData.getIdentifyingName();
+						data = Spawners.getMobID(name);
+
+					}
+
+				} else {
+					data = (int) item.getData().getData();
+				}
+
+				if (cmap.getValue().containsKey(item.getData().getItemTypeId() + ":" + data)) {
 					isSellable = 1;
 					selectedShop = cmap.getKey();
 				}
@@ -101,11 +124,9 @@ public final class Sell implements Listener {
 				continue;
 
 			}
-			Double sellPrice = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData())
-					.getSellPrice();
+			Double sellPrice = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + data).getSellPrice();
 
-			Integer quantity = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + item.getData().getData())
-					.getQuantity();
+			Integer quantity = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + data).getQuantity();
 
 			Double perEach = sellPrice / quantity;
 

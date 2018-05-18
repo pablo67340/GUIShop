@@ -267,8 +267,10 @@ public final class Shop implements Listener {
 								"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
 					}
 				}
-
-				PRICES.put(item.getId() + ":" + item.getData(), new Price(item.getBuyPrice(), item.getSellPrice(), 1));
+				if (item.getSellPrice() != 0) {
+					PRICES.put(item.getId() + ":" + item.getData(),
+							new Price(item.getBuyPrice(), item.getSellPrice(), 1));
+				}
 
 				ITEMS[item.getSlot()] = item;
 				ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
@@ -281,7 +283,8 @@ public final class Shop implements Listener {
 									Spawners.getMobName(item.getData()));
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
+							itemStack = es.newSpawnerItem(
+									es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
 
 						}
 					}
@@ -432,7 +435,8 @@ public final class Shop implements Listener {
 									Spawners.getMobName(item.getData()));
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
+							itemStack = es.newSpawnerItem(
+									es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
 
 						}
 					}

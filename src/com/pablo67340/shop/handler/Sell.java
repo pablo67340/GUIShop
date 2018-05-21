@@ -1,10 +1,13 @@
 package com.pablo67340.shop.handler;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -45,6 +48,8 @@ public final class Sell implements Listener {
 	 */
 	private final Player player;
 
+	private final Map<String, Price> PRICETABLE = new HashMap<>();
+
 	/**
 	 * Constructor, set player and load GUI.
 	 * 
@@ -63,8 +68,11 @@ public final class Sell implements Listener {
 	 * 
 	 */
 	public void load() {
-		GUI = player.getServer().createInventory(null, ROWS * COLS,
+
+		GUI = Bukkit.getServer().createInventory(null, ROWS * COLS,
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &rSell"));
+		loadSellValues();
+
 	}
 
 	/**
@@ -78,59 +86,109 @@ public final class Sell implements Listener {
 		Main.HAS_SELL_OPEN.add(player.getName());
 	}
 
+	public void loadSellValues() {
+
+		Item item;
+
+		ConfigurationSection config = Main.getInstance().getCustomConfig();
+
+		for (String str : config.getKeys(true)) {
+			item = new Item();
+			List<Map<?, ?>> citem = config.getMapList(str);
+			for (Map<?, ?> map : citem) {
+
+				try {
+					if (map.containsKey("id")) {
+						String itemID = (String) map.get("id");
+						if (itemID.contains(":")) {
+							itemID = StringUtils.substringBefore(itemID, ":");
+							String data = (String) map.get("id");
+							data = StringUtils.substringAfter(data, ":");
+							item.setId(Integer.parseInt(itemID));
+							item.setData(Integer.parseInt(data));
+						} else {
+							item.setId(Integer.parseInt(itemID));
+						}
+
+					} else if (map.containsKey("buy-price")) {
+						Integer buy;
+						Double buy2;
+						try {
+							buy2 = (Double) map.get("buy-price");
+							item.setBuyPrice(buy2);
+						} catch (Exception e) {
+							buy = (Integer) map.get("buy-price");
+							item.setBuyPrice(buy);
+						}
+					} else if (map.containsKey("sell-price")) {
+						Double sell2;
+						Integer sell3;
+						try {
+							sell2 = (Double) map.get("sell-price");
+							item.setSellPrice(sell2);
+						} catch (Exception e) {
+							sell3 = (Integer) map.get("sell-price");
+							item.setSellPrice(sell3);
+						}
+					}
+				} catch (Exception e) {
+					System.out.println("Error: " + e.getMessage());
+				}
+			}
+
+			if (item.getSellPrice() != 0) {
+
+				PRICETABLE.put(item.getId() + ":" + item.getData(),
+						new Price(item.getBuyPrice(), item.getSellPrice(), 1));
+			}
+
+		}
+		open();
+
+	}
+
 	/**
 	 * Sell items inside the {@link Sell} GUI.
 	 * 
 	 */
 	@SuppressWarnings("deprecation")
 	public void sell() {
+
 		double moneyToGive = 0;
-		float isSellable = 0;
-		String selectedShop = "";
 		for (ItemStack item : GUI.getContents()) {
 			Integer data = 0;
 			if (item == null) {
 				continue;
 			}
 
-			for (Entry<String, Map<String, Price>> cmap : Main.PRICETABLE.entrySet()) {
+			if (item.getData().getItemTypeId() == 52) {
 
-				if (item.getData().getItemTypeId() == 52) {
+				if (Dependencies.hasDependency("SilkSpawners")) {
+					SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+					data = (int) su.getStoredSpawnerItemEntityID(item);
+				} else if (Dependencies.hasDependency("EpicSpawners")) {
+					EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
+					SpawnerData spawnerData = es.getSpawnerDataFromItem(item);
+					String name = spawnerData.getIdentifyingName();
+					data = Spawners.getMobID(name);
 
-					if (Dependencies.hasDependency("SilkSpawners")) {
-						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-						data = (int) su.getStoredSpawnerItemEntityID(item);
-					} else if (Dependencies.hasDependency("EpicSpawners")) {
-						EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-						SpawnerData spawnerData = es.getSpawnerDataFromItem(item);
-						String name = spawnerData.getIdentifyingName();
-						data = Spawners.getMobID(name);
-
-					}
-
-				} else {
-					data = (int) item.getData().getData();
 				}
 
-				if (cmap.getValue().containsKey(item.getData().getItemTypeId() + ":" + data)) {
-					isSellable = 1;
-					selectedShop = cmap.getKey();
-				}
+			} else {
+				data = (int) item.getData().getData();
 			}
 
-			if (isSellable != 1) {
+			if (!PRICETABLE.containsKey(item.getData().getItemTypeId() + ":" + data)) {
 				player.getInventory().addItem(item);
 				player.sendMessage(Utils.getPrefix() + Utils.getCantSell());
 				continue;
 
 			}
-			Double sellPrice = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + data).getSellPrice();
+			Double sellPrice = PRICETABLE.get(item.getTypeId() + ":" + data).getSellPrice();
 
-			Integer quantity = Main.PRICETABLE.get(selectedShop).get(item.getTypeId() + ":" + data).getQuantity();
+			Integer quantity = item.getAmount();
 
-			Double perEach = sellPrice / quantity;
-
-			moneyToGive += perEach * item.getAmount();
+			moneyToGive += quantity * sellPrice;
 
 		}
 
@@ -141,6 +199,7 @@ public final class Sell implements Listener {
 		}
 
 		GUI.clear();
+
 	}
 
 	/**

@@ -299,13 +299,6 @@ public final class Creator {
 					} else if (map.containsKey("sell-price")) {
 						Integer sell;
 						Double sell2;
-						if (hasData == true) {
-							Main.PRICETABLE.get(this.name).put(item.getId() + ":" + item.getData(),
-									new Price(item.getBuyPrice(), item.getSellPrice(), 1));
-						} else {
-							Main.PRICETABLE.get(this.name).put(Integer.toString(item.getId()),
-									new Price(item.getBuyPrice(), item.getSellPrice(), 1));
-						}
 
 						try {
 							sell = (Integer) map.get("sell-price");

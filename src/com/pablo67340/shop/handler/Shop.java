@@ -4,6 +4,7 @@ import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -86,6 +87,8 @@ public final class Shop implements Listener {
 	 */
 	private Integer pageCount;
 
+	private Player user;
+
 	/**
 	 * The constructor for a {@link Shop}.
 	 * 
@@ -96,11 +99,13 @@ public final class Shop implements Listener {
 	 * @param lore
 	 *            The lore of the shop.
 	 */
-	public Shop(String shop, String name, String description, List<String> lore) {
+	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player) {
 		this.name = name;
 		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
+		this.currentShop = slot;
+		this.user = player;
 	}
 
 	/**
@@ -185,12 +190,14 @@ public final class Shop implements Listener {
 		return pages[input];
 	}
 
+	private final Map<Integer, Price> PRICETABLE = new HashMap<>();
+
 	/**
 	 * Load the specified shop
 	 * 
 	 */
 	@SuppressWarnings({ "deprecation" })
-	public void loadShop2() {
+	public void loadShop() {
 
 		GUI = Bukkit.getServer().createInventory(null, ROW * COL,
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
@@ -202,186 +209,182 @@ public final class Shop implements Listener {
 		Integer lastIndex = 0;
 
 		Integer index = 0;
-		Map<String, Price> PRICES = new HashMap<>();
-		for (String str : Main.getInstance().getCustomConfig().getKeys(true)) {
-			if (str.contains(".") && str.contains(getShop())) {
 
-				Item item = new Item();
+		Item item = new Item();
 
-				List<Map<?, ?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
+		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
 
-				index += 1;
+		for (String str : config.getKeys(true)) {
+			item = new Item();
+			index += 1;
 
-				for (Map<?, ?> map : citem) {
-					try {
-						if (map.containsKey("id")) {
-							String itemID = (String) map.get("id");
-							if (itemID.contains(":")) {
-								itemID = StringUtils.substringBefore(itemID, ":");
-								String data = (String) map.get("id");
-								data = StringUtils.substringAfter(data, ":");
-								item.setId(Integer.parseInt(itemID));
-								item.setData(Integer.parseInt(data));
-							} else {
-								item.setId(Integer.parseInt(itemID));
-							}
+			List<Map<?, ?>> citem = config.getMapList(str);
 
-						} else if (map.containsKey("slot")) {
-							item.setSlot((Integer) map.get("slot"));
-						} else if (map.containsKey("name")) {
-							item.setName((String) map.get("name"));
-						} else if (map.containsKey("enchantments")) {
-							String preEnc = (String) map.get("enchantments");
-							if (!preEnc.equalsIgnoreCase("")) {
-								String[] enchants = preEnc.split(" ");
-								item.setEnchantments(enchants);
-							}
-						} else if (map.containsKey("buy-price")) {
-							Integer buy;
-							Double buy2;
-							try {
-								buy2 = (Double) map.get("buy-price");
-								item.setBuyPrice(buy2);
-							} catch (Exception e) {
-								buy = (Integer) map.get("buy-price");
-								item.setBuyPrice(buy);
-							}
-						} else if (map.containsKey("sell-price")) {
-							Double sell2;
-							Integer sell3;
-							try {
-								sell2 = (Double) map.get("sell-price");
-								item.setSellPrice(sell2);
-							} catch (Exception e) {
-								sell3 = (Integer) map.get("sell-price");
-								item.setSellPrice(sell3);
-							}
+			for (Map<?, ?> map : citem) {
+
+				try {
+					if (map.containsKey("id")) {
+						String itemID = (String) map.get("id");
+						if (itemID.contains(":")) {
+							itemID = StringUtils.substringBefore(itemID, ":");
+							String data = (String) map.get("id");
+							data = StringUtils.substringAfter(data, ":");
+							item.setId(Integer.parseInt(itemID));
+							item.setData(Integer.parseInt(data));
+						} else {
+							item.setId(Integer.parseInt(itemID));
 						}
-					} catch (Exception e) {
-						Main.getInstance().getLogger().warning(
-								"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
-						Main.getInstance().getLogger()
-								.warning("This plugin will not function properly until error is addressed!");
-						Main.getInstance().getDebugger().setHasExploded(true);
-						Main.getInstance().getDebugger().setErrorMessage(
-								"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
-					}
-				}
-				if (item.getSellPrice() != 0) {
-					PRICES.put(item.getId() + ":" + item.getData(),
-							new Price(item.getBuyPrice(), item.getSellPrice(), 1));
-				}
 
-				ITEMS[item.getSlot()] = item;
-				ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
-
-				if (item.getId() == 52) {
-					if (Main.getInstance().usesSpawners()) {
-						if (Dependencies.hasDependency("SilkSpawners")) {
-							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
-									Spawners.getMobName(item.getData()));
-						} else if (Dependencies.hasDependency("EpicSpawners")) {
-							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(
-									es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
-
+					} else if (map.containsKey("slot")) {
+						item.setSlot((Integer) map.get("slot"));
+					} else if (map.containsKey("name")) {
+						item.setName((String) map.get("name"));
+					} else if (map.containsKey("enchantments")) {
+						String preEnc = (String) map.get("enchantments");
+						if (!preEnc.equalsIgnoreCase("")) {
+							String[] enchants = preEnc.split(" ");
+							item.setEnchantments(enchants);
+						}
+					} else if (map.containsKey("buy-price")) {
+						Integer buy;
+						Double buy2;
+						try {
+							buy2 = (Double) map.get("buy-price");
+							item.setBuyPrice(buy2);
+						} catch (Exception e) {
+							buy = (Integer) map.get("buy-price");
+							item.setBuyPrice(buy);
+						}
+					} else if (map.containsKey("sell-price")) {
+						Double sell2;
+						Integer sell3;
+						try {
+							sell2 = (Double) map.get("sell-price");
+							item.setSellPrice(sell2);
+						} catch (Exception e) {
+							sell3 = (Integer) map.get("sell-price");
+							item.setSellPrice(sell3);
 						}
 					}
+				} catch (Exception e) {
+					Main.getInstance().getLogger()
+							.warning("Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
+					Main.getInstance().getLogger()
+							.warning("This plugin will not function properly until error is addressed!");
+					Main.getInstance().getDebugger().setHasExploded(true);
+					Main.getInstance().getDebugger().setErrorMessage(
+							"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
+				}
+			}
+		
+		PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice(), 1));
+
+		ITEMS[item.getSlot()] = item;
+		ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
+
+		if (item.getId() == 52) {
+			if (Main.getInstance().usesSpawners()) {
+				if (Dependencies.hasDependency("SilkSpawners")) {
+					SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+					itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
+							Spawners.getMobName(item.getData()));
+				} else if (Dependencies.hasDependency("EpicSpawners")) {
+					EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
+					itemStack = es.newSpawnerItem(
+							es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
 
 				}
+			}
 
-				ItemMeta itemMeta = itemStack.getItemMeta();
+		}
 
-				if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
+		ItemMeta itemMeta = itemStack.getItemMeta();
 
-					itemMeta.setLore(Arrays.asList(
-							ChatColor.translateAlternateColorCodes('&',
-									"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
-							ChatColor.translateAlternateColorCodes('&',
-									"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
-				} else if (item.getBuyPrice() == 0) {
-					itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
-							ChatColor.translateAlternateColorCodes('&',
-									"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
-				} else {
-					itemMeta.setLore(Arrays.asList(
-							ChatColor.translateAlternateColorCodes('&',
-									"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
-							ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
-				}
+		if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
 
-				if (item.getName() != null)
-					itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+			itemMeta.setLore(Arrays.asList(
+					ChatColor.translateAlternateColorCodes('&', "&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+					ChatColor.translateAlternateColorCodes('&',
+							"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+		} else if (item.getBuyPrice() == 0) {
+			itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
+					ChatColor.translateAlternateColorCodes('&',
+							"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+		} else {
+			 itemMeta.setLore(Arrays.asList(
+			 ChatColor.translateAlternateColorCodes('&', "&fBuy: &c" + Utils.getCurrency()
+			 + item.getBuyPrice()),
+			 ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
+		}
 
-				itemStack.setItemMeta(itemMeta);
+		if (item.getName() != null)
+			itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
 
-				if (item.getEnchantments() != null) {
+		itemStack.setItemMeta(itemMeta);
 
-					for (String enc : item.getEnchantments()) {
-						String enchantment = StringUtils.substringBefore(enc, ":");
-						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+		if (item.getEnchantments() != null) {
 
-					}
-				}
-
-				GUI.setItem(item.getSlot(), itemStack);
-				if (!Utils.getEscapeOnly()) {
-					int backButton = 0;
-					short data = 0;
-
-					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
-
-					if (backButtonId.contains(":")) {
-						String[] args = backButtonId.split(":");
-
-						backButton = Integer.parseInt(args[0]);
-						data = Short.parseShort(args[1]);
-					}
-
-					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
-
-					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-					backButtonMeta.setDisplayName(
-							ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
-
-					backButtonItem.setItemMeta(backButtonMeta);
-
-					GUI.setItem(ROW * COL - 1, backButtonItem);
-				}
-				if ((index - lastIndex) == 45) {
-					Page pageItem = new Page();
-
-					pageItem.setContents(ITEMS);
-
-					pages[pageCount] = pageItem;
-
-					ITEMS = new Item[45];
-
-					GUI.clear();
-
-					lastIndex = index;
-
-					pageCount += 1;
-
-					hasPages = true;
-
-				} else {
-					if (hasPages) {
-						Page pageItem = new Page();
-
-						pageItem.setContents(ITEMS);
-
-						pages[pageCount] = pageItem;
-
-						GUI.clear();
-					}
-
-				}
+			for (String enc : item.getEnchantments()) {
+				String enchantment = StringUtils.substringBefore(enc, ":");
+				String level = StringUtils.substringAfter(enc, ":");
+				itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
 
 			}
+		}
+
+		GUI.setItem(item.getSlot(), itemStack);
+		if (!Utils.getEscapeOnly()) {
+			int backButton = 0;
+			short data = 0;
+
+			String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
+
+			if (backButtonId.contains(":")) {
+				String[] args = backButtonId.split(":");
+
+				backButton = Integer.parseInt(args[0]);
+				data = Short.parseShort(args[1]);
+			}
+
+			ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+
+			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+
+			backButtonMeta.setDisplayName(
+					ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
+
+			backButtonItem.setItemMeta(backButtonMeta);
+
+			GUI.setItem(ROW * COL - 1, backButtonItem);
+		}
+		if ((index - lastIndex) == 45) {
+			Page pageItem = new Page();
+
+			pageItem.setContents(ITEMS);
+
+			pages[pageCount] = pageItem;
+
+			ITEMS = new Item[45];
+
+			GUI.clear();
+
+			lastIndex = index;
+
+			pageCount += 1;
+
+			hasPages = true;
+
+		} else {
+			if (hasPages) {
+				Page pageItem = new Page();
+
+				pageItem.setContents(ITEMS);
+
+				pages[pageCount] = pageItem;
+
+				GUI.clear();
+			}
+
 		}
 
 		if (!Utils.getEscapeOnly()) {
@@ -408,10 +411,11 @@ public final class Shop implements Listener {
 
 			GUI.setItem(ROW * COL - 1, backButtonItem);
 		}
-
-		Main.PRICETABLE.put(getShop(), PRICES);
+		}
+		open();
 
 	}
+
 
 	/**
 	 * Preload a page into the GUI. This is required before opening a shop.
@@ -514,16 +518,15 @@ public final class Shop implements Listener {
 	 * Open the player's shop
 	 * 
 	 */
-	public void open(Player player, Integer currentShop) {
+	public void open() {
 		if (hasPages) {
 			currentPage = 0;
 
 			loadPage(0);
 		}
-		player.openInventory(GUI);
-		this.currentShop = currentShop;
+		user.openInventory(GUI);
 
-		Main.HAS_SHOP_OPEN.add(player.getName());
+		Main.HAS_SHOP_OPEN.add(user.getName());
 	}
 
 	/**

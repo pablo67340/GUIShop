@@ -34,15 +34,14 @@ public final class Menu implements Listener {
 	 */
 	private final Player player;
 
-	/**
-	 * The {@link Shop} the player is currently utilizing.
-	 */
-	private Integer currentShop;
+
 
 	/**
 	 * The loaded shops read from the config.
 	 */
-	private Map<Integer, Shop> shops = new HashMap<>();
+	private Map<Integer, ShopDir> shops = new HashMap<>();
+	
+	private Shop openShop;
 
 	/**
 	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
@@ -89,9 +88,8 @@ public final class Menu implements Listener {
 				lore.add(description);
 			}
 
-			Shop shop2 = new Shop(shop, name, description, lore);
-			shop2.loadShop2();
-			shops.put(i, shop2);
+			shops.put(i, new ShopDir(shop, name, description, lore));
+			System.out.println(i);
 
 			if (player.hasPermission("guishop.slot." + (i + 1)) || player.isOp()
 					|| player.hasPermission("guishop.slot.*")) {
@@ -197,10 +195,10 @@ public final class Menu implements Listener {
 
 					dupePatch = true;
 					unregisterClass(player.getName());
-					Bukkit.getServer().getPluginManager().registerEvents(shops.get(e.getSlot()), Main.getInstance());
-					shops.get(e.getSlot()).open(player, e.getSlot());
-
-					currentShop = e.getSlot();
+					ShopDir shopDef = shops.get(e.getSlot());
+					openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), e.getSlot(), player);
+					Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
+					openShop.loadShop();
 					return;
 				}
 			}
@@ -215,7 +213,7 @@ public final class Menu implements Listener {
 		String playerName = e.getPlayer().getName();
 		if (Main.HAS_SHOP_OPEN.contains(playerName) && !Main.HAS_QTY_OPEN.contains(playerName)) {
 			if (Utils.getEscapeOnly()) {
-				HandlerList.unregisterAll(shops.get(currentShop));
+				HandlerList.unregisterAll(openShop);
 				Main.HAS_SHOP_OPEN.remove(playerName);
 				open();
 			}

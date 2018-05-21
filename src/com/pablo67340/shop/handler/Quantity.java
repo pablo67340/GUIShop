@@ -21,7 +21,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import com.pablo67340.shop.main.Main;
 import com.songoda.epicspawners.api.EpicSpawners;
@@ -61,11 +60,6 @@ public class Quantity implements Listener {
 	 * The shop number the user came from.
 	 */
 	private Integer currentShop;
-
-	/**
-	 * The map of preloaded shops read from the config.
-	 */
-	private Map<Integer, Shop> shops = new HashMap<>();
 
 	public Quantity(String player, Item item, Integer currentShop) {
 		this.item = item;
@@ -286,21 +280,20 @@ public class Quantity implements Listener {
 		 * Loads all global shops.
 		 * 
 		 */
-		int numberOfShops = Utils.getMenuRows() * 9;
 
-		for (int i = 0; i < numberOfShops; i++) {
-			if (!Main.INSTANCE.getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
-				continue;
+
+			if (!Main.INSTANCE.getMainConfig().getBoolean(currentShop + ".Enabled")) {
+				return;
 			}
 
 			String shop = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Shop"));
+					Main.INSTANCE.getMainConfig().getString(currentShop + ".Shop"));
 
 			String name = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Name"));
+					Main.INSTANCE.getMainConfig().getString(currentShop + ".Name"));
 
 			String description = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Desc"));
+					Main.INSTANCE.getMainConfig().getString(currentShop + ".Desc"));
 
 			List<String> lore = new ArrayList<>();
 
@@ -308,22 +301,16 @@ public class Quantity implements Listener {
 				lore.add(description);
 			}
 
-			Shop shop2 = new Shop(shop, name, description, lore);
-			shop2.loadShop2();
-			shops.put(i, shop2);
+			Shop shop2 = new Shop(shop, name, description, lore, currentShop, player);
+			Bukkit.getServer().getPluginManager().registerEvents(shop2, Main.getInstance());
+			shop2.loadShop();
+			
 
-		}
 
-		Bukkit.getServer().getPluginManager().registerEvents(shops.get(currentShop), Main.getInstance());
 
-		// Listener not listening fix!
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				shops.get(currentShop).open(player, currentShop);
-			}
-		}, 1L);
+		
+
+
 
 	}
 

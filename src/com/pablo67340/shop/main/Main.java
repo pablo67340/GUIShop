@@ -119,7 +119,7 @@ public final class Main extends JavaPlugin {
 	 * @key The item's ID.
 	 * @value The item's price object.
 	 */
-	public static final Map<String, Map<String, Price>> PRICETABLE = new HashMap<>();
+	//public static final Map<String, Map<String, Price>> PRICETABLE = new HashMap<>();
 
 	/**
 	 * Override onEnable, run GUIShop code.

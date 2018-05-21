@@ -54,9 +54,8 @@ public final class PlayerListener implements Listener {
 				if (Main.SELL_COMMANDS.contains(command)) {
 					if (player.hasPermission("guishop.sell") || player.isOp()) {
 						e.setCancelled(true);
+						@SuppressWarnings("unused")
 						Sell sell = new Sell(player);
-
-						sell.open();
 
 						return;
 					} else {

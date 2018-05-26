@@ -78,11 +78,6 @@ public final class Shop implements Listener {
 	private Integer currentPage = 0;
 
 	/**
-	 * The current shop the user is browsing.
-	 */
-	private Integer currentShop;
-
-	/**
 	 * Total loaded page count of this {@link Shop}
 	 */
 	private Integer pageCount;
@@ -104,7 +99,6 @@ public final class Shop implements Listener {
 		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
-		this.currentShop = slot;
 		this.user = player;
 	}
 
@@ -276,146 +270,146 @@ public final class Shop implements Listener {
 							"Error occured while reading item: " + (index - 1) + " from shop: " + getShop());
 				}
 			}
-		
-		PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice(), 1));
 
-		ITEMS[item.getSlot()] = item;
-		ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
+			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice(), 1));
 
-		if (item.getId() == 52) {
-			if (Main.getInstance().usesSpawners()) {
-				if (Dependencies.hasDependency("SilkSpawners")) {
-					SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-					itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
-							Spawners.getMobName(item.getData()));
-				} else if (Dependencies.hasDependency("EpicSpawners")) {
-					EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-					itemStack = es.newSpawnerItem(
-							es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
+			ITEMS[item.getSlot()] = item;
+			ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
+
+			if (item.getId() == 52) {
+				if (Main.getInstance().usesSpawners()) {
+					if (Dependencies.hasDependency("SilkSpawners")) {
+						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+						itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
+								Spawners.getMobName(item.getData()));
+					} else if (Dependencies.hasDependency("EpicSpawners")) {
+						EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
+						itemStack = es.newSpawnerItem(
+								es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
+
+					}
+				}
+
+			}
+
+			ItemMeta itemMeta = itemStack.getItemMeta();
+
+			if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
+
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&',
+								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+						ChatColor.translateAlternateColorCodes('&',
+								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+			} else if (item.getBuyPrice() == 0) {
+				itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
+						ChatColor.translateAlternateColorCodes('&',
+								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+			} else {
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&',
+								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+						ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
+			}
+
+			if (item.getName() != null)
+				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+
+			itemStack.setItemMeta(itemMeta);
+
+			if (item.getEnchantments() != null) {
+
+				for (String enc : item.getEnchantments()) {
+					String enchantment = StringUtils.substringBefore(enc, ":");
+					String level = StringUtils.substringAfter(enc, ":");
+					itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
 
 				}
 			}
 
-		}
+			GUI.setItem(item.getSlot(), itemStack);
+			if (!Utils.getEscapeOnly()) {
+				int backButton = 0;
+				short data = 0;
 
-		ItemMeta itemMeta = itemStack.getItemMeta();
+				String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
 
-		if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
+				if (backButtonId.contains(":")) {
+					String[] args = backButtonId.split(":");
 
-			itemMeta.setLore(Arrays.asList(
-					ChatColor.translateAlternateColorCodes('&', "&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
-					ChatColor.translateAlternateColorCodes('&',
-							"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
-		} else if (item.getBuyPrice() == 0) {
-			itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
-					ChatColor.translateAlternateColorCodes('&',
-							"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
-		} else {
-			 itemMeta.setLore(Arrays.asList(
-			 ChatColor.translateAlternateColorCodes('&', "&fBuy: &c" + Utils.getCurrency()
-			 + item.getBuyPrice()),
-			 ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
-		}
+					backButton = Integer.parseInt(args[0]);
+					data = Short.parseShort(args[1]);
+				}
 
-		if (item.getName() != null)
-			itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+				ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
 
-		itemStack.setItemMeta(itemMeta);
+				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
-		if (item.getEnchantments() != null) {
+				backButtonMeta.setDisplayName(
+						ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
 
-			for (String enc : item.getEnchantments()) {
-				String enchantment = StringUtils.substringBefore(enc, ":");
-				String level = StringUtils.substringAfter(enc, ":");
-				itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+				backButtonItem.setItemMeta(backButtonMeta);
 
+				GUI.setItem(ROW * COL - 1, backButtonItem);
 			}
-		}
-
-		GUI.setItem(item.getSlot(), itemStack);
-		if (!Utils.getEscapeOnly()) {
-			int backButton = 0;
-			short data = 0;
-
-			String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
-
-			if (backButtonId.contains(":")) {
-				String[] args = backButtonId.split(":");
-
-				backButton = Integer.parseInt(args[0]);
-				data = Short.parseShort(args[1]);
-			}
-
-			ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
-
-			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-			backButtonMeta.setDisplayName(
-					ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
-
-			backButtonItem.setItemMeta(backButtonMeta);
-
-			GUI.setItem(ROW * COL - 1, backButtonItem);
-		}
-		if ((index - lastIndex) == 45) {
-			Page pageItem = new Page();
-
-			pageItem.setContents(ITEMS);
-
-			pages[pageCount] = pageItem;
-
-			ITEMS = new Item[45];
-
-			GUI.clear();
-
-			lastIndex = index;
-
-			pageCount += 1;
-
-			hasPages = true;
-
-		} else {
-			if (hasPages) {
+			if ((index - lastIndex) == 45) {
 				Page pageItem = new Page();
 
 				pageItem.setContents(ITEMS);
 
 				pages[pageCount] = pageItem;
 
+				ITEMS = new Item[45];
+
 				GUI.clear();
+
+				lastIndex = index;
+
+				pageCount += 1;
+
+				hasPages = true;
+
+			} else {
+				if (hasPages) {
+					Page pageItem = new Page();
+
+					pageItem.setContents(ITEMS);
+
+					pages[pageCount] = pageItem;
+
+					GUI.clear();
+				}
+
 			}
 
-		}
+			if (!Utils.getEscapeOnly()) {
+				int backButton = 0;
+				short data = 0;
 
-		if (!Utils.getEscapeOnly()) {
-			int backButton = 0;
-			short data = 0;
+				String backButtonId = Main.INSTANCE.getMainConfig().getString("back-button-item");
 
-			String backButtonId = Main.INSTANCE.getMainConfig().getString("back-button-item");
+				if (backButtonId.contains(":")) {
+					String[] args = backButtonId.split(":");
 
-			if (backButtonId.contains(":")) {
-				String[] args = backButtonId.split(":");
+					backButton = Integer.parseInt(args[0]);
+					data = Short.parseShort(args[1]);
+				}
 
-				backButton = Integer.parseInt(args[0]);
-				data = Short.parseShort(args[1]);
+				ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+
+				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+
+				backButtonMeta.setDisplayName(
+						ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("back")));
+
+				backButtonItem.setItemMeta(backButtonMeta);
+
+				GUI.setItem(ROW * COL - 1, backButtonItem);
 			}
-
-			ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
-
-			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-			backButtonMeta.setDisplayName(
-					ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("back")));
-
-			backButtonItem.setItemMeta(backButtonMeta);
-
-			GUI.setItem(ROW * COL - 1, backButtonItem);
-		}
 		}
 		open();
 
 	}
-
 
 	/**
 	 * Preload a page into the GUI. This is required before opening a shop.
@@ -598,77 +592,79 @@ public final class Shop implements Listener {
 		if (e.getWhoClicked() instanceof Player) {
 			if (e.getClickedInventory() != null) {
 				Player player = (Player) e.getWhoClicked();
+				if (player.getName().equals(this.user.getName())) {
 
-				/*
-				 * If the player has the shop open.
-				 */
-				if (Main.HAS_SHOP_OPEN.contains(player.getName())) {
-					e.setCancelled(true);
-					if (player.getInventory().firstEmpty() == -1) {
-						e.setCancelled(true);
-						player.sendMessage(Utils.getFull());
-						return;
-					}
 					/*
-					 * If the player clicks on an empty slot, then cancel the event.
+					 * If the player has the shop open.
 					 */
-					if (e.getCurrentItem() != null) {
-						if (e.getCurrentItem().getType() == Material.AIR) {
+					if (Main.HAS_SHOP_OPEN.contains(player.getName())) {
+						e.setCancelled(true);
+						if (player.getInventory().firstEmpty() == -1) {
+							e.setCancelled(true);
+							player.sendMessage(Utils.getFull());
+							return;
+						}
+						/*
+						 * If the player clicks on an empty slot, then cancel the event.
+						 */
+						if (e.getCurrentItem() != null) {
+							if (e.getCurrentItem().getType() == Material.AIR) {
+								e.setCancelled(true);
+								return;
+							}
+						}
+
+						/*
+						 * If the player clicks in their own inventory, we want to cancel the event.
+						 */
+						if (e.getClickedInventory() == player.getInventory()) {
 							e.setCancelled(true);
 							return;
 						}
-					}
 
-					/*
-					 * If the player clicks in their own inventory, we want to cancel the event.
-					 */
-					if (e.getClickedInventory() == player.getInventory()) {
-						e.setCancelled(true);
-						return;
-					}
-
-					if (e.getSlot() >= 0 && e.getSlot() < getGUI().getSize()) {
-						/**
-						 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
-						 * user clicks the forward button, load and open next page, Otherwise, If the
-						 * user clicks the backward button, load and open the previous page, Otherwise
-						 * Attempt to purchase the clicked item.
-						 */
-						if (e.getSlot() == getGUI().getSize() - 1) {
-							e.setCancelled(true);
-							closeAndOpenMenu(player.getName());
-							return;
-						} else if (e.getSlot() == getGUI().getSize() - 2) {
-							e.setCancelled(true);
-							if (e.getCurrentItem().getData().getData() != 14) {
-
-								loadPage(getCurrentPage() + 1);
-							}
-
-						} else if (e.getSlot() == 46) {
-							e.setCancelled(true);
-							if (e.getCurrentItem().getData().getData() != 14) {
-
-								loadPage(getCurrentPage() - 1);
-							}
-						} else {
-
-							/*
-							 * If the player has enough money to purchase the item, then allow them to.
+						if (e.getSlot() >= 0 && e.getSlot() < getGUI().getSize()) {
+							/**
+							 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
+							 * user clicks the forward button, load and open next page, Otherwise, If the
+							 * user clicks the backward button, load and open the previous page, Otherwise
+							 * Attempt to purchase the clicked item.
 							 */
-							Item item;
-							if (hasPages()) {
-								item = getPage(getCurrentPage()).getContents()[e.getSlot()];
+							if (e.getSlot() == getGUI().getSize() - 1) {
+								e.setCancelled(true);
+								closeAndOpenMenu(player.getName());
+								return;
+							} else if (e.getSlot() == getGUI().getSize() - 2) {
+								e.setCancelled(true);
+								if (e.getCurrentItem().getData().getData() != 14) {
+
+									loadPage(getCurrentPage() + 1);
+								}
+
+							} else if (e.getSlot() == 46) {
+								e.setCancelled(true);
+								if (e.getCurrentItem().getData().getData() != 14) {
+
+									loadPage(getCurrentPage() - 1);
+								}
 							} else {
-								item = getItems()[e.getSlot()];
+
+								/*
+								 * If the player has enough money to purchase the item, then allow them to.
+								 */
+								Item item;
+								if (hasPages()) {
+									item = getPage(getCurrentPage()).getContents()[e.getSlot()];
+								} else {
+									item = getItems()[e.getSlot()];
+								}
+
+								Quantity qty = new Quantity(player.getName(), item, e.getSlot());
+								Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
+								unregisterClass(player.getName());
+								qty.open();
+								Main.HAS_QTY_OPEN.add(player.getName());
+
 							}
-
-							Quantity qty = new Quantity(player.getName(), item, currentShop);
-							Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
-							unregisterClass(player.getName());
-							qty.open();
-							Main.HAS_QTY_OPEN.add(player.getName());
-
 						}
 					}
 				}
@@ -682,19 +678,20 @@ public final class Shop implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
 		String playerName = e.getPlayer().getName();
-		if (Main.HAS_SHOP_OPEN.contains(playerName)) {
-			if (!Utils.getEscapeOnly()) {
-				HandlerList.unregisterAll(this);
-				Main.HAS_SHOP_OPEN.remove(playerName);
-				return;
-			} else {
-				HandlerList.unregisterAll(this);
-				Main.HAS_SHOP_OPEN.remove(playerName);
-				Menu men = new Menu(playerName);
-				men.open();
-				return;
+		if (playerName.equals(this.user.getName())) {
+			if (Main.HAS_SHOP_OPEN.contains(playerName)) {
+				if (!Utils.getEscapeOnly()) {
+					HandlerList.unregisterAll(this);
+					Main.HAS_SHOP_OPEN.remove(playerName);
+					return;
+				} else {
+					HandlerList.unregisterAll(this);
+					Main.HAS_SHOP_OPEN.remove(playerName);
+					Menu men = new Menu(playerName);
+					men.open();
+					return;
+				}
 			}
-
 		}
 	}
 

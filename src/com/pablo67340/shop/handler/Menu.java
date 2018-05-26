@@ -34,13 +34,11 @@ public final class Menu implements Listener {
 	 */
 	private final Player player;
 
-
-
 	/**
 	 * The loaded shops read from the config.
 	 */
 	private Map<Integer, ShopDir> shops = new HashMap<>();
-	
+
 	private Shop openShop;
 
 	/**
@@ -89,7 +87,6 @@ public final class Menu implements Listener {
 			}
 
 			shops.put(i, new ShopDir(shop, name, description, lore));
-			System.out.println(i);
 
 			if (player.hasPermission("guishop.slot." + (i + 1)) || player.isOp()
 					|| player.hasPermission("guishop.slot.*")) {
@@ -169,37 +166,39 @@ public final class Menu implements Listener {
 		if (e.getWhoClicked() instanceof Player) {
 			if (e.getClickedInventory() != null) {
 				Player player = (Player) e.getWhoClicked();
-
-				/*
-				 * If the player has the menu open.
-				 */
-				if (Main.HAS_MENU_OPEN.contains(player.getName())) {
-					e.setCancelled(true);
+				if (player.getName().equals(this.player.getName())) {
 					/*
-					 * If the player clicks on an empty slot, then cancel the event.
+					 * If the player has the menu open.
 					 */
-					if (e.getCurrentItem() != null) {
-						if (e.getCurrentItem().getType() == Material.AIR) {
+					if (Main.HAS_MENU_OPEN.contains(player.getName())) {
+						e.setCancelled(true);
+						/*
+						 * If the player clicks on an empty slot, then cancel the event.
+						 */
+						if (e.getCurrentItem() != null) {
+							if (e.getCurrentItem().getType() == Material.AIR) {
+								e.setCancelled(true);
+								return;
+							}
+						}
+
+						/*
+						 * If the player clicks in their own inventory, we want to cancel the event.
+						 */
+						if (e.getClickedInventory() == player.getInventory()) {
 							e.setCancelled(true);
 							return;
 						}
-					}
 
-					/*
-					 * If the player clicks in their own inventory, we want to cancel the event.
-					 */
-					if (e.getClickedInventory() == player.getInventory()) {
-						e.setCancelled(true);
+						dupePatch = true;
+						unregisterClass(player.getName());
+						ShopDir shopDef = shops.get(e.getSlot());
+						openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+								shopDef.getLore(), e.getSlot(), player);
+						Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
+						openShop.loadShop();
 						return;
 					}
-
-					dupePatch = true;
-					unregisterClass(player.getName());
-					ShopDir shopDef = shops.get(e.getSlot());
-					openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), e.getSlot(), player);
-					Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
-					openShop.loadShop();
-					return;
 				}
 			}
 		}
@@ -211,20 +210,22 @@ public final class Menu implements Listener {
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
 		String playerName = e.getPlayer().getName();
-		if (Main.HAS_SHOP_OPEN.contains(playerName) && !Main.HAS_QTY_OPEN.contains(playerName)) {
-			if (Utils.getEscapeOnly()) {
-				HandlerList.unregisterAll(openShop);
-				Main.HAS_SHOP_OPEN.remove(playerName);
-				open();
+		if (playerName.equals(this.player.getName())) {
+			if (Main.HAS_SHOP_OPEN.contains(playerName) && !Main.HAS_QTY_OPEN.contains(playerName)) {
+				if (Utils.getEscapeOnly()) {
+					HandlerList.unregisterAll(openShop);
+					Main.HAS_SHOP_OPEN.remove(playerName);
+					open();
+				}
+				return;
+			} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
+				if (!dupePatch) {
+					unregisterClass(playerName);
+				} else {
+					dupePatch = false;
+				}
+				return;
 			}
-			return;
-		} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
-			if (!dupePatch) {
-				unregisterClass(playerName);
-			} else {
-				dupePatch = false;
-			}
-			return;
 		}
 	}
 

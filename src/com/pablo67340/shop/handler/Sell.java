@@ -214,11 +214,13 @@ public final class Sell implements Listener {
 
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onSellClose(InventoryCloseEvent event) {
-		if (Main.HAS_SELL_OPEN.contains(player.getName())) {
-			HandlerList.unregisterAll(this);
-			sell();
-			Main.HAS_SELL_OPEN.remove(player.getName());
-			return;
+		if (event.getPlayer().getName().equalsIgnoreCase(this.player.getName())) {
+			if (Main.HAS_SELL_OPEN.contains(player.getName())) {
+				HandlerList.unregisterAll(this);
+				sell();
+				Main.HAS_SELL_OPEN.remove(player.getName());
+				return;
+			}
 		}
 	}
 

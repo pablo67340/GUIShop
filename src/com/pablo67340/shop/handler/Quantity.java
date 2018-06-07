@@ -1,9 +1,6 @@
 package com.pablo67340.shop.handler;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
@@ -87,6 +84,25 @@ public class Quantity implements Listener {
 		Integer multiplier = 1;
 		for (int x = 19; x <= 25; x++) {
 			ItemStack itemStack = new ItemStack(item.getId(), multiplier, (short) item.getData());
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
+
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&',
+								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+						ChatColor.translateAlternateColorCodes('&',
+								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+			} else if (item.getBuyPrice() == 0) {
+				itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
+						ChatColor.translateAlternateColorCodes('&',
+								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+			} else {
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&',
+								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+						ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
+			}
+			itemStack.setItemMeta(itemMeta);
 			GUI.setItem(x, itemStack);
 			qty.put(x, multiplier);
 			multiplier *= 2;

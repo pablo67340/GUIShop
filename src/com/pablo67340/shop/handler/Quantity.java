@@ -89,17 +89,17 @@ public class Quantity implements Listener {
 
 				itemMeta.setLore(Arrays.asList(
 						ChatColor.translateAlternateColorCodes('&',
-								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice() * multiplier),
 						ChatColor.translateAlternateColorCodes('&',
-								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice() * multiplier)));
 			} else if (item.getBuyPrice() == 0) {
 				itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
 						ChatColor.translateAlternateColorCodes('&',
-								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice())));
+								"&fSell: &a" + Utils.getCurrency() + item.getSellPrice() * multiplier)));
 			} else {
 				itemMeta.setLore(Arrays.asList(
 						ChatColor.translateAlternateColorCodes('&',
-								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice()),
+								"&fBuy: &c" + Utils.getCurrency() + item.getBuyPrice() * multiplier),
 						ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
 			}
 			itemStack.setItemMeta(itemMeta);

@@ -134,6 +134,17 @@ ingame-config: true
 #The title of the quantity inventory.
 qty-title: "&4Select Amount"
 
+command-already: "&4You already own one or more of the specified commands!"
+
+command-time-remaining: "&4Command Expires in: &e{TIME}"
+
+command-expired: "&4Command has expired! Please purchase from shop!"
+
+##This will disable the usage to the command to everyone, unless purchased from shop or player is OP.
+protected-commands:
+  - '/fly'
+  - '/suicide'
+
 
 
 DisabledWorlds:
@@ -191,10 +202,10 @@ Rows: 1
   Name: '&6Blocks'
   
 ## DO NOT TOUCH BELOW THIS LINE!
-ver: 1.4
+ver: 1.6
 
  ################################
  ## Developed by pablo67340    ##
  ## If you need any support    ##
- ## Add Bryce#0001 on Discord! ##
+ ## https://discord.gg/v7D6pCm ##
  ################################

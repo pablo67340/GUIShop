@@ -6,6 +6,10 @@ Raiding:
   - buy-price: 200.0
   - sell-price: 100.0
   - enchantments: ''
+  - type: COMMAND
+  - commands:
+    - '/fly::70h'
+    - '/suicide::70h'
   '2':
   - id: '33:0'
   - slot: 1

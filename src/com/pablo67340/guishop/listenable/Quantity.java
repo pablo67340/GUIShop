@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.listenable;
 
+import java.util.Arrays;
 import java.util.HashMap;
 
 import java.util.Map;
@@ -88,12 +89,25 @@ public class Quantity implements Listener {
 		Integer multiplier = 1;
 		for (int x = 19; x <= 25; x++) {
 			ItemStack itemStack = new ItemStack(item.getId(), multiplier, (short) item.getData());
-			String type = itemStack.getType().toString();
-			if ((type.contains("CHESTPLATE") || type.contains("LEGGINGS") || type.contains("BOOTS")
-					|| type.contains("HELMET")) && x >= 20) {
-				break;
-			}
+			ItemMeta itemMeta = itemStack.getItemMeta();
+			if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
 
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&',
+								"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice() * multiplier),
+						ChatColor.translateAlternateColorCodes('&',
+								"&fSell: &a" + Config.getCurrency() + item.getSellPrice() * multiplier)));
+			} else if (item.getBuyPrice() == 0) {
+				itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
+						ChatColor.translateAlternateColorCodes('&',
+								"&fSell: &a" + Config.getCurrency() + item.getSellPrice() * multiplier)));
+			} else {
+				itemMeta.setLore(Arrays.asList(
+						ChatColor.translateAlternateColorCodes('&',
+								"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice() * multiplier),
+						ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
+			}
+			itemStack.setItemMeta(itemMeta);
 			GUI.setItem(x, itemStack);
 			qty.put(x, multiplier);
 			multiplier *= 2;

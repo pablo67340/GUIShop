@@ -107,6 +107,11 @@ public class Quantity implements Listener {
 								"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice() * multiplier),
 						ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
 			}
+			String type = itemStack.getType().toString();
+			if ((type.contains("CHESTPLATE") || type.contains("LEGGINGS") || type.contains("BOOTS")
+					|| type.contains("HELMET")) && x >= 20) {
+				break;
+			}
 			itemStack.setItemMeta(itemMeta);
 			GUI.setItem(x, itemStack);
 			qty.put(x, multiplier);

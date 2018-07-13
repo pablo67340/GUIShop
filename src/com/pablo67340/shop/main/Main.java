@@ -1,4 +1,4 @@
-package com.pablo67340.guishop.main;
+package com.pablo67340.shop.main;
 
 import java.io.*;
 import java.util.*;
@@ -6,7 +6,6 @@ import java.util.logging.Level;
 
 import net.milkbowl.vault.economy.Economy;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.InvalidConfigurationException;
@@ -15,16 +14,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.pablo67340.SQLiteLib.Main.SQLiteLib;
-import com.pablo67340.guishop.definition.ItemCommand;
-import com.pablo67340.guishop.handler.*;
-import com.pablo67340.guishop.listenable.Menu;
-import com.pablo67340.guishop.listenable.PlayerListener;
-import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.listenable.Shop;
-import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.Debugger;
-import com.pablo67340.guishop.util.Dependencies;
+import com.pablo67340.shop.handler.*;
+import com.pablo67340.shop.listener.PlayerListener;
 import com.songoda.epicspawners.api.EpicSpawners;
 
 import de.dustplanet.util.SilkUtil;
@@ -120,10 +111,6 @@ public final class Main extends JavaPlugin {
 	 * @value The creator.
 	 */
 	public static final Map<String, Creator> CREATOR = new HashMap<>();
-	
-	public static final Set<String> protectedCommands = new HashSet<>();
-
-	private SQLiteLib sqlLib;
 
 	/**
 	 * A {@link Map} that holds the prices to buy and sell an {@link Item} to/from a
@@ -132,8 +119,7 @@ public final class Main extends JavaPlugin {
 	 * @key The item's ID.
 	 * @value The item's price object.
 	 */
-	// public static final Map<String, Map<String, Price>> PRICETABLE = new
-	// HashMap<>();
+	//public static final Map<String, Map<String, Price>> PRICETABLE = new HashMap<>();
 
 	/**
 	 * Override onEnable, run GUIShop code.
@@ -171,52 +157,6 @@ public final class Main extends JavaPlugin {
 		} else {
 			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
 		}
-		sqlLib = new SQLiteLib();
-
-		sqlLib.initializeDatabase(this, "guishop_commands",
-				"CREATE TABLE IF NOT EXISTS commands (`id` INTEGER PRIMARY KEY, `uuid` varchar(256) not null, `command` text not null, `duration` varchar(16) not null, `start` varchar(16) not null)");
-
-	}
-
-	public void addCommand(UUID uuid, String cmd, String duration, String startDate) {
-
-		String statement = "INSERT INTO commands (uuid, command, duration, start) VALUES ('" + uuid.toString() + "','"
-				+ cmd + "','" + duration + "','" + startDate + "')";
-		sqlLib.getDatabase("guishop_commands").executeStatement(statement);
-
-	}
-
-	public void removeCommand(UUID uuid, String command) {
-
-		sqlLib.getDatabase("guishop_commands")
-				.executeStatement("REMOVE FROM commands WHERE command = " + command + " AND uuid = " + uuid.toString());
-
-	}
-
-	public ItemCommand loadCommands(UUID uuid) {
-		List<String> commands = new ArrayList<>();
-		List<Object> commandRow = sqlLib.getDatabase("guishop_commands")
-				.queryRow("SELECT command FROM commands WHERE uuid = '" + uuid + "'", "command");
-		List<Object> durationRow = sqlLib.getDatabase("guishop_commands")
-				.queryRow("SELECT duration FROM commands WHERE uuid = '" + uuid + "'", "duration");
-		List<Object> startRow = sqlLib.getDatabase("guishop_commands")
-				.queryRow("SELECT start FROM commands WHERE uuid = '" + uuid + "'", "start");
-		Integer index = -1;
-		String startDate = "";
-		for (Object object : commandRow) {
-			index += 1;
-			String cmd = (String) object;
-			String duration = (String) durationRow.get(index);
-			String finalCommand = cmd + "::" + duration;
-			commands.add(finalCommand);
-			startDate = (String) startRow.get(index);
-		}
-
-		ItemCommand itemCommand = new ItemCommand(commands, uuid, false, startDate);
-		// Change to dateTimeFormatter. Close Deprecation warning
-
-		return itemCommand;
-
 	}
 
 	/**
@@ -320,20 +260,6 @@ public final class Main extends JavaPlugin {
 				getLogger().warning("Config update successful!");
 				return true;
 			} else if (ver == 1.5) {
-				getLogger().warning("The config version is outdated! Automatically updating config...");
-				getMainConfig().set("ver", 1.6);
-				getMainConfig().set("command-already", "&4 You already own one or more of the specified commands!");
-				getMainConfig().set("command-time-remaining", "&4 Command Expires in: &e{TIME}");
-				getMainConfig().set("command-expired", "&4Command has expired! Please purchase from shop!");
-				List<String> commands = new ArrayList<>();
-				commands.add("/suicide");
-				commands.add("/fly");
-				getMainConfig().set("protected-commands", commands);
-				updateConfig();
-				saveMainConfig();
-				getLogger().warning("Config update successful!");
-				return true;
-			}else if (ver == 1.6) {
 				getLogger().info("Config all up to date!");
 				return true;
 			} else {
@@ -356,38 +282,31 @@ public final class Main extends JavaPlugin {
 	public void loadDefaults() {
 		BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
 		SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
-		Config.setPrefix(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("prefix")));
-		Config.setSignsOnly(getMainConfig().getBoolean("signs-only"));
-		Config.setSignTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sign-title")));
-		Config.setNotEnoughPre(
-				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-pre")));
-		Config.setNotEnoughPost(
+		Utils.setPrefix(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("prefix")));
+		Utils.setSignsOnly(getMainConfig().getBoolean("signs-only"));
+		Utils.setSignTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sign-title")));
+		Utils.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-pre")));
+		Utils.setNotEnoughPost(
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("not-enough-post")));
-		Config.setPurchased(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("purchased")));
-		Config.setTaken(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("taken")));
-		Config.setSold(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sold")));
-		Config.setAdded(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("added")));
-		Config.setCantSell(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-sell")));
-		Config.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
-		Config.setSound(getMainConfig().getString("purchase-sound"));
-		Config.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
-		Config.setCreatorEnabled(getMainConfig().getBoolean("ingame-config"));
-		Config.setCantBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-buy")));
-		Config.setMenuRows(getMainConfig().getInt("menu-rows"));
-		Config.setFull(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("full-inventory")));
-		Config.setNoPermission(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("no-permission")));
-		Config.setCurrency(getMainConfig().getString("currency"));
-		Config.setCurrencySuffix(
+		Utils.setPurchased(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("purchased")));
+		Utils.setTaken(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("taken")));
+		Utils.setSold(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sold")));
+		Utils.setAdded(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("added")));
+		Utils.setCantSell(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-sell")));
+		Utils.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
+		Utils.setSound(getMainConfig().getString("purchase-sound"));
+		Utils.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
+		Utils.setCreatorEnabled(getMainConfig().getBoolean("ingame-config"));
+		Utils.setCantBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cant-buy")));
+		Utils.setMenuRows(getMainConfig().getInt("menu-rows"));
+		Utils.setFull(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("full-inventory")));
+		Utils.setNoPermission(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("no-permission")));
+		Utils.setCurrency(getMainConfig().getString("currency"));
+		Utils.setCurrencySuffix(
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("currency-suffix")));
-		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("qty-title")));
-		Config.setSilkSpawners(getConfig().getBoolean("silkspawners"));
-		Config.setCommandAlready(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-already")));
-		Config.setCommandRemaining(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-time-remaining")));
-		Config.setCommandExpired(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-expired")));
+		Utils.setQtyTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("qty-title")));
+		Utils.setSilkSpawners(getConfig().getBoolean("silkspawners"));
 		getDataFolder();
-		for (String cmd : getMainConfig().getStringList("protected-commands")) {
-			protectedCommands.add(cmd);
-		}
 	}
 
 	/**
@@ -418,22 +337,10 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 * Force save the shop config.
-	 */
-	public void saveShopConfig() {
-		try {
-			getCustomConfig().save(specialf);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
 	 * 
 	 * Force create all YML files.
 	 */
 	public void createFiles() {
-		this.getDataFolder();
 
 		configf = new File(getDataFolder(), "config.yml");
 		specialf = new File(getDataFolder(), "shops.yml");
@@ -468,7 +375,6 @@ public final class Main extends JavaPlugin {
 	 * Get the current economy object
 	 */
 	public static Economy getEconomy() {
-
 		return ECONOMY;
 	}
 
@@ -494,29 +400,6 @@ public final class Main extends JavaPlugin {
 	 */
 	public Boolean usesSpawners() {
 		return useSpawners;
-	}
-
-	public SQLiteLib getSqlLite() {
-		return sqlLib;
-	}
-
-	public Boolean purchaseCommands(UUID uuid, List<String> commands) {
-		ItemCommand itemCommand = loadCommands(uuid);
-		
-		
-		if (itemCommand != null) {
-			for (String cmd : commands) {
-				String command = StringUtils.substringBefore(cmd, "::");
-				if (itemCommand.getCommands().contains(command)) {
-					return false;
-				}
-			}
-		}
-
-		Date date = new Date();
-		new ItemCommand(commands, uuid, true, date.toString());
-		return true;
-
 	}
 
 }

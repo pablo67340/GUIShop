@@ -1,7 +1,8 @@
-package com.pablo67340.guishop.listenable;
+package com.pablo67340.shop.handler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
-
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -20,13 +21,8 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitScheduler;
 
-import com.pablo67340.guishop.definition.Spawners;
-import com.pablo67340.guishop.handler.Item;
-import com.pablo67340.guishop.main.Main;
-import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.Dependencies;
+import com.pablo67340.shop.main.Main;
 import com.songoda.epicspawners.api.EpicSpawners;
 import com.songoda.epicspawners.api.EpicSpawnersAPI;
 
@@ -60,20 +56,23 @@ public class Quantity implements Listener {
 	 */
 	private Map<Integer, Integer> qty = new HashMap<>();
 
-	private Shop currentShop;
+	/**
+	 * The shop number the user came from.
+	 */
+	private Integer currentShop;
 
-	public Quantity(String player, Item item, Shop shop) {
+	public Quantity(String player, Item item, Integer currentShop) {
 		this.item = item;
 		this.playerName = player;
 		this.player = Bukkit.getPlayer(player);
-		this.currentShop = shop;
+		this.currentShop = currentShop;
 	}
 
 	/**
 	 * Opens the GUI to sell the items in.
 	 */
 	public void open() {
-		GUI = Bukkit.getServer().createInventory(null, 9 * 6, Config.getQtyTitle());
+		GUI = Bukkit.getServer().createInventory(null, 9 * 6, Utils.getQtyTitle());
 		packInventory();
 
 		player.openInventory(GUI);
@@ -88,18 +87,12 @@ public class Quantity implements Listener {
 		Integer multiplier = 1;
 		for (int x = 19; x <= 25; x++) {
 			ItemStack itemStack = new ItemStack(item.getId(), multiplier, (short) item.getData());
-			String type = itemStack.getType().toString();
-			if ((type.contains("CHESTPLATE") || type.contains("LEGGINGS") || type.contains("BOOTS")
-					|| type.contains("HELMET")) && x >= 20) {
-				break;
-			}
-
 			GUI.setItem(x, itemStack);
 			qty.put(x, multiplier);
 			multiplier *= 2;
 		}
 
-		if (!Config.getEscapeOnly()) {
+		if (!Utils.getEscapeOnly()) {
 			int backButton = 0;
 			short data = 0;
 
@@ -132,7 +125,7 @@ public class Quantity implements Listener {
 		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
 			if (Main.HAS_QTY_OPEN.contains(playerName)) {
 				e.setCancelled(true);
-				if (!Config.getEscapeOnly()) {
+				if (!Utils.getEscapeOnly()) {
 					if (e.getSlot() == (GUI.getSize() - 1)) {
 						Main.HAS_QTY_OPEN.remove(playerName);
 						HandlerList.unregisterAll(this);
@@ -146,7 +139,7 @@ public class Quantity implements Listener {
 				}
 
 				if (player.getInventory().firstEmpty() == -1) {
-					player.sendMessage(Config.getFull());
+					player.sendMessage(Utils.getFull());
 					return;
 				}
 				/*
@@ -167,7 +160,7 @@ public class Quantity implements Listener {
 
 				// Check if the item is disabled, or price is 0
 				if (item.getBuyPrice() == 0) {
-					player.sendMessage(Config.getPrefix() + " " + Config.getCantBuy());
+					player.sendMessage(Utils.getPrefix() + " " + Utils.getCantBuy());
 					player.setItemOnCursor(new ItemStack(Material.AIR));
 					return;
 				}
@@ -177,8 +170,8 @@ public class Quantity implements Listener {
 
 				// If the quantity is 0
 				if (quantity == 0) {
-					player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
-							+ Config.getNotEnoughPost());
+					player.sendMessage(Utils.getPrefix() + " " + Utils.getNotEnoughPre() + item.getBuyPrice()
+							+ Utils.getNotEnoughPost());
 					player.setItemOnCursor(new ItemStack(Material.AIR));
 					return;
 				}
@@ -227,10 +220,8 @@ public class Quantity implements Listener {
 					if (Main.getInstance().usesSpawners()) {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							String oldName = Spawners.getMobName(item.getData());
-							String spawnerName = oldName.substring(0, 1).toUpperCase()
-									+ oldName.substring(1).toLowerCase() + " Spawner";
-							itemStack = su.setSpawnerType(itemStack, (short) item.getData(), spawnerName);
+							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
+									Spawners.getMobName(item.getData()));
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 							itemStack = es.newSpawnerItem(EpicSpawnersAPI.getSpawnerManager()
@@ -266,21 +257,21 @@ public class Quantity implements Listener {
 				if (Main.getEconomy().withdrawPlayer(player, priceToPay).transactionSuccess()) {
 					// If the player has the sound enabled, play
 					// it!
-					if (Config.isSoundEnabled()) {
+					if (Utils.isSoundEnabled()) {
 						try {
-							player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
+							player.playSound(player.getLocation(), Sound.valueOf(Utils.getSound()), 1, 1);
 
 						} catch (Exception ex) {
 							Main.getInstance().getLogger().warning(
 									"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
 						}
 					}
-					player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
-							+ Config.getCurrencySuffix());
+					player.sendMessage(Utils.getPrefix() + Utils.getPurchased() + priceToPay + Utils.getTaken()
+							+ Utils.getCurrencySuffix());
 					returnedItems = player.getInventory().addItem(itemStack);
 				} else {
 					player.sendMessage(
-							Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
+							Utils.getPrefix() + Utils.getNotEnoughPre() + priceToPay + Utils.getNotEnoughPost());
 				}
 
 			}
@@ -291,15 +282,33 @@ public class Quantity implements Listener {
 	 * Preloads the shops before opening them.
 	 */
 	public void reOpen() {
-		player.closeInventory();
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				Bukkit.getServer().getPluginManager().registerEvents(currentShop, Main.getInstance());
-				currentShop.open();
-			}
-		}, 1L);
+		/**
+		 * Loads all global shops.
+		 * 
+		 */
+
+		if (!Main.INSTANCE.getMainConfig().getBoolean(currentShop + ".Enabled")) {
+			return;
+		}
+
+		String shop = ChatColor.translateAlternateColorCodes('&',
+				Main.INSTANCE.getMainConfig().getString(currentShop + ".Shop"));
+
+		String name = ChatColor.translateAlternateColorCodes('&',
+				Main.INSTANCE.getMainConfig().getString(currentShop + ".Name"));
+
+		String description = ChatColor.translateAlternateColorCodes('&',
+				Main.INSTANCE.getMainConfig().getString(currentShop + ".Desc"));
+
+		List<String> lore = new ArrayList<>();
+
+		if (description != null && description.length() > 0) {
+			lore.add(description);
+		}
+
+		Shop shop2 = new Shop(shop, name, description, lore, currentShop, player);
+		Bukkit.getServer().getPluginManager().registerEvents(shop2, Main.getInstance());
+		shop2.loadShop();
 
 	}
 
@@ -310,7 +319,7 @@ public class Quantity implements Listener {
 	public void onClose(InventoryCloseEvent e) {
 		if (e.getPlayer().getName().equalsIgnoreCase(this.playerName)) {
 			if (Main.HAS_QTY_OPEN.contains(playerName)) {
-				if (Config.getEscapeOnly()) {
+				if (Utils.getEscapeOnly()) {
 					Main.HAS_QTY_OPEN.remove(playerName);
 					HandlerList.unregisterAll(this);
 					reOpen();

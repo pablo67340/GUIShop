@@ -17,19 +17,19 @@ public final class Item {
 	private String name;
 
 	/**
-	 * The ID of this {@link Item}.
+	 * The Material Name of this {@link Item}.
 	 */
-	private int id;
-
-	/**
-	 * The Data of this {@link Item}.
-	 */
-	private int data;
+	private String material;
 
 	/**
 	 * The price to buy this {@link Item}.
 	 */
 	private double buyPrice;
+	
+	/**
+	 * The mob ID of this item if it's a spawner {@link Item}.
+	 */
+	private String mobType;
 
 	/**
 	 * The amount of money given when selling this {@link Item}.
@@ -110,38 +110,18 @@ public final class Item {
 	 * 
 	 * @return this item's ID.
 	 */
-	public int getId() {
-		return id;
+	public String getMaterial() {
+		return material;
 	}
 
 	/**
-	 * Sets the ID of this {@link Item}.
+	 * Sets the Material Name of this {@link Item}.
 	 * 
 	 * @param id
-	 *            The ID to set.
+	 *            The Name to set.
 	 */
-	public void setId(int id) {
-		this.id = id;
-	}
-
-	/**
-	 * Sets the Data of this {@link Item}.
-	 * 
-	 * @param id
-	 *            The Data to set.
-	 */
-
-	public void setData(int data) {
-		this.data = data;
-	}
-
-	/**
-	 * Gets the data for this {@link Item}.
-	 * 
-	 * @return this item's data.
-	 */
-	public int getData() {
-		return data;
+	public void setMaterial(String input) {
+		material = input;
 	}
 
 	/**
@@ -206,6 +186,18 @@ public final class Item {
 	
 	public List<String> getCommands(){
 		return commands;
+	}
+	
+	public void setMobType(String id) {
+		mobType = id;
+	}
+	
+	public String getMobType() {
+		return mobType;
+	}
+	
+	public Boolean isMobSpawner() {
+		return mobType != null;
 	}
 
 }

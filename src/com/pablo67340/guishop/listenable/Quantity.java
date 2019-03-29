@@ -23,7 +23,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import com.pablo67340.guishop.definition.Spawners;
 import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
@@ -84,11 +83,10 @@ public class Quantity implements Listener {
 	/**
 	 * Preloads the inventory to display items.
 	 */
-	@SuppressWarnings("deprecation")
 	private void packInventory() {
 		Integer multiplier = 1;
 		for (int x = 19; x <= 25; x++) {
-			ItemStack itemStack = new ItemStack(item.getId(), multiplier, (short) item.getData());
+			ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), multiplier);
 			ItemMeta itemMeta = itemStack.getItemMeta();
 			if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
 
@@ -119,19 +117,11 @@ public class Quantity implements Listener {
 		}
 
 		if (!Config.getEscapeOnly()) {
-			int backButton = 0;
-			short data = 0;
+			String backButtonid = Main.INSTANCE.getConfig().getString("back-button-item");
 
-			String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
+			
 
-			if (backButtonId.contains(":")) {
-				String[] args = backButtonId.split(":");
-
-				backButton = Integer.parseInt(args[0]);
-				data = Short.parseShort(args[1]);
-			}
-
-			ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+			ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButtonid));
 
 			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -207,53 +197,33 @@ public class Quantity implements Listener {
 				ItemStack itemStack = null;
 
 				// If the item is not a mob spawner
-				if (item.getId() != 52) {
+				if (!item.isMobSpawner()) {
 
-					// if the item has a data
-					if (item.getData() > 0) {
-						itemStack = new ItemStack(item.getId(), quantity, (short) item.getData());
-						if (item.getEnchantments() != null) {
-							for (String enc : item.getEnchantments()) {
-								String enchantment = StringUtils.substringBefore(enc, ":");
-								String level = StringUtils.substringAfter(enc, ":");
-								itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment),
-										Integer.parseInt(level));
-							}
+					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), quantity);
+					// If the item has enchantments
+					if (item.getEnchantments() != null) {
+						for (String enc : item.getEnchantments()) {
+							String enchantment = StringUtils.substringBefore(enc, ":");
+							String level = StringUtils.substringAfter(enc, ":");
+							itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
 						}
-
-						itemStack.setAmount(quantity);
-						// If is shift clicking, buy 1
-						if (e.isShiftClick())
-							itemStack.setAmount(1);
-
-					} else {
-						itemStack = new ItemStack(item.getId(), quantity);
-						// If the item has enchantments
-						if (item.getEnchantments() != null) {
-							for (String enc : item.getEnchantments()) {
-								String enchantment = StringUtils.substringBefore(enc, ":");
-								String level = StringUtils.substringAfter(enc, ":");
-								itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment),
-										Integer.parseInt(level));
-							}
-						}
-						itemStack.setAmount(e.getCurrentItem().getAmount());
-						// If is shift clicking, buy 1.
-
 					}
+					itemStack.setAmount(e.getCurrentItem().getAmount());
+					// If is shift clicking, buy 1.
+
 				} else {
-					itemStack = new ItemStack(item.getId(), quantity);
+					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), quantity);
 					if (Main.getInstance().usesSpawners()) {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							String oldName = Spawners.getMobName(item.getData());
+							String oldName = item.getMobType();
 							String spawnerName = oldName.substring(0, 1).toUpperCase()
 									+ oldName.substring(1).toLowerCase() + " Spawner";
-							itemStack = su.setSpawnerType(itemStack, (short) item.getData(), spawnerName);
+							itemStack = su.setSpawnerType(itemStack, item.getMobType().toLowerCase(), spawnerName);
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 							itemStack = es.newSpawnerItem(EpicSpawnersAPI.getSpawnerManager()
-									.getSpawnerData(Spawners.getMobName(item.getData())), quantity);
+									.getSpawnerData(item.getMobType()), quantity);
 
 						}
 

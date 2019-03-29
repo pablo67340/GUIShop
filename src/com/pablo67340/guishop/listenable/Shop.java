@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.listenable;
 
 import java.util.*;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -18,13 +19,13 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.Spawners;
 import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.handler.Page;
 import com.pablo67340.guishop.handler.Price;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Dependencies;
+import com.pablo67340.guishop.util.XMaterial;
 import com.songoda.epicspawners.api.EpicSpawners;
 
 import de.dustplanet.util.SilkUtil;
@@ -96,12 +97,9 @@ public final class Shop implements Listener {
 	/**
 	 * The constructor for a {@link Shop}.
 	 * 
-	 * @param name
-	 *            The name of the shop.
-	 * @param description
-	 *            The description of the shop.
-	 * @param lore
-	 *            The lore of the shop.
+	 * @param name        The name of the shop.
+	 * @param description The description of the shop.
+	 * @param lore        The lore of the shop.
 	 */
 	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player) {
 		this.name = name;
@@ -205,6 +203,10 @@ public final class Shop implements Listener {
 		GUI = Bukkit.getServer().createInventory(null, ROW * COL,
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
+		for (Integer i = 0; i > ROW * COL; i++) {
+			GUI.addItem(new ItemStack(Material.AIR));
+		}
+
 		ITEMS = new Item[45];
 
 		pageCount = 0;
@@ -231,16 +233,9 @@ public final class Shop implements Listener {
 				try {
 					if (map.containsKey("id")) {
 						String itemID = (String) map.get("id");
-						if (itemID.contains(":")) {
-							itemID = StringUtils.substringBefore(itemID, ":");
-							String data = (String) map.get("id");
-							data = StringUtils.substringAfter(data, ":");
-							item.setId(Integer.parseInt(itemID));
-							item.setData(Integer.parseInt(data));
-						} else {
-							item.setId(Integer.parseInt(itemID));
-						}
-
+						item.setMaterial(itemID);
+					} else if (map.containsKey("mobType")) {
+						item.setMobType((String) map.get("mobType"));
 					} else if (map.containsKey("slot")) {
 						item.setSlot((Integer) map.get("slot"));
 					} else if (map.containsKey("name")) {
@@ -272,14 +267,14 @@ public final class Shop implements Listener {
 							item.setSellPrice(sell3);
 						}
 					} else if (map.containsKey("type")) {
-						ItemType type = ItemType.valueOf((String)map.get("type"));
+						ItemType type = ItemType.valueOf((String) map.get("type"));
 						item.setType(type);
-					}  else if (map.containsKey("commands")) {
+					} else if (map.containsKey("commands")) {
 						item.setCommands((List<String>) map.get("commands"));
 					}
 				} catch (Exception e) {
-					Main.getInstance().getLogger()
-							.warning("§cError occured while reading item: " + (index - 1) + " from shop: " + getShop());
+					Main.getInstance().getLogger().warning("§cError occured while reading item: " + (index - 1)
+							+ " from shop: " + getShop() + " Error: " + e.getMessage());
 					Main.getInstance().getLogger()
 							.warning("§cThis plugin will not function properly until error is addressed!");
 					Main.getInstance().getDebugger().setHasExploded(true);
@@ -299,21 +294,28 @@ public final class Shop implements Listener {
 				pendingSave = true;
 			}
 
-			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice(), 1));
+			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
 
 			ITEMS[item.getSlot()] = item;
-			ItemStack itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
+			Material material = Material.valueOf(item.getMaterial());
 
-			if (item.getId() == 52) {
+			if (material == null) {
+				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
+					Main.getInstance().getLogger().log(Level.WARNING, "Could not parse material: "+item.getMaterial()+" for item #: "+item.getSlot()+1);
+					continue;
+				}
+			}
+
+			ItemStack itemStack = new ItemStack(material, 1);
+
+			if (item.isMobSpawner()) {
 				if (Main.getInstance().usesSpawners()) {
 					if (Dependencies.hasDependency("SilkSpawners")) {
 						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-						itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
-								Spawners.getMobName(item.getData()));
+						itemStack = su.setSpawnerType(itemStack, item.getMobType().toLowerCase(), item.getMobType());
 					} else if (Dependencies.hasDependency("EpicSpawners")) {
 						EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-						itemStack = es.newSpawnerItem(
-								es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
+						itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(item.getMobType()), 1);
 
 					}
 				}
@@ -357,19 +359,10 @@ public final class Shop implements Listener {
 
 			GUI.setItem(item.getSlot(), itemStack);
 			if (!Config.getEscapeOnly()) {
-				int backButton = 0;
-				short data = 0;
 
 				String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
 
-				if (backButtonId.contains(":")) {
-					String[] args = backButtonId.split(":");
-
-					backButton = Integer.parseInt(args[0]);
-					data = Short.parseShort(args[1]);
-				}
-
-				ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+				ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButtonId));
 
 				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -423,7 +416,7 @@ public final class Shop implements Listener {
 					data = Short.parseShort(args[1]);
 				}
 
-				ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+				ItemStack backButtonItem = new ItemStack(Main.getInstance().findMaterial(backButton), 1, data);
 
 				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -439,8 +432,6 @@ public final class Shop implements Listener {
 			Main.getInstance().saveShopConfig();
 		}
 
-		
-		
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 			@Override
@@ -454,27 +445,24 @@ public final class Shop implements Listener {
 	/**
 	 * Preload a page into the GUI. This is required before opening a shop.
 	 */
-	@SuppressWarnings("deprecation")
 	public void loadPage(Integer page) {
 		GUI.clear();
 		for (Item item : pages[page].getContents()) {
 			if (item != null) {
 				ItemStack itemStack;
-				if (item.getId() != 52) {
+				if (!item.isMobSpawner()) {
 
-					itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
+					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
 				} else {
-					itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
+					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
 
 					if (Main.getInstance().usesSpawners()) {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							itemStack = su.setSpawnerType(itemStack, (short) item.getData(),
-									Spawners.getMobName(item.getData()));
+							itemStack = su.setSpawnerType(itemStack, item.getMobType(), item.getMobType());
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(
-									es.getSpawnerManager().getSpawnerData(Spawners.getMobName(item.getData())), 1);
+							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(item.getMobType()), 1);
 
 						}
 					}
@@ -517,19 +505,10 @@ public final class Shop implements Listener {
 
 				GUI.setItem(item.getSlot(), itemStack);
 				if (!Config.getEscapeOnly()) {
-					int backButton = 0;
-					short data = 0;
 
 					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
 
-					if (backButtonId.contains(":")) {
-						String[] args = backButtonId.split(":");
-
-						backButton = Integer.parseInt(args[0]);
-						data = Short.parseShort(args[1]);
-					}
-
-					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButtonId));
 
 					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -580,21 +559,20 @@ public final class Shop implements Listener {
 	 * Apply back/forward buttons to the GUI. Check if users are on last or first
 	 * page adjust buttons accordingly.
 	 */
-	@SuppressWarnings("deprecation")
 	public void applyButtons() {
-		ItemStack goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
+		ItemStack goButtonItem = new ItemStack(Material.getMaterial("BLUE_WOOL"));
 
 		ItemMeta goButtonMeta = goButtonItem.getItemMeta();
 
 		if (getCurrentPage() != (pageCount)) {
-			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
+			goButtonItem = new ItemStack(Material.getMaterial("BLUE_WOOL"));
 
 			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', ">"));
 
 			goButtonItem.setItemMeta(goButtonMeta);
 
 		} else {
-			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 14);
+			goButtonItem = new ItemStack(Material.getMaterial("RED_WOOL"));
 
 			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', ">"));
 
@@ -604,15 +582,14 @@ public final class Shop implements Listener {
 		GUI.setItem(GUI.getSize() - 2, goButtonItem);
 
 		if (getCurrentPage() != 0) {
-
-			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 11);
+			goButtonItem = new ItemStack(Material.getMaterial("BLUE_WOOL"));
 
 			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "<"));
 
 			goButtonItem.setItemMeta(goButtonMeta);
 
 		} else {
-			goButtonItem = new ItemStack(Material.getMaterial(35), 1, (short) 14);
+			goButtonItem = new ItemStack(Material.getMaterial("RED_WOOL"));
 
 			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "<"));
 
@@ -697,9 +674,7 @@ public final class Shop implements Listener {
 									item = getItems()[e.getSlot()];
 								}
 								if (item.getItemType() == ItemType.COMMAND) {
-									
 
-									
 									if (Main.getInstance().purchaseCommands(player.getUniqueId(), item.getCommands())) {
 										if (Main.getEconomy().withdrawPlayer(player, item.getBuyPrice())
 												.transactionSuccess()) {

@@ -9,6 +9,7 @@ import net.milkbowl.vault.economy.Economy;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
 import org.bukkit.entity.Player;
@@ -517,6 +518,36 @@ public final class Main extends JavaPlugin {
 		new ItemCommand(commands, uuid, true, date.toString());
 		return true;
 
+	}
+	
+	/**
+	 * Get the matching material from an item id and damage value. Attempts to find
+	 * the material that matches the given data type.
+	 *
+	 * @param typeId    Id of item
+	 * @param dataValue optional data value
+	 * @return the material that matches the given item id and data value, or null
+	 *         if there is no match.
+	 */
+	@SuppressWarnings("deprecation")
+	public org.bukkit.Material findMaterial(int typeId) {
+
+		final Material[] foundMaterial = new Material[1];
+
+		EnumSet.allOf(Material.class).forEach(material -> {
+
+			// TODO: Find a way to convert extra data to a new material type.
+
+			// Found matching id
+			if (material.getId() == typeId) {
+				foundMaterial[0] = material;
+			}
+		});
+		if (foundMaterial[0] != null) {
+			return foundMaterial[0];
+		} else {
+			return null;
+		}
 	}
 
 }

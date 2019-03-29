@@ -4,7 +4,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -16,7 +15,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 
-import com.pablo67340.guishop.definition.Spawners;
 import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.handler.Price;
 import com.pablo67340.guishop.main.Main;
@@ -58,8 +56,7 @@ public final class Sell implements Listener {
 	/**
 	 * Constructor, set player and load GUI.
 	 * 
-	 * @param {@link
-	 * 			Player}
+	 * @param {@link Player}
 	 * 
 	 */
 	public Sell(Player player) {
@@ -105,15 +102,10 @@ public final class Sell implements Listener {
 				try {
 					if (map.containsKey("id")) {
 						String itemID = (String) map.get("id");
-						if (itemID.contains(":")) {
-							itemID = StringUtils.substringBefore(itemID, ":");
-							String data = (String) map.get("id");
-							data = StringUtils.substringAfter(data, ":");
-							item.setId(Integer.parseInt(itemID));
-							item.setData(Integer.parseInt(data));
-						} else {
-							item.setId(Integer.parseInt(itemID));
-						}
+						item.setMaterial(itemID);
+
+					}else if (map.containsKey("mobType")) {
+						item.setMobType((String) map.get("mobType"));
 
 					} else if (map.containsKey("buy-price")) {
 						Integer buy;
@@ -140,11 +132,15 @@ public final class Sell implements Listener {
 					System.out.println("Error: " + e.getMessage());
 				}
 			}
+			
+			
 
 			if (item.getSellPrice() != 0) {
-
-				PRICETABLE.put(item.getId() + ":" + item.getData(),
-						new Price(item.getBuyPrice(), item.getSellPrice(), 1));
+				if (item.getMaterial().equalsIgnoreCase("SPAWNER")) {
+					PRICETABLE.put(item.getMaterial()+":"+item.getMobType().toLowerCase(), new Price(item.getBuyPrice(), item.getSellPrice()));
+				}else {
+				PRICETABLE.put(item.getMaterial(), new Price(item.getBuyPrice(), item.getSellPrice()));
+				}
 			}
 
 		}
@@ -161,35 +157,50 @@ public final class Sell implements Listener {
 
 		double moneyToGive = 0;
 		for (ItemStack item : GUI.getContents()) {
-			Integer data = 0;
+			String data = "";
 			if (item == null) {
 				continue;
 			}
+			
+			Double sellPrice = 0.0;
 
-			if (item.getData().getItemTypeId() == 52) {
+			if (item.getData().getItemType().getId() == 52) {
 
 				if (Dependencies.hasDependency("SilkSpawners")) {
 					SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-					data = (int) su.getStoredSpawnerItemEntityID(item);
+					data = su.getStoredSpawnerItemEntityID(item);
+					System.out.println("DATA: "+data);
 				} else if (Dependencies.hasDependency("EpicSpawners")) {
 					EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 					SpawnerData spawnerData = es.getSpawnerDataFromItem(item);
 					String name = spawnerData.getIdentifyingName();
-					data = Spawners.getMobID(name);
+					data = name;
+					System.out.println("DATA: "+data);
 
 				}
 
+				if (!PRICETABLE.containsKey(item.getType().toString() + ":" + data)) {
+					player.getInventory().addItem(item);
+					player.sendMessage(Config.getPrefix() + Config.getCantSell());
+					continue;
+
+				}
+				
+				sellPrice = PRICETABLE.get(item.getType().toString() + ":" + data).getSellPrice();
+
 			} else {
-				data = (int) item.getData().getData();
+				if (!PRICETABLE.containsKey(item.getType().toString())) {
+					player.getInventory().addItem(item);
+					player.sendMessage(Config.getPrefix() + Config.getCantSell());
+					continue;
+
+				}
+				
+				sellPrice = PRICETABLE.get(item.getType().toString()).getSellPrice();
+				
 			}
 
-			if (!PRICETABLE.containsKey(item.getData().getItemTypeId() + ":" + data)) {
-				player.getInventory().addItem(item);
-				player.sendMessage(Config.getPrefix() + Config.getCantSell());
-				continue;
-
-			}
-			Double sellPrice = PRICETABLE.get(item.getTypeId() + ":" + data).getSellPrice();
+			
 
 			Integer quantity = item.getAmount();
 

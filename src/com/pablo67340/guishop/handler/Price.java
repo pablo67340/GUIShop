@@ -9,18 +9,11 @@ public final class Price {
 	private final double buyPrice, sellPrice;
 
 	/**
-	 * Quantity of item based on price of {@link Item}.
-	 * 
-	 */
-	private final Integer quantity;
-
-	/**
 	 * Constructor, build entire {@link Price} at once.
 	 */
-	public Price(double buyPrice, double sellPrice, Integer quantity) {
+	public Price(double buyPrice, double sellPrice) {
 		this.buyPrice = buyPrice;
 		this.sellPrice = sellPrice;
-		this.quantity = quantity;
 	}
 
 	/**
@@ -39,15 +32,6 @@ public final class Price {
 	 */
 	public double getSellPrice() {
 		return sellPrice;
-	}
-
-	/**
-	 * Get the {@link Item}'s quantity.
-	 * 
-	 * @return Quantity
-	 */
-	public Integer getQuantity() {
-		return quantity;
 	}
 
 }

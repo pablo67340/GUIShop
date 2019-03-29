@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.listenable;
 
 import java.util.*;
+import java.util.logging.Level;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
@@ -17,6 +18,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.pablo67340.guishop.handler.ShopDir;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.XMaterial;
 
 public final class Menu implements Listener {
 
@@ -58,7 +60,6 @@ public final class Menu implements Listener {
 	/**
 	 * Preloads the configs into their corresponding objects.
 	 */
-	@SuppressWarnings("deprecation")
 	public void preLoad() {
 
 		GUI = Bukkit.getServer().createInventory(null, 9 * Config.getMenuRows(), "Menu");
@@ -69,18 +70,18 @@ public final class Menu implements Listener {
 		int numberOfShops = Config.getMenuRows() * 9;
 
 		for (int i = 0; i < numberOfShops; i++) {
-			if (!Main.INSTANCE.getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
+			if (!Main.getInstance().getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
 				continue;
 			}
 
 			String shop = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Shop"));
+					Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Shop"));
 
 			String name = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Name"));
+					Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Name"));
 
 			String description = ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Desc"));
+					Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Desc"));
 
 			List<String> lore = new ArrayList<>();
 
@@ -92,21 +93,22 @@ public final class Menu implements Listener {
 
 			if (player.hasPermission("guishop.slot." + (i + 1)) || player.isOp()
 					|| player.hasPermission("guishop.slot.*")) {
-				String itemID = Main.INSTANCE.getMainConfig().getString(String.valueOf(i + 1) + ".Item");
-				if (itemID.contains(":")) {
-					String[] ids = itemID.split(":");
-					GUI.setItem(i, setName(
-							new ItemStack(Material.getMaterial(Integer.parseInt(ids[0])), 1, Short.parseShort(ids[1])),
-							name, lore));
-					continue;
-				} else {
-					GUI.setItem(i,
-							setName(new ItemStack(Material.getMaterial(Integer.parseInt(itemID)), 1), name, lore));
-					continue;
-				}
-			}
+				String itemID = Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Item");
 
-			GUI.setItem(i, setName(new ItemStack(Material.getMaterial(36), 1), name, lore));
+				Material material = Material.valueOf(itemID);
+				
+
+				if (material == null) {
+					if ((material = XMaterial.valueOf(itemID).parseMaterial()) == null) {
+						Main.getInstance().getLogger().log(Level.WARNING, "Could not parse material: "+itemID+" for item #: "+(i+1));
+						continue;
+					}
+				}
+				
+				// SetItem no longer works with self created inventory object. Prefill with air?
+				GUI.addItem(setName(new ItemStack(material), name, lore));
+
+			}
 
 		}
 		Bukkit.getServer().getPluginManager().registerEvents(this, Main.getInstance());
@@ -118,13 +120,13 @@ public final class Menu implements Listener {
 	public void open() {
 		if (!player.hasPermission("guishop.use") && !player.isOp()) {
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString("no-permission")));
+					Main.getInstance().getMainConfig().getString("no-permission")));
 			return;
 		}
 
-		if (Main.INSTANCE.getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
+		if (Main.getInstance().getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-					Main.INSTANCE.getMainConfig().getString("disabled-world")));
+					Main.getInstance().getMainConfig().getString("disabled-world")));
 			return;
 		}
 
@@ -195,11 +197,14 @@ public final class Menu implements Listener {
 						dupePatch = true;
 						unregisterClass(player.getName());
 						ShopDir shopDef = shops.get(e.getSlot());
-						openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-								shopDef.getLore(), e.getSlot(), player);
-						Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
-						openShop.loadShop();
-						return;
+						if (!shopDef.getShop().equalsIgnoreCase("")) {
+
+							openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+									shopDef.getLore(), e.getSlot(), player);
+							Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
+							openShop.loadShop();
+							return;
+						}
 					}
 				}
 			}

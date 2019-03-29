@@ -1,6 +1,6 @@
 Raiding:
   '1':
-  - id: '404:0'
+  - id: 'COMPARATOR'
   - slot: 0
   - name: ''
   - buy-price: 200.0
@@ -11,225 +11,204 @@ Raiding:
     - '/fly::70h'
     - '/suicide::70h'
   '2':
-  - id: '33:0'
+  - id: 'PISTON'
   - slot: 1
   - name: ''
   - buy-price: 100.0
   - sell-price: 50.2
   - enchantments: ''
   '3':
-  - id: '29:0'
+  - id: 'STICKY_PISTON'
   - slot: 2
   - name: ''
   - buy-price: 132.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '154:0'
+  - id: 'REDSTONE_BLOCK'
   - slot: 3
   - name: ''
-  - buy-price: 10000.0
+  - buy-price: 150
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '158:0'
+  - id: 'DROPPER'
   - slot: 4
   - name: ''
   - buy-price: 135.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '23:0'
+  - id: 'DISPENSER'
   - slot: 5
   - name: ''
   - buy-price: 135.0
   - sell-price: 0.0
   - enchantments: ''
   '7':
-  - id: '69:0'
+  - id: 'LEVER'
   - slot: 6
   - name: ''
   - buy-price: 5.0
   - sell-price: 0.0
   - enchantments: ''
   '8':
-  - id: '77:0'
+  - id: 'STONE_BUTTON'
   - slot: 7
   - name: ''
   - buy-price: 5.0
   - sell-price: 0.0
   - enchantments: ''
   '9':
-  - id: '143:0'
+  - id: 'OAK_BUTTON'
   - slot: 8
   - name: ''
   - buy-price: 5.0
   - sell-price: 0.0
   - enchantments: ''
   '10':
-  - id: '70:0'
+  - id: 'STONE_PRESSURE_PLATE'
   - slot: 9
   - name: ''
   - buy-price: 5.0
   - sell-price: 0.0
   - enchantments: ''
   '11':
-  - id: '72:0'
+  - id: 'OAK_PRESSURE_PLATE'
   - slot: 10
   - name: ''
   - buy-price: 5.0
   - sell-price: 0.0
   - enchantments: ''
   '12':
-  - id: '76:0'
+  - id: 'REDSTONE_TORCH'
   - slot: 11
   - name: ''
   - buy-price: 2.0
   - sell-price: 0.0
   - enchantments: ''
   '13':
-  - id: '131:0'
+  - id: 'TRIPWIRE_HOOK'
   - slot: 12
   - name: ''
   - buy-price: 50.0
   - sell-price: 0.0
   - enchantments: ''
   '14':
-  - id: '323:0'
+  - id: 'SIGN'
   - slot: 13
   - name: ''
   - buy-price: 1.0
   - sell-price: 0.0
   - enchantments: ''
   '15':
-  - id: '30:0'
+  - id: 'COBWEB'
   - slot: 14
   - name: ''
   - buy-price: 8.0
   - sell-price: 0.0
   - enchantments: ''
   '16':
-  - id: '331:0'
+  - id: 'REDSTONE'
   - slot: 15
   - name: ''
   - buy-price: 1.0
   - sell-price: 1.0
   - enchantments: ''
   '17':
-  - id: '326:0'
+  - id: 'WATER_BUCKET'
   - slot: 16
   - name: ''
   - buy-price: 150.0
   - sell-price: 0.0
   - enchantments: ''
   '18':
-  - id: '327:0'
+  - id: 'LAVA_BUCKET'
   - slot: 17
   - name: ''
   - buy-price: 150.0
   - sell-price: 0.0
   - enchantments: ''
   '19':
-  - id: '44:0'
+  - id: 'STONE_SLAB'
   - slot: 18
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '20':
-  - id: '126:0'
+  - id: 'OAK_SLAB'
   - slot: 19
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '21':
-  - id: '123:0'
+  - id: 'REDSTONE_LAMP'
   - slot: 20
-  - name: ''
-  - buy-price: 100.0
-  - sell-price: 0.0
-  - enchantments: ''
-  '22':
-  - id: '123:0'
-  - slot: 21
-  - name: ''
-  - buy-price: 100.0
-  - sell-price: 0.0
-  - enchantments: ''
-  '23':
-  - id: '123:0'
-  - slot: 22
-  - name: ''
-  - buy-price: 100.0
-  - sell-price: 0.0
-  - enchantments: ''
-  '24':
-  - id: '123:0'
-  - slot: 23
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
 Ores:
   '1':
-  - id: '388:0'
+  - id: 'EMERALD'
   - slot: 0
   - name: ''
   - buy-price: 150.0
   - sell-price: 50.0
   - enchantments: ''
   '2':
-  - id: '264:0'
+  - id: 'DIAMOND'
   - slot: 1
   - name: ''
   - buy-price: 375.0
   - sell-price: 75.0
   - enchantments: ''
   '3':
-  - id: '266:0'
+  - id: 'GOLD_INGOT'
   - slot: 2
   - name: ''
   - buy-price: 30.0
   - sell-price: 10.0
   - enchantments: ''
   '4':
-  - id: '265:0'
+  - id: 'IRON_INGOT'
   - slot: 3
   - name: ''
   - buy-price: 8.0
   - sell-price: 5.0
   - enchantments: ''
   '5':
-  - id: '263:0'
+  - id: 'COAL'
   - slot: 4
   - name: ''
   - buy-price: 4.0
   - sell-price: 1.0
   - enchantments: ''
   '6':
-  - id: '263:1'
+  - id: 'CHARCOAL'
   - slot: 5
   - name: ''
   - buy-price: 4.0
   - sell-price: 1.0
   - enchantments: ''
   '7':
-  - id: '331:0'
+  - id: 'REDSTONE'
   - slot: 6
   - name: ''
   - buy-price: 1.0
   - sell-price: 1.0
   - enchantments: ''
   '8':
-  - id: '351:4'
+  - id: 'LAPIS_LAZULI'
   - slot: 7
   - name: ''
   - buy-price: 1.0
   - sell-price: 1.0
   - enchantments: ''
   '9':
-  - id: '406:0'
+  - id: 'QUARTZ'
   - slot: 8
   - name: ''
   - buy-price: 8.0
@@ -237,239 +216,232 @@ Ores:
   - enchantments: ''
 Farming:
   '1':
-  - id: '6:0'
+  - id: 'OAK_SAPLING'
   - slot: 0
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '2':
-  - id: '6:1'
+  - id: 'SPRUCE_SAPLING'
   - slot: 1
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '3':
-  - id: '6:2'
+  - id: 'BIRCH_SAPLING'
   - slot: 2
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '6:3'
+  - id: 'JUNGLE_SAPLING'
   - slot: 3
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '6:4'
+  - id: 'ACACIA_SAPLING'
   - slot: 4
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '6:5'
+  - id: 'DARK_OAK_SAPLING'
   - slot: 5
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '7':
-  - id: '295:0'
+  - id: 'WHEAT_SEEDS'
   - slot: 6
   - name: ''
   - buy-price: 3.0
   - sell-price: 0.0
   - enchantments: ''
   '8':
-  - id: '361:0'
+  - id: 'PUMPKIN_SEEDS'
   - slot: 7
   - name: ''
   - buy-price: 31.0
   - sell-price: 0.0
   - enchantments: ''
   '10':
-  - id: '86:0'
+  - id: 'PUMPKIN'
   - slot: 9
   - name: ''
   - buy-price: 150.0
   - sell-price: 5.0
   - enchantments: ''
   '11':
-  - id: '338:0'
+  - id: 'SUGAR_CANE'
   - slot: 10
   - name: ''
   - buy-price: 12.0
   - sell-price: 4.0
   - enchantments: ''
   '12':
-  - id: '81:0'
+  - id: 'CACTUS'
   - slot: 11
   - name: ''
   - buy-price: 20.0
   - sell-price: 2.0
   - enchantments: ''
   '13':
-  - id: '372:0'
+  - id: 'NETHER_WART'
   - slot: 12
   - name: ''
   - buy-price: 12.0
   - sell-price: 3.0
   - enchantments: ''
   '14':
-  - id: '351:3'
+  - id: 'COCOA_BEANS'
   - slot: 13
   - name: ''
   - buy-price: 3.0
   - sell-price: 1.0
   - enchantments: ''
   '15':
-  - id: '106:0'
+  - id: 'VINE'
   - slot: 14
   - name: ''
   - buy-price: 10.0
   - sell-price: 0.0
   - enchantments: ''
   '16':
-  - id: '39:0'
+  - id: 'BROWN_MUSHROOM'
   - slot: 15
   - name: ''
   - buy-price: 75.0
   - sell-price: 0.0
   - enchantments: ''
   '17':
-  - id: '40:0'
+  - id: 'RED_MUSHROOM'
   - slot: 16
   - name: ''
   - buy-price: 75.0
   - sell-price: 0.0
   - enchantments: ''
   '18':
-  - id: '40:0'
+  - id: 'WHEAT'
   - slot: 17
-  - name: ''
-  - buy-price: 75.0
-  - sell-price: 0.0
-  - enchantments: ''
-  '19':
-  - id: '296:0'
-  - slot: 18
   - name: ''
   - buy-price: 9.0
   - sell-price: 3.0
   - enchantments: ''
 Drops:
   '1':
-  - id: '352:0'
+  - id: 'BONE'
   - slot: 0
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '2':
-  - id: '262:0'
+  - id: 'ARROW'
   - slot: 1
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '3':
-  - id: '367:0'
+  - id: 'ROTTEN_FLESH'
   - slot: 2
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '289:0'
+  - id: 'GUNPOWDER'
   - slot: 3
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '369:0'
+  - id: 'BLAZE_ROD'
   - slot: 4
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '375:0'
+  - id: 'SPIDER_EYE'
   - slot: 5
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '7':
-  - id: '287:0'
+  - id: 'STRING'
   - slot: 6
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '8':
-  - id: '368:0'
+  - id: 'ENDER_PEARL'
   - slot: 7
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '9':
-  - id: '341:0'
+  - id: 'SLIME_BALL'
   - slot: 8
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '10':
-  - id: '334:0'
+  - id: 'LEATHER'
   - slot: 9
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '11':
-  - id: '288:0'
+  - id: 'FEATHER'
   - slot: 10
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '12':
-  - id: '344:0'
+  - id: 'EGG'
   - slot: 11
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '13':
-  - id: '280:0'
+  - id: 'STICK'
   - slot: 12
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '14':
-  - id: '351:0'
+  - id: 'INK_SAC'
   - slot: 13
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '15':
-  - id: '371:0'
+  - id: 'GOLD_NUGGET'
   - slot: 14
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '16':
-  - id: '370:0'
+  - id: 'GHAST_TEAR'
   - slot: 15
   - name: ''
   - buy-price: 100.0
@@ -477,63 +449,63 @@ Drops:
   - enchantments: ''
 Brewing:
   '1':
-  - id: '370:0'
+  - id: 'GHAST_TEAR'
   - slot: 0
   - name: ''
   - buy-price: 100.0
   - sell-price: 20.0
   - enchantments: ''
   '2':
-  - id: '375:0'
+  - id: 'SPIDER_EYE'
   - slot: 1
   - name: ''
   - buy-price: 2.0
   - sell-price: 0.0
   - enchantments: ''
   '3':
-  - id: '376:0'
+  - id: 'FERMENTED_SPIDER_EYE'
   - slot: 2
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '396:0'
+  - id: 'GOLDEN_CARROT'
   - slot: 3
   - name: ''
   - buy-price: 25.0
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '360:0'
+  - id: 'MELON'
   - slot: 4
   - name: ''
   - buy-price: 50.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '369:0'
+  - id: 'BLAZE_ROD'
   - slot: 5
   - name: ''
   - buy-price: 7.0
   - sell-price: 2.0
   - enchantments: ''
   '7':
-  - id: '372:0'
+  - id: 'NETHER_WART'
   - slot: 6
   - name: ''
   - buy-price: 12.0
   - sell-price: 3.0
   - enchantments: ''
   '8':
-  - id: '378:0'
+  - id: 'MAGMA_CREAM'
   - slot: 7
   - name: ''
   - buy-price: 20.0
   - sell-price: 10.0
   - enchantments: ''
   '9':
-  - id: '379:0'
+  - id: 'BREWING_STAND'
   - slot: 8
   - name: ''
   - buy-price: 100.0
@@ -541,189 +513,189 @@ Brewing:
   - enchantments: ''
 Gear:
   '1':
-  - id: '310:0'
+  - id: 'DIAMOND_HELMET'
   - slot: 0
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '2':
-  - id: '311:0'
+  - id: 'DIAMOND_CHESTPLATE'
   - slot: 1
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '3':
-  - id: '312:0'
+  - id: 'DIAMOND_LEGGINGS'
   - slot: 2
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '313:0'
+  - id: 'DIAMOND_BOOTS'
   - slot: 3
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '276:0'
+  - id: 'DIAMOND_SWORD'
   - slot: 4
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '279:0'
+  - id: 'DIAMOND_AXE'
   - slot: 5
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '7':
-  - id: '278:0'
+  - id: 'DIAMOND_PICKAXE'
   - slot: 6
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '8':
-  - id: '277:0'
+  - id: 'DIAMOND_SHOVEL'
   - slot: 7
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '9':
-  - id: '293:0'
+  - id: 'DIAMOND_HOE'
   - slot: 8
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '10':
-  - id: '306:0'
+  - id: 'IRON_HELMET'
   - slot: 9
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '11':
-  - id: '307:0'
+  - id: 'IRON_CHESTPLATE'
   - slot: 10
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '12':
-  - id: '308:0'
+  - id: 'IRON_LEGGINGS'
   - slot: 11
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '13':
-  - id: '309:0'
+  - id: 'IRON_BOOTS'
   - slot: 12
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '14':
-  - id: '267:0'
+  - id: 'IRON_SWORD'
   - slot: 13
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '15':
-  - id: '258:0'
+  - id: 'IRON_AXE'
   - slot: 14
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '16':
-  - id: '257:0'
+  - id: 'IRON_PICKAXE'
   - slot: 15
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '17':
-  - id: '256:0'
+  - id: 'IRON_SHOVEL'
   - slot: 16
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '18':
-  - id: '292:0'
+  - id: 'IRON_HOE'
   - slot: 17
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '19':
-  - id: '261:0'
+  - id: 'BOW'
   - slot: 18
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '20':
-  - id: '346:0'
+  - id: 'FISHING_ROD'
   - slot: 19
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '21':
-  - id: '359:0'
+  - id: 'SHEARS'
   - slot: 20
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '22':
-  - id: '421:0'
+  - id: 'NAME_TAG'
   - slot: 21
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '23':
-  - id: '420:0'
+  - id: 'LEAD'
   - slot: 22
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '24':
-  - id: '419:0'
+  - id: 'DIAMOND_HORSE_ARMOR'
   - slot: 23
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '25':
-  - id: '418:0'
+  - id: 'GOLDEN_HORSE_ARMOR'
   - slot: 24
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '26':
-  - id: '417:0'
+  - id: 'IRON_HORSE_ARMOR'
   - slot: 25
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '27':
-  - id: '329:0'
+  - id: 'SADDLE'
   - slot: 26
   - name: ''
   - buy-price: 100.0
@@ -731,70 +703,80 @@ Gear:
   - enchantments: ''
 Spawners:
   '1':
-  - id: '52:50'
+  - id: 'SPAWNER'
+  - mobType: 'CREEPER'
   - slot: 0
   - name: 'Creeper Spawner'
   - buy-price: 75000.0
   - sell-price: 0.0
   - enchantments: ''
   '2':
-  - id: '52:51'
+  - id: 'SPAWNER'
+  - mobType: 'SKELETON'
   - slot: 1
   - name: 'Skeleton Spawner'
   - buy-price: 100000.0
   - sell-price: 0.0
   - enchantments: ''
   '3':
-  - id: '52:52'
+  - id: 'SPAWNER'
+  - mobType: 'SPIDER'
   - slot: 2
   - name: 'Spider Spawner'
   - buy-price: 140000.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '52:53'
+  - id: 'SPAWNER'
+  - mobType: 'GIANT'
   - slot: 3
   - name: 'Giant Zombie Spawner'
   - buy-price: 140000.0
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '52:54'
+  - id: 'SPAWNER'
+  - mobType: 'ZOMBIE'
   - slot: 4
   - name: 'Zombie Spawner'
   - buy-price: 140000.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '52:55'
+  - id: 'SPAWNER'
+  - mobType: 'SLIME'
   - slot: 5
   - name: 'Slime Spawner'
   - buy-price: 140000.0
   - sell-price: 0.0
   - enchantments: ''
   '7':
-  - id: '52:56'
+  - id: 'SPAWNER'
+  - mobType: 'GHAST'
   - slot: 6
   - name: 'Ghast Spawner'
   - buy-price: 180000.0
   - sell-price: 0.0
   - enchantments: ''
   '8':
-  - id: '52:57'
+  - id: 'SPAWNER'
+  - mobType: 'ZOMBIE_PIGMAN'
   - slot: 7
   - name: 'Zombie Pigman Spawner'
   - buy-price: 180000.0
   - sell-price: 0.0
   - enchantments: ''
   '9':
-  - id: '52:58'
+  - id: 'SPAWNER'
+  - mobType: 'ENDERMAN'
   - slot: 8
   - name: 'Enderman Spawner'
   - buy-price: 350000.0
   - sell-price: 0.0
   - enchantments: ''
   '10':
-  - id: '52:59'
+  - id: 'SPAWNER'
+  - mobType: 'CAVE_SPIDER'
   - slot: 9
   - name: 'Cave Spider Spawner'
   - buy-price: 150000.0
@@ -802,505 +784,498 @@ Spawners:
   - enchantments: ''
 Blocks:
   '1':
-  - id: '98:0'
+  - id: 'STONE_BRICKS'
   - slot: 0
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '2':
-  - id: '98:1'
+  - id: 'MOSSY_STONE_BRICKS'
   - slot: 1
   - name: ''
   - buy-price: 110.0
   - sell-price: 0.0
   - enchantments: ''
   '3':
-  - id: '98:2'
+  - id: 'CRACKED_STONE_BRICKS'
   - slot: 2
   - name: ''
   - buy-price: 120.0
   - sell-price: 0.0
   - enchantments: ''
   '4':
-  - id: '98:3'
+  - id: 'CHISELED_STONE_BRICKS'
   - slot: 3
   - name: ''
   - buy-price: 130.0
   - sell-price: 0.0
   - enchantments: ''
   '5':
-  - id: '1:0'
+  - id: 'STONE'
   - slot: 4
   - name: ''
   - buy-price: 140.0
   - sell-price: 0.0
   - enchantments: ''
   '6':
-  - id: '4:0'
+  - id: 'COBBLESTONE'
   - slot: 5
   - name: ''
   - buy-price: 150.0
   - sell-price: 0.0
   - enchantments: ''
   '7':
-  - id: '48:0'
+  - id: 'MOSSY_COBBLESTONE'
   - slot: 6
   - name: ''
   - buy-price: 160.0
   - sell-price: 0.0
   - enchantments: ''
   '8':
-  - id: '110:0'
+  - id: 'MYCELIUM'
   - slot: 7
   - name: ''
   - buy-price: 170.0
   - sell-price: 0.0
   - enchantments: ''
   '9':
-  - id: '2:0'
+  - id: 'GRASS'
   - slot: 8
   - name: ''
   - buy-price: 180.0
   - sell-price: 0.0
   - enchantments: ''
   '10':
-  - id: '3:0'
+  - id: 'DIRT'
   - slot: 9
   - name: ''
   - buy-price: 190.0
   - sell-price: 0.0
   - enchantments: ''
   '11':
-  - id: '17:0'
+  - id: 'OAK_LOG'
   - slot: 10
   - name: ''
   - buy-price: 200.0
   - sell-price: 0.0
   - enchantments: ''
   '12':
-  - id: '17:1'
+  - id: 'SPRUCE_LOG'
   - slot: 11
   - name: ''
   - buy-price: 210.0
   - sell-price: 0.0
   - enchantments: ''
   '13':
-  - id: '17:2'
+  - id: 'BIRCH_LOG'
   - slot: 12
   - name: ''
   - buy-price: 220.0
   - sell-price: 0.0
   - enchantments: ''
   '14':
-  - id: '17:3'
+  - id: 'JUNGLE_LOG'
   - slot: 13
   - name: ''
   - buy-price: 230.0
   - sell-price: 0.0
   - enchantments: ''
   '15':
-  - id: '162:0'
+  - id: 'ACACIA_LOG'
   - slot: 14
   - name: ''
   - buy-price: 240.0
   - sell-price: 0.0
   - enchantments: ''
   '16':
-  - id: '162:1'
+  - id: 'DARK_OAK_LOG'
   - slot: 15
   - name: ''
   - buy-price: 250.0
   - sell-price: 0.0
   - enchantments: ''
   '17':
-  - id: '19:0'
+  - id: 'SPONGE'
   - slot: 16
   - name: ''
   - buy-price: 260.0
   - sell-price: 0.0
   - enchantments: ''
   '18':
-  - id: '45:0'
+  - id: 'BRICKS'
   - slot: 17
   - name: ''
   - buy-price: 270.0
   - sell-price: 0.0
   - enchantments: ''
   '19':
-  - id: '5:2'
+  - id: 'BIRCH_WOOD'
   - slot: 18
   - name: ''
   - buy-price: 280.0
   - sell-price: 0.0
   - enchantments: ''
   '20':
-  - id: '5:3'
+  - id: 'JUNGLE_WOOD'
   - slot: 19
   - name: ''
   - buy-price: 290.0
   - sell-price: 0.0
   - enchantments: ''
   '21':
-  - id: '5:4'
+  - id: 'ACACIA_WOOD'
   - slot: 20
   - name: ''
   - buy-price: 300.0
   - sell-price: 0.0
   - enchantments: ''
   '22':
-  - id: '5:5'
+  - id: 'DARK_OAK_WOOD'
   - slot: 21
   - name: ''
   - buy-price: 310.0
   - sell-price: 0.0
   - enchantments: ''
   '23':
-  - id: '35:0'
+  - id: 'WHITE_WOOL'
   - slot: 22
   - name: ''
   - buy-price: 320.0
   - sell-price: 0.0
   - enchantments: ''
   '24':
-  - id: '82:0'
+  - id: 'CLAY'
   - slot: 23
   - name: ''
   - buy-price: 330.0
   - sell-price: 0.0
   - enchantments: ''
   '25':
-  - id: '172:0'
+  - id: 'LEGACY_HARD_CLAY'
   - slot: 24
   - name: ''
   - buy-price: 340.0
   - sell-price: 0.0
   - enchantments: ''
   '26':
-  - id: '49:0'
+  - id: 'OBSIDIAN'
   - slot: 25
   - name: ''
   - buy-price: 350.0
   - sell-price: 0.0
   - enchantments: ''
   '27':
-  - id: '24:0'
+  - id: 'SANDSTONE'
   - slot: 26
   - name: ''
   - buy-price: 360.0
   - sell-price: 0.0
   - enchantments: ''
   '28':
-  - id: '12:0'
+  - id: 'SAND'
   - slot: 27
   - name: ''
   - buy-price: 370.0
   - sell-price: 0.0
   - enchantments: ''
   '29':
-  - id: '12:1'
+  - id: 'RED_SAND'
   - slot: 28
   - name: ''
   - buy-price: 380.0
   - sell-price: 0.0
   - enchantments: ''
   '30':
-  - id: '20:0'
+  - id: 'GLASS'
   - slot: 29
   - name: ''
   - buy-price: 390.0
   - sell-price: 0.0
   - enchantments: ''
   '31':
-  - id: '13:0'
+  - id: 'GRAVEL'
   - slot: 30
   - name: ''
   - buy-price: 101.0
   - sell-price: 0.0
   - enchantments: ''
   '32':
-  - id: '155:0'
+  - id: 'QUARTZ_BLOCK'
   - slot: 31
   - name: ''
   - buy-price: 102.0
   - sell-price: 0.0
   - enchantments: ''
   '33':
-  - id: '155:1'
+  - id: 'CHISELED_QUARTZ_BLOCK'
   - slot: 32
   - name: ''
   - buy-price: 103.0
   - sell-price: 0.0
   - enchantments: ''
   '34':
-  - id: '155:2'
+  - id: 'QUARTZ_PILLAR'
   - slot: 33
   - name: ''
   - buy-price: 104.0
   - sell-price: 0.0
   - enchantments: ''
   '35':
-  - id: '112:0'
+  - id: 'NETHER_BRICK'
   - slot: 34
   - name: ''
   - buy-price: 105.0
   - sell-price: 0.0
   - enchantments: ''
   '36':
-  - id: '87:0'
+  - id: 'NETHERRACK'
   - slot: 35
   - name: ''
   - buy-price: 106.0
   - sell-price: 0.0
   - enchantments: ''
   '37':
-  - id: '88:0'
+  - id: 'SOUL_SAND'
   - slot: 36
   - name: ''
   - buy-price: 107.0
   - sell-price: 0.0
   - enchantments: ''
   '38':
-  - id: '89:0'
+  - id: 'GLOWSTONE'
   - slot: 37
   - name: ''
   - buy-price: 108.0
   - sell-price: 0.0
   - enchantments: ''
   '39':
-  - id: '116:0'
+  - id: 'ENCHANTING_TABLE'
   - slot: 38
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
   - enchantments: ''
   '40':
-  - id: '47:0'
+  - id: 'BOOKSHELF'
   - slot: 39
   - name: ''
   - buy-price: 109.0
   - sell-price: 0.0
   - enchantments: ''
   '41':
-  - id: '80:0'
+  - id: 'SNOW_BLOCK'
   - slot: 40
   - name: ''
   - buy-price: 110.0
   - sell-price: 0.0
   - enchantments: ''
   '42':
-  - id: '79:0'
+  - id: 'ICE'
   - slot: 41
   - name: ''
   - buy-price: 111.0
   - sell-price: 0.0
   - enchantments: ''
   '43':
-  - id: '174:0'
+  - id: 'PACKED_ICE'
   - slot: 42
   - name: ''
   - buy-price: 112.0
   - sell-price: 0.0
   - enchantments: ''
   '44':
-  - id: '121:0'
+  - id: 'END_STONE'
   - slot: 43
   - name: ''
   - buy-price: 113.0
   - sell-price: 0.0
   - enchantments: ''
   '45':
-  - id: '138:0'
+  - id: 'BEACON'
   - slot: 44
   - name: ''
   - buy-price: 114.0
   - sell-price: 0.0
   - enchantments: ''
   '46':
-  - id: '35:0'
+  - id: 'WHITE_WOOL'
   - slot: 0
   - name: ''
   - buy-price: 115.0
   - sell-price: 0.0
   - enchantments: ''
   '47':
-  - id: '35:1'
+  - id: 'ORANGE_WOOL'
   - slot: 1
   - name: ''
   - buy-price: 116.0
   - sell-price: 0.0
   - enchantments: ''
   '48':
-  - id: '35:2'
+  - id: 'MAGENTA_WOOL'
   - slot: 2
   - name: ''
   - buy-price: 117.0
   - sell-price: 0.0
   - enchantments: ''
   '49':
-  - id: '35:3'
+  - id: 'LIGHT_BLUE_WOOL'
   - slot: 3
   - name: ''
   - buy-price: 118.0
   - sell-price: 0.0
   - enchantments: ''
   '50':
-  - id: '35:4'
+  - id: 'YELLOW_WOOL'
   - slot: 4
   - name: ''
   - buy-price: 119.0
   - sell-price: 0.0
   - enchantments: ''
   '51':
-  - id: '35:5'
+  - id: 'LIME_WOOL'
   - slot: 5
   - name: ''
   - buy-price: 120.0
   - sell-price: 0.0
   - enchantments: ''
   '52':
-  - id: '35:6'
+  - id: 'PINK_WOOL'
   - slot: 6
   - name: ''
   - buy-price: 121.0
   - sell-price: 0.0
   - enchantments: ''
   '53':
-  - id: '35:7'
+  - id: 'GRAY_WOOL'
   - slot: 7
   - name: ''
   - buy-price: 122.0
   - sell-price: 0.0
   - enchantments: ''
   '54':
-  - id: '35:8'
+  - id: 'LIGHT_GRAY_WOOL'
   - slot: 8
   - name: ''
   - buy-price: 123.0
   - sell-price: 0.0
   - enchantments: ''
   '55':
-  - id: '35:9'
+  - id: 'CYAN_WOOL'
   - slot: 9
   - name: ''
   - buy-price: 124.0
   - sell-price: 0.0
   - enchantments: ''
   '56':
-  - id: '35:10'
+  - id: 'PURPLE_WOOL'
   - slot: 10
   - name: ''
   - buy-price: 125.0
   - sell-price: 0.0
   - enchantments: ''
   '57':
-  - id: '35:11'
+  - id: 'BLUE_WOOL'
   - slot: 11
   - name: ''
   - buy-price: 126.0
   - sell-price: 0.0
   - enchantments: ''
   '58':
-  - id: '35:12'
+  - id: 'BROWN_WOOL'
   - slot: 12
   - name: ''
   - buy-price: 127.0
   - sell-price: 0.0
   - enchantments: ''
   '59':
-  - id: '35:13'
+  - id: 'GREEN_WOOL'
   - slot: 13
   - name: ''
   - buy-price: 128.0
   - sell-price: 0.0
   - enchantments: ''
   '60':
-  - id: '35:14'
+  - id: 'RED_WOOL'
   - slot: 14
   - name: ''
   - buy-price: 129.0
   - sell-price: 0.0
   - enchantments: ''
   '61':
-  - id: '35:14'
+  - id: 'WHITE_STAINED_GLASS'
   - slot: 15
-  - name: ''
-  - buy-price: 129.0
-  - sell-price: 0.0
-  - enchantments: ''
-  '62':
-  - id: '95'
-  - slot: 16
   - name: ''
   - buy-price: 131.0
   - sell-price: 0.0
   - enchantments: ''
-  '63':
-  - id: '95:1'
-  - slot: 17
+  '62':
+  - id: 'ORANGE_STAINED_GLASS'
+  - slot: 16
   - name: ''
   - buy-price: 132.0
   - sell-price: 0.0
   - enchantments: ''
-  '64':
-  - id: '95:2'
-  - slot: 18
+  '63':
+  - id: 'MAGENTA_STAINED_GLASS'
+  - slot: 17
   - name: ''
   - buy-price: 133.0
   - sell-price: 0.0
   - enchantments: ''
-  '65':
-  - id: '95:3'
-  - slot: 19
+  '64':
+  - id: 'LIGHT_BLUE_STAINED_GLASS'
+  - slot: 18
   - name: ''
   - buy-price: 134.0
   - sell-price: 0.0
   - enchantments: ''
-  '66':
-  - id: '95:4'
-  - slot: 20
+  '65':
+  - id: 'YELLOW_STAINED_GLASS'
+  - slot: 19
   - name: ''
   - buy-price: 135.0
   - sell-price: 0.0
   - enchantments: ''
-  '67':
-  - id: '95:5'
-  - slot: 21
+  '66':
+  - id: 'LIME_STAINED_GLASS'
+  - slot: 20
   - name: ''
   - buy-price: 136.0
   - sell-price: 0.0
   - enchantments: ''
-  '68':
-  - id: '95:6'
-  - slot: 22
+  '67':
+  - id: 'PINK_STAINED_GLASS'
+  - slot: 21
   - name: ''
   - buy-price: 137.0
   - sell-price: 0.0
   - enchantments: ''
-  '69':
-  - id: '95:7'
-  - slot: 23
+  '68':
+  - id: 'GRAY_STAINED_GLASS'
+  - slot: 22
   - name: ''
   - buy-price: 138.0
   - sell-price: 0.0
   - enchantments: ''
-  '70':
-  - id: '95:8'
-  - slot: 24
+  '69':
+  - id: 'LIGHT_GRAY_STAINED_GLASS'
+  - slot: 23
   - name: ''
   - buy-price: 139.0
   - sell-price: 0.0
   - enchantments: ''
-  '71':
-  - id: '95:9'
-  - slot: 25
+  '70':
+  - id: 'CYAN_STAINED_GLASS'
+  - slot: 24
   - name: ''
   - buy-price: 140.0
   - sell-price: 0.0
   - enchantments: ''
-  '72':
-  - id: '95:10'
-  - slot: 26
+  '71':
+  - id: 'PURPLE_STAINED_GLASS'
+  - slot: 25
   - name: ''
   - buy-price: 141.0
   - sell-price: 0.0

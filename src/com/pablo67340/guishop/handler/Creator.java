@@ -39,8 +39,7 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param The
-	 *            chest loc
+	 * @param The chest loc
 	 * 
 	 *            Set the chest needed to config GUIShop
 	 */
@@ -52,10 +51,9 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param {@link
-	 * 			Player}
+	 * @param {@link Player}
 	 * 
-	 *            Open the player's chest
+	 *        Open the player's chest
 	 */
 	public void openChest() {
 		this.player.openInventory(chest.getInventory());
@@ -63,10 +61,9 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param {@link
-	 * 			Player}
+	 * @param {@link Player}
 	 * 
-	 *            Clear the player's chest
+	 *        Clear the player's chest
 	 */
 	public void clearChest() {
 		this.chest.getInventory().clear();
@@ -74,8 +71,7 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param The
-	 *            shop name
+	 * @param The shop name
 	 * 
 	 *            Set the current edited shop
 	 */
@@ -86,10 +82,9 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param Item
-	 *            Price
+	 * @param Item Price
 	 * 
-	 *            Set an item's buy price
+	 *             Set an item's buy price
 	 */
 	@SuppressWarnings("deprecation")
 	public void setPrice(Double price) {
@@ -113,10 +108,9 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param Item
-	 *            Sell value
+	 * @param Item Sell value
 	 * 
-	 *            Set an item's sell price
+	 *             Set an item's sell price
 	 */
 	@SuppressWarnings("deprecation")
 	public void setSell(Double sell) {
@@ -140,10 +134,9 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param Item
-	 *            Name
+	 * @param Item Name
 	 * 
-	 *            Set the item's name
+	 *             Set the item's name
 	 */
 	@SuppressWarnings("deprecation")
 	public void setName(String name) {
@@ -167,10 +160,9 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param Shop
-	 *            Name
+	 * @param Shop Name
 	 * 
-	 *            Save's the specified shop to the config
+	 *             Save's the specified shop to the config
 	 */
 	@SuppressWarnings({ "rawtypes", "deprecation" })
 	public void saveShop() {
@@ -204,7 +196,7 @@ public final class Creator {
 						name = lore.get(2);
 					}
 
-					String itemID = Integer.toString(itm.getTypeId());
+					String itemID = Integer.toString(itm.getData().getItemType().getId());
 					String data = Byte.toString(itm.getData().getData());
 					itemID = itemID + ":" + data;
 
@@ -220,14 +212,12 @@ public final class Creator {
 					iSlot.put("slot", index - 1);
 					iEnchantments.put("enchantments", enchantments.trim());
 
-
 					citem.add(iItemID);
 					citem.add(iSlot);
 					citem.add(iName);
 					citem.add(iBuy);
 					citem.add(iSell);
 					citem.add(iEnchantments);
-
 
 					Main.getInstance().getCustomConfig().set(this.name + "." + index, citem);
 
@@ -257,14 +247,12 @@ public final class Creator {
 
 	/**
 	 * 
-	 * @param Shop
-	 *            name
+	 * @param Shop name
 	 * 
-	 *            Loads the specific shop from the config
+	 *             Loads the specific shop from the config
 	 */
 	@SuppressWarnings("deprecation")
 	public void loadShop() {
-		Boolean hasData = false;
 		this.chest.getInventory().clear();
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)) {
 			if (str.contains(".") && str.contains(this.name)) {
@@ -272,17 +260,11 @@ public final class Creator {
 				List<Map<?, ?>> citem = Main.getInstance().getCustomConfig().getMapList(str);
 				for (Map<?, ?> map : citem) {
 					if (map.containsKey("id")) {
-						if (((String) map.get("id")).contains(":")) {
-							hasData = true;
-							String itemID = (String) map.get("id");
-							itemID = StringUtils.substringBefore(itemID, ":");
-							String data = (String) map.get("id");
-							data = StringUtils.substringAfter(data, ":");
-							item.setId(Integer.parseInt(itemID));
-							item.setData(Integer.parseInt(data));
-						} else {
-							item.setId(Integer.parseInt((String) map.get("id")));
-						}
+
+						String itemID = (String) map.get("id");
+
+						item.setMaterial(itemID);
+
 					} else if (map.containsKey("slot")) {
 						item.setSlot((Integer) map.get("slot"));
 					} else if (map.containsKey("name")) {
@@ -311,12 +293,8 @@ public final class Creator {
 					}
 				}
 
-				ItemStack itemStack = new ItemStack(Material.AIR);
-				if (hasData == true) {
-					itemStack = new ItemStack(item.getId(), 1, (short) item.getData());
-				} else {
-					itemStack = new ItemStack(item.getId(), 1);
-				}
+				ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
+				
 
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
@@ -349,7 +327,7 @@ public final class Creator {
 						data = Short.parseShort(args[1]);
 					}
 
-					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButton), 1, data);
+					ItemStack backButtonItem = new ItemStack(Main.getInstance().findMaterial(backButton), 1, data);
 
 					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 

@@ -1,10 +1,11 @@
 name: GUIShop
 main: com.pablo67340.guishop.main.Main
-version: 6.5.3a
+version: 7.0B
 author: pablo67340
 description: Shop Plugin for any server.
 depend: [Vault]
 softdepend: [SilkSpawners, EpicSpawners]
+api-version: 1.13
 permissions:
     guishop.use:
         default: false

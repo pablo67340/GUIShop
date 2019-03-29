@@ -5,6 +5,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+
 import org.bukkit.enchantments.Enchantment;
 
 public class Enchantments {
@@ -158,21 +159,12 @@ public class Enchantments {
 		ALIASENCHANTMENTS.put("rodlure", Enchantment.LURE);
 	}
 
-	/**
-	 * Get enchantment by name or nickname.
-	 * 
-	 * @param Name
-	 * 
-	 * @return {@link Enchantment}
-	 */
 	@SuppressWarnings("deprecation")
 	public static Enchantment getByName(String name) {
 		Enchantment enchantment;
-		if (isInt(name)) {
-			enchantment = Enchantment.getById(Integer.parseInt(name));
-		} else {
-			enchantment = Enchantment.getByName(name.toUpperCase(Locale.ENGLISH));
-		}
+
+		enchantment = Enchantment.getByName(name.toUpperCase(Locale.ENGLISH));
+
 		if (enchantment == null) {
 			enchantment = ENCHANTMENTS.get(name.toLowerCase(Locale.ENGLISH));
 		}

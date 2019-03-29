@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.bukkit.Bukkit;
-
 import org.bukkit.plugin.Plugin;
 
 
@@ -91,5 +90,7 @@ public class SQLiteLib {
 	public Database getDatabase(String databaseName) {
 		return getDatabases().get(databaseName);
 	}
+	
+
 
 }

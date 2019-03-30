@@ -94,8 +94,10 @@ public final class Menu implements Listener {
 			if (player.hasPermission("guishop.slot." + (i + 1)) || player.isOp()
 					|| player.hasPermission("guishop.slot.*")) {
 				String itemID = Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Item");
+				
+				
 
-				Material material = Material.valueOf(itemID);
+				Material material = null;
 				
 
 				if (material == null) {

@@ -27,6 +27,7 @@ import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Dependencies;
+import com.pablo67340.guishop.util.XMaterial;
 import com.songoda.epicspawners.api.EpicSpawners;
 import com.songoda.epicspawners.api.EpicSpawnersAPI;
 
@@ -86,7 +87,7 @@ public class Quantity implements Listener {
 	private void packInventory() {
 		Integer multiplier = 1;
 		for (int x = 19; x <= 25; x++) {
-			ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), multiplier);
+			ItemStack itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), multiplier);
 			ItemMeta itemMeta = itemStack.getItemMeta();
 			if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
 
@@ -199,7 +200,7 @@ public class Quantity implements Listener {
 				// If the item is not a mob spawner
 				if (!item.isMobSpawner()) {
 
-					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), quantity);
+					itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
 					// If the item has enchantments
 					if (item.getEnchantments() != null) {
 						for (String enc : item.getEnchantments()) {

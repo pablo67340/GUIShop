@@ -271,63 +271,63 @@ Farming:
   - buy-price: 31.0
   - sell-price: 0.0
   - enchantments: ''
-  '10':
+  '9':
   - id: 'PUMPKIN'
   - slot: 9
   - name: ''
   - buy-price: 150.0
   - sell-price: 5.0
   - enchantments: ''
-  '11':
+  '10':
   - id: 'SUGAR_CANE'
   - slot: 10
   - name: ''
   - buy-price: 12.0
   - sell-price: 4.0
   - enchantments: ''
-  '12':
+  '11':
   - id: 'CACTUS'
   - slot: 11
   - name: ''
   - buy-price: 20.0
   - sell-price: 2.0
   - enchantments: ''
-  '13':
+  '12':
   - id: 'NETHER_WART'
   - slot: 12
   - name: ''
   - buy-price: 12.0
   - sell-price: 3.0
   - enchantments: ''
-  '14':
+  '13':
   - id: 'COCOA_BEANS'
   - slot: 13
   - name: ''
   - buy-price: 3.0
   - sell-price: 1.0
   - enchantments: ''
-  '15':
+  '14':
   - id: 'VINE'
   - slot: 14
   - name: ''
   - buy-price: 10.0
   - sell-price: 0.0
   - enchantments: ''
-  '16':
+  '15':
   - id: 'BROWN_MUSHROOM'
   - slot: 15
   - name: ''
   - buy-price: 75.0
   - sell-price: 0.0
   - enchantments: ''
-  '17':
+  '16':
   - id: 'RED_MUSHROOM'
   - slot: 16
   - name: ''
   - buy-price: 75.0
   - sell-price: 0.0
   - enchantments: ''
-  '18':
+  '17':
   - id: 'WHEAT'
   - slot: 17
   - name: ''

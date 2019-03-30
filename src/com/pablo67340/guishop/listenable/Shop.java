@@ -297,8 +297,8 @@ public final class Shop implements Listener {
 			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
 
 			ITEMS[item.getSlot()] = item;
-			Material material = Material.valueOf(item.getMaterial());
-
+			Material material = null;
+			System.out.println("Item: "+item.getSlot());
 			if (material == null) {
 				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
 					Main.getInstance().getLogger().log(Level.WARNING, "Could not parse material: "+item.getMaterial()+" for item #: "+item.getSlot()+1);

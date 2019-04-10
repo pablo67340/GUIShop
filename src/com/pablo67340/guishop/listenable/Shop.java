@@ -298,7 +298,6 @@ public final class Shop implements Listener {
 
 			ITEMS[item.getSlot()] = item;
 			Material material = null;
-			System.out.println("Item: "+item.getSlot());
 			if (material == null) {
 				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
 					Main.getInstance().getLogger().log(Level.WARNING, "Could not parse material: "+item.getMaterial()+" for item #: "+item.getSlot()+1);
@@ -308,19 +307,6 @@ public final class Shop implements Listener {
 
 			ItemStack itemStack = new ItemStack(material, 1);
 
-			if (item.isMobSpawner()) {
-				if (Main.getInstance().usesSpawners()) {
-					if (Dependencies.hasDependency("SilkSpawners")) {
-						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-						itemStack = su.setSpawnerType(itemStack, item.getMobType().toLowerCase(), item.getMobType());
-					} else if (Dependencies.hasDependency("EpicSpawners")) {
-						EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-						itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(item.getMobType()), 1);
-
-					}
-				}
-
-			}
 
 			ItemMeta itemMeta = itemStack.getItemMeta();
 

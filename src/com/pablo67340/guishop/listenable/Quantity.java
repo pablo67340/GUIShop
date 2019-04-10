@@ -23,6 +23,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
@@ -206,14 +207,14 @@ public class Quantity implements Listener {
 						for (String enc : item.getEnchantments()) {
 							String enchantment = StringUtils.substringBefore(enc, ":");
 							String level = StringUtils.substringAfter(enc, ":");
-							itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
+							itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
 						}
 					}
 					itemStack.setAmount(e.getCurrentItem().getAmount());
 					// If is shift clicking, buy 1.
 
 				} else {
-					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), quantity);
+					itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
 					if (Main.getInstance().usesSpawners()) {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();

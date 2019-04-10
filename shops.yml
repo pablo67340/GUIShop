@@ -952,7 +952,7 @@ Blocks:
   - sell-price: 0.0
   - enchantments: ''
   '25':
-  - id: 'LEGACY_HARD_CLAY'
+  - id: 'LIGHT_BLUE_TERRACOTTA'
   - slot: 24
   - name: ''
   - buy-price: 340.0

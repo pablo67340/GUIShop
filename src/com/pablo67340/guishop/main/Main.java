@@ -217,7 +217,6 @@ public final class Main extends JavaPlugin {
 		// Change to dateTimeFormatter. Close Deprecation warning
 
 		return itemCommand;
-
 	}
 
 	/**
@@ -508,7 +507,7 @@ public final class Main extends JavaPlugin {
 		if (itemCommand != null) {
 			for (String cmd : commands) {
 				String command = StringUtils.substringBefore(cmd, "::");
-				if (itemCommand.getCommands().contains(command)) {
+				if (itemCommand.getValidCommands().contains(command)) {
 					return false;
 				}
 			}

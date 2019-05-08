@@ -445,7 +445,7 @@ public final class Shop implements Listener {
 					if (Main.getInstance().usesSpawners()) {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							itemStack = su.setSpawnerType(itemStack, item.getMobType(), item.getMobType());
+							itemStack = su.setSpawnerType(itemStack, Short.parseShort(item.getMobType()), item.getMobType());
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(item.getMobType()), 1);

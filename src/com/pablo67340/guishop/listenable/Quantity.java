@@ -221,7 +221,7 @@ public class Quantity implements Listener {
 							String oldName = item.getMobType();
 							String spawnerName = oldName.substring(0, 1).toUpperCase()
 									+ oldName.substring(1).toLowerCase() + " Spawner";
-							itemStack = su.setSpawnerType(itemStack, item.getMobType().toLowerCase(), spawnerName);
+							itemStack = su.setSpawnerType(itemStack, Short.parseShort(item.getMobType().toLowerCase()), spawnerName);
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
 							itemStack = es.newSpawnerItem(EpicSpawnersAPI.getSpawnerManager()

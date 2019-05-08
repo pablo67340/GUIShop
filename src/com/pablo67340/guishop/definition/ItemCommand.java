@@ -7,7 +7,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang.StringUtils;
 
 import com.pablo67340.guishop.main.Main;
 
@@ -50,7 +50,7 @@ public class ItemCommand {
 	}
 
 	public Set<String> getValidCommands() {
-    Set<String> validCommands;
+    Set<String> validCommands = new HashSet<>();
 
     for (String cmd : commands) {
       Expires expiration = getExpiration(cmd);

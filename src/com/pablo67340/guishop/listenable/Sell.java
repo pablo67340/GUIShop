@@ -168,7 +168,7 @@ public final class Sell implements Listener {
 
 				if (Dependencies.hasDependency("SilkSpawners")) {
 					SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-					data = String.valueOf(su.getStoredSpawnerItemEntityID(item));
+					data = su.getStoredSpawnerItemEntityID(item);
 					System.out.println("DATA: "+data);
 				} else if (Dependencies.hasDependency("EpicSpawners")) {
 					EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();

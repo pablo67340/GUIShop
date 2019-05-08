@@ -116,12 +116,12 @@ public final class Main extends JavaPlugin {
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
 	 * starts.
-	 *
+	 * 
 	 * @key The name of the {@link Player}.
 	 * @value The creator.
 	 */
 	public static final Map<String, Creator> CREATOR = new HashMap<>();
-
+	
 	public static final Set<String> protectedCommands = new HashSet<>();
 
 	private SQLiteLib sqlLib;
@@ -129,7 +129,7 @@ public final class Main extends JavaPlugin {
 	/**
 	 * A {@link Map} that holds the prices to buy and sell an {@link Item} to/from a
 	 * {@link Shop}.
-	 *
+	 * 
 	 * @key The item's ID.
 	 * @value The item's price object.
 	 */
@@ -138,7 +138,7 @@ public final class Main extends JavaPlugin {
 
 	/**
 	 * Override onEnable, run GUIShop code.
-	 *
+	 * 
 	 */
 	@Override
 	public void onEnable() {
@@ -217,6 +217,7 @@ public final class Main extends JavaPlugin {
 		// Change to dateTimeFormatter. Close Deprecation warning
 
 		return itemCommand;
+
 	}
 
 	/**
@@ -233,7 +234,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Get debugger instance;
 	 */
 	public Debugger getDebugger() {
@@ -241,7 +242,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Gets boolean if version is post 1.8
 	 */
 	public Boolean isOdin() {
@@ -272,7 +273,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Check if the config is up to date. If not, Attempt recursive auto-update.
 	 */
 	@SuppressWarnings("unused")
@@ -350,7 +351,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Load all deault config values, translate colors, store.
 	 */
 	public void loadDefaults() {
@@ -391,7 +392,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Get the CustomConfigFile (Shops)
 	 */
 	public FileConfiguration getCustomConfig() {
@@ -399,7 +400,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Get main ConfigFile (Config)
 	 */
 	public FileConfiguration getMainConfig() {
@@ -429,7 +430,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Force create all YML files.
 	 */
 	public void createFiles() {
@@ -464,7 +465,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Get the current economy object
 	 */
 	public static Economy getEconomy() {
@@ -473,7 +474,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 *
+	 * 
 	 * Get the Main Instance of GUIShop
 	 */
 	public static Main getInstance() {
@@ -489,7 +490,7 @@ public final class Main extends JavaPlugin {
 
 	/**
 	 * True/False if plugin utilizes mob spawners.
-	 *
+	 * 
 	 * @return If the plugin utilizes mob spawners.
 	 */
 	public Boolean usesSpawners() {
@@ -502,8 +503,8 @@ public final class Main extends JavaPlugin {
 
 	public Boolean purchaseCommands(UUID uuid, List<String> commands) {
 		ItemCommand itemCommand = loadCommands(uuid);
-
-
+		
+		
 		if (itemCommand != null) {
 			for (String cmd : commands) {
 				String command = StringUtils.substringBefore(cmd, "::");
@@ -518,7 +519,7 @@ public final class Main extends JavaPlugin {
 		return true;
 
 	}
-
+	
 	/**
 	 * Get the matching material from an item id and damage value. Attempts to find
 	 * the material that matches the given data type.

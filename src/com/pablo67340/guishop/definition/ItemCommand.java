@@ -49,6 +49,20 @@ public class ItemCommand {
 		return commands;
 	}
 
+	public Set<String> getValidCommands() {
+    Set<String> validCommands = new HashSet<>();
+
+    for (String cmd : commands) {
+      Expires expiration = getExpiration(cmd);
+
+      if (!expiration.isExpired()) {
+        validCommands.add(cmd);
+      }
+    }
+
+		return validCommands;
+	}
+
 	public UUID getUUID() {
 		return uuid;
 	}

@@ -523,7 +523,7 @@ public final class Main extends JavaPlugin {
 		if (itemCommand != null) {
 			for (String cmd : commands) {
 				String command = StringUtils.substringBefore(cmd, "::");
-				if (itemCommand.getCommands().contains(command)) {
+				if (itemCommand.getValidCommands().contains(command)) {
 					return false;
 				}
 			}

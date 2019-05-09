@@ -18,7 +18,7 @@ public final class Config {
 	@SuppressWarnings("unused")
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
 			sellCommand, sellTitle, sold, taken, sound, full, currency, nopermission, qtyTitle, currencySuffix,
-			commandRemaining, commandAlready, commandExpired;
+			commandRemaining, commandAlready, commandExpired, commandPurchase, backButtonItem, backButtonText, accessTo;
 
 	/**
 	 * Number of rows for the {@link Menu} GUI.
@@ -86,35 +86,133 @@ public final class Config {
 		nopermission = input;
 	}
 
+	/**
+	 * The Message sent to the player when they've already purchased the command.
+	 * 
+	 * @param input The Message to be sent.
+	 */
 	public static void setCommandAlready(String input) {
 		commandAlready = input;
 	}
 
+	/**
+	 * The Message sent to the player when they've already purchased the command.
+	 * 
+	 * @return The Message to be sent.
+	 */
 	public static String getCommandAlready() {
 		return commandAlready;
 	}
 
+	/**
+	 * The Message sent to the player displaying time remaining on their command.
+	 * {TIME} is the placeholder to display the value.
+	 * 
+	 * @param input The Message.
+	 */
 	public static void setCommandRemaining(String input) {
 		commandRemaining = input;
 	}
 
+	/**
+	 * The Message sent to the player displaying time remaining on their command.
+	 * {TIME} is the placeholder to display the value.
+	 * 
+	 * @return The Message to be sent.
+	 */
 	public static String getCommandRemaining() {
 		return commandRemaining;
 	}
 	
+	/**
+	 * The message to be displayed in a command-item lore.
+	 * 
+	 * @param input The Message.
+	 */
+	public static void setAccessTo(String input) {
+		accessTo = input;
+	}
+
+	/**
+	 * The message to be displayed in a command-item lore.
+	 * 
+	 * @return The Message.
+	 */
+	public static String getAccessTo() {
+		return accessTo;
+	}
+
+	/**
+	 * The Message sent to the player displaying time remaining on their command.
+	 * {TIME} is the placeholder to display the value.
+	 * 
+	 * @param input The Message to be sent.
+	 */
 	public static void setCommandExpired(String input) {
 		commandExpired = input;
 	}
-	
+
+	/**
+	 * The Message sent to the player when trying to use an expired command.
+	 * 
+	 * @return The Message to be sent.
+	 */
 	public static String getCommandExpired() {
-		return commandExpired;
+		return commandPurchase;
+	}
+
+	/**
+	 * The Message sent to the player when trying to use an expired command.
+	 * 
+	 * @param The Message to be sent.
+	 */
+	public static void setCommandPurchase(String input) {
+		commandPurchase = input;
+	}
+
+	/**
+	 * The Message sent when a players tries to purchase a protected command.
+	 * 
+	 * @return The Message to be sent.
+	 */
+	public static String getCommandPurchase() {
+		return commandPurchase;
+	}
+
+	/**
+	 * The Message sent when a players tries to purchase a protected command.
+	 * 
+	 * @param input The Message to be sent.
+	 */
+	public static void setBackButtonItem(String input) {
+		backButtonItem = input;
+	}
+
+	/**
+	 * The Text of the back button item.
+	 * 
+	 * @return the {@link Shop}'s prefix.
+	 */
+	public static String getBackButtonItem() {
+		return backButtonItem;
+	}
+
+	public static void setBackButtonText(String input) {
+		backButtonText = input;
+	}
+
+	/**
+	 * The {@link Material} Material ID of the back button.
+	 * 
+	 * @return the {@link Shop}'s prefix.
+	 */
+	public static String getBackButtonText() {
+		return backButtonText;
 	}
 
 	/**
 	 * The text that represents what comes before messages sent to the
-	 * {@link Player}.
-	 * <p>
-	 * i.e. [GUIShop]
+	 * {@link Player}. i.e. [GUIShop]
 	 * 
 	 * @return the {@link Shop}'s prefix.
 	 */
@@ -133,10 +231,9 @@ public final class Config {
 
 	/**
 	 * 
-	 * @param Cant
-	 *            Buy String
+	 * @param Cant Buy String
 	 * 
-	 *            Sets the string sent to player when an item cannot be purchased.
+	 *             Sets the string sent to player when an item cannot be purchased.
 	 */
 	public static void setCantBuy(String input) {
 		cantBuy = input;
@@ -164,8 +261,7 @@ public final class Config {
 	 * enables the sound that plays when a purchase is made, around the
 	 * {@link Player}.
 	 * 
-	 * @param input
-	 *            The boolean to set.
+	 * @param input The boolean to set.
 	 */
 	public static void setSoundEnabled(Boolean input) {
 		enableSound = input;
@@ -174,8 +270,7 @@ public final class Config {
 	/**
 	 * Sets the sound that plays when a purchase is made, around the {@link Player}.
 	 * 
-	 * @param sound
-	 *            The text to set.
+	 * @param sound The text to set.
 	 */
 	public static void setSound(String input) {
 		sound = input;
@@ -185,8 +280,7 @@ public final class Config {
 	 * Sets the text that represents what comes before messages sent to the
 	 * {@link Player}.
 	 * 
-	 * @param prefix
-	 *            The text to set.
+	 * @param prefix The text to set.
 	 */
 	public static void setCreatorEnabled(Boolean input) {
 		enableCreator = input;
@@ -205,8 +299,7 @@ public final class Config {
 	 * Sets the text that represents what comes before messages sent to the
 	 * {@link Player}.
 	 * 
-	 * @param prefix
-	 *            The text to set.
+	 * @param prefix The text to set.
 	 */
 	public static void setPrefix(String text) {
 		prefix = text;
@@ -224,8 +317,7 @@ public final class Config {
 	/**
 	 * Sets the name of the {@link Menu}.
 	 * 
-	 * @param text
-	 *            The text to set.
+	 * @param text The text to set.
 	 */
 	public static void setMenuName(String text) {
 		menuName = text;
@@ -243,8 +335,7 @@ public final class Config {
 	/**
 	 * Sets the title of the {@link Sell} menu.
 	 * 
-	 * @param text
-	 *            The text to set.
+	 * @param text The text to set.
 	 */
 	public static void setSellTitle(String text) {
 		sellTitle = text;
@@ -300,8 +391,7 @@ public final class Config {
 	/**
 	 * Sets whether the {@link Shop} can only be opened from a sign.
 	 * 
-	 * @param flag
-	 *            The flag to set.
+	 * @param flag The flag to set.
 	 */
 	public static void setSignsOnly(boolean flag) {
 		signsOnly = flag;

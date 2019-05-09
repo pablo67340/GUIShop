@@ -9,7 +9,6 @@ import net.milkbowl.vault.economy.Economy;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
 import org.bukkit.entity.Player;
@@ -335,10 +334,21 @@ public final class Main extends JavaPlugin {
 				getLogger().warning("Config update successful!");
 				return true;
 			}else if (ver == 1.6) {
+				getLogger().info("The config version is outdated! Automatically updating config...");
+				getMainConfig().set("ver", 1.7);
+				getMainConfig().set("command-already", "&4You already own one or more of the specified commands!");
+				getMainConfig().set("command-time-remaining", "&4Command Expires in: &e{TIME}");
+				getMainConfig().set("command-expired", "&4Command has expired! Please purchase from shop!");
+				getMainConfig().set("command-purchase", "&4This command can only be purchased from our shop!");
+				getMainConfig().set("access-to", "&aAccess to Commands:");
+				updateConfig();
+				saveMainConfig();
+				getLogger().warning("Config update successful!");
+				return true;
+			}else if (ver == 1.7) {
 				getLogger().info("Config all up to date!");
 				return true;
 			} else {
-
 				getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
 				getServer().getPluginManager().disablePlugin(this);
 				return false;
@@ -385,6 +395,10 @@ public final class Main extends JavaPlugin {
 		Config.setCommandAlready(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-already")));
 		Config.setCommandRemaining(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-time-remaining")));
 		Config.setCommandExpired(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-expired")));
+		Config.setCommandPurchase(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-purchase")));
+		Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back-button-item")));
+		Config.setBackButtonText(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back")));
+		Config.setAccessTo(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("access-to")));
 		getDataFolder();
 		for (String cmd : getMainConfig().getStringList("protected-commands")) {
 			protectedCommands.add(cmd);
@@ -505,6 +519,7 @@ public final class Main extends JavaPlugin {
 		ItemCommand itemCommand = loadCommands(uuid);
 		
 		
+		
 		if (itemCommand != null) {
 			for (String cmd : commands) {
 				String command = StringUtils.substringBefore(cmd, "::");
@@ -518,36 +533,6 @@ public final class Main extends JavaPlugin {
 		new ItemCommand(commands, uuid, true, date.toString());
 		return true;
 
-	}
-	
-	/**
-	 * Get the matching material from an item id and damage value. Attempts to find
-	 * the material that matches the given data type.
-	 *
-	 * @param typeId    Id of item
-	 * @param dataValue optional data value
-	 * @return the material that matches the given item id and data value, or null
-	 *         if there is no match.
-	 */
-	@SuppressWarnings("deprecation")
-	public org.bukkit.Material findMaterial(int typeId) {
-
-		final Material[] foundMaterial = new Material[1];
-
-		EnumSet.allOf(Material.class).forEach(material -> {
-
-			// TODO: Find a way to convert extra data to a new material type.
-
-			// Found matching id
-			if (material.getId() == typeId) {
-				foundMaterial[0] = material;
-			}
-		});
-		if (foundMaterial[0] != null) {
-			return foundMaterial[0];
-		} else {
-			return null;
-		}
 	}
 
 }

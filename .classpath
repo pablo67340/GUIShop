@@ -17,8 +17,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.13/plugins/Vault.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/EpicSpawners-API-5.0.1.1.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.12.2/cache/patched_1.12.2.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.13/plugins/SilkSpawners.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/EpicSpawners-5.7.6.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.13/minecraft.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/SilkSpawners (1).jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

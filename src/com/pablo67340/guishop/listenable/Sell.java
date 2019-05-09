@@ -157,7 +157,7 @@ public final class Sell implements Listener {
 
 		double moneyToGive = 0;
 		for (ItemStack item : GUI.getContents()) {
-			String data = "";
+			Object data = "";
 			if (item == null) {
 				continue;
 			}

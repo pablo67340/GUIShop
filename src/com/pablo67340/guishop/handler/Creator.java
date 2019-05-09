@@ -22,6 +22,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.XMaterial;
 
 public final class Creator {
 
@@ -315,19 +316,8 @@ public final class Creator {
 				}
 				this.chest.getInventory().setItem(item.getSlot(), itemStack);
 				if (!Config.getEscapeOnly()) {
-					int backButton = 0;
-					short data = 0;
 
-					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
-
-					if (backButtonId.contains(":")) {
-						String[] args = backButtonId.split(":");
-
-						backButton = Integer.parseInt(args[0]);
-						data = Short.parseShort(args[1]);
-					}
-
-					ItemStack backButtonItem = new ItemStack(Main.getInstance().findMaterial(backButton), 1, data);
+					ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
 
 					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 

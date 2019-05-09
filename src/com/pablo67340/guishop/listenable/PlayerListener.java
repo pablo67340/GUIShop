@@ -35,10 +35,10 @@ public final class PlayerListener implements Listener {
 	 * Handle any commands sent into the chat, splice and compare to set GUIShop
 	 * commands in config.
 	 */
-	@EventHandler(priority = EventPriority.HIGH, ignoreCancelled = false)
+	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
 	public void onCommand(PlayerCommandPreprocessEvent e) {
 		Player player = e.getPlayer();
-
+		
 		if (!e.isCancelled()) {
 
 			if (!Main.getInstance().getDebugger().hasExploded()) {
@@ -48,15 +48,20 @@ public final class PlayerListener implements Listener {
 				ItemCommand itemCommand = Main.getInstance().loadCommands(e.getPlayer().getUniqueId());
 				if (Main.protectedCommands.contains("/"+cut[0])) {
 					
-					if (itemCommand.getCommands().isEmpty()) {
+					if (player.hasPermission("guishop.bypass")) {
+						e.setCancelled(false);
+						return;
+					}
+					
+					if (itemCommand.getCommands().isEmpty() || !itemCommand.getCommands().contains("/"+cut[0])) {
 						e.setCancelled(true);
-						player.sendMessage(Config.getCommandExpired());
+						player.sendMessage(Config.getCommandPurchase());
+						return;
 					}
 
 
 						Set<String> activeCommands = itemCommand.getCommands();
 						String remaining = "";
-
 						for (String cmd : activeCommands) {
 							String reParse = cut[0];
 							if (cut[0].equalsIgnoreCase(reParse)) {

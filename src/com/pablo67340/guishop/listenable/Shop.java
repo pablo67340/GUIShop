@@ -24,11 +24,7 @@ import com.pablo67340.guishop.handler.Page;
 import com.pablo67340.guishop.handler.Price;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.Dependencies;
 import com.pablo67340.guishop.util.XMaterial;
-import com.songoda.epicspawners.api.EpicSpawners;
-
-import de.dustplanet.util.SilkUtil;
 
 public final class Shop implements Listener {
 
@@ -197,7 +193,7 @@ public final class Shop implements Listener {
 	 * Load the specified shop
 	 * 
 	 */
-	@SuppressWarnings({ "deprecation", "unchecked" })
+	@SuppressWarnings({ "unchecked" })
 	public void loadShop() {
 
 		GUI = Bukkit.getServer().createInventory(null, ROW * COL,
@@ -273,13 +269,13 @@ public final class Shop implements Listener {
 						item.setCommands((List<String>) map.get("commands"));
 					}
 				} catch (Exception e) {
-					Main.getInstance().getLogger().warning("Â§cError occured while reading item: " + (index - 1)
+					Main.getInstance().getLogger().warning("§cError occured while reading item: " + (index - 1)
 							+ " from shop: " + getShop() + " Error: " + e.getMessage());
 					Main.getInstance().getLogger()
-							.warning("Â§cThis plugin will not function properly until error is addressed!");
+							.warning("§cThis plugin will not function properly until error is addressed!");
 					Main.getInstance().getDebugger().setHasExploded(true);
 					Main.getInstance().getDebugger().setErrorMessage(
-							"Â§cError occured while reading item: " + (index - 1) + " from shop: " + getShop());
+							"§cError occured while reading item: " + (index - 1) + " from shop: " + getShop());
 				}
 			}
 			// Update shops.yml to add type
@@ -317,10 +313,18 @@ public final class Shop implements Listener {
 								"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice()),
 						ChatColor.translateAlternateColorCodes('&',
 								"&fSell: &a" + Config.getCurrency() + item.getSellPrice())));
-			} else if (item.getBuyPrice() == 0) {
-				itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
-						ChatColor.translateAlternateColorCodes('&',
-								"&fSell: &a" + Config.getCurrency() + item.getSellPrice())));
+				if (item.getCommands() != null) {
+					List<String> currentLore = itemMeta.getLore();
+					List<String> commands = item.getCommands();
+					List<String> newCommands = new ArrayList<>();
+					for (String cmd : commands) {
+						newCommands.add(StringUtils.substringBefore(cmd, "::") + "   "+StringUtils.substringAfter(cmd, "::"));
+					}
+					currentLore.add(" ");
+					currentLore.add(Config.getAccessTo());
+					currentLore.addAll(newCommands);
+					itemMeta.setLore(currentLore);
+				}
 			} else {
 				itemMeta.setLore(Arrays.asList(
 						ChatColor.translateAlternateColorCodes('&',
@@ -390,24 +394,12 @@ public final class Shop implements Listener {
 			}
 
 			if (!Config.getEscapeOnly()) {
-				int backButton = 0;
-				short data = 0;
 
-				String backButtonId = Main.INSTANCE.getMainConfig().getString("back-button-item");
-
-				if (backButtonId.contains(":")) {
-					String[] args = backButtonId.split(":");
-
-					backButton = Integer.parseInt(args[0]);
-					data = Short.parseShort(args[1]);
-				}
-
-				ItemStack backButtonItem = new ItemStack(Main.getInstance().findMaterial(backButton), 1, data);
+				ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
 
 				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
-				backButtonMeta.setDisplayName(
-						ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getMainConfig().getString("back")));
+				backButtonMeta.setDisplayName(Config.getBackButtonText());
 
 				backButtonItem.setItemMeta(backButtonMeta);
 
@@ -441,17 +433,6 @@ public final class Shop implements Listener {
 					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
 				} else {
 					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
-
-					if (Main.getInstance().usesSpawners()) {
-						if (Dependencies.hasDependency("SilkSpawners")) {
-							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							itemStack = su.setSpawnerType(itemStack, item.getMobType(), item.getMobType());
-						} else if (Dependencies.hasDependency("EpicSpawners")) {
-							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(es.getSpawnerManager().getSpawnerData(item.getMobType()), 1);
-
-						}
-					}
 
 				}
 				ItemMeta itemMeta = itemStack.getItemMeta();
@@ -673,7 +654,7 @@ public final class Shop implements Listener {
 
 												} catch (Exception ex) {
 													Main.getInstance().getLogger().warning(
-															"Â§cIncorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+															"§cIncorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
 												}
 											}
 											player.sendMessage(
@@ -702,6 +683,8 @@ public final class Shop implements Listener {
 			}
 		}
 	}
+	
+	
 
 	/**
 	 * Inventory close handler for the Shop

@@ -10,7 +10,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -24,6 +23,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.pablo67340.guishop.definition.Enchantments;
+import com.pablo67340.guishop.definition.MobType;
 import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
@@ -119,11 +119,8 @@ public class Quantity implements Listener {
 		}
 
 		if (!Config.getEscapeOnly()) {
-			String backButtonid = Main.INSTANCE.getConfig().getString("back-button-item");
 
-			
-
-			ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButtonid));
+			ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
 
 			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -137,7 +134,6 @@ public class Quantity implements Listener {
 		}
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onQuantityClick(InventoryClickEvent e) {
 		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
@@ -207,7 +203,8 @@ public class Quantity implements Listener {
 						for (String enc : item.getEnchantments()) {
 							String enchantment = StringUtils.substringBefore(enc, ":");
 							String level = StringUtils.substringAfter(enc, ":");
-							itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+							itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment),
+									Integer.parseInt(level));
 						}
 					}
 					itemStack.setAmount(e.getCurrentItem().getAmount());
@@ -219,13 +216,19 @@ public class Quantity implements Listener {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
 							String oldName = item.getMobType();
-							String spawnerName = oldName.substring(0, 1).toUpperCase()
-									+ oldName.substring(1).toLowerCase() + " Spawner";
-							itemStack = su.setSpawnerType(itemStack, item.getMobType().toLowerCase(), spawnerName);
+							System.out.println("Detected Mob Type: "+item.getMobType());
+							String spawnerName = oldName.substring(0, 1).toUpperCase() + oldName.substring(1).toLowerCase() + " Spawner";
+
+							// 1.13 only itemStack = su.setSpawnerType(itemStack,
+							// item.getMobType().toUpperCase(), spawnerName);
+
+							itemStack = su.setSpawnerType(itemStack,
+									(short) MobType.valueOf(item.getMobType().toUpperCase()).getMobId(), spawnerName);
+
 						} else if (Dependencies.hasDependency("EpicSpawners")) {
 							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(EpicSpawnersAPI.getSpawnerManager()
-									.getSpawnerData(item.getMobType()), quantity);
+							itemStack = es.newSpawnerItem(
+									EpicSpawnersAPI.getSpawnerManager().getSpawnerData(item.getMobType()), quantity);
 
 						}
 
@@ -234,6 +237,11 @@ public class Quantity implements Listener {
 						return;
 					}
 				}
+
+				// Add custom name to item for purchase
+				ItemMeta im = itemStack.getItemMeta();
+				im.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+				itemStack.setItemMeta(im);
 
 				double priceToPay = 0;
 

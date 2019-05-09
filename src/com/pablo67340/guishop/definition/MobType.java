@@ -12,9 +12,15 @@ public enum MobType {
 	ENDERMITE(67), GUARDIAN(68), SHULKER(69), PIG(90), SHEEP(91), COW(92), CHICKEN(93), SQUID(94), WOLF(95),
 	MOOSHROOM(96), SNOWMAN(97), OCELOT(98), VILLAGER_GOLEM(99), HORSE(100), RABBIT(101), POLAR_BEAR(102), PARROT(105),
 	VILLAGER(120);
+	
+	private final int mobId;
 
 	private MobType(Integer id) {
-
+		this.mobId = id;
+	}
+	
+	public int getMobId() {
+		return this.mobId;
 	}
 
 }

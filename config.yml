@@ -140,6 +140,10 @@ command-time-remaining: "&4Command Expires in: &e{TIME}"
 
 command-expired: "&4Command has expired! Please purchase from shop!"
 
+command-purchase: "&4This command can only be purchased from our shop!"
+
+access-to: "&aAccess to Commands:"
+
 ##This will disable the usage to the command to everyone, unless purchased from shop or player is OP.
 protected-commands:
   - '/fly'
@@ -202,7 +206,7 @@ Rows: 1
   Name: '&6Blocks'
   
 ## DO NOT TOUCH BELOW THIS LINE!
-ver: 1.6
+ver: 1.7
 
  ################################
  ## Developed by pablo67340    ##

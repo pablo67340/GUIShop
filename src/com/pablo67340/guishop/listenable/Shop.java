@@ -7,15 +7,19 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
+
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
+
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
+
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
@@ -61,12 +65,14 @@ public final class Shop implements Listener {
 	/**
 	 * The GUI that will hold every {@link Item} in this {@link Shop}.
 	 */
-	private Inventory GUI;
+	private Gui GUI;
 
 	/**
 	 * The list of {@link Item}s in this {@link Shop}.
 	 */
-	private Item[] ITEMS;
+	private List<Item> ITEMS;
+
+	private List<OutlinePane> outlinePages = new ArrayList<OutlinePane>();
 
 	/**
 	 * The list of {@link Page}'s in this {@link Shop}.
@@ -82,11 +88,6 @@ public final class Shop implements Listener {
 	 * The current page number a user is currently browsing in their {@link Shop}
 	 */
 	private Integer currentPage = 0;
-
-	/**
-	 * Total loaded page count of this {@link Shop}
-	 */
-	private Integer pageCount;
 
 	private Player user;
 
@@ -167,7 +168,7 @@ public final class Shop implements Listener {
 	 * 
 	 * @return the shop's GUI.
 	 */
-	public Inventory getGUI() {
+	public Gui getGUI() {
 		return GUI;
 	}
 
@@ -176,7 +177,7 @@ public final class Shop implements Listener {
 	 * 
 	 * @return the shop's items.
 	 */
-	public Item[] getItems() {
+	public List<Item> getItems() {
 		return ITEMS;
 	}
 
@@ -189,6 +190,8 @@ public final class Shop implements Listener {
 
 	private final Map<Integer, Price> PRICETABLE = new HashMap<>();
 
+	private int pageC = 0;
+
 	/**
 	 * Load the specified shop
 	 * 
@@ -196,26 +199,21 @@ public final class Shop implements Listener {
 	@SuppressWarnings({ "unchecked" })
 	public void loadShop() {
 
-		GUI = Bukkit.getServer().createInventory(null, ROW * COL,
-				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+		ITEMS = new ArrayList<>();
 
-		for (Integer i = 0; i > ROW * COL; i++) {
-			GUI.addItem(new ItemStack(Material.AIR));
-		}
-
-		ITEMS = new Item[45];
-
-		pageCount = 0;
-
-		Integer lastIndex = 0;
-
-		Integer index = 0;
+		Integer index = 0, lastIndex = 0;
 
 		Item item = new Item();
 
-		Boolean pendingSave = false;
-
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
+
+		GUI = new Gui(Main.getInstance(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+
+		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
+
+		OutlinePane page = new OutlinePane(0, 0, COL, ROW);
+
+		System.out.println("CItemSize: " + config.getKeys(true).size());
 
 		for (String str : config.getKeys(true)) {
 
@@ -287,22 +285,22 @@ public final class Shop implements Listener {
 				type.put("type", item.getItemType().toString());
 				mapList.add(type);
 				config.set(index.toString(), mapList);
-				pendingSave = true;
+				// Toggle pending for save.
 			}
 
 			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
 
-			ITEMS[item.getSlot()] = item;
+			ITEMS.add(item);
 			Material material = null;
 			if (material == null) {
 				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
-					Main.getInstance().getLogger().log(Level.WARNING, "Could not parse material: "+item.getMaterial()+" for item #: "+item.getSlot()+1);
+					Main.getInstance().getLogger().log(Level.WARNING,
+							"Could not parse material: " + item.getMaterial() + " for item #: " + item.getSlot() + 1);
 					continue;
 				}
 			}
 
 			ItemStack itemStack = new ItemStack(material, 1);
-
 
 			ItemMeta itemMeta = itemStack.getItemMeta();
 
@@ -318,7 +316,8 @@ public final class Shop implements Listener {
 					List<String> commands = item.getCommands();
 					List<String> newCommands = new ArrayList<>();
 					for (String cmd : commands) {
-						newCommands.add(StringUtils.substringBefore(cmd, "::") + "   "+StringUtils.substringAfter(cmd, "::"));
+						newCommands.add(
+								StringUtils.substringBefore(cmd, "::") + "   " + StringUtils.substringAfter(cmd, "::"));
 					}
 					currentLore.add(" ");
 					currentLore.add(Config.getAccessTo());
@@ -347,67 +346,30 @@ public final class Shop implements Listener {
 				}
 			}
 
-			GUI.setItem(item.getSlot(), itemStack);
-			if (!Config.getEscapeOnly()) {
-
-				String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
-
-				ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButtonId));
-
-				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-				backButtonMeta.setDisplayName(
-						ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
-
-				backButtonItem.setItemMeta(backButtonMeta);
-
-				GUI.setItem(ROW * COL - 1, backButtonItem);
-			}
-			if ((index - lastIndex) == 45) {
-				Page pageItem = new Page();
-
-				pageItem.setContents(ITEMS);
-
-				pages[pageCount] = pageItem;
-
-				ITEMS = new Item[45];
-
-				GUI.clear();
-
-				lastIndex = index;
-
-				pageCount += 1;
-
-				hasPages = true;
-
-			} else {
-				if (hasPages) {
-					Page pageItem = new Page();
-
-					pageItem.setContents(ITEMS);
-
-					pages[pageCount] = pageItem;
-
-					GUI.clear();
+			final int GCProtectedIndex = index;
+			// Create Page
+			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event, GCProtectedIndex - 1));
+			System.out.println("INDEX: " + index + "DIFF: " + (index - lastIndex));
+			if (index == config.getKeys(true).size() || (index - lastIndex) == 46) {
+				System.out.println("NEW PAGE ADDED TO PANE: " + pageC);
+				if (config.getKeys(true).size() >= 45) {
+					applyButtons(pane, page);
 				}
-
+				lastIndex = index;
+				pane.addPane(pageC, page);
+				pageC += 1;
+				outlinePages.add(page);
+				page = new OutlinePane(0, 0, COL, ROW);
+			} else {
+				System.out.println("ADD ITEM");
+				page.addItem(gItem);
 			}
 
-			if (!Config.getEscapeOnly()) {
-
-				ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
-
-				ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-				backButtonMeta.setDisplayName(Config.getBackButtonText());
-
-				backButtonItem.setItemMeta(backButtonMeta);
-
-				GUI.setItem(ROW * COL - 1, backButtonItem);
+			if (index == config.getKeys(true).size()) {
+				System.out.println("Added pane to GUI to OPEN");
+				GUI.addPane(pane);
 			}
-		}
-		if (pendingSave) {
-			Main.getInstance().saveShopConfig();
+
 		}
 
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
@@ -420,78 +382,56 @@ public final class Shop implements Listener {
 
 	}
 
-	/**
-	 * Preload a page into the GUI. This is required before opening a shop.
-	 */
-	public void loadPage(Integer page) {
-		GUI.clear();
-		for (Item item : pages[page].getContents()) {
-			if (item != null) {
-				ItemStack itemStack;
-				if (!item.isMobSpawner()) {
+	public void applyButtons(PaginatedPane pane, OutlinePane page) {
+		System.out.println("Buttons Applied");
+		System.out.println(page.getItems().size());
 
-					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
-				} else {
-					itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
-
-				}
-				ItemMeta itemMeta = itemStack.getItemMeta();
-
-				if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
-
-					itemMeta.setLore(Arrays.asList(
-							ChatColor.translateAlternateColorCodes('&',
-									"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice()),
-							ChatColor.translateAlternateColorCodes('&',
-									"&fSell: &a" + Config.getCurrency() + item.getSellPrice())));
-				} else if (item.getBuyPrice() == 0) {
-					itemMeta.setLore(Arrays.asList(ChatColor.translateAlternateColorCodes('&', "&cCannot be purchased"),
-							ChatColor.translateAlternateColorCodes('&',
-									"&fSell: &a" + Config.getCurrency() + item.getSellPrice())));
-				} else {
-					itemMeta.setLore(Arrays.asList(
-							ChatColor.translateAlternateColorCodes('&',
-									"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice()),
-							ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
-				}
-
-				if (item.getName() != null)
-					itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-
-				itemStack.setItemMeta(itemMeta);
-
-				if (item.getEnchantments() != null) {
-
-					for (String enc : item.getEnchantments()) {
-						String enchantment = StringUtils.substringBefore(enc, ":");
-						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
-
-					}
-				}
-
-				GUI.setItem(item.getSlot(), itemStack);
-				if (!Config.getEscapeOnly()) {
-
-					String backButtonId = Main.INSTANCE.getConfig().getString("back-button-item");
-
-					ItemStack backButtonItem = new ItemStack(Material.getMaterial(backButtonId));
-
-					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-					backButtonMeta.setDisplayName(
-							ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
-
-					backButtonItem.setItemMeta(backButtonMeta);
-
-					GUI.setItem(ROW * COL - 1, backButtonItem);
-
-				}
-
+		if (page.getItems().size() == 45) {
+			for (int x = page.getItems().size(); x <= 54; x++) {
+				System.out.println("Adding dummy item: " + x);
+				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
+			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
+				pane.setPage(pane.getPage() + 1);
+
+				if (pane.getPage() == pane.getPages() - 1) {
+					outlinePages.get(currentPage).setVisible(false);
+				}
+				currentPage += 1;
+				outlinePages.get(currentPage).setVisible(true);
+
+				GUI.update();
+			}), 51);
 		}
-		setCurrentPage(page);
-		applyButtons();
+		if (pageC > 0) {
+			for (int x = page.getItems().size(); x <= 54; x++) {
+				System.out.println("Adding dummy item: " + x);
+				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
+			}
+			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
+				pane.setPage(pane.getPage() - 1);
+
+				if (pane.getPage() == 0) {
+					outlinePages.get(currentPage).setVisible(false);
+				}
+				currentPage -= 1;
+				outlinePages.get(currentPage).setVisible(true);
+
+				GUI.update();
+			}), 47);
+		}
+		if (!Config.getEscapeOnly()) {
+
+			ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
+
+			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+
+			backButtonMeta.setDisplayName(Config.getBackButtonText());
+
+			backButtonItem.setItemMeta(backButtonMeta);
+
+			page.insertItem(new GuiItem(backButtonItem), 54);
+		}
 	}
 
 	/**
@@ -499,12 +439,7 @@ public final class Shop implements Listener {
 	 * 
 	 */
 	public void open() {
-		if (hasPages) {
-			currentPage = 0;
-
-			loadPage(0);
-		}
-		user.openInventory(GUI);
+		GUI.show(user);
 		Main.HAS_SHOP_OPEN.add(user.getName());
 	}
 
@@ -522,56 +457,7 @@ public final class Shop implements Listener {
 		Main.HAS_SHOP_OPEN.remove(player);
 	}
 
-	/**
-	 * Apply back/forward buttons to the GUI. Check if users are on last or first
-	 * page adjust buttons accordingly.
-	 */
-	public void applyButtons() {
-		ItemStack goButtonItem = new ItemStack(Material.getMaterial("BLUE_WOOL"));
-
-		ItemMeta goButtonMeta = goButtonItem.getItemMeta();
-
-		if (getCurrentPage() != (pageCount)) {
-			goButtonItem = new ItemStack(Material.getMaterial("BLUE_WOOL"));
-
-			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', ">"));
-
-			goButtonItem.setItemMeta(goButtonMeta);
-
-		} else {
-			goButtonItem = new ItemStack(Material.getMaterial("RED_WOOL"));
-
-			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', ">"));
-
-			goButtonItem.setItemMeta(goButtonMeta);
-		}
-
-		GUI.setItem(GUI.getSize() - 2, goButtonItem);
-
-		if (getCurrentPage() != 0) {
-			goButtonItem = new ItemStack(Material.getMaterial("BLUE_WOOL"));
-
-			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "<"));
-
-			goButtonItem.setItemMeta(goButtonMeta);
-
-		} else {
-			goButtonItem = new ItemStack(Material.getMaterial("RED_WOOL"));
-
-			goButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "<"));
-
-			goButtonItem.setItemMeta(goButtonMeta);
-		}
-		GUI.setItem(46, goButtonItem);
-
-	}
-
-	/**
-	 * The click listener for the Shop inventory.
-	 */
-	@SuppressWarnings({ "deprecation" })
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onShopClick(InventoryClickEvent e) {
+	public void onShopClick(InventoryClickEvent e, Integer itemNumber) {
 		if (e.getWhoClicked() instanceof Player) {
 			if (e.getClickedInventory() != null) {
 				Player player = (Player) e.getWhoClicked();
@@ -605,30 +491,17 @@ public final class Shop implements Listener {
 							return;
 						}
 
-						if (e.getSlot() >= 0 && e.getSlot() < getGUI().getSize()) {
+						if (e.getSlot() >= 0 && e.getSlot() < GUI.getItems().size()) {
 							/**
 							 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
 							 * user clicks the forward button, load and open next page, Otherwise, If the
 							 * user clicks the backward button, load and open the previous page, Otherwise
 							 * Attempt to purchase the clicked item.
 							 */
-							if (e.getSlot() == getGUI().getSize() - 1) {
+							if (e.getSlot() == GUI.getItems().size() - 1) {
 								e.setCancelled(true);
 								closeAndOpenMenu(player.getName());
 								return;
-							} else if (e.getSlot() == getGUI().getSize() - 2) {
-								e.setCancelled(true);
-								if (e.getCurrentItem().getData().getData() != 14) {
-
-									loadPage(getCurrentPage() + 1);
-								}
-
-							} else if (e.getSlot() == 46) {
-								e.setCancelled(true);
-								if (e.getCurrentItem().getData().getData() != 14) {
-
-									loadPage(getCurrentPage() - 1);
-								}
 							} else {
 
 								/*
@@ -638,7 +511,7 @@ public final class Shop implements Listener {
 								if (hasPages()) {
 									item = getPage(getCurrentPage()).getContents()[e.getSlot()];
 								} else {
-									item = getItems()[e.getSlot()];
+									item = getItems().get(itemNumber);
 								}
 								if (item.getItemType() == ItemType.COMMAND) {
 
@@ -679,31 +552,6 @@ public final class Shop implements Listener {
 							}
 						}
 					}
-				}
-			}
-		}
-	}
-	
-	
-
-	/**
-	 * Inventory close handler for the Shop
-	 */
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onClose(InventoryCloseEvent e) {
-		String playerName = e.getPlayer().getName();
-		if (playerName.equals(this.user.getName())) {
-			if (Main.HAS_SHOP_OPEN.contains(playerName)) {
-				if (!Config.getEscapeOnly()) {
-					HandlerList.unregisterAll(this);
-					Main.HAS_SHOP_OPEN.remove(playerName);
-					return;
-				} else {
-					HandlerList.unregisterAll(this);
-					Main.HAS_SHOP_OPEN.remove(playerName);
-					Menu men = new Menu(playerName);
-					men.open();
-					return;
 				}
 			}
 		}

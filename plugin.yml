@@ -5,7 +5,7 @@ author: pablo67340
 description: Shop Plugin for any server.
 depend: [Vault]
 softdepend: [SilkSpawners, EpicSpawners]
-api-version: 1.13
+api-version: 1.14
 permissions:
     guishop.use:
         default: false

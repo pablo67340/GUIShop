@@ -95,7 +95,7 @@ Raiding:
   - sell-price: 0.0
   - enchantments: ''
   '14':
-  - id: 'SIGN'
+  - id: 'ACACIA_SIGN'
   - slot: 13
   - name: ''
   - buy-price: 1.0

@@ -15,6 +15,9 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.pablo67340.guishop.handler.ShopDir;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
@@ -26,12 +29,12 @@ public final class Menu implements Listener {
 	 * The GUI that is projected onto the screen when a {@link Player} opens the
 	 * {@link Menu}.
 	 */
-	private Inventory GUI;
+	private Gui GUI;
 
 	/**
 	 * True/False if coming from Quantity, void one listener.
 	 */
-	private Boolean dupePatch = false;
+	private Boolean dupePatch = false, isOpening = false;
 
 	/**
 	 * The {@link Player} that this {@link Menu} is created for.
@@ -62,12 +65,14 @@ public final class Menu implements Listener {
 	 */
 	public void preLoad() {
 
-		GUI = Bukkit.getServer().createInventory(null, 9 * Config.getMenuRows(), "Menu");
+		GUI = new Gui(Main.getInstance(), 1, "Menu");
 		/**
 		 * Loads all global shops.
 		 * 
 		 */
 		int numberOfShops = Config.getMenuRows() * 9;
+
+		OutlinePane page = new OutlinePane(0, 0, 6, 1);
 
 		for (int i = 0; i < numberOfShops; i++) {
 			if (!Main.getInstance().getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
@@ -94,25 +99,29 @@ public final class Menu implements Listener {
 			if (player.hasPermission("guishop.slot." + (i + 1)) || player.isOp()
 					|| player.hasPermission("guishop.slot.*")) {
 				String itemID = Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Item");
-				
-				
 
 				Material material = null;
-				
 
 				if (material == null) {
 					if ((material = XMaterial.valueOf(itemID).parseMaterial()) == null) {
-						Main.getInstance().getLogger().log(Level.WARNING, "Could not parse material: "+itemID+" for item #: "+(i+1));
+						Main.getInstance().getLogger().log(Level.WARNING,
+								"Could not parse material: " + itemID + " for item #: " + (i + 1));
 						continue;
 					}
 				}
-				
+
+				ItemStack itemStack = setName(new ItemStack(material), name, lore);
+				final int GCProtectedIndex = i;
+				GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event, GCProtectedIndex));
+
 				// SetItem no longer works with self created inventory object. Prefill with air?
-				GUI.addItem(setName(new ItemStack(material), name, lore));
+				page.addItem(gItem);
+				GUI.addPane(page);
 
 			}
 
 		}
+		open();
 		Bukkit.getServer().getPluginManager().registerEvents(this, Main.getInstance());
 	}
 
@@ -131,14 +140,16 @@ public final class Menu implements Listener {
 					Main.getInstance().getMainConfig().getString("disabled-world")));
 			return;
 		}
-
+		isOpening = true;
 		Main.HAS_MENU_OPEN.add(player.getName());
+		System.out.println("Added: " + player.getName());
+		System.out.println(Main.HAS_MENU_OPEN.contains(player.getName()));
 
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 			@Override
 			public void run() {
-				player.openInventory(GUI);
+				GUI.show(player);
 			}
 		}, 1L);
 
@@ -167,8 +178,8 @@ public final class Menu implements Listener {
 	 * Handle global inventory click events, check if inventory is for GUIShop, if
 	 * so, run logic.
 	 */
-	@EventHandler(priority = EventPriority.HIGHEST)
-	public void onShopClick(InventoryClickEvent e) {
+
+	public void onShopClick(InventoryClickEvent e, Integer itemNumber) {
 		if (e.getWhoClicked() instanceof Player) {
 			if (e.getClickedInventory() != null) {
 				Player player = (Player) e.getWhoClicked();
@@ -197,7 +208,7 @@ public final class Menu implements Listener {
 						}
 
 						dupePatch = true;
-						unregisterClass(player.getName());
+
 						ShopDir shopDef = shops.get(e.getSlot());
 						if (!shopDef.getShop().equalsIgnoreCase("")) {
 
@@ -218,23 +229,27 @@ public final class Menu implements Listener {
 	 */
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
-		String playerName = e.getPlayer().getName();
-		if (playerName.equals(this.player.getName())) {
-			if (Main.HAS_SHOP_OPEN.contains(playerName) && !Main.HAS_QTY_OPEN.contains(playerName)) {
-				if (Config.getEscapeOnly()) {
-					HandlerList.unregisterAll(openShop);
-					Main.HAS_SHOP_OPEN.remove(playerName);
-					open();
+		if (!isOpening) {
+			String playerName = e.getPlayer().getName();
+			if (playerName.equals(this.player.getName())) {
+				if (Main.HAS_SHOP_OPEN.contains(playerName) && !Main.HAS_QTY_OPEN.contains(playerName)) {
+					if (Config.getEscapeOnly()) {
+						HandlerList.unregisterAll(openShop);
+						Main.HAS_SHOP_OPEN.remove(playerName);
+						open();
+					}
+					return;
+				} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
+					if (!dupePatch) {
+						unregisterClass(playerName);
+					} else {
+						dupePatch = false;
+					}
+					return;
 				}
-				return;
-			} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
-				if (!dupePatch) {
-					unregisterClass(playerName);
-				} else {
-					dupePatch = false;
-				}
-				return;
 			}
+		} else {
+			isOpening = false;
 		}
 	}
 

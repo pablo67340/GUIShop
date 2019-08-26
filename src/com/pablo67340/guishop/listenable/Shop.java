@@ -542,12 +542,12 @@ public final class Shop implements Listener {
 									}
 
 								} else {
-
 									Quantity qty = new Quantity(player.getName(), item, this);
-									Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
+									
 									unregisterClass(player.getName());
 									qty.open();
 									Main.HAS_QTY_OPEN.add(player.getName());
+									Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
 								}
 							}
 						}

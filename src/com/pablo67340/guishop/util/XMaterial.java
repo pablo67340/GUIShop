@@ -1018,7 +1018,8 @@ public enum XMaterial {
      * Duplicates are only checked by keys not values.<br>
      * Checked with {@link String#equals}
      */
-    public static final HashMap<XMaterial, XMaterial> DUPLICATED = new HashMap<XMaterial, XMaterial>() {{
+    @SuppressWarnings("serial")
+	public static final HashMap<XMaterial, XMaterial> DUPLICATED = new HashMap<XMaterial, XMaterial>() {{
         put(XMaterial.MELON, XMaterial.MELON_SLICE);
         put(XMaterial.CARROT, XMaterial.CARROTS);
         put(XMaterial.POTATO, XMaterial.POTATOES);
@@ -1451,7 +1452,6 @@ public enum XMaterial {
      *
      * @return data of this material.
      */
-    @SuppressWarnings("deprecation")
     public byte getData() {
         return this.data;
     }

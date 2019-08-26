@@ -12,16 +12,19 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
+
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.Inventory;
+
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.MobType;
 import com.pablo67340.guishop.handler.Item;
@@ -55,7 +58,9 @@ public class Quantity implements Listener {
 	 * The GUI that is projected onto the screen when a {@link Player} opens the
 	 * {@link Menu}.
 	 */
-	private Inventory GUI;
+	private Gui GUI;
+	
+	private Boolean isOpening = false;
 
 	/**
 	 * The map containing the sell increments.
@@ -75,10 +80,10 @@ public class Quantity implements Listener {
 	 * Opens the GUI to sell the items in.
 	 */
 	public void open() {
-		GUI = Bukkit.getServer().createInventory(null, 9 * 6, Config.getQtyTitle());
+		GUI = new Gui(Main.getInstance(), 6, Config.getQtyTitle());
 		packInventory();
 
-		player.openInventory(GUI);
+		GUI.show(player);
 
 	}
 
@@ -87,6 +92,7 @@ public class Quantity implements Listener {
 	 */
 	private void packInventory() {
 		Integer multiplier = 1;
+		OutlinePane page = new OutlinePane(0, 0, 6, 9);
 		for (int x = 19; x <= 25; x++) {
 			ItemStack itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), multiplier);
 			ItemMeta itemMeta = itemStack.getItemMeta();
@@ -113,7 +119,12 @@ public class Quantity implements Listener {
 				break;
 			}
 			itemStack.setItemMeta(itemMeta);
-			GUI.setItem(x, itemStack);
+			final int GCProtectedIndex = x;
+			GuiItem gItem = new GuiItem(itemStack, event -> onQuantityClick(event, GCProtectedIndex));
+			for (int i = 0; i<=54; i++) {
+				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
+			}
+			page.insertItem(gItem, x);
 			qty.put(x, multiplier);
 			multiplier *= 2;
 		}
@@ -129,18 +140,20 @@ public class Quantity implements Listener {
 
 			backButtonItem.setItemMeta(backButtonMeta);
 
-			GUI.setItem(GUI.getSize() - 1, backButtonItem);
-
+			GuiItem gItem = new GuiItem(backButtonItem, event -> onQuantityClick(event, 54));
+			page.insertItem(gItem, 54);
+			
 		}
+		GUI.addPane(page);
 	}
 
-	@EventHandler(priority = EventPriority.HIGH)
-	public void onQuantityClick(InventoryClickEvent e) {
+
+	public void onQuantityClick(InventoryClickEvent e, Integer itemNumber) {
 		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
 			if (Main.HAS_QTY_OPEN.contains(playerName)) {
 				e.setCancelled(true);
 				if (!Config.getEscapeOnly()) {
-					if (e.getSlot() == (GUI.getSize() - 1)) {
+					if (e.getSlot() == 54) {
 						Main.HAS_QTY_OPEN.remove(playerName);
 						HandlerList.unregisterAll(this);
 						reOpen();
@@ -180,7 +193,7 @@ public class Quantity implements Listener {
 				}
 
 				// Does the quantity work out?
-				int quantity = qty.get(e.getSlot());
+				int quantity = qty.get(itemNumber);
 
 				// If the quantity is 0
 				if (quantity == 0) {
@@ -295,8 +308,8 @@ public class Quantity implements Listener {
 		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 			@Override
 			public void run() {
-				Bukkit.getServer().getPluginManager().registerEvents(currentShop, Main.getInstance());
 				currentShop.open();
+				Bukkit.getServer().getPluginManager().registerEvents(currentShop, Main.getInstance());
 			}
 		}, 1L);
 

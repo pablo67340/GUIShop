@@ -59,7 +59,7 @@ public class Quantity implements Listener {
 	 * {@link Menu}.
 	 */
 	private Gui GUI;
-	
+
 	private Boolean isOpening = false;
 
 	/**
@@ -121,7 +121,7 @@ public class Quantity implements Listener {
 			itemStack.setItemMeta(itemMeta);
 			final int GCProtectedIndex = x;
 			GuiItem gItem = new GuiItem(itemStack, event -> onQuantityClick(event, GCProtectedIndex));
-			for (int i = 0; i<=54; i++) {
+			for (int i = 0; i <= 54; i++) {
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
 			page.insertItem(gItem, x);
@@ -142,11 +142,10 @@ public class Quantity implements Listener {
 
 			GuiItem gItem = new GuiItem(backButtonItem, event -> onQuantityClick(event, 54));
 			page.insertItem(gItem, 54);
-			
+
 		}
 		GUI.addPane(page);
 	}
-
 
 	public void onQuantityClick(InventoryClickEvent e, Integer itemNumber) {
 		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
@@ -229,8 +228,9 @@ public class Quantity implements Listener {
 						if (Dependencies.hasDependency("SilkSpawners")) {
 							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
 							String oldName = item.getMobType();
-							System.out.println("Detected Mob Type: "+item.getMobType());
-							String spawnerName = oldName.substring(0, 1).toUpperCase() + oldName.substring(1).toLowerCase() + " Spawner";
+							System.out.println("Detected Mob Type: " + item.getMobType());
+							String spawnerName = oldName.substring(0, 1).toUpperCase()
+									+ oldName.substring(1).toLowerCase() + " Spawner";
 
 							// 1.13 only itemStack = su.setSpawnerType(itemStack,
 							// item.getMobType().toUpperCase(), spawnerName);
@@ -320,17 +320,23 @@ public class Quantity implements Listener {
 	 */
 	@EventHandler
 	public void onClose(InventoryCloseEvent e) {
-		if (e.getPlayer().getName().equalsIgnoreCase(this.playerName)) {
-			if (Main.HAS_QTY_OPEN.contains(playerName)) {
-				if (Config.getEscapeOnly()) {
-					Main.HAS_QTY_OPEN.remove(playerName);
-					HandlerList.unregisterAll(this);
-					reOpen();
-				} else {
-					Main.HAS_QTY_OPEN.remove(playerName);
-					HandlerList.unregisterAll(this);
+		System.out.println("Triigered");
+		if (!isOpening) {
+			if (e.getPlayer().getName().equalsIgnoreCase(this.playerName)) {
+				if (Main.HAS_QTY_OPEN.contains(playerName)) {
+					if (Config.getEscapeOnly()) {
+						Main.HAS_QTY_OPEN.remove(playerName);
+						HandlerList.unregisterAll(this);
+						reOpen();
+					} else {
+						Main.HAS_QTY_OPEN.remove(playerName);
+						HandlerList.unregisterAll(this);
+					}
 				}
 			}
+		} else {
+			isOpening = false;
+			System.out.println("true");
 		}
 
 	}

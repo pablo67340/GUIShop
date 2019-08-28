@@ -2,7 +2,7 @@ package com.pablo67340.guishop.listenable;
 
 import java.util.Arrays;
 import java.util.HashMap;
-
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -11,20 +11,20 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
+
 
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryCloseEvent;
+
 
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.MobType;
 import com.pablo67340.guishop.handler.Item;
@@ -53,14 +53,10 @@ public class Quantity implements Listener {
 	 * The item currently being targetted.
 	 */
 	private Item item;
-
-	/**
-	 * The GUI that is projected onto the screen when a {@link Player} opens the
-	 * {@link Menu}.
-	 */
-	private Gui GUI;
-
-	private Boolean isOpening = false;
+	
+	private Menu menuInstance;
+	
+	private List<Pane> panes;
 
 	/**
 	 * The map containing the sell increments.
@@ -74,16 +70,17 @@ public class Quantity implements Listener {
 		this.playerName = player;
 		this.player = Bukkit.getPlayer(player);
 		this.currentShop = shop;
+		this.menuInstance = shop.getMenuInstance();
 	}
 
 	/**
 	 * Opens the GUI to sell the items in.
 	 */
 	public void open() {
-		GUI = new Gui(Main.getInstance(), 6, Config.getQtyTitle());
+		menuInstance.rePrimeGUI(Config.getQtyTitle(), 6, panes);
 		packInventory();
 
-		GUI.show(player);
+		menuInstance.getGUI().show(player);
 
 	}
 
@@ -92,7 +89,7 @@ public class Quantity implements Listener {
 	 */
 	private void packInventory() {
 		Integer multiplier = 1;
-		OutlinePane page = new OutlinePane(0, 0, 6, 9);
+		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 		for (int x = 19; x <= 25; x++) {
 			ItemStack itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), multiplier);
 			ItemMeta itemMeta = itemStack.getItemMeta();
@@ -144,7 +141,8 @@ public class Quantity implements Listener {
 			page.insertItem(gItem, 54);
 
 		}
-		GUI.addPane(page);
+		menuInstance.getGUI().addPane(page);
+		panes = menuInstance.getGUI().getPanes();
 	}
 
 	public void onQuantityClick(InventoryClickEvent e, Integer itemNumber) {

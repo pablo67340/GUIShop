@@ -18,7 +18,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-
+import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.handler.Item;
@@ -39,6 +39,8 @@ public final class Shop implements Listener {
 	 * Number of columns for the GUI
 	 */
 	public static final int COL = 9;
+	
+	private List<Pane> panes;
 
 	/**
 	 * The name of this {@link Shop}.
@@ -194,7 +196,7 @@ public final class Shop implements Listener {
 
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
 		
-		menuInstance.rePrimeGUI(ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName(), 6);
+		menuInstance.rePrimeGUI(ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName(), 6, panes);
 
 		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
@@ -358,6 +360,8 @@ public final class Shop implements Listener {
 			}
 
 		}
+		
+		panes = menuInstance.getGUI().getPanes();
 
 		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {

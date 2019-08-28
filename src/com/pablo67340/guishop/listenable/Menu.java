@@ -18,6 +18,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.handler.ShopDir;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
@@ -40,6 +41,8 @@ public final class Menu implements Listener {
 	 * The {@link Player} that this {@link Menu} is created for.
 	 */
 	private final Player player;
+
+	private List<Pane> panes;
 
 	/**
 	 * The loaded shops read from the config.
@@ -65,7 +68,7 @@ public final class Menu implements Listener {
 	 */
 	public void preLoad() {
 
-		rePrimeGUI("Menu", 1);
+		rePrimeGUI("Menu", 1, panes);
 		/**
 		 * Loads all global shops.
 		 * 
@@ -121,7 +124,7 @@ public final class Menu implements Listener {
 			}
 
 		}
-		HandlerList.unregisterAll(this);
+		panes = GUI.getPanes();
 		open();
 		Bukkit.getServer().getPluginManager().registerEvents(this, Main.getInstance());
 	}
@@ -232,19 +235,20 @@ public final class Menu implements Listener {
 			String playerName = e.getPlayer().getName();
 			if (playerName.equals(this.player.getName())) {
 				if (Main.HAS_SHOP_OPEN.contains(playerName)) {
+					Main.HAS_SHOP_OPEN.remove(playerName);
 					if (Config.getEscapeOnly()) {
-						Main.HAS_SHOP_OPEN.remove(playerName);
 						preLoad();
 						open();
 					}
 					return;
 				} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
-						Main.HAS_MENU_OPEN.remove(playerName);
+					Main.HAS_MENU_OPEN.remove(playerName);
 					return;
-				}else if (Main.HAS_QTY_OPEN.contains(playerName)) {
+				} else if (Main.HAS_QTY_OPEN.contains(playerName)) {
+					Main.HAS_QTY_OPEN.remove(playerName);
 					if (Config.getEscapeOnly()) {
 						System.out.println("Reopening shop");
-						Main.HAS_QTY_OPEN.remove(playerName);
+						openShop.loadShop();
 						openShop.open();
 					} else {
 						Main.HAS_QTY_OPEN.remove(playerName);
@@ -262,17 +266,23 @@ public final class Menu implements Listener {
 	 */
 	public void unregisterClass(String playerName) {
 		HandlerList.unregisterAll(this);
-		
+
 	}
-	
+
 	public Gui getGUI() {
 		return GUI;
 	}
-	
-	public void rePrimeGUI(String title, int rows) {
+
+	public void rePrimeGUI(String title, int rows, List<Pane> panes) {
 		GUI.getPanes().clear();
+		if (panes != null) {
+			for (Pane pane : panes) {
+				GUI.getPanes().add(pane);
+			}
+		}
 		GUI.setTitle(title);
 		GUI.setRows(rows);
+		GUI.update();
 	}
-	
+
 }

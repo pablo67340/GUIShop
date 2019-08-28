@@ -230,11 +230,12 @@ public final class Menu implements Listener {
 	 */
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
-		System.out.println("Menu Trigger");
+		System.out.println("Event Trigger");
 		if (!isOpening) {
 			String playerName = e.getPlayer().getName();
 			if (playerName.equals(this.player.getName())) {
 				if (Main.HAS_SHOP_OPEN.contains(playerName)) {
+					System.out.println("REMOVED SHOP");
 					Main.HAS_SHOP_OPEN.remove(playerName);
 					if (Config.getEscapeOnly()) {
 						preLoad();
@@ -242,9 +243,11 @@ public final class Menu implements Listener {
 					}
 					return;
 				} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
+					System.out.println("REMOVED MENU");
 					Main.HAS_MENU_OPEN.remove(playerName);
 					return;
 				} else if (Main.HAS_QTY_OPEN.contains(playerName)) {
+				    System.out.println("REMOVED QTY");
 					Main.HAS_QTY_OPEN.remove(playerName);
 					if (Config.getEscapeOnly()) {
 						System.out.println("Reopening shop");
@@ -266,7 +269,6 @@ public final class Menu implements Listener {
 	 */
 	public void unregisterClass(String playerName) {
 		HandlerList.unregisterAll(this);
-
 	}
 
 	public Gui getGUI() {
@@ -274,6 +276,7 @@ public final class Menu implements Listener {
 	}
 
 	public void rePrimeGUI(String title, int rows, List<Pane> panes) {
+		isOpening = true;
 		GUI.getPanes().clear();
 		if (panes != null) {
 			for (Pane pane : panes) {

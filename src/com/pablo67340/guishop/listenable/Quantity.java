@@ -315,30 +315,4 @@ public class Quantity implements Listener {
 
 	}
 
-	/**
-	 * The inventory close listener for the quantity inventory.
-	 */
-	@EventHandler
-	public void onClose(InventoryCloseEvent e) {
-		System.out.println("Triigered");
-		if (!isOpening) {
-			if (e.getPlayer().getName().equalsIgnoreCase(this.playerName)) {
-				if (Main.HAS_QTY_OPEN.contains(playerName)) {
-					if (Config.getEscapeOnly()) {
-						Main.HAS_QTY_OPEN.remove(playerName);
-						HandlerList.unregisterAll(this);
-						reOpen();
-					} else {
-						Main.HAS_QTY_OPEN.remove(playerName);
-						HandlerList.unregisterAll(this);
-					}
-				}
-			}
-		} else {
-			isOpening = false;
-			System.out.println("true");
-		}
-
-	}
-
 }

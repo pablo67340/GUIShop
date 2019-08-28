@@ -8,7 +8,6 @@ import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
@@ -16,7 +15,6 @@ import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
@@ -63,11 +61,6 @@ public final class Shop implements Listener {
 	private final List<String> lore;
 
 	/**
-	 * The GUI that will hold every {@link Item} in this {@link Shop}.
-	 */
-	private Gui GUI;
-
-	/**
 	 * The list of {@link Item}s in this {@link Shop}.
 	 */
 	private List<Item> ITEMS;
@@ -90,6 +83,8 @@ public final class Shop implements Listener {
 	private Integer currentPage = 0;
 
 	private Player user;
+	
+	private Menu menuInstance;
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -98,12 +93,13 @@ public final class Shop implements Listener {
 	 * @param description The description of the shop.
 	 * @param lore        The lore of the shop.
 	 */
-	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player) {
+	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player, Menu menuInstance) {
 		this.name = name;
 		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
 		this.user = player;
+		this.menuInstance = menuInstance;
 	}
 
 	/**
@@ -164,15 +160,6 @@ public final class Shop implements Listener {
 	}
 
 	/**
-	 * Gets the GUI of the {@link Shop}.
-	 * 
-	 * @return the shop's GUI.
-	 */
-	public Gui getGUI() {
-		return GUI;
-	}
-
-	/**
 	 * Gets the items of the {@link Shop}.
 	 * 
 	 * @return the shop's items.
@@ -206,8 +193,8 @@ public final class Shop implements Listener {
 		Item item = new Item();
 
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
-
-		GUI = new Gui(Main.getInstance(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+		
+		menuInstance.rePrimeGUI(ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName(), 6);
 
 		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
@@ -367,7 +354,7 @@ public final class Shop implements Listener {
 
 			if (index == config.getKeys(true).size()) {
 				System.out.println("Added pane to GUI to OPEN");
-				GUI.addPane(pane);
+				menuInstance.getGUI().addPane(pane);
 			}
 
 		}
@@ -400,7 +387,7 @@ public final class Shop implements Listener {
 				currentPage += 1;
 				outlinePages.get(currentPage).setVisible(true);
 
-				GUI.update();
+				menuInstance.getGUI().update();
 			}), 51);
 		}
 		if (pageC > 0) {
@@ -417,7 +404,7 @@ public final class Shop implements Listener {
 				currentPage -= 1;
 				outlinePages.get(currentPage).setVisible(true);
 
-				GUI.update();
+				menuInstance.getGUI().update();
 			}), 47);
 		}
 		if (!Config.getEscapeOnly()) {
@@ -439,7 +426,7 @@ public final class Shop implements Listener {
 	 * 
 	 */
 	public void open() {
-		GUI.show(user);
+		menuInstance.getGUI().update();
 		Main.HAS_SHOP_OPEN.add(user.getName());
 	}
 
@@ -491,14 +478,14 @@ public final class Shop implements Listener {
 							return;
 						}
 
-						if (e.getSlot() >= 0 && e.getSlot() < GUI.getItems().size()) {
+						if (e.getSlot() >= 0 && e.getSlot() < menuInstance.getGUI().getItems().size()) {
 							/**
 							 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
 							 * user clicks the forward button, load and open next page, Otherwise, If the
 							 * user clicks the backward button, load and open the previous page, Otherwise
 							 * Attempt to purchase the clicked item.
 							 */
-							if (e.getSlot() == GUI.getItems().size() - 1) {
+							if (e.getSlot() == menuInstance.getGUI().getItems().size() - 1) {
 								e.setCancelled(true);
 								closeAndOpenMenu(player.getName());
 								return;
@@ -544,7 +531,7 @@ public final class Shop implements Listener {
 								} else {
 									Quantity qty = new Quantity(player.getName(), item, this);
 									
-									unregisterClass(player.getName());
+									Main.HAS_SHOP_OPEN.remove(player.getName());
 									qty.open();
 									Main.HAS_QTY_OPEN.add(player.getName());
 									Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
@@ -556,13 +543,9 @@ public final class Shop implements Listener {
 			}
 		}
 	}
-
-	/**
-	 * Stops listening and garbages class.
-	 */
-	public void unregisterClass(String playerName) {
-		HandlerList.unregisterAll(this);
-		Main.HAS_SHOP_OPEN.remove(playerName);
+	
+	public Menu getMenuInstance() {
+		return this.menuInstance;
 	}
 
 }

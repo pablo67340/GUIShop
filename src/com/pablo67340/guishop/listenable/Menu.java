@@ -29,12 +29,12 @@ public final class Menu implements Listener {
 	 * The GUI that is projected onto the screen when a {@link Player} opens the
 	 * {@link Menu}.
 	 */
-	private Gui GUI;
+	private Gui GUI = new Gui(Main.getInstance(), 1, "Menu");;
 
 	/**
 	 * True/False if coming from Quantity, void one listener.
 	 */
-	private Boolean dupePatch = false, isOpening = false;
+	private Boolean isOpening = false;
 
 	/**
 	 * The {@link Player} that this {@link Menu} is created for.
@@ -65,7 +65,7 @@ public final class Menu implements Listener {
 	 */
 	public void preLoad() {
 
-		GUI = new Gui(Main.getInstance(), 1, "Menu");
+		rePrimeGUI("Menu", 1);
 		/**
 		 * Loads all global shops.
 		 * 
@@ -121,6 +121,7 @@ public final class Menu implements Listener {
 			}
 
 		}
+		HandlerList.unregisterAll(this);
 		open();
 		Bukkit.getServer().getPluginManager().registerEvents(this, Main.getInstance());
 	}
@@ -178,7 +179,6 @@ public final class Menu implements Listener {
 	 * Handle global inventory click events, check if inventory is for GUIShop, if
 	 * so, run logic.
 	 */
-
 	public void onShopClick(InventoryClickEvent e, Integer itemNumber) {
 		if (e.getWhoClicked() instanceof Player) {
 			if (e.getClickedInventory() != null) {
@@ -207,13 +207,11 @@ public final class Menu implements Listener {
 							return;
 						}
 
-						dupePatch = true;
-
 						ShopDir shopDef = shops.get(e.getSlot());
 						if (!shopDef.getShop().equalsIgnoreCase("")) {
 
 							openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-									shopDef.getLore(), e.getSlot(), player);
+									shopDef.getLore(), e.getSlot(), player, this);
 							Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
 							openShop.loadShop();
 							return;
@@ -229,21 +227,27 @@ public final class Menu implements Listener {
 	 */
 	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
+		System.out.println("Menu Trigger");
 		if (!isOpening) {
 			String playerName = e.getPlayer().getName();
 			if (playerName.equals(this.player.getName())) {
-				if (Main.HAS_SHOP_OPEN.contains(playerName) && !Main.HAS_QTY_OPEN.contains(playerName)) {
+				if (Main.HAS_SHOP_OPEN.contains(playerName)) {
 					if (Config.getEscapeOnly()) {
-						HandlerList.unregisterAll(openShop);
 						Main.HAS_SHOP_OPEN.remove(playerName);
+						preLoad();
 						open();
 					}
 					return;
 				} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
-					if (!dupePatch) {
-						unregisterClass(playerName);
+						Main.HAS_MENU_OPEN.remove(playerName);
+					return;
+				}else if (Main.HAS_QTY_OPEN.contains(playerName)) {
+					if (Config.getEscapeOnly()) {
+						System.out.println("Reopening shop");
+						Main.HAS_QTY_OPEN.remove(playerName);
+						openShop.open();
 					} else {
-						dupePatch = false;
+						Main.HAS_QTY_OPEN.remove(playerName);
 					}
 					return;
 				}
@@ -258,7 +262,17 @@ public final class Menu implements Listener {
 	 */
 	public void unregisterClass(String playerName) {
 		HandlerList.unregisterAll(this);
-		Main.HAS_MENU_OPEN.remove(playerName);
+		
 	}
-
+	
+	public Gui getGUI() {
+		return GUI;
+	}
+	
+	public void rePrimeGUI(String title, int rows) {
+		GUI.getPanes().clear();
+		GUI.setTitle(title);
+		GUI.setRows(rows);
+	}
+	
 }

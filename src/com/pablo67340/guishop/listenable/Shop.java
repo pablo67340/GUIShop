@@ -10,10 +10,9 @@ import org.bukkit.entity.Player;
 
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
@@ -39,7 +38,7 @@ public final class Shop implements Listener {
 	 * Number of columns for the GUI
 	 */
 	public static final int COL = 9;
-	
+
 	private List<Pane> panes;
 
 	/**
@@ -85,8 +84,10 @@ public final class Shop implements Listener {
 	private Integer currentPage = 0;
 
 	private Player user;
-	
+
 	private Menu menuInstance;
+
+	private Quantity qty;
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -95,7 +96,8 @@ public final class Shop implements Listener {
 	 * @param description The description of the shop.
 	 * @param lore        The lore of the shop.
 	 */
-	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player, Menu menuInstance) {
+	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player,
+			Menu menuInstance) {
 		this.name = name;
 		this.shop = shop;
 		this.description = description;
@@ -195,14 +197,12 @@ public final class Shop implements Listener {
 		Item item = new Item();
 
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
-		
-		menuInstance.rePrimeGUI(ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName(), 6, panes);
+
+		menuInstance.rePrimeGUI(ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName(), 6, panes, event -> onClose(event));
 
 		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
 		OutlinePane page = new OutlinePane(0, 0, COL, ROW);
-
-		System.out.println("CItemSize: " + config.getKeys(true).size());
 
 		for (String str : config.getKeys(true)) {
 
@@ -338,9 +338,7 @@ public final class Shop implements Listener {
 			final int GCProtectedIndex = index;
 			// Create Page
 			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event, GCProtectedIndex - 1));
-			System.out.println("INDEX: " + index + "DIFF: " + (index - lastIndex));
 			if (index == config.getKeys(true).size() || (index - lastIndex) == 46) {
-				System.out.println("NEW PAGE ADDED TO PANE: " + pageC);
 				if (config.getKeys(true).size() >= 45) {
 					applyButtons(pane, page);
 				}
@@ -350,36 +348,23 @@ public final class Shop implements Listener {
 				outlinePages.add(page);
 				page = new OutlinePane(0, 0, COL, ROW);
 			} else {
-				System.out.println("ADD ITEM");
 				page.addItem(gItem);
 			}
 
 			if (index == config.getKeys(true).size()) {
-				System.out.println("Added pane to GUI to OPEN");
 				menuInstance.getGUI().addPane(pane);
 			}
 
 		}
-		
-		panes = menuInstance.getGUI().getPanes();
 
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				open();
-			}
-		}, 1L);
+		panes = menuInstance.getGUI().getPanes();
 
 	}
 
 	public void applyButtons(PaginatedPane pane, OutlinePane page) {
-		System.out.println("Buttons Applied");
-		System.out.println(page.getItems().size());
 
 		if (page.getItems().size() == 45) {
 			for (int x = page.getItems().size(); x <= 54; x++) {
-				System.out.println("Adding dummy item: " + x);
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
 			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
@@ -396,7 +381,6 @@ public final class Shop implements Listener {
 		}
 		if (pageC > 0) {
 			for (int x = page.getItems().size(); x <= 54; x++) {
-				System.out.println("Adding dummy item: " + x);
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
 			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
@@ -533,12 +517,20 @@ public final class Shop implements Listener {
 									}
 
 								} else {
-									Quantity qty = new Quantity(player.getName(), item, this);
-									
+									if (qty != null) {
+										menuInstance.rePrimeGUI(Config.getQtyTitle(), 6, qty.getPanes(), event -> qty.onClose(event));
+										System.out.println("Qty was not null");
+									} else {
+										System.out.println("Qty was null");
+										qty = new Quantity(player.getName(), item, this);
+										qty.loadInventory();
+										Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
+										qty.open();
+
+									}
+
 									Main.HAS_SHOP_OPEN.remove(player.getName());
-									qty.open();
-									Main.HAS_QTY_OPEN.add(player.getName());
-									Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
+
 								}
 							}
 						}
@@ -547,9 +539,26 @@ public final class Shop implements Listener {
 			}
 		}
 	}
-	
+
 	public Menu getMenuInstance() {
 		return this.menuInstance;
+	}
+
+	/**
+	 * The inventory closeEvent handling for the Menu.
+	 */
+	public void onClose(InventoryCloseEvent e) {
+		String playerName = e.getPlayer().getName();
+		if (playerName.equals(user.getName())) {
+			if (Main.HAS_SHOP_OPEN.contains(playerName)) {
+				Main.HAS_SHOP_OPEN.remove(playerName);
+				if (Config.getEscapeOnly()) {
+					menuInstance.preLoad();
+					menuInstance.open();
+				}
+				return;
+			}
+		}
 	}
 
 }

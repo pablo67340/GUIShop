@@ -16,8 +16,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
-
-
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -77,17 +76,16 @@ public class Quantity implements Listener {
 	 * Opens the GUI to sell the items in.
 	 */
 	public void open() {
-		menuInstance.rePrimeGUI(Config.getQtyTitle(), 6, panes);
-		packInventory();
-
-		menuInstance.getGUI().show(player);
-
+		Main.HAS_QTY_OPEN.add(player.getName());
+		menuInstance.getGUI().update();
+		System.out.println("Inventory Updated");
 	}
 
 	/**
 	 * Preloads the inventory to display items.
 	 */
-	private void packInventory() {
+	public void loadInventory() {
+		menuInstance.rePrimeGUI(Config.getQtyTitle(), 6, panes, event -> onClose(event));
 		Integer multiplier = 1;
 		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 		for (int x = 19; x <= 25; x++) {
@@ -142,6 +140,7 @@ public class Quantity implements Listener {
 
 		}
 		menuInstance.getGUI().addPane(page);
+		System.out.println("Panes added: "+menuInstance.getGUI().getPanes().size());
 		panes = menuInstance.getGUI().getPanes();
 	}
 
@@ -296,7 +295,7 @@ public class Quantity implements Listener {
 			}
 		}
 	}
-
+	
 	/**
 	 * Preloads the shops before opening them.
 	 */
@@ -311,6 +310,24 @@ public class Quantity implements Listener {
 			}
 		}, 1L);
 
+	}
+	
+	public List<Pane> getPanes(){
+		return panes;
+	}
+	
+	public void onClose(InventoryCloseEvent e) {
+		String playerName = e.getPlayer().getName();
+		if (Main.HAS_QTY_OPEN.contains(playerName)) {
+			Main.HAS_QTY_OPEN.remove(playerName);
+			if (Config.getEscapeOnly()) {
+				currentShop.loadShop();
+				currentShop.open();
+			} else {
+				Main.HAS_QTY_OPEN.remove(playerName);
+			}
+			return;
+		}
 	}
 
 }

@@ -1,19 +1,17 @@
 package com.pablo67340.guishop.listenable;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 
 import org.bukkit.*;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
@@ -30,7 +28,7 @@ public final class Menu implements Listener {
 	 * The GUI that is projected onto the screen when a {@link Player} opens the
 	 * {@link Menu}.
 	 */
-	private Gui GUI = new Gui(Main.getInstance(), 1, "Menu");;
+	private Gui GUI = new Gui(Main.getInstance(), 1, "Menu");
 
 	/**
 	 * True/False if coming from Quantity, void one listener.
@@ -68,7 +66,7 @@ public final class Menu implements Listener {
 	 */
 	public void preLoad() {
 
-		rePrimeGUI("Menu", 1, panes);
+		rePrimeGUI("Menu", 1, panes, event -> onClose(event));
 		/**
 		 * Loads all global shops.
 		 * 
@@ -125,7 +123,6 @@ public final class Menu implements Listener {
 
 		}
 		panes = GUI.getPanes();
-		open();
 		Bukkit.getServer().getPluginManager().registerEvents(this, Main.getInstance());
 	}
 
@@ -146,16 +143,9 @@ public final class Menu implements Listener {
 		}
 		isOpening = true;
 		Main.HAS_MENU_OPEN.add(player.getName());
-		System.out.println("Added: " + player.getName());
-		System.out.println(Main.HAS_MENU_OPEN.contains(player.getName()));
+		System.out.println("Added MENU: " + player.getName());
 
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				GUI.show(player);
-			}
-		}, 1L);
+		GUI.show(player);
 
 	}
 
@@ -217,6 +207,7 @@ public final class Menu implements Listener {
 									shopDef.getLore(), e.getSlot(), player, this);
 							Bukkit.getServer().getPluginManager().registerEvents(openShop, Main.getInstance());
 							openShop.loadShop();
+							openShop.open();
 							return;
 						}
 					}
@@ -228,39 +219,11 @@ public final class Menu implements Listener {
 	/**
 	 * The inventory closeEvent handling for the Menu.
 	 */
-	@EventHandler(priority = EventPriority.HIGH)
 	public void onClose(InventoryCloseEvent e) {
-		System.out.println("Event Trigger");
-		if (!isOpening) {
-			String playerName = e.getPlayer().getName();
-			if (playerName.equals(this.player.getName())) {
-				if (Main.HAS_SHOP_OPEN.contains(playerName)) {
-					System.out.println("REMOVED SHOP");
-					Main.HAS_SHOP_OPEN.remove(playerName);
-					if (Config.getEscapeOnly()) {
-						preLoad();
-						open();
-					}
-					return;
-				} else if (Main.HAS_MENU_OPEN.contains(playerName)) {
-					System.out.println("REMOVED MENU");
-					Main.HAS_MENU_OPEN.remove(playerName);
-					return;
-				} else if (Main.HAS_QTY_OPEN.contains(playerName)) {
-				    System.out.println("REMOVED QTY");
-					Main.HAS_QTY_OPEN.remove(playerName);
-					if (Config.getEscapeOnly()) {
-						System.out.println("Reopening shop");
-						openShop.loadShop();
-						openShop.open();
-					} else {
-						Main.HAS_QTY_OPEN.remove(playerName);
-					}
-					return;
-				}
-			}
-		} else {
-			isOpening = false;
+		String playerName = e.getPlayer().getName();
+		if (Main.HAS_MENU_OPEN.contains(playerName)) {
+			Main.HAS_MENU_OPEN.remove(playerName);
+			return;
 		}
 	}
 
@@ -275,9 +238,11 @@ public final class Menu implements Listener {
 		return GUI;
 	}
 
-	public void rePrimeGUI(String title, int rows, List<Pane> panes) {
+	public void rePrimeGUI(String title, int rows, List<Pane> panes, Consumer<InventoryCloseEvent> eventConsumer) {
 		isOpening = true;
 		GUI.getPanes().clear();
+		GUI.update();
+		GUI.setOnClose(eventConsumer);
 		if (panes != null) {
 			for (Pane pane : panes) {
 				GUI.getPanes().add(pane);

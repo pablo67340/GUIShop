@@ -243,6 +243,7 @@ public final class PlayerListener implements Listener {
 			}
 		}
 	}
+	
 
 	/**
 	 * Print the usage of the plugin to the player.

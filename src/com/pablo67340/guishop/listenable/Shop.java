@@ -8,16 +8,16 @@ import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.scheduler.BukkitScheduler;
 
+import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.handler.Item;
@@ -27,7 +27,7 @@ import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.XMaterial;
 
-public final class Shop implements Listener {
+public final class Shop {
 
 	/**
 	 * Number of rows for the GUI.,
@@ -38,8 +38,6 @@ public final class Shop implements Listener {
 	 * Number of columns for the GUI
 	 */
 	public static final int COL = 9;
-
-	private List<Pane> panes;
 
 	/**
 	 * The name of this {@link Shop}.
@@ -74,20 +72,15 @@ public final class Shop implements Listener {
 	private Page[] pages = new Page[20];
 
 	/**
-	 * True/False if the current {@link Shop} has more than 1 page.
-	 */
-	private Boolean hasPages = false;
-
-	/**
 	 * The current page number a user is currently browsing in their {@link Shop}
 	 */
 	private Integer currentPage = 0;
 
-	private Player user;
+	private Gui GUI;
 
 	private Menu menuInstance;
 
-	private Quantity qty;
+	private Boolean hasClicked = false;
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -102,7 +95,6 @@ public final class Shop implements Listener {
 		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
-		this.user = player;
 		this.menuInstance = menuInstance;
 	}
 
@@ -111,13 +103,6 @@ public final class Shop implements Listener {
 	 */
 	public Integer getCurrentPage() {
 		return currentPage;
-	}
-
-	/**
-	 * Returns true if this {@link Shop} has pages.
-	 */
-	public Boolean hasPages() {
-		return hasPages;
 	}
 
 	/**
@@ -198,7 +183,7 @@ public final class Shop implements Listener {
 
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
 
-		menuInstance.rePrimeGUI(ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName(), 6, panes, event -> onClose(event));
+		GUI = new Gui(Main.getInstance(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
 		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
@@ -265,6 +250,7 @@ public final class Shop implements Listener {
 							"§cError occured while reading item: " + (index - 1) + " from shop: " + getShop());
 				}
 			}
+
 			// Update shops.yml to add type
 			if (item.getItemType() == null) {
 				item.setType(ItemType.ITEM);
@@ -278,7 +264,6 @@ public final class Shop implements Listener {
 			}
 
 			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
-
 			ITEMS.add(item);
 			Material material = null;
 			if (material == null) {
@@ -335,11 +320,11 @@ public final class Shop implements Listener {
 				}
 			}
 
-			final int GCProtectedIndex = index;
 			// Create Page
-			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event, GCProtectedIndex - 1));
-			if (index == config.getKeys(true).size() || (index - lastIndex) == 46) {
-				if (config.getKeys(true).size() >= 45) {
+			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
+			if (index == config.getKeys(true).size() || ((index - 1) - lastIndex) == 44) {
+				page.addItem(gItem);
+				if (config.getKeys(true).size() > 45) {
 					applyButtons(pane, page);
 				}
 				lastIndex = index;
@@ -352,17 +337,14 @@ public final class Shop implements Listener {
 			}
 
 			if (index == config.getKeys(true).size()) {
-				menuInstance.getGUI().addPane(pane);
+				GUI.addPane(pane);
 			}
 
 		}
 
-		panes = menuInstance.getGUI().getPanes();
-
 	}
 
 	public void applyButtons(PaginatedPane pane, OutlinePane page) {
-
 		if (page.getItems().size() == 45) {
 			for (int x = page.getItems().size(); x <= 54; x++) {
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
@@ -374,9 +356,10 @@ public final class Shop implements Listener {
 					outlinePages.get(currentPage).setVisible(false);
 				}
 				currentPage += 1;
+				hasClicked = true;
 				outlinePages.get(currentPage).setVisible(true);
 
-				menuInstance.getGUI().update();
+				GUI.update();
 			}), 51);
 		}
 		if (pageC > 0) {
@@ -390,9 +373,10 @@ public final class Shop implements Listener {
 					outlinePages.get(currentPage).setVisible(false);
 				}
 				currentPage -= 1;
+				hasClicked = true;
 				outlinePages.get(currentPage).setVisible(true);
 
-				menuInstance.getGUI().update();
+				GUI.update();
 			}), 47);
 		}
 		if (!Config.getEscapeOnly()) {
@@ -404,8 +388,13 @@ public final class Shop implements Listener {
 			backButtonMeta.setDisplayName(Config.getBackButtonText());
 
 			backButtonItem.setItemMeta(backButtonMeta);
+			
+			GuiItem item = new GuiItem(backButtonItem, event -> {
+				menuInstance.open();
+				return;
+			});
 
-			page.insertItem(new GuiItem(backButtonItem), 54);
+			page.insertItem(item, 53);
 		}
 	}
 
@@ -413,152 +402,117 @@ public final class Shop implements Listener {
 	 * Open the player's shop
 	 * 
 	 */
-	public void open() {
-		menuInstance.getGUI().update();
-		Main.HAS_SHOP_OPEN.add(user.getName());
+	public void open(Player input) {
+		GUI.setOnClose(event -> onClose(event));
+		GUI.show(input);
 	}
 
-	/**
-	 * Safely navigate back to menu.
-	 * 
-	 */
-	public void closeAndOpenMenu(String player) {
-
-		Bukkit.getPlayer(player).closeInventory();
-
-		Main.HAS_MENU_OPEN.add(player);
-		Menu menu = new Menu(player);
-		menu.open();
-		Main.HAS_SHOP_OPEN.remove(player);
-	}
-
-	public void onShopClick(InventoryClickEvent e, Integer itemNumber) {
+	public void onShopClick(InventoryClickEvent e) {
 		if (e.getWhoClicked() instanceof Player) {
 			if (e.getClickedInventory() != null) {
 				Player player = (Player) e.getWhoClicked();
-				if (player.getName().equals(this.user.getName())) {
+				hasClicked = true;
 
-					/*
-					 * If the player has the shop open.
-					 */
-					if (Main.HAS_SHOP_OPEN.contains(player.getName())) {
+				/*
+				 * If the player has the shop open.
+				 */
+				e.setCancelled(true);
+				if (player.getInventory().firstEmpty() == -1) {
+					e.setCancelled(true);
+					player.sendMessage(Config.getFull());
+					return;
+				}
+				/*
+				 * If the player clicks on an empty slot, then cancel the event.
+				 */
+				if (e.getCurrentItem() != null) {
+					if (e.getCurrentItem().getType() == Material.AIR) {
 						e.setCancelled(true);
-						if (player.getInventory().firstEmpty() == -1) {
-							e.setCancelled(true);
-							player.sendMessage(Config.getFull());
-							return;
-						}
-						/*
-						 * If the player clicks on an empty slot, then cancel the event.
-						 */
-						if (e.getCurrentItem() != null) {
-							if (e.getCurrentItem().getType() == Material.AIR) {
-								e.setCancelled(true);
-								return;
-							}
-						}
-
-						/*
-						 * If the player clicks in their own inventory, we want to cancel the event.
-						 */
-						if (e.getClickedInventory() == player.getInventory()) {
-							e.setCancelled(true);
-							return;
-						}
-
-						if (e.getSlot() >= 0 && e.getSlot() < menuInstance.getGUI().getItems().size()) {
-							/**
-							 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
-							 * user clicks the forward button, load and open next page, Otherwise, If the
-							 * user clicks the backward button, load and open the previous page, Otherwise
-							 * Attempt to purchase the clicked item.
-							 */
-							if (e.getSlot() == menuInstance.getGUI().getItems().size() - 1) {
-								e.setCancelled(true);
-								closeAndOpenMenu(player.getName());
-								return;
-							} else {
-
-								/*
-								 * If the player has enough money to purchase the item, then allow them to.
-								 */
-								Item item;
-								if (hasPages()) {
-									item = getPage(getCurrentPage()).getContents()[e.getSlot()];
-								} else {
-									item = getItems().get(itemNumber);
-								}
-								if (item.getItemType() == ItemType.COMMAND) {
-
-									if (Main.getInstance().purchaseCommands(player.getUniqueId(), item.getCommands())) {
-										if (Main.getEconomy().withdrawPlayer(player, item.getBuyPrice())
-												.transactionSuccess()) {
-											// If the player has the sound enabled, play
-											// it!
-											if (Config.isSoundEnabled()) {
-												try {
-													player.playSound(player.getLocation(),
-															Sound.valueOf(Config.getSound()), 1, 1);
-
-												} catch (Exception ex) {
-													Main.getInstance().getLogger().warning(
-															"§cIncorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
-												}
-											}
-											player.sendMessage(
-													Config.getPrefix() + Config.getPurchased() + item.getBuyPrice()
-															+ Config.getTaken() + Config.getCurrencySuffix());
-										} else {
-											player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre()
-													+ item.getBuyPrice() + Config.getNotEnoughPost());
-										}
-									} else {
-										player.sendMessage(Config.getCommandAlready());
-									}
-
-								} else {
-									if (qty != null) {
-										menuInstance.rePrimeGUI(Config.getQtyTitle(), 6, qty.getPanes(), event -> qty.onClose(event));
-										System.out.println("Qty was not null");
-									} else {
-										System.out.println("Qty was null");
-										qty = new Quantity(player.getName(), item, this);
-										qty.loadInventory();
-										Bukkit.getServer().getPluginManager().registerEvents(qty, Main.getInstance());
-										qty.open();
-
-									}
-
-									Main.HAS_SHOP_OPEN.remove(player.getName());
-
-								}
-							}
-						}
+						return;
 					}
 				}
-			}
-		}
-	}
 
-	public Menu getMenuInstance() {
-		return this.menuInstance;
+				/*
+				 * If the player clicks in their own inventory, we want to cancel the event.
+				 */
+				if (e.getClickedInventory() == player.getInventory()) {
+					e.setCancelled(true);
+					return;
+				}
+
+				if (e.getSlot() >= 0 && e.getSlot() < GUI.getItems().size()) {
+					/**
+					 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
+					 * user clicks the forward button, load and open next page, Otherwise, If the
+					 * user clicks the backward button, load and open the previous page, Otherwise
+					 * Attempt to purchase the clicked item.
+					 */
+
+					/*
+					 * If the player has enough money to purchase the item, then allow them to.
+					 */
+
+					Item item = getItems().get((currentPage * 45) + e.getSlot());
+
+					if (item.getItemType() == ItemType.COMMAND) {
+
+						if (Main.getInstance().purchaseCommands(player.getUniqueId(), item.getCommands())) {
+							if (Main.getEconomy().withdrawPlayer(player, item.getBuyPrice()).transactionSuccess()) {
+								// If the player has the sound enabled, play
+								// it!
+								if (Config.isSoundEnabled()) {
+									try {
+										player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
+
+									} catch (Exception ex) {
+										Main.getInstance().getLogger().warning(
+												"§cIncorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+									}
+								}
+								player.sendMessage(Config.getPrefix() + Config.getPurchased() + item.getBuyPrice()
+										+ Config.getTaken() + Config.getCurrencySuffix());
+							} else {
+								player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
+										+ Config.getNotEnoughPost());
+							}
+						} else {
+							player.sendMessage(Config.getCommandAlready());
+						}
+
+					} else {
+
+						Quantity qty = new Quantity(player.getName(), item, this);
+						qty.loadInventory();
+						qty.open();
+
+					}
+
+				}
+			}
+
+		}
+
 	}
 
 	/**
 	 * The inventory closeEvent handling for the Menu.
 	 */
 	public void onClose(InventoryCloseEvent e) {
-		String playerName = e.getPlayer().getName();
-		if (playerName.equals(user.getName())) {
-			if (Main.HAS_SHOP_OPEN.contains(playerName)) {
-				Main.HAS_SHOP_OPEN.remove(playerName);
-				if (Config.getEscapeOnly()) {
-					menuInstance.preLoad();
+		GUI.setOnClose(null);
+		if (Config.getEscapeOnly() && !hasClicked) {
+			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
+				@Override
+				public void run() {
 					menuInstance.open();
 				}
-				return;
-			}
+			}, 1L);
+
+		} else {
+			hasClicked = false;
 		}
+		return;
+
 	}
 
 }

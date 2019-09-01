@@ -2,7 +2,7 @@ package com.pablo67340.guishop.listenable;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
+
 import java.util.Map;
 
 import org.apache.commons.lang.StringUtils;
@@ -12,18 +12,16 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 
-
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
+import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
+
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.MobType;
 import com.pablo67340.guishop.handler.Item;
@@ -36,7 +34,7 @@ import com.songoda.epicspawners.api.EpicSpawnersAPI;
 
 import de.dustplanet.util.SilkUtil;
 
-public class Quantity implements Listener {
+public class Quantity {
 
 	/**
 	 * The name of the player who is buying an item.
@@ -52,16 +50,20 @@ public class Quantity implements Listener {
 	 * The item currently being targetted.
 	 */
 	private Item item;
-	
-	private Menu menuInstance;
-	
-	private List<Pane> panes;
+
+	/**
+	 * The GUI that will be displayed.
+	 */
+	private Gui GUI;
 
 	/**
 	 * The map containing the sell increments.
 	 */
 	private Map<Integer, Integer> qty = new HashMap<>();
 
+	/**
+	 * The instance of the {@link Shop} that spawned this Quantity.
+	 */
 	private Shop currentShop;
 
 	public Quantity(String player, Item item, Shop shop) {
@@ -69,23 +71,21 @@ public class Quantity implements Listener {
 		this.playerName = player;
 		this.player = Bukkit.getPlayer(player);
 		this.currentShop = shop;
-		this.menuInstance = shop.getMenuInstance();
 	}
 
 	/**
 	 * Opens the GUI to sell the items in.
 	 */
 	public void open() {
-		Main.HAS_QTY_OPEN.add(player.getName());
-		menuInstance.getGUI().update();
-		System.out.println("Inventory Updated");
+		GUI.setOnClose(event -> onClose(event));
+		GUI.show(player);
 	}
 
 	/**
 	 * Preloads the inventory to display items.
 	 */
 	public void loadInventory() {
-		menuInstance.rePrimeGUI(Config.getQtyTitle(), 6, panes, event -> onClose(event));
+		GUI = new Gui(Main.getInstance(), 6, Config.getQtyTitle());
 		Integer multiplier = 1;
 		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 		for (int x = 19; x <= 25; x++) {
@@ -114,8 +114,7 @@ public class Quantity implements Listener {
 				break;
 			}
 			itemStack.setItemMeta(itemMeta);
-			final int GCProtectedIndex = x;
-			GuiItem gItem = new GuiItem(itemStack, event -> onQuantityClick(event, GCProtectedIndex));
+			GuiItem gItem = new GuiItem(itemStack, event -> onQuantityClick(event));
 			for (int i = 0; i <= 54; i++) {
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
@@ -135,199 +134,180 @@ public class Quantity implements Listener {
 
 			backButtonItem.setItemMeta(backButtonMeta);
 
-			GuiItem gItem = new GuiItem(backButtonItem, event -> onQuantityClick(event, 54));
-			page.insertItem(gItem, 54);
+			GuiItem gItem = new GuiItem(backButtonItem, event -> onQuantityClick(event));
+			page.insertItem(gItem, 53);
 
 		}
-		menuInstance.getGUI().addPane(page);
-		System.out.println("Panes added: "+menuInstance.getGUI().getPanes().size());
-		panes = menuInstance.getGUI().getPanes();
+		GUI.addPane(page);
+
 	}
 
-	public void onQuantityClick(InventoryClickEvent e, Integer itemNumber) {
-		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
-			if (Main.HAS_QTY_OPEN.contains(playerName)) {
-				e.setCancelled(true);
-				if (!Config.getEscapeOnly()) {
-					if (e.getSlot() == 54) {
-						Main.HAS_QTY_OPEN.remove(playerName);
-						HandlerList.unregisterAll(this);
-						reOpen();
-						return;
-					}
-				}
-
-				if (e.getClickedInventory() == null) {
-					return;
-				}
-
-				if (player.getInventory().firstEmpty() == -1) {
-					player.sendMessage(Config.getFull());
-					return;
-				}
-				/*
-				 * If the player clicks on an empty slot, then cancel the event.
-				 */
-				if (e.getCurrentItem() != null) {
-					if (e.getCurrentItem().getType() == Material.AIR) {
-						return;
-					}
-				}
-
-				/*
-				 * If the player clicks in their own inventory, we want to cancel the event.
-				 */
-				if (e.getClickedInventory() == player.getInventory()) {
-					return;
-				}
-
-				// Check if the item is disabled, or price is 0
-				if (item.getBuyPrice() == 0) {
-					player.sendMessage(Config.getPrefix() + " " + Config.getCantBuy());
-					player.setItemOnCursor(new ItemStack(Material.AIR));
-					return;
-				}
-
-				// Does the quantity work out?
-				int quantity = qty.get(itemNumber);
-
-				// If the quantity is 0
-				if (quantity == 0) {
-					player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
-							+ Config.getNotEnoughPost());
-					player.setItemOnCursor(new ItemStack(Material.AIR));
-					return;
-				}
-
-				Map<Integer, ItemStack> returnedItems = new HashMap<>();
-
-				ItemStack itemStack = null;
-
-				// If the item is not a mob spawner
-				if (!item.isMobSpawner()) {
-
-					itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
-					// If the item has enchantments
-					if (item.getEnchantments() != null) {
-						for (String enc : item.getEnchantments()) {
-							String enchantment = StringUtils.substringBefore(enc, ":");
-							String level = StringUtils.substringAfter(enc, ":");
-							itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment),
-									Integer.parseInt(level));
-						}
-					}
-					itemStack.setAmount(e.getCurrentItem().getAmount());
-					// If is shift clicking, buy 1.
-
-				} else {
-					itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
-					if (Main.getInstance().usesSpawners()) {
-						if (Dependencies.hasDependency("SilkSpawners")) {
-							SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
-							String oldName = item.getMobType();
-							System.out.println("Detected Mob Type: " + item.getMobType());
-							String spawnerName = oldName.substring(0, 1).toUpperCase()
-									+ oldName.substring(1).toLowerCase() + " Spawner";
-
-							// 1.13 only itemStack = su.setSpawnerType(itemStack,
-							// item.getMobType().toUpperCase(), spawnerName);
-
-							itemStack = su.setSpawnerType(itemStack,
-									(short) MobType.valueOf(item.getMobType().toUpperCase()).getMobId(), spawnerName);
-
-						} else if (Dependencies.hasDependency("EpicSpawners")) {
-							EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
-							itemStack = es.newSpawnerItem(
-									EpicSpawnersAPI.getSpawnerManager().getSpawnerData(item.getMobType()), quantity);
-
-						}
-
-					} else {
-						player.sendMessage("Spawners Disabled! Dependencies not installed!");
-						return;
-					}
-				}
-
-				// Add custom name to item for purchase
-				ItemMeta im = itemStack.getItemMeta();
-				im.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-				itemStack.setItemMeta(im);
-
-				double priceToPay = 0;
-
-				/*
-				 * If the map is empty, then the items purchased don't overflow the player's
-				 * inventory. Otherwise, we need to reimburse the player (subtract it from
-				 * priceToPay).
-				 */
-
-				double priceToReimburse = 0D;
-
-				// if the item is not a shift click
-
-				while (returnedItems.values().iterator().hasNext()) {
-					priceToReimburse += (item.getBuyPrice() / e.getCurrentItem().getAmount());
-				}
-				priceToPay = (item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
-
-				// Check if the transition was successful
-
-				if (Main.getEconomy().withdrawPlayer(player, priceToPay).transactionSuccess()) {
-					// If the player has the sound enabled, play
-					// it!
-					if (Config.isSoundEnabled()) {
-						try {
-							player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
-
-						} catch (Exception ex) {
-							Main.getInstance().getLogger().warning(
-									"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
-						}
-					}
-					player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
-							+ Config.getCurrencySuffix());
-					returnedItems = player.getInventory().addItem(itemStack);
-				} else {
-					player.sendMessage(
-							Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
-				}
-
-			}
-		}
-	}
-	
 	/**
-	 * Preloads the shops before opening them.
+	 * Executes when an item is clicked inside the Quantity Inventory.
 	 */
-	public void reOpen() {
-		player.closeInventory();
-		BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-		scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
-			@Override
-			public void run() {
-				currentShop.open();
-				Bukkit.getServer().getPluginManager().registerEvents(currentShop, Main.getInstance());
+	public void onQuantityClick(InventoryClickEvent e) {
+		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
+			e.setCancelled(true);
+			if (!Config.getEscapeOnly()) {
+				if (e.getSlot() == 53) {
+					currentShop.open((Player) e.getWhoClicked());
+					return;
+				}
 			}
-		}, 1L);
 
-	}
-	
-	public List<Pane> getPanes(){
-		return panes;
-	}
-	
-	public void onClose(InventoryCloseEvent e) {
-		String playerName = e.getPlayer().getName();
-		if (Main.HAS_QTY_OPEN.contains(playerName)) {
-			Main.HAS_QTY_OPEN.remove(playerName);
-			if (Config.getEscapeOnly()) {
-				currentShop.loadShop();
-				currentShop.open();
-			} else {
-				Main.HAS_QTY_OPEN.remove(playerName);
+			if (e.getClickedInventory() == null) {
+				return;
 			}
-			return;
+
+			if (player.getInventory().firstEmpty() == -1) {
+				player.sendMessage(Config.getFull());
+				return;
+			}
+			/*
+			 * If the player clicks on an empty slot, then cancel the event.
+			 */
+			if (e.getCurrentItem() != null) {
+				if (e.getCurrentItem().getType() == Material.AIR) {
+					return;
+				}
+			}
+
+			/*
+			 * If the player clicks in their own inventory, we want to cancel the event.
+			 */
+			if (e.getClickedInventory() == player.getInventory()) {
+				return;
+			}
+
+			// Check if the item is disabled, or price is 0
+			if (item.getBuyPrice() == 0) {
+				player.sendMessage(Config.getPrefix() + " " + Config.getCantBuy());
+				player.setItemOnCursor(new ItemStack(Material.AIR));
+				return;
+			}
+
+			// Does the quantity work out?
+			int quantity = qty.get(e.getSlot());
+
+			// If the quantity is 0
+			if (quantity == 0) {
+				player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
+						+ Config.getNotEnoughPost());
+				player.setItemOnCursor(new ItemStack(Material.AIR));
+				return;
+			}
+
+			Map<Integer, ItemStack> returnedItems = new HashMap<>();
+
+			ItemStack itemStack = null;
+
+			// If the item is not a mob spawner
+			if (!item.isMobSpawner()) {
+
+				itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
+				// If the item has enchantments
+				if (item.getEnchantments() != null) {
+					for (String enc : item.getEnchantments()) {
+						String enchantment = StringUtils.substringBefore(enc, ":");
+						String level = StringUtils.substringAfter(enc, ":");
+						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+					}
+				}
+				itemStack.setAmount(e.getCurrentItem().getAmount());
+				// If is shift clicking, buy 1.
+
+			} else {
+				itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
+				if (Main.getInstance().usesSpawners()) {
+					if (Dependencies.hasDependency("SilkSpawners")) {
+						SilkUtil su = (SilkUtil) Main.getInstance().getSpawnerObject();
+						String oldName = item.getMobType();
+						String spawnerName = oldName.substring(0, 1).toUpperCase() + oldName.substring(1).toLowerCase()
+								+ " Spawner";
+
+						// 1.13 only itemStack = su.setSpawnerType(itemStack,
+						// item.getMobType().toUpperCase(), spawnerName);
+
+						itemStack = su.setSpawnerType(itemStack,
+								(short) MobType.valueOf(item.getMobType().toUpperCase()).getMobId(), spawnerName);
+
+					} else if (Dependencies.hasDependency("EpicSpawners")) {
+						EpicSpawners es = (EpicSpawners) Main.getInstance().getSpawnerObject();
+						itemStack = es.newSpawnerItem(
+								EpicSpawnersAPI.getSpawnerManager().getSpawnerData(item.getMobType()), quantity);
+
+					}
+
+				} else {
+					player.sendMessage("Spawners Disabled! Dependencies not installed!");
+					return;
+				}
+			}
+
+			// Add custom name to item for purchase
+			ItemMeta im = itemStack.getItemMeta();
+			im.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+			itemStack.setItemMeta(im);
+
+			double priceToPay = 0;
+
+			/*
+			 * If the map is empty, then the items purchased don't overflow the player's
+			 * inventory. Otherwise, we need to reimburse the player (subtract it from
+			 * priceToPay).
+			 */
+
+			double priceToReimburse = 0D;
+
+			// if the item is not a shift click
+
+			while (returnedItems.values().iterator().hasNext()) {
+				priceToReimburse += (item.getBuyPrice() / e.getCurrentItem().getAmount());
+			}
+			priceToPay = (item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+
+			// Check if the transition was successful
+
+			if (Main.getEconomy().withdrawPlayer(player, priceToPay).transactionSuccess()) {
+				// If the player has the sound enabled, play
+				// it!
+				if (Config.isSoundEnabled()) {
+					try {
+						player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
+
+					} catch (Exception ex) {
+						Main.getInstance().getLogger().warning(
+								"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+					}
+				}
+				player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
+						+ Config.getCurrencySuffix());
+				returnedItems = player.getInventory().addItem(itemStack);
+			} else {
+				player.sendMessage(
+						Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
+			}
+
 		}
+	}
+
+	/**
+	 * The inventory closeEvent handling for the Menu.
+	 */
+	public void onClose(InventoryCloseEvent e) {
+		if (Config.getEscapeOnly()) {
+			GUI.setOnClose(null);
+			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
+				@Override
+				public void run() {
+					currentShop.open((Player) e.getPlayer());
+				}
+			}, 1L);
+
+		}
+		return;
+
 	}
 
 }

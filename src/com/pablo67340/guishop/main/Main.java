@@ -21,7 +21,6 @@ import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Debugger;
 import com.pablo67340.guishop.util.Dependencies;
@@ -90,27 +89,9 @@ public final class Main extends JavaPlugin {
 
 	/**
 	 * A {@link Set} that holds the names of each {@link Player} that currently has
-	 * the {@link Menu} open.
-	 */
-	public static final Set<String> HAS_MENU_OPEN = new HashSet<>();
-
-	/**
-	 * A {@link Set} that holds the names of each {@link Player} that currently has
-	 * the {@link Menu} open.
-	 */
-	public static final Set<String> HAS_QTY_OPEN = new HashSet<>();
-
-	/**
-	 * A {@link Set} that holds the names of each {@link Player} that currently has
 	 * the {@link Sell} GUI open.
 	 */
 	public static final Set<String> HAS_SELL_OPEN = new HashSet<>();
-
-	/**
-	 * A {@link Map} that holds the names of each {@link Player} that currently has
-	 * a {@link Shop} open as well as the shop that is open.
-	 */
-	public static final Set<String> HAS_SHOP_OPEN = new HashSet<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
@@ -120,7 +101,7 @@ public final class Main extends JavaPlugin {
 	 * @value The creator.
 	 */
 	public static final Map<String, Creator> CREATOR = new HashMap<>();
-	
+
 	public static final Set<String> protectedCommands = new HashSet<>();
 
 	private SQLiteLib sqlLib;
@@ -333,7 +314,7 @@ public final class Main extends JavaPlugin {
 				saveMainConfig();
 				getLogger().warning("Config update successful!");
 				return true;
-			}else if (ver == 1.6) {
+			} else if (ver == 1.6) {
 				getLogger().info("The config version is outdated! Automatically updating config...");
 				getMainConfig().set("ver", 1.7);
 				getMainConfig().set("command-already", "&4You already own one or more of the specified commands!");
@@ -345,7 +326,7 @@ public final class Main extends JavaPlugin {
 				saveMainConfig();
 				getLogger().warning("Config update successful!");
 				return true;
-			}else if (ver == 1.7) {
+			} else if (ver == 1.7) {
 				getLogger().info("Config all up to date!");
 				return true;
 			} else {
@@ -392,11 +373,16 @@ public final class Main extends JavaPlugin {
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("currency-suffix")));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("qty-title")));
 		Config.setSilkSpawners(getConfig().getBoolean("silkspawners"));
-		Config.setCommandAlready(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-already")));
-		Config.setCommandRemaining(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-time-remaining")));
-		Config.setCommandExpired(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-expired")));
-		Config.setCommandPurchase(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-purchase")));
-		Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back-button-item")));
+		Config.setCommandAlready(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-already")));
+		Config.setCommandRemaining(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-time-remaining")));
+		Config.setCommandExpired(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-expired")));
+		Config.setCommandPurchase(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-purchase")));
+		Config.setBackButtonItem(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back-button-item")));
 		Config.setBackButtonText(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back")));
 		Config.setAccessTo(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("access-to")));
 		getDataFolder();
@@ -517,9 +503,7 @@ public final class Main extends JavaPlugin {
 
 	public Boolean purchaseCommands(UUID uuid, List<String> commands) {
 		ItemCommand itemCommand = loadCommands(uuid);
-		
-		
-		
+
 		if (itemCommand != null) {
 			for (String cmd : commands) {
 				String command = StringUtils.substringBefore(cmd, "::");

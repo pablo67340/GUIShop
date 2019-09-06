@@ -27,7 +27,13 @@ public final class PlayerListener implements Listener {
 	public static final PlayerListener INSTANCE = new PlayerListener();
 
 	public void openShop(Player player) {
-		Menu menu = new Menu(player.getName());
+		Menu menu;
+		if (Main.getInstance().getLoadedMenu() != null) {
+			menu = Main.getInstance().getLoadedMenu();
+		} else {
+			menu = new Menu(player.getName());
+			Main.getInstance().setLoadedMenu(menu);
+		}
 		menu.open();
 	}
 
@@ -38,7 +44,7 @@ public final class PlayerListener implements Listener {
 	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = false)
 	public void onCommand(PlayerCommandPreprocessEvent e) {
 		Player player = e.getPlayer();
-		
+
 		if (!e.isCancelled()) {
 
 			if (!Main.getInstance().getDebugger().hasExploded()) {
@@ -46,73 +52,71 @@ public final class PlayerListener implements Listener {
 				String command = e.getMessage().substring(1);
 				String[] cut = command.split(" ");
 				ItemCommand itemCommand = Main.getInstance().loadCommands(e.getPlayer().getUniqueId());
-				if (Main.protectedCommands.contains("/"+cut[0])) {
-					
+				if (Main.protectedCommands.contains("/" + cut[0])) {
+
 					if (player.hasPermission("guishop.bypass")) {
 						e.setCancelled(false);
 						return;
 					}
-					
-					if (itemCommand.getCommands().isEmpty() || !itemCommand.getCommands().contains("/"+cut[0])) {
+
+					if (itemCommand.getCommands().isEmpty() || !itemCommand.getCommands().contains("/" + cut[0])) {
 						e.setCancelled(true);
 						player.sendMessage(Config.getCommandPurchase());
 						return;
 					}
 
+					Set<String> activeCommands = itemCommand.getCommands();
+					String remaining = "";
+					for (String cmd : activeCommands) {
+						String reParse = cut[0];
+						if (cut[0].equalsIgnoreCase(reParse)) {
+							Expires expires = itemCommand.getExpiration(cmd);
+							if (expires.isExpired()) {
+								e.setCancelled(true);
+								player.sendMessage(Config.getCommandExpired());
+							} else {
+								remaining = "";
+								Date check = new Date();
+								long duration = expires.getExpiration().getTime() - check.getTime();
 
-						Set<String> activeCommands = itemCommand.getCommands();
-						String remaining = "";
-						for (String cmd : activeCommands) {
-							String reParse = cut[0];
-							if (cut[0].equalsIgnoreCase(reParse)) {
-								Expires expires = itemCommand.getExpiration(cmd);
-								if (expires.isExpired()) {
-									e.setCancelled(true);
-									player.sendMessage(Config.getCommandExpired());
-								} else {
-									remaining = "";
-									Date check = new Date();
-									long duration = expires.getExpiration().getTime() - check.getTime();
+								long seconds = TimeUnit.MILLISECONDS.toSeconds(duration);
 
-									long seconds = TimeUnit.MILLISECONDS.toSeconds(duration);
+								long minutes = TimeUnit.SECONDS.toMinutes(seconds);
 
-									long minutes = TimeUnit.SECONDS.toMinutes(seconds);
+								long hours = TimeUnit.MINUTES.toHours(minutes);
 
-									long hours = TimeUnit.MINUTES.toHours(minutes);
+								long days = TimeUnit.HOURS.toDays(hours);
 
-									long days = TimeUnit.HOURS.toDays(hours);
-
-									if (days != 0) {
-										remaining += days + "d ";
-									}
-
-									if (hours != 0) {
-										if (hours > 24) {
-											hours = (duration / 1000000) % 60;
-										}
-										remaining += hours + "h ";
-									}
-
-									if (minutes != 0) {
-										if (minutes > 60) {
-											minutes = (duration / 10000) % 60;
-										}
-										remaining += minutes + "m ";
-									}
-
-									if (seconds != 0) {
-										if (seconds > 60) {
-											seconds = (duration / 1000) % 60;
-										}
-										remaining += seconds + "s ";
-									}
-
-									
+								if (days != 0) {
+									remaining += days + "d ";
 								}
+
+								if (hours != 0) {
+									if (hours > 24) {
+										hours = (duration / 1000000) % 60;
+									}
+									remaining += hours + "h ";
+								}
+
+								if (minutes != 0) {
+									if (minutes > 60) {
+										minutes = (duration / 10000) % 60;
+									}
+									remaining += minutes + "m ";
+								}
+
+								if (seconds != 0) {
+									if (seconds > 60) {
+										seconds = (duration / 1000) % 60;
+									}
+									remaining += seconds + "s ";
+								}
+
 							}
 						}
-						player.sendMessage(Config.getCommandRemaining().replace("{TIME}", remaining));
-					
+					}
+					player.sendMessage(Config.getCommandRemaining().replace("{TIME}", remaining));
+
 				}
 
 				if (Main.BUY_COMMANDS.contains(command)) {
@@ -243,7 +247,6 @@ public final class PlayerListener implements Listener {
 			}
 		}
 	}
-	
 
 	/**
 	 * Print the usage of the plugin to the player.

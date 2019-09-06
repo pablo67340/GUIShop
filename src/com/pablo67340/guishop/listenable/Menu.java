@@ -194,10 +194,14 @@ public final class Menu {
 
 					ShopDir shopDef = shops.get(e.getSlot());
 					if (!shopDef.getShop().equalsIgnoreCase("")) {
-
-						openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-								shopDef.getLore(), e.getSlot(), player, instance);
-						openShop.loadShop();
+						if (Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
+							openShop = Main.getInstance().getLoadedShops().get(e.getSlot());
+						} else {
+							openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+									shopDef.getLore(), e.getSlot(), player, instance);
+							openShop.loadShop();
+							Main.getInstance().getLoadedShops().put(e.getSlot(), openShop);
+						}
 						openShop.open((Player) e.getWhoClicked());
 						return;
 					}

@@ -21,6 +21,7 @@ import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
+import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Debugger;
 import com.pablo67340.guishop.util.Dependencies;
@@ -92,6 +93,10 @@ public final class Main extends JavaPlugin {
 	 * the {@link Sell} GUI open.
 	 */
 	public static final Set<String> HAS_SELL_OPEN = new HashSet<>();
+	
+	public Map<Integer, Shop> loadedShops = new HashMap<>();
+	
+	public Menu loadedMenu;
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
@@ -106,20 +111,6 @@ public final class Main extends JavaPlugin {
 
 	private SQLiteLib sqlLib;
 
-	/**
-	 * A {@link Map} that holds the prices to buy and sell an {@link Item} to/from a
-	 * {@link Shop}.
-	 * 
-	 * @key The item's ID.
-	 * @value The item's price object.
-	 */
-	// public static final Map<String, Map<String, Price>> PRICETABLE = new
-	// HashMap<>();
-
-	/**
-	 * Override onEnable, run GUIShop code.
-	 * 
-	 */
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
@@ -517,6 +508,18 @@ public final class Main extends JavaPlugin {
 		new ItemCommand(commands, uuid, true, date.toString());
 		return true;
 
+	}
+	
+	public Map<Integer, Shop> getLoadedShops(){
+		return this.loadedShops;
+	}
+	
+	public Menu getLoadedMenu() {
+		return this.loadedMenu;
+	}
+	
+	public void setLoadedMenu(Menu input) {
+		this.loadedMenu = input;
 	}
 
 }

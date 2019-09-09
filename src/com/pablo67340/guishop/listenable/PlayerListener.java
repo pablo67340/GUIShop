@@ -29,8 +29,10 @@ public final class PlayerListener implements Listener {
 	public void openShop(Player player) {
 		Menu menu;
 		if (Main.getInstance().getLoadedMenu() != null) {
+			System.out.println("Opening Menu from cache");
 			menu = Main.getInstance().getLoadedMenu();
 		} else {
+			System.out.println("Opening Menu from NEW");
 			menu = new Menu(player.getName());
 			Main.getInstance().setLoadedMenu(menu);
 		}
@@ -121,12 +123,12 @@ public final class PlayerListener implements Listener {
 
 				if (Main.BUY_COMMANDS.contains(command)) {
 					if (player.hasPermission("guishop.use") || player.isOp()) {
-						openShop(player);
 						e.setCancelled(true);
+						openShop(player);
 						return;
 					} else {
-						player.sendMessage(Config.getNoPermission());
 						e.setCancelled(true);
+						player.sendMessage(Config.getNoPermission());
 						return;
 					}
 				}

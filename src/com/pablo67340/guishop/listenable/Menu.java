@@ -117,12 +117,11 @@ public final class Menu {
 				GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
 
 				// SetItem no longer works with self created inventory object. Prefill with air?
-				page.addItem(gItem);
-				GUI.addPane(page);
-
+				page.addItem(gItem);				
 			}
 
 		}
+		GUI.addPane(page);
 
 	}
 
@@ -141,7 +140,6 @@ public final class Menu {
 					Main.getInstance().getMainConfig().getString("disabled-world")));
 			return;
 		}
-
 		GUI.show(player);
 	}
 

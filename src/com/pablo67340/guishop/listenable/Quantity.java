@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -207,10 +208,25 @@ public class Quantity {
 				itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
 				// If the item has enchantments
 				if (item.getEnchantments() != null) {
-					for (String enc : item.getEnchantments()) {
-						String enchantment = StringUtils.substringBefore(enc, ":");
-						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+					if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+						EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
+						for (String enc : item.getEnchantments()) {
+							String enchantment = StringUtils.substringBefore(enc, ":");
+							String level = StringUtils.substringAfter(enc, ":");
+							meta.addStoredEnchant(Enchantments.getByName(enchantment), Integer.parseInt(level), true);
+
+						}
+						itemStack.setItemMeta(meta);
+					} else {
+
+						for (String enc : item.getEnchantments()) {
+							String enchantment = StringUtils.substringBefore(enc, ":");
+							String level = StringUtils.substringAfter(enc, ":");
+							itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment),
+									Integer.parseInt(level));
+
+						}
+
 					}
 				}
 				itemStack.setAmount(e.getCurrentItem().getAmount());

@@ -5,6 +5,7 @@ import java.util.*;
 import java.util.logging.Level;
 
 import org.bukkit.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -18,7 +19,7 @@ import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 
 import com.pablo67340.guishop.handler.ShopDir;
 import com.pablo67340.guishop.main.Main;
-import com.pablo67340.guishop.util.Config;
+
 import com.pablo67340.guishop.util.XMaterial;
 
 public final class Menu {
@@ -56,9 +57,9 @@ public final class Menu {
 	 * @value The shop.
 	 */
 
-	public Menu(String player) {
+	public Menu(Player player) {
 		instance = this;
-		this.player = Bukkit.getPlayer(player);
+		this.player = player;
 		preLoad();
 	}
 
@@ -69,27 +70,25 @@ public final class Menu {
 
 		GUI = new Gui(Main.getInstance(), 1, "Menu");
 
-		/**
-		 * Loads all global shops.
-		 * 
-		 */
-		int numberOfShops = Config.getMenuRows() * 9;
-
 		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 
-		for (int i = 0; i <= numberOfShops; i++) {
-			if (!Main.getInstance().getMainConfig().getBoolean(String.valueOf(i + 1) + ".Enabled")) {
+		ConfigurationSection menuItems = Main.getInstance().getConfig().getConfigurationSection("menu-items");
+
+		for (String key : menuItems.getKeys(false)) {
+			System.out.println("Key: " + key);
+
+			if (!Main.getInstance().getMainConfig().getBoolean("menu-items." + key + ".Enabled")) {
 				continue;
 			}
 
 			String shop = ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Shop"));
+					Main.getInstance().getMainConfig().getString("menu-items." + key + ".Shop"));
 
 			String name = ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Name"));
+					Main.getInstance().getMainConfig().getString("menu-items." + key + ".Name"));
 
 			String description = ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Desc"));
+					Main.getInstance().getMainConfig().getString("menu-items." + key + ".Desc"));
 
 			List<String> lore = new ArrayList<>();
 
@@ -97,18 +96,18 @@ public final class Menu {
 				lore.add(description);
 			}
 
-			shops.put(i, new ShopDir(shop, name, description, lore));
+			shops.put(Integer.parseInt(key), new ShopDir(shop, name, description, lore));
 
-			if (player.hasPermission("guishop.slot." + (i + 1)) || player.isOp()
+			if (player.hasPermission("guishop.slot." + key) || player.isOp()
 					|| player.hasPermission("guishop.slot.*")) {
-				String itemID = Main.getInstance().getMainConfig().getString(String.valueOf(i + 1) + ".Item");
+				String itemID = Main.getInstance().getMainConfig().getString("menu-items." + key + ".Item");
 
 				Material material = null;
 
 				if (material == null) {
 					if ((material = XMaterial.valueOf(itemID).parseMaterial()) == null) {
 						Main.getInstance().getLogger().log(Level.WARNING,
-								"Could not parse material: " + itemID + " for item #: " + (i + 1));
+								"Could not parse material: " + itemID + " for item #: " + key);
 						continue;
 					}
 				}
@@ -117,10 +116,10 @@ public final class Menu {
 				GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
 
 				// SetItem no longer works with self created inventory object. Prefill with air?
-				page.addItem(gItem);				
+				page.addItem(gItem);
 			}
-
 		}
+
 		GUI.addPane(page);
 
 	}
@@ -192,15 +191,14 @@ public final class Menu {
 
 					ShopDir shopDef = shops.get(e.getSlot());
 					if (!shopDef.getShop().equalsIgnoreCase("")) {
-						if (Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
-							openShop = Main.getInstance().getLoadedShops().get(e.getSlot());
-						} else {
-							openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-									shopDef.getLore(), e.getSlot(), player, instance);
+						openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+								shopDef.getLore(), e.getSlot(), player, instance);
+						if (!Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
 							openShop.loadShop();
-							Main.getInstance().getLoadedShops().put(e.getSlot(), openShop);
+						} else {
+							openShop.loadShopFromCache(Main.getInstance().getLoadedShops().get(e.getSlot()));
 						}
-						openShop.open((Player) e.getWhoClicked());
+						openShop.open();
 						return;
 					}
 				}

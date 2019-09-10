@@ -27,15 +27,7 @@ public final class PlayerListener implements Listener {
 	public static final PlayerListener INSTANCE = new PlayerListener();
 
 	public void openShop(Player player) {
-		Menu menu;
-		if (Main.getInstance().getLoadedMenu() != null) {
-			System.out.println("Opening Menu from cache");
-			menu = Main.getInstance().getLoadedMenu();
-		} else {
-			System.out.println("Opening Menu from NEW");
-			menu = new Menu(player.getName());
-			Main.getInstance().setLoadedMenu(menu);
-		}
+		Menu menu = new Menu(player);
 		menu.open();
 	}
 
@@ -285,12 +277,12 @@ public final class PlayerListener implements Listener {
 						// If the player has Permission to use sign
 						if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use")
 								|| player.isOp()) {
-							Menu menu = new Menu(player.getName());
+							e.setCancelled(true);
+							Menu menu = new Menu(player);
 							menu.open();
-							e.setCancelled(true);
 						} else {
-							player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
 							e.setCancelled(true);
+							player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
 						}
 
 					}

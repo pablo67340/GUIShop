@@ -156,54 +156,56 @@ DisabledWorlds:
 
 ##Menu Items
 Rows: 1
-1:
-  Enabled: true
-  Item: 'TNT'
-  Shop: 'Raiding'
-  Desc: '&8(&cBlow them up!&8)'
-  Name: '&4Raiding'
-2:
-  Enabled: true
-  Item: 'EMERALD'
-  Shop: 'Ores'
-  Desc: '&8(&fOres&8)'
-  Name: '&aOres'
-3:
-  Enabled: true
-  Item: 'WHEAT_SEEDS'
-  Shop: 'Farming'
-  Desc: '&8(&fFarming&8)'
-  Name: '&eFarming'
-4:
-  Enabled: true
-  Item: 'BONE_MEAL'
-  Shop: 'Drops'
-  Desc: '&8(&fDrops&8)'
-  Name: '&cDrops'
-5:
-  Enabled: true
-  Item: 'EXPERIENCE_BOTTLE'
-  Shop: 'Brewing'
-  Desc: '&8(&fBrewing&8)'
-  Name: '&2Brewing'
-6:
-  Enabled: true
-  Item: 'DIAMOND_HELMET'
-  Shop: 'Gear'
-  Desc: '&8(&fGear&8)'
-  Name: '&bGear'
-7:
-  Enabled: true
-  Item: 'SPAWNER'
-  Shop: 'Spawners'
-  Desc: '&8(&fSpawners&8)'
-  Name: '&6Spawners'
-8:
-  Enabled: true
-  Item: 'STONE'
-  Shop: 'Blocks'
-  Desc: '&8(&fBlocks&8)'
-  Name: '&6Blocks'
+
+menu-items:
+  0:
+    Enabled: true
+    Item: 'TNT'
+    Shop: 'Raiding'
+    Desc: '&8(&cBlow them up!&8)'
+    Name: '&4Raiding'
+  1:
+    Enabled: true
+    Item: 'EMERALD'
+    Shop: 'Ores'
+    Desc: '&8(&fOres&8)'
+    Name: '&aOres'
+  2:
+    Enabled: true
+    Item: 'WHEAT_SEEDS'
+    Shop: 'Farming'
+    Desc: '&8(&fFarming&8)'
+    Name: '&eFarming'
+  3:
+    Enabled: true
+    Item: 'BONE_MEAL'
+    Shop: 'Drops'
+    Desc: '&8(&fDrops&8)'
+    Name: '&cDrops'
+  4:
+    Enabled: true
+    Item: 'EXPERIENCE_BOTTLE'
+    Shop: 'Brewing'
+    Desc: '&8(&fBrewing&8)'
+    Name: '&2Brewing'
+  5:
+    Enabled: true
+    Item: 'DIAMOND_HELMET'
+    Shop: 'Gear'
+    Desc: '&8(&fGear&8)'
+    Name: '&bGear'
+  6:
+    Enabled: true
+    Item: 'SPAWNER'
+    Shop: 'Spawners'
+    Desc: '&8(&fSpawners&8)'
+    Name: '&6Spawners'
+  7:
+    Enabled: true
+    Item: 'STONE'
+    Shop: 'Blocks'
+    Desc: '&8(&fBlocks&8)'
+    Name: '&6Blocks'
   
 ## DO NOT TOUCH BELOW THIS LINE!
 ver: 1.7

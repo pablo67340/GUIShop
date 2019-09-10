@@ -151,7 +151,7 @@ public class Quantity {
 			e.setCancelled(true);
 			if (!Config.getEscapeOnly()) {
 				if (e.getSlot() == 53) {
-					currentShop.open((Player) e.getWhoClicked());
+					currentShop.open();
 					return;
 				}
 			}
@@ -317,7 +317,7 @@ public class Quantity {
 			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 				@Override
 				public void run() {
-					currentShop.open((Player) e.getPlayer());
+					currentShop.open();
 				}
 			}, 1L);
 

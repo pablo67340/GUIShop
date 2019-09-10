@@ -18,6 +18,7 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
+
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.handler.Item;
@@ -25,6 +26,7 @@ import com.pablo67340.guishop.handler.Page;
 import com.pablo67340.guishop.handler.Price;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ShopData;
 import com.pablo67340.guishop.util.XMaterial;
 
 public final class Shop {
@@ -76,11 +78,15 @@ public final class Shop {
 	 */
 	private Integer currentPage = 0;
 
-	private Gui GUI;
+	private Gui GUI = new Gui(Main.getInstance(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
 	private Menu menuInstance;
 
 	private Boolean hasClicked = false;
+	
+	private Player player;
+	
+	private Integer menuSlot;
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -96,7 +102,10 @@ public final class Shop {
 		this.description = description;
 		this.lore = lore;
 		this.menuInstance = menuInstance;
+		this.player = player;
+		this.menuSlot = slot;
 	}
+	
 
 	/**
 	 * Return the current page number of this {@link Shop}
@@ -164,7 +173,9 @@ public final class Shop {
 		return pages[input];
 	}
 
-	private final Map<Integer, Price> PRICETABLE = new HashMap<>();
+	private Map<Integer, Price> PRICETABLE = new HashMap<>();
+	
+	private ShopData cachedData;
 
 	private int pageC = 0;
 
@@ -182,8 +193,6 @@ public final class Shop {
 		Item item = new Item();
 
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
-
-		GUI = new Gui(Main.getInstance(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
 		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
@@ -338,6 +347,9 @@ public final class Shop {
 
 			if (index == config.getKeys(true).size()) {
 				GUI.addPane(pane);
+				ShopData data = new ShopData(pane, PRICETABLE);
+				cachedData = data;
+				Main.getInstance().getLoadedShops().put(menuSlot, cachedData);
 			}
 
 		}
@@ -402,9 +414,9 @@ public final class Shop {
 	 * Open the player's shop
 	 * 
 	 */
-	public void open(Player input) {
+	public void open() {
 		GUI.setOnClose(event -> onClose(event));
-		GUI.show(input);
+		GUI.show(player);
 	}
 
 	public void onShopClick(InventoryClickEvent e) {
@@ -493,6 +505,12 @@ public final class Shop {
 		}
 
 	}
+	
+	public void loadShopFromCache(ShopData input) {
+		this.cachedData = input;
+		GUI.addPane(cachedData.getCachedPane());
+		this.PRICETABLE = cachedData.getCachedPricetable();
+	}
 
 	/**
 	 * The inventory closeEvent handling for the Menu.
@@ -513,6 +531,14 @@ public final class Shop {
 		}
 		return;
 
+	}
+	
+	public void setCacheData(ShopData input) {
+		cachedData = input;
+	}
+	
+	public ShopData getCachedData() {
+		return this.cachedData;
 	}
 
 }

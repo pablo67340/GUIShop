@@ -344,6 +344,7 @@ public final class Shop {
 			} else {
 				page.addItem(gItem);
 			}
+			
 
 			if (index == config.getKeys(true).size()) {
 				GUI.addPane(pane);
@@ -372,6 +373,7 @@ public final class Shop {
 				outlinePages.get(currentPage).setVisible(true);
 
 				GUI.update();
+				GUI.setOnClose(ev -> onClose(ev));
 			}), 51);
 		}
 		if (pageC > 0) {
@@ -389,6 +391,7 @@ public final class Shop {
 				outlinePages.get(currentPage).setVisible(true);
 
 				GUI.update();
+				GUI.setOnClose(ev -> onClose(ev));
 			}), 47);
 		}
 		if (!Config.getEscapeOnly()) {

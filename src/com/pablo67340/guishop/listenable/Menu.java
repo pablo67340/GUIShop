@@ -75,7 +75,6 @@ public final class Menu {
 		ConfigurationSection menuItems = Main.getInstance().getConfig().getConfigurationSection("menu-items");
 
 		for (String key : menuItems.getKeys(false)) {
-			System.out.println("Key: " + key);
 
 			if (!Main.getInstance().getMainConfig().getBoolean("menu-items." + key + ".Enabled")) {
 				continue;

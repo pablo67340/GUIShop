@@ -73,20 +73,18 @@ public final class Shop {
 	 */
 	private Page[] pages = new Page[20];
 
-	/**
-	 * The current page number a user is currently browsing in their {@link Shop}
-	 */
-	private Integer currentPage = 0;
-
-	private Gui GUI = new Gui(Main.getInstance(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+	private Gui GUI = new Gui(Main.getInstance(), 6,
+			ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 
 	private Menu menuInstance;
 
 	private Boolean hasClicked = false;
-	
+
 	private Player player;
-	
+
 	private Integer menuSlot;
+
+	private PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -104,21 +102,6 @@ public final class Shop {
 		this.menuInstance = menuInstance;
 		this.player = player;
 		this.menuSlot = slot;
-	}
-	
-
-	/**
-	 * Return the current page number of this {@link Shop}
-	 */
-	public Integer getCurrentPage() {
-		return currentPage;
-	}
-
-	/**
-	 * Sets current page number loaded {@link Shop}
-	 */
-	public void setCurrentPage(Integer input) {
-		currentPage = input;
 	}
 
 	/**
@@ -174,7 +157,7 @@ public final class Shop {
 	}
 
 	private Map<Integer, Price> PRICETABLE = new HashMap<>();
-	
+
 	private ShopData cachedData;
 
 	private int pageC = 0;
@@ -193,8 +176,6 @@ public final class Shop {
 		Item item = new Item();
 
 		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
-
-		PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
 
 		OutlinePane page = new OutlinePane(0, 0, COL, ROW);
 
@@ -344,11 +325,10 @@ public final class Shop {
 			} else {
 				page.addItem(gItem);
 			}
-			
 
 			if (index == config.getKeys(true).size()) {
 				GUI.addPane(pane);
-				ShopData data = new ShopData(pane, PRICETABLE);
+				ShopData data = new ShopData(pane, PRICETABLE, outlinePages);
 				cachedData = data;
 				Main.getInstance().getLoadedShops().put(menuSlot, cachedData);
 			}
@@ -363,35 +343,32 @@ public final class Shop {
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
 			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
+				hasClicked = true;
+				System.out.println("Pages: " + pane.getPages() + "current: " + pane.getPage());
+				System.out.println("Setting page to: " + (pane.getPage() + 1));
+
+				outlinePages.get(pane.getPage()).setVisible(false);
 				pane.setPage(pane.getPage() + 1);
 
-				if (pane.getPage() == pane.getPages() - 1) {
-					outlinePages.get(currentPage).setVisible(false);
-				}
-				currentPage += 1;
-				hasClicked = true;
-				outlinePages.get(currentPage).setVisible(true);
+				outlinePages.get(pane.getPage()).setVisible(true);
 
 				GUI.update();
-				GUI.setOnClose(ev -> onClose(ev));
 			}), 51);
 		}
 		if (pageC > 0) {
+
 			for (int x = page.getItems().size(); x <= 54; x++) {
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
 			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
+				hasClicked = true;
+				System.out.println("Pages: " + pane.getPages() + "current: " + pane.getPage());
+				System.out.println("Setting page to: " + (pane.getPage() - 1));
+				outlinePages.get(pane.getPage()).setVisible(false);
 				pane.setPage(pane.getPage() - 1);
 
-				if (pane.getPage() == 0) {
-					outlinePages.get(currentPage).setVisible(false);
-				}
-				currentPage -= 1;
-				hasClicked = true;
-				outlinePages.get(currentPage).setVisible(true);
-
+				outlinePages.get(pane.getPage()).setVisible(true);
 				GUI.update();
-				GUI.setOnClose(ev -> onClose(ev));
 			}), 47);
 		}
 		if (!Config.getEscapeOnly()) {
@@ -403,7 +380,7 @@ public final class Shop {
 			backButtonMeta.setDisplayName(Config.getBackButtonText());
 
 			backButtonItem.setItemMeta(backButtonMeta);
-			
+
 			GuiItem item = new GuiItem(backButtonItem, event -> {
 				menuInstance.open();
 				return;
@@ -467,7 +444,7 @@ public final class Shop {
 					 * If the player has enough money to purchase the item, then allow them to.
 					 */
 
-					Item item = getItems().get((currentPage * 45) + e.getSlot());
+					Item item = getItems().get((pane.getPage() * 45) + e.getSlot());
 
 					if (item.getItemType() == ItemType.COMMAND) {
 
@@ -508,9 +485,10 @@ public final class Shop {
 		}
 
 	}
-	
+
 	public void loadShopFromCache(ShopData input) {
 		this.cachedData = input;
+		this.outlinePages = input.getCachedOutlinePages();
 		GUI.addPane(cachedData.getCachedPane());
 		this.PRICETABLE = cachedData.getCachedPricetable();
 	}
@@ -519,8 +497,8 @@ public final class Shop {
 	 * The inventory closeEvent handling for the Menu.
 	 */
 	public void onClose(InventoryCloseEvent e) {
-		GUI.setOnClose(null);
 		if (Config.getEscapeOnly() && !hasClicked) {
+
 			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 				@Override
@@ -535,11 +513,11 @@ public final class Shop {
 		return;
 
 	}
-	
+
 	public void setCacheData(ShopData input) {
 		cachedData = input;
 	}
-	
+
 	public ShopData getCachedData() {
 		return this.cachedData;
 	}

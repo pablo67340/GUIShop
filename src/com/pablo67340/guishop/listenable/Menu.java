@@ -28,27 +28,17 @@ public final class Menu {
 	 * The GUI that is projected onto the screen when a {@link Player} opens the
 	 * {@link Menu}.
 	 */
-	private Gui GUI = new Gui(Main.getInstance(), 1, "Menu");
-
-	/**
-	 * The {@link Player} that this {@link Menu} is created for.
-	 */
-	private final Player player;
+	private Gui GUI;
 
 	/**
 	 * The loaded shops read from the config.
 	 */
-	private Map<Integer, ShopDir> shops = new HashMap<>();
+	private Map<Integer, ShopDir> shops;
 
 	/**
 	 * The currently open shop associated with this Menu instance.
 	 */
 	private Shop openShop;
-
-	/**
-	 * The instance of this Menu.
-	 */
-	private Menu instance;
 
 	/**
 	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
@@ -57,18 +47,15 @@ public final class Menu {
 	 * @value The shop.
 	 */
 
-	public Menu(Player player) {
-		instance = this;
-		this.player = player;
-		preLoad();
+	public Menu() {
+		this.GUI = new Gui(Main.getInstance(), 1, "Menu");
+		this.shops = new HashMap<>();
 	}
 
 	/**
 	 * Preloads the configs into their corresponding objects.
 	 */
-	public void preLoad() {
-
-		GUI = new Gui(Main.getInstance(), 1, "Menu");
+	public void preLoad(Player player) {
 
 		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 
@@ -126,7 +113,8 @@ public final class Menu {
 	/**
 	 * Opens the GUI in this {@link Menu}.
 	 */
-	public void open() {
+	public void open(Player player) {
+
 		if (!player.hasPermission("guishop.use") && !player.isOp()) {
 			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
 					Main.getInstance().getMainConfig().getString("no-permission")));
@@ -138,6 +126,7 @@ public final class Menu {
 					Main.getInstance().getMainConfig().getString("disabled-world")));
 			return;
 		}
+		preLoad(player);
 		GUI.show(player);
 	}
 
@@ -165,52 +154,23 @@ public final class Menu {
 	 * so, run logic.
 	 */
 	public void onShopClick(InventoryClickEvent e) {
-		if (e.getWhoClicked() instanceof Player) {
-			if (e.getClickedInventory() != null) {
-				Player player = (Player) e.getWhoClicked();
-				if (player.getName().equals(this.player.getName())) {
-					e.setCancelled(true);
-					/*
-					 * If the player clicks on an empty slot, then cancel the event.
-					 */
-					if (e.getCurrentItem() != null) {
-						if (e.getCurrentItem().getType() == Material.AIR) {
-							e.setCancelled(true);
-							return;
-						}
-					}
+		Player player = (Player) e.getWhoClicked();
+		e.setCancelled(true);
 
-					/*
-					 * If the player clicks in their own inventory, we want to cancel the event.
-					 */
-					if (e.getClickedInventory() == player.getInventory()) {
-						e.setCancelled(true);
-						return;
-					}
-
-					ShopDir shopDef = shops.get(e.getSlot());
-					if (!shopDef.getShop().equalsIgnoreCase("")) {
-						openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-								shopDef.getLore(), e.getSlot(), player, instance);
-						if (!Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
-							openShop.loadShop();
-						}else {
-							openShop = Main.getInstance().getLoadedShops().get(e.getSlot());
-						}
-						openShop.open();
-						return;
-					}
-				}
+		ShopDir shopDef = shops.get(e.getSlot());
+		if (!shopDef.getShop().equalsIgnoreCase("")) {
+			if (!Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
+				this.openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+						shopDef.getLore(), e.getSlot(), this);
+			} else {
+				this.openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+						shopDef.getLore(), e.getSlot(), this, Main.getInstance().getLoadedShops().get(e.getSlot()));
 			}
+			this.openShop.loadItems(player);
+			this.openShop.open(player);
+			return;
 		}
+
 	}
 
-	/**
-	 * The item currently being targetted.
-	 * 
-	 * @return {@link Menu} Menu Instance.
-	 */
-	public Menu getInstance() {
-		return instance;
-	}
 }

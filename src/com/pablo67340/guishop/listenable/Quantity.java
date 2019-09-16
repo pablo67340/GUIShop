@@ -38,16 +38,6 @@ import de.dustplanet.util.SilkUtil;
 public class Quantity {
 
 	/**
-	 * The name of the player who is buying an item.
-	 */
-	private String playerName;
-
-	/**
-	 * The player who is buying an item.
-	 */
-	private Player player;
-
-	/**
 	 * The item currently being targetted.
 	 */
 	private Item item;
@@ -67,17 +57,15 @@ public class Quantity {
 	 */
 	private Shop currentShop;
 
-	public Quantity(String player, Item item, Shop shop) {
+	public Quantity(Item item, Shop shop) {
 		this.item = item;
-		this.playerName = player;
-		this.player = Bukkit.getPlayer(player);
 		this.currentShop = shop;
 	}
 
 	/**
 	 * Opens the GUI to sell the items in.
 	 */
-	public void open() {
+	public void open(Player player) {
 		GUI.setOnClose(event -> onClose(event));
 		GUI.show(player);
 	}
@@ -147,40 +135,22 @@ public class Quantity {
 	 * Executes when an item is clicked inside the Quantity Inventory.
 	 */
 	public void onQuantityClick(InventoryClickEvent e) {
-		if (e.getWhoClicked().getName().equalsIgnoreCase(this.playerName)) {
+		Player player = (Player)e.getWhoClicked();
 			e.setCancelled(true);
 			if (!Config.getEscapeOnly()) {
 				if (e.getSlot() == 53) {
-					currentShop.open();
+					currentShop.open(player);
 					return;
 				}
-			}
-
-			if (e.getClickedInventory() == null) {
-				return;
 			}
 
 			if (player.getInventory().firstEmpty() == -1) {
 				player.sendMessage(Config.getFull());
 				return;
 			}
-			/*
-			 * If the player clicks on an empty slot, then cancel the event.
-			 */
-			if (e.getCurrentItem() != null) {
-				if (e.getCurrentItem().getType() == Material.AIR) {
-					return;
-				}
-			}
-
-			/*
-			 * If the player clicks in their own inventory, we want to cancel the event.
-			 */
-			if (e.getClickedInventory() == player.getInventory()) {
-				return;
-			}
 
 			// Check if the item is disabled, or price is 0
+			// TODO: Add option for free items?!
 			if (item.getBuyPrice() == 0) {
 				player.sendMessage(Config.getPrefix() + " " + Config.getCantBuy());
 				player.setItemOnCursor(new ItemStack(Material.AIR));
@@ -304,20 +274,21 @@ public class Quantity {
 						Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
 			}
 
-		}
+		
 	}
 
 	/**
 	 * The inventory closeEvent handling for the Menu.
 	 */
 	public void onClose(InventoryCloseEvent e) {
+		Player player = (Player)e.getPlayer();
 		if (Config.getEscapeOnly()) {
 			GUI.setOnClose(null);
 			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 				@Override
 				public void run() {
-					currentShop.open();
+					currentShop.open(player);
 				}
 			}, 1L);
 

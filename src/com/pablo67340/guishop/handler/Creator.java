@@ -224,8 +224,8 @@ public final class Creator {
 
 					for (Player p : Bukkit.getOnlinePlayers()) {
 
-						Menu menu = new Menu(p);
-						menu.preLoad();
+						Menu menu = new Menu();
+						menu.preLoad(p);
 					}
 				} else {
 

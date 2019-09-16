@@ -29,7 +29,7 @@ import com.pablo67340.guishop.util.Config;
 
 import com.pablo67340.guishop.util.XMaterial;
 
-public final class Shop {
+public class Shop {
 
 	/**
 	 * Number of rows for the GUI.,
@@ -75,11 +75,13 @@ public final class Shop {
 
 	private Boolean hasClicked = false;
 
-	private Player player;
-
 	private Integer menuSlot;
 
-	private PaginatedPane pane = new PaginatedPane(0, 0, COL, ROW);
+	private PaginatedPane pane;
+
+	private Map<Integer, Price> PRICETABLE = new HashMap<>();
+
+	private int pageC = 0;
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -88,17 +90,37 @@ public final class Shop {
 	 * @param description The description of the shop.
 	 * @param lore        The lore of the shop.
 	 */
-	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Player player,
-			Menu menuInstance) {
+	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Menu menuInstance) {
 		this.name = name;
 		this.shop = shop;
 		this.description = description;
 		this.lore = lore;
 		this.menuInstance = menuInstance;
-		this.player = player;
 		this.menuSlot = slot;
 		this.GUI = new Gui(Main.getInstance(), 6,
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+		this.pane = new PaginatedPane(0, 0, COL, ROW);
+	}
+
+	/**
+	 * The constructor for a {@link Shop}.
+	 * 
+	 * @param name        The name of the shop.
+	 * @param description The description of the shop.
+	 * @param lore        The lore of the shop.
+	 */
+	public Shop(String shop, String name, String description, List<String> lore, Integer slot, Menu menuInstance,
+			List<Item> items) {
+		this.name = name;
+		this.shop = shop;
+		this.description = description;
+		this.lore = lore;
+		this.menuInstance = menuInstance;
+		this.menuSlot = slot;
+		this.GUI = new Gui(Main.getInstance(), 6,
+				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+		this.pane = new PaginatedPane(0, 0, COL, ROW);
+		this.ITEMS = items;
 	}
 
 	/**
@@ -146,103 +168,114 @@ public final class Shop {
 		return ITEMS;
 	}
 
-	private Map<Integer, Price> PRICETABLE = new HashMap<>();
-
-	private int pageC = 0;
-
 	/**
 	 * Load the specified shop
 	 * 
 	 */
 	@SuppressWarnings({ "unchecked" })
-	public void loadShop() {
+	public void loadItems(Player player) {
 
-		ITEMS = new ArrayList<>();
+		if (ITEMS == null) {
 
-		Integer index = 0, lastIndex = 0;
+			ITEMS = new ArrayList<>();
 
-		Item item = new Item();
+			Integer index = 0;
 
-		ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
+			Item item = new Item();
 
-		OutlinePane page = new OutlinePane(0, 0, COL, ROW);
+			ConfigurationSection config = Main.getInstance().getCustomConfig().getConfigurationSection(shop);
 
-		for (String str : config.getKeys(true)) {
+			for (String str : config.getKeys(true)) {
 
-			item = new Item();
-			index += 1;
+				item = new Item();
+				index += 1;
 
-			List<Map<?, ?>> citem = config.getMapList(str);
+				List<Map<?, ?>> citem = config.getMapList(str);
 
-			for (Map<?, ?> map : citem) {
+				for (Map<?, ?> map : citem) {
 
-				try {
-					if (map.containsKey("id")) {
-						String itemID = (String) map.get("id");
-						item.setMaterial(itemID);
-					} else if (map.containsKey("mobType")) {
-						item.setMobType((String) map.get("mobType"));
-					} else if (map.containsKey("slot")) {
-						item.setSlot((Integer) map.get("slot"));
-					} else if (map.containsKey("name")) {
-						item.setName((String) map.get("name"));
-					} else if (map.containsKey("enchantments")) {
-						String preEnc = (String) map.get("enchantments");
-						if (!preEnc.equalsIgnoreCase("")) {
-							String[] enchants = preEnc.split(" ");
-							item.setEnchantments(enchants);
+					try {
+						if (map.containsKey("id")) {
+							String itemID = (String) map.get("id");
+							item.setMaterial(itemID);
+						} else if (map.containsKey("mobType")) {
+							item.setMobType((String) map.get("mobType"));
+						} else if (map.containsKey("slot")) {
+							item.setSlot((Integer) map.get("slot"));
+						} else if (map.containsKey("name")) {
+							item.setName((String) map.get("name"));
+						} else if (map.containsKey("enchantments")) {
+							String preEnc = (String) map.get("enchantments");
+							if (!preEnc.equalsIgnoreCase("")) {
+								String[] enchants = preEnc.split(" ");
+								item.setEnchantments(enchants);
+							}
+						} else if (map.containsKey("buy-price")) {
+							Integer buy;
+							Double buy2;
+							try {
+								buy2 = (Double) map.get("buy-price");
+								item.setBuyPrice(buy2);
+							} catch (Exception e) {
+								buy = (Integer) map.get("buy-price");
+								item.setBuyPrice(buy);
+							}
+						} else if (map.containsKey("sell-price")) {
+							Double sell2;
+							Integer sell3;
+							try {
+								sell2 = (Double) map.get("sell-price");
+								item.setSellPrice(sell2);
+							} catch (Exception e) {
+								sell3 = (Integer) map.get("sell-price");
+								item.setSellPrice(sell3);
+							}
+						} else if (map.containsKey("type")) {
+							ItemType type = ItemType.valueOf((String) map.get("type"));
+							item.setType(type);
+						} else if (map.containsKey("commands")) {
+							item.setCommands((List<String>) map.get("commands"));
 						}
-					} else if (map.containsKey("buy-price")) {
-						Integer buy;
-						Double buy2;
-						try {
-							buy2 = (Double) map.get("buy-price");
-							item.setBuyPrice(buy2);
-						} catch (Exception e) {
-							buy = (Integer) map.get("buy-price");
-							item.setBuyPrice(buy);
-						}
-					} else if (map.containsKey("sell-price")) {
-						Double sell2;
-						Integer sell3;
-						try {
-							sell2 = (Double) map.get("sell-price");
-							item.setSellPrice(sell2);
-						} catch (Exception e) {
-							sell3 = (Integer) map.get("sell-price");
-							item.setSellPrice(sell3);
-						}
-					} else if (map.containsKey("type")) {
-						ItemType type = ItemType.valueOf((String) map.get("type"));
-						item.setType(type);
-					} else if (map.containsKey("commands")) {
-						item.setCommands((List<String>) map.get("commands"));
+					} catch (Exception e) {
+						Main.getInstance().getLogger().warning("§cError occured while reading item: " + (index - 1)
+								+ " from shop: " + getShop() + " Error: " + e.getMessage());
+						Main.getInstance().getLogger()
+								.warning("§cThis plugin will not function properly until error is addressed!");
+						Main.getInstance().getDebugger().setHasExploded(true);
+						Main.getInstance().getDebugger().setErrorMessage(
+								"§cError occured while reading item: " + (index - 1) + " from shop: " + getShop());
 					}
-				} catch (Exception e) {
-					Main.getInstance().getLogger().warning("§cError occured while reading item: " + (index - 1)
-							+ " from shop: " + getShop() + " Error: " + e.getMessage());
-					Main.getInstance().getLogger()
-							.warning("§cThis plugin will not function properly until error is addressed!");
-					Main.getInstance().getDebugger().setHasExploded(true);
-					Main.getInstance().getDebugger().setErrorMessage(
-							"§cError occured while reading item: " + (index - 1) + " from shop: " + getShop());
 				}
+
+				// Update shops.yml to add type
+				if (item.getItemType() == null) {
+					item.setType(ItemType.ITEM);
+
+					List<Map<?, ?>> mapList = config.getMapList(index.toString());
+					Map<String, String> type = new HashMap<>();
+					type.put("type", item.getItemType().toString());
+					mapList.add(type);
+					config.set(index.toString(), mapList);
+					// Toggle pending for save.
+				}
+
+				PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
+				ITEMS.add(item);
 			}
+			loadShop(player);
+		} else {
+			loadShop(player);
+		}
 
-			// Update shops.yml to add type
-			if (item.getItemType() == null) {
-				item.setType(ItemType.ITEM);
+	}
 
-				List<Map<?, ?>> mapList = config.getMapList(index.toString());
-				Map<String, String> type = new HashMap<>();
-				type.put("type", item.getItemType().toString());
-				mapList.add(type);
-				config.set(index.toString(), mapList);
-				// Toggle pending for save.
-			}
-
-			PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
-			ITEMS.add(item);
+	public void loadShop(Player player) {
+		Integer index = 0, lastIndex = 0;
+		OutlinePane page = new OutlinePane(0, 0, COL, ROW);
+		this.GUI = new Gui(Main.getInstance(), 6,
+				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+		this.pane = new PaginatedPane(0, 0, COL, ROW);
+		for (Item item : ITEMS) {
 			Material material = null;
 			if (material == null) {
 				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
@@ -300,10 +333,10 @@ public final class Shop {
 
 			// Create Page
 			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
-			if (index == config.getKeys(true).size() || ((index - 1) - lastIndex) == 44) {
+			if (index == ITEMS.size() || ((index) - lastIndex) == 44) {
 				page.addItem(gItem);
-				if (config.getKeys(true).size() > 45) {
-					applyButtons(pane, page);
+				if (ITEMS.size() > 45) {
+					applyButtons(pane, page, player);
 				}
 				lastIndex = index;
 				pane.addPane(pageC, page);
@@ -313,28 +346,27 @@ public final class Shop {
 				page.addItem(gItem);
 			}
 
-			if (index == config.getKeys(true).size()) {
+			if (index + 1 == ITEMS.size()) {
+				pane.addPane(pageC, page);
+				applyButtons(pane, page, player);
 				GUI.addPane(pane);
-				Main.getInstance().getLoadedShops().put(menuSlot, this);
+				Main.getInstance().getLoadedShops().put(menuSlot, ITEMS);
 			}
-
+			index += 1;
 		}
 
 	}
 
-	public void applyButtons(PaginatedPane pane, OutlinePane page) {
+	public void applyButtons(PaginatedPane pane, OutlinePane page, Player player) {
 		if (page.getItems().size() == 45) {
 			for (int x = page.getItems().size(); x <= 54; x++) {
 				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
 			}
 			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
 				hasClicked = true;
-				System.out.println("Pages: " + pane.getPages() + "current: " + pane.getPage());
-				System.out.println("Setting page to: " + (pane.getPage() + 1));
 
-				pane.getPanes().toArray();
-				Pane[] arr = new Pane[54]; 
-		        arr = pane.getPanes().toArray(arr); 
+				Pane[] arr = new Pane[54];
+				arr = pane.getPanes().toArray(arr);
 				arr[pane.getPage()].setVisible(false);
 				pane.setPage(pane.getPage() + 1);
 
@@ -350,11 +382,8 @@ public final class Shop {
 			}
 			page.insertItem(new GuiItem(new ItemStack(Material.ARROW), event -> {
 				hasClicked = true;
-				System.out.println("Pages: " + pane.getPages() + "current: " + pane.getPage());
-				System.out.println("Setting page to: " + (pane.getPage() - 1));
-				pane.getPanes().toArray();
-				Pane[] arr = new Pane[54]; 
-		        arr = pane.getPanes().toArray(arr); 
+				Pane[] arr = new Pane[54];
+				arr = pane.getPanes().toArray(arr);
 				arr[pane.getPage()].setVisible(false);
 				pane.setPage(pane.getPage() - 1);
 
@@ -373,7 +402,7 @@ public final class Shop {
 			backButtonItem.setItemMeta(backButtonMeta);
 
 			GuiItem item = new GuiItem(backButtonItem, event -> {
-				menuInstance.open();
+				menuInstance.open(player);
 				return;
 			});
 
@@ -385,109 +414,79 @@ public final class Shop {
 	 * Open the player's shop
 	 * 
 	 */
-	public void open() {
+	public void open(Player input) {
+		GUI.show(input);
 		GUI.setOnClose(event -> onClose(event));
-		GUI.show(player);
 	}
 
 	public void onShopClick(InventoryClickEvent e) {
-		if (e.getWhoClicked() instanceof Player) {
-			if (e.getClickedInventory() != null) {
-				Player player = (Player) e.getWhoClicked();
-				hasClicked = true;
+		e.setCancelled(true);
+		Player player = (Player) e.getWhoClicked();
+		hasClicked = true;
 
-				/*
-				 * If the player has the shop open.
-				 */
-				e.setCancelled(true);
-				if (player.getInventory().firstEmpty() == -1) {
-					e.setCancelled(true);
-					player.sendMessage(Config.getFull());
-					return;
-				}
-				/*
-				 * If the player clicks on an empty slot, then cancel the event.
-				 */
-				if (e.getCurrentItem() != null) {
-					if (e.getCurrentItem().getType() == Material.AIR) {
-						e.setCancelled(true);
-						return;
-					}
-				}
-
-				/*
-				 * If the player clicks in their own inventory, we want to cancel the event.
-				 */
-				if (e.getClickedInventory() == player.getInventory()) {
-					e.setCancelled(true);
-					return;
-				}
-
-				if (e.getSlot() >= 0 && e.getSlot() < GUI.getItems().size()) {
-					/**
-					 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
-					 * user clicks the forward button, load and open next page, Otherwise, If the
-					 * user clicks the backward button, load and open the previous page, Otherwise
-					 * Attempt to purchase the clicked item.
-					 */
-
-					/*
-					 * If the player has enough money to purchase the item, then allow them to.
-					 */
-
-					Item item = getItems().get((pane.getPage() * 45) + e.getSlot());
-
-					if (item.getItemType() == ItemType.COMMAND) {
-
-						if (Main.getInstance().purchaseCommands(player.getUniqueId(), item.getCommands())) {
-							if (Main.getEconomy().withdrawPlayer(player, item.getBuyPrice()).transactionSuccess()) {
-								// If the player has the sound enabled, play
-								// it!
-								if (Config.isSoundEnabled()) {
-									try {
-										player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
-
-									} catch (Exception ex) {
-										Main.getInstance().getLogger().warning(
-												"§cIncorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
-									}
-								}
-								player.sendMessage(Config.getPrefix() + Config.getPurchased() + item.getBuyPrice()
-										+ Config.getTaken() + Config.getCurrencySuffix());
-							} else {
-								player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
-										+ Config.getNotEnoughPost());
-							}
-						} else {
-							player.sendMessage(Config.getCommandAlready());
-						}
-
-					} else {
-
-						Quantity qty = new Quantity(player.getName(), item, this);
-						qty.loadInventory();
-						qty.open();
-
-					}
-
-				}
-			}
-
+		/*
+		 * If the player's inventory is full
+		 */
+		if (player.getInventory().firstEmpty() == -1) {
+			player.sendMessage(Config.getFull());
+			return;
 		}
 
+		if (e.getSlot() >= 0 && e.getSlot() < GUI.getItems().size()) {
+			/**
+			 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
+			 * user clicks the forward button, load and open next page, Otherwise, If the
+			 * user clicks the backward button, load and open the previous page, Otherwise
+			 * Attempt to purchase the clicked item.
+			 */
+
+			/*
+			 * If the player has enough money to purchase the item, then allow them to.
+			 */
+
+			Item item = getItems().get((pane.getPage() * 45) + e.getSlot());
+			if (item.getItemType() == ItemType.COMMAND) {
+				if (Main.getInstance().purchaseCommands(player.getUniqueId(), item.getCommands())) {
+					if (Main.getEconomy().withdrawPlayer(player, item.getBuyPrice()).transactionSuccess()) {
+						// If the player has the sound enabled, play
+						// it!
+						if (Config.isSoundEnabled()) {
+							try {
+								player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
+
+							} catch (Exception ex) {
+								Main.getInstance().getLogger().warning(
+										"§cIncorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+							}
+						}
+						player.sendMessage(Config.getPrefix() + Config.getPurchased() + item.getBuyPrice()
+								+ Config.getTaken() + Config.getCurrencySuffix());
+					} else {
+						player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
+								+ Config.getNotEnoughPost());
+					}
+				} else {
+					player.sendMessage(Config.getCommandAlready());
+				}
+			} else {
+				Quantity qty = new Quantity(item, this);
+				qty.loadInventory();
+				qty.open(player);
+			}
+		}
 	}
 
 	/**
 	 * The inventory closeEvent handling for the Menu.
 	 */
 	public void onClose(InventoryCloseEvent e) {
+		Player player = (Player) e.getPlayer();
 		if (Config.getEscapeOnly() && !hasClicked) {
-
 			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 				@Override
 				public void run() {
-					menuInstance.open();
+					menuInstance.open(player);
 				}
 			}, 1L);
 

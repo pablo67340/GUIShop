@@ -7,8 +7,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import org.apache.commons.lang3.StringUtils;
-
 import com.pablo67340.guishop.main.Main;
 
 public class ItemCommand {
@@ -26,11 +24,9 @@ public class ItemCommand {
 			String unit = cmd.substring(cmd.length() - 1);
 			Integer duration;
 			if (cmd.contains("::")) {
-				command = StringUtils.substringBefore(cmd, "::");
-
-				String preduration = StringUtils.substringAfter(cmd, "::");
-				preduration = StringUtils.substringBefore(preduration, unit);
-				duration = Integer.parseInt(preduration);
+				String[] parts = cmd.split("::");
+				command = parts[0];
+				duration = Integer.parseInt(parts[1].replace(unit, ""));
 				if (isNew) {
 					Main.getInstance().addCommand(uuid, command, duration.toString() + unit, startDate.toString());
 				}
@@ -50,15 +46,15 @@ public class ItemCommand {
 	}
 
 	public Set<String> getValidCommands() {
-    Set<String> validCommands = new HashSet<>();
+		Set<String> validCommands = new HashSet<>();
 
-    for (String cmd : commands) {
-      Expires expiration = getExpiration(cmd);
+		for (String cmd : commands) {
+			Expires expiration = getExpiration(cmd);
 
-      if (!expiration.isExpired()) {
-        validCommands.add(cmd);
-      }
-    }
+			if (!expiration.isExpired()) {
+				validCommands.add(cmd);
+			}
+		}
 
 		return validCommands;
 	}
@@ -77,16 +73,13 @@ public class ItemCommand {
 
 	public Boolean addCommands(List<String> commands, String startDate) {
 		for (String cmd : commands) {
-
 			String command;
 			String unit = cmd.substring(cmd.length() - 1);
 			Integer duration;
 			if (cmd.contains("::")) {
-				command = StringUtils.substringBefore(cmd, "::");
-				String preduration = StringUtils.substringAfter(cmd, "::");
-				preduration = StringUtils.substringBefore(preduration, unit);
-				duration = Integer.parseInt(preduration);
-
+				String[] parts = cmd.split("::");
+				command = parts[0];
+				duration = Integer.parseInt(parts[1].replace(unit, ""));
 			} else {
 				command = cmd;
 				duration = 0;

@@ -18,7 +18,7 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-
+import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.handler.Item;
@@ -26,7 +26,7 @@ import com.pablo67340.guishop.handler.Page;
 import com.pablo67340.guishop.handler.Price;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.ShopData;
+
 import com.pablo67340.guishop.util.XMaterial;
 
 public final class Shop {
@@ -66,15 +66,10 @@ public final class Shop {
 	 */
 	private List<Item> ITEMS;
 
-	private List<OutlinePane> outlinePages = new ArrayList<OutlinePane>();
-
 	/**
 	 * The list of {@link Page}'s in this {@link Shop}.
 	 */
-	private Page[] pages = new Page[20];
-
-	private Gui GUI = new Gui(Main.getInstance(), 6,
-			ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+	private Gui GUI;
 
 	private Menu menuInstance;
 
@@ -102,6 +97,8 @@ public final class Shop {
 		this.menuInstance = menuInstance;
 		this.player = player;
 		this.menuSlot = slot;
+		this.GUI = new Gui(Main.getInstance(), 6,
+				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 	}
 
 	/**
@@ -149,16 +146,7 @@ public final class Shop {
 		return ITEMS;
 	}
 
-	/**
-	 * Returns the page object for this {@link Shop}
-	 */
-	public Page getPage(Integer input) {
-		return pages[input];
-	}
-
 	private Map<Integer, Price> PRICETABLE = new HashMap<>();
-
-	private ShopData cachedData;
 
 	private int pageC = 0;
 
@@ -320,7 +308,6 @@ public final class Shop {
 				lastIndex = index;
 				pane.addPane(pageC, page);
 				pageC += 1;
-				outlinePages.add(page);
 				page = new OutlinePane(0, 0, COL, ROW);
 			} else {
 				page.addItem(gItem);
@@ -328,9 +315,7 @@ public final class Shop {
 
 			if (index == config.getKeys(true).size()) {
 				GUI.addPane(pane);
-				ShopData data = new ShopData(pane, PRICETABLE, outlinePages);
-				cachedData = data;
-				Main.getInstance().getLoadedShops().put(menuSlot, cachedData);
+				Main.getInstance().getLoadedShops().put(menuSlot, this);
 			}
 
 		}
@@ -347,10 +332,13 @@ public final class Shop {
 				System.out.println("Pages: " + pane.getPages() + "current: " + pane.getPage());
 				System.out.println("Setting page to: " + (pane.getPage() + 1));
 
-				outlinePages.get(pane.getPage()).setVisible(false);
+				pane.getPanes().toArray();
+				Pane[] arr = new Pane[54]; 
+		        arr = pane.getPanes().toArray(arr); 
+				arr[pane.getPage()].setVisible(false);
 				pane.setPage(pane.getPage() + 1);
 
-				outlinePages.get(pane.getPage()).setVisible(true);
+				arr[pane.getPage()].setVisible(true);
 
 				GUI.update();
 			}), 51);
@@ -364,10 +352,13 @@ public final class Shop {
 				hasClicked = true;
 				System.out.println("Pages: " + pane.getPages() + "current: " + pane.getPage());
 				System.out.println("Setting page to: " + (pane.getPage() - 1));
-				outlinePages.get(pane.getPage()).setVisible(false);
+				pane.getPanes().toArray();
+				Pane[] arr = new Pane[54]; 
+		        arr = pane.getPanes().toArray(arr); 
+				arr[pane.getPage()].setVisible(false);
 				pane.setPage(pane.getPage() - 1);
 
-				outlinePages.get(pane.getPage()).setVisible(true);
+				arr[pane.getPage()].setVisible(true);
 				GUI.update();
 			}), 47);
 		}
@@ -486,13 +477,6 @@ public final class Shop {
 
 	}
 
-	public void loadShopFromCache(ShopData input) {
-		this.cachedData = input;
-		this.outlinePages = input.getCachedOutlinePages();
-		GUI.addPane(cachedData.getCachedPane());
-		this.PRICETABLE = cachedData.getCachedPricetable();
-	}
-
 	/**
 	 * The inventory closeEvent handling for the Menu.
 	 */
@@ -512,14 +496,6 @@ public final class Shop {
 		}
 		return;
 
-	}
-
-	public void setCacheData(ShopData input) {
-		cachedData = input;
-	}
-
-	public ShopData getCachedData() {
-		return this.cachedData;
 	}
 
 }

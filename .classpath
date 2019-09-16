@@ -21,6 +21,5 @@
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/SilkSpawners.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/GStore/IF-0.5.8.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.14.4/minecraft.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/commons-lang3-3.4.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

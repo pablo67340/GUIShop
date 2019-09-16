@@ -15,18 +15,17 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.SQLiteLib.Main.SQLiteLib;
 import com.pablo67340.guishop.definition.ItemCommand;
 import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
-
+import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Debugger;
 import com.pablo67340.guishop.util.Dependencies;
-import com.pablo67340.guishop.util.ShopData;
+
 import com.songoda.epicspawners.api.EpicSpawners;
 
 import de.dustplanet.util.SilkUtil;
@@ -96,7 +95,7 @@ public final class Main extends JavaPlugin {
 	 */
 	public static final Set<String> HAS_SELL_OPEN = new HashSet<>();
 	
-	public Map<Integer, ShopData> loadedShops = new HashMap<>();
+	public Map<Integer, Shop> loadedShops = new HashMap<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
@@ -510,7 +509,7 @@ public final class Main extends JavaPlugin {
 
 	}
 	
-	public Map<Integer, ShopData> getLoadedShops(){
+	public Map<Integer, Shop> getLoadedShops(){
 		return this.loadedShops;
 	}
 

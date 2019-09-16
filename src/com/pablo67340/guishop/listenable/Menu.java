@@ -194,8 +194,8 @@ public final class Menu {
 								shopDef.getLore(), e.getSlot(), player, instance);
 						if (!Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
 							openShop.loadShop();
-						} else {
-							openShop.loadShopFromCache(Main.getInstance().getLoadedShops().get(e.getSlot()));
+						}else {
+							openShop = Main.getInstance().getLoadedShops().get(e.getSlot());
 						}
 						openShop.open();
 						return;

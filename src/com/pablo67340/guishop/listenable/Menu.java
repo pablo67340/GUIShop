@@ -19,7 +19,7 @@ import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
 
 import com.pablo67340.guishop.handler.ShopDir;
 import com.pablo67340.guishop.main.Main;
-
+import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.XMaterial;
 
 public final class Menu {
@@ -48,7 +48,7 @@ public final class Menu {
 	 */
 
 	public Menu() {
-		this.GUI = new Gui(Main.getInstance(), 1, "Menu");
+		this.GUI = new Gui(Main.getInstance(), Config.getMenuRows(), "Menu");
 		this.shops = new HashMap<>();
 	}
 
@@ -98,8 +98,11 @@ public final class Menu {
 					}
 				}
 
-				ItemStack itemStack = setName(new ItemStack(material), name, lore);
+				ItemStack itemStack = new ItemStack(material);
+						
+						
 				GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
+				setName(gItem, name, lore);
 
 				// SetItem no longer works with self created inventory object. Prefill with air?
 				page.addItem(gItem);
@@ -133,8 +136,8 @@ public final class Menu {
 	/**
 	 * Sets the item's display name.
 	 */
-	private static ItemStack setName(ItemStack is, String name, List<String> lore) {
-		ItemMeta IM = is.getItemMeta();
+	private void setName(GuiItem item, String name, List<String> lore) {
+		ItemMeta IM = item.getItem().getItemMeta();
 
 		if (name != null) {
 			IM.setDisplayName(name);
@@ -144,9 +147,8 @@ public final class Menu {
 			IM.setLore(lore);
 		}
 
-		is.setItemMeta(IM);
+		item.getItem().setItemMeta(IM);
 
-		return is;
 	}
 
 	/**

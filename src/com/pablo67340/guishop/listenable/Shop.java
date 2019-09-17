@@ -23,23 +23,12 @@ import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.handler.Item;
 import com.pablo67340.guishop.handler.Page;
-import com.pablo67340.guishop.handler.Price;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
 
 import com.pablo67340.guishop.util.XMaterial;
 
 public class Shop {
-
-	/**
-	 * Number of rows for the GUI.,
-	 */
-	public static final int ROW = 6;
-
-	/**
-	 * Number of columns for the GUI
-	 */
-	public static final int COL = 9;
 
 	/**
 	 * The name of this {@link Shop}.
@@ -77,10 +66,6 @@ public class Shop {
 
 	private Integer menuSlot;
 
-	private PaginatedPane pane;
-
-	private Map<Integer, Price> PRICETABLE = new HashMap<>();
-
 	private int pageC = 0;
 
 	/**
@@ -97,9 +82,6 @@ public class Shop {
 		this.lore = lore;
 		this.menuInstance = menuInstance;
 		this.menuSlot = slot;
-		this.GUI = new Gui(Main.getInstance(), 6,
-				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
-		this.pane = new PaginatedPane(0, 0, COL, ROW);
 	}
 
 	/**
@@ -117,9 +99,6 @@ public class Shop {
 		this.lore = lore;
 		this.menuInstance = menuInstance;
 		this.menuSlot = slot;
-		this.GUI = new Gui(Main.getInstance(), 6,
-				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
-		this.pane = new PaginatedPane(0, 0, COL, ROW);
 		this.ITEMS = items;
 	}
 
@@ -200,8 +179,6 @@ public class Shop {
 							item.setMaterial(itemID);
 						} else if (map.containsKey("mobType")) {
 							item.setMobType((String) map.get("mobType"));
-						} else if (map.containsKey("slot")) {
-							item.setSlot((Integer) map.get("slot"));
 						} else if (map.containsKey("name")) {
 							item.setName((String) map.get("name"));
 						} else if (map.containsKey("enchantments")) {
@@ -211,25 +188,9 @@ public class Shop {
 								item.setEnchantments(enchants);
 							}
 						} else if (map.containsKey("buy-price")) {
-							Integer buy;
-							Double buy2;
-							try {
-								buy2 = (Double) map.get("buy-price");
-								item.setBuyPrice(buy2);
-							} catch (Exception e) {
-								buy = (Integer) map.get("buy-price");
-								item.setBuyPrice(buy);
-							}
+							item.setBuyPrice(map.get("buy-price"));
 						} else if (map.containsKey("sell-price")) {
-							Double sell2;
-							Integer sell3;
-							try {
-								sell2 = (Double) map.get("sell-price");
-								item.setSellPrice(sell2);
-							} catch (Exception e) {
-								sell3 = (Integer) map.get("sell-price");
-								item.setSellPrice(sell3);
-							}
+							item.setSellPrice(map.get("sell-price"));
 						} else if (map.containsKey("type")) {
 							ItemType type = ItemType.valueOf((String) map.get("type"));
 							item.setType(type);
@@ -259,7 +220,6 @@ public class Shop {
 					// Toggle pending for save.
 				}
 
-				PRICETABLE.put(item.getSlot(), new Price(item.getBuyPrice(), item.getSellPrice()));
 				ITEMS.add(item);
 			}
 			loadShop(player);
@@ -271,55 +231,70 @@ public class Shop {
 
 	public void loadShop(Player player) {
 		Integer index = 0, lastIndex = 0;
-		OutlinePane page = new OutlinePane(0, 0, COL, ROW);
+		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 		this.GUI = new Gui(Main.getInstance(), 6,
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
-		this.pane = new PaginatedPane(0, 0, COL, ROW);
+		PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
 		for (Item item : ITEMS) {
 			Material material = null;
 			if (material == null) {
 				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
 					Main.getInstance().getLogger().log(Level.WARNING,
-							"Could not parse material: " + item.getMaterial() + " for item #: " + item.getSlot() + 1);
+							"Could not parse material: " + item.getMaterial() + " for item #: " + index + 1);
 					continue;
 				}
 			}
 
 			ItemStack itemStack = new ItemStack(material, 1);
 
-			ItemMeta itemMeta = itemStack.getItemMeta();
+			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event, pane));
 
-			if (item.getBuyPrice() != 0 && item.getSellPrice() != 0) {
+			ItemMeta itemMeta = gItem.getItem().getItemMeta();
 
-				itemMeta.setLore(Arrays.asList(
-						ChatColor.translateAlternateColorCodes('&',
-								"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice()),
-						ChatColor.translateAlternateColorCodes('&',
-								"&fSell: &a" + Config.getCurrency() + item.getSellPrice())));
-				if (item.getCommands() != null) {
-					List<String> currentLore = itemMeta.getLore();
-					List<String> commands = item.getCommands();
-					List<String> newCommands = new ArrayList<>();
-					for (String cmd : commands) {
-						newCommands.add(
-								StringUtils.substringBefore(cmd, "::") + "   " + StringUtils.substringAfter(cmd, "::"));
-					}
-					currentLore.add(" ");
-					currentLore.add(Config.getAccessTo());
-					currentLore.addAll(newCommands);
-					itemMeta.setLore(currentLore);
+			List<String> lore = new ArrayList<>();
+
+			if (item.canBuyItem()) {
+				if (item.getBuyPrice() != 0) {
+					lore.add(Config.getBuyLore().replace("{amount}",
+							Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
+				} else {
+					lore.add(Config.geFreeLore());
 				}
 			} else {
-				itemMeta.setLore(Arrays.asList(
-						ChatColor.translateAlternateColorCodes('&',
-								"&fBuy: &c" + Config.getCurrency() + item.getBuyPrice()),
-						ChatColor.translateAlternateColorCodes('&', "&cCannot be sold")));
+				lore.add(Config.getCannotBuyLore());
 			}
 
-			if (item.getName() != null)
-				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+			if (item.canSellItem()) {
+				lore.add(Config.getSellLore().replace("{amount}",
+						Config.getCurrency() + item.getSellPrice() + Config.getCurrencySuffix()));
+			} else {
+				lore.add(Config.getCannotSellLore());
+			}
 
-			itemStack.setItemMeta(itemMeta);
+			itemMeta.setLore(lore);
+
+			if (item.getCommands() != null) {
+				List<String> currentLore = itemMeta.getLore();
+				List<String> commands = item.getCommands();
+				List<String> newCommands = new ArrayList<>();
+				for (String cmd : commands) {
+					newCommands.add(
+							StringUtils.substringBefore(cmd, "::") + "   " + StringUtils.substringAfter(cmd, "::"));
+				}
+				currentLore.add(" ");
+				currentLore.add(Config.getAccessTo());
+				currentLore.addAll(newCommands);
+				itemMeta.setLore(currentLore);
+			}
+
+			if (item.getName() != null) {
+				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+			} else if (itemStack.getType() == Material.SPAWNER) {
+				String mobName = item.getMobType();
+				mobName = mobName.toLowerCase();
+				mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+				itemMeta.setDisplayName(mobName + " Spawner");
+			}
 
 			if (item.getEnchantments() != null) {
 
@@ -331,8 +306,8 @@ public class Shop {
 				}
 			}
 
+			gItem.getItem().setItemMeta(itemMeta);
 			// Create Page
-			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
 			if (index == ITEMS.size() || ((index) - lastIndex) == 44) {
 				page.addItem(gItem);
 				if (ITEMS.size() > 45) {
@@ -341,7 +316,7 @@ public class Shop {
 				lastIndex = index;
 				pane.addPane(pageC, page);
 				pageC += 1;
-				page = new OutlinePane(0, 0, COL, ROW);
+				page = new OutlinePane(0, 0, 9, 6);
 			} else {
 				page.addItem(gItem);
 			}
@@ -419,7 +394,7 @@ public class Shop {
 		GUI.setOnClose(event -> onClose(event));
 	}
 
-	public void onShopClick(InventoryClickEvent e) {
+	public void onShopClick(InventoryClickEvent e, PaginatedPane pane) {
 		e.setCancelled(true);
 		Player player = (Player) e.getWhoClicked();
 		hasClicked = true;

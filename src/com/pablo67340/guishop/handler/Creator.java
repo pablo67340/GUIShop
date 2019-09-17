@@ -255,6 +255,7 @@ public final class Creator {
 	@SuppressWarnings("deprecation")
 	public void loadShop() {
 		this.chest.getInventory().clear();
+		Integer index = 0;
 		for (String str : Main.getInstance().getCustomConfig().getKeys(true)) {
 			if (str.contains(".") && str.contains(this.name)) {
 				Item item = new Item();
@@ -266,8 +267,6 @@ public final class Creator {
 
 						item.setMaterial(itemID);
 
-					} else if (map.containsKey("slot")) {
-						item.setSlot((Integer) map.get("slot"));
 					} else if (map.containsKey("name")) {
 						item.setName((String) map.get("name"));
 					} else if (map.containsKey("buy-price")) {
@@ -314,7 +313,7 @@ public final class Creator {
 						itemStack.addUnsafeEnchantment(Enchantment.getByName(enchantment), Integer.parseInt(level));
 					}
 				}
-				this.chest.getInventory().setItem(item.getSlot(), itemStack);
+				this.chest.getInventory().setItem(index, itemStack);
 				if (!Config.getEscapeOnly()) {
 
 					ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
@@ -330,6 +329,7 @@ public final class Creator {
 				}
 
 			}
+			index+=1;
 		}
 		player.sendMessage(Config.getPrefix() + " Shop loaded!");
 	}

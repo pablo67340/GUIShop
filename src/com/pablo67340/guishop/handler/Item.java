@@ -7,11 +7,6 @@ import com.pablo67340.guishop.definition.ItemType;
 public final class Item {
 
 	/**
-	 * The slot of this {@link Item} when presented on the GUI.
-	 */
-	private int slot;
-
-	/**
 	 * The name of this {@link Item} when presented on the GUI.
 	 */
 	private String name;
@@ -24,8 +19,8 @@ public final class Item {
 	/**
 	 * The price to buy this {@link Item}.
 	 */
-	private double buyPrice;
-	
+	private Object buyPrice;
+
 	/**
 	 * The mob ID of this item if it's a spawner {@link Item}.
 	 */
@@ -34,8 +29,8 @@ public final class Item {
 	/**
 	 * The amount of money given when selling this {@link Item}.
 	 */
-	private double sellPrice;
-	
+	private Object sellPrice;
+
 	/**
 	 * The slot of this {@link Item} when presented on the GUI.
 	 */
@@ -45,33 +40,13 @@ public final class Item {
 	 * The enchantsments on this {@link Item}.
 	 */
 	private String[] enchantments;
-	
+
 	private List<String> commands;
-
-	/**
-	 * Gets the slot of this {@link Item} on the GUI.
-	 * 
-	 * @return the item's slot.
-	 */
-	public int getSlot() {
-		return slot;
-	}
-
-	/**
-	 * Sets the slot of this {@link Item} on the GUI.
-	 * 
-	 * @param slot
-	 *            The slot to set.
-	 */
-	public void setSlot(int slot) {
-		this.slot = slot;
-	}
 
 	/**
 	 * Sets the enchantments of this {@link Item}
 	 * 
-	 * @param enchantments
-	 *            The enchantments to set.
+	 * @param enchantments The enchantments to set.
 	 */
 	public void setEnchantments(String[] input) {
 		enchantments = input;
@@ -98,8 +73,7 @@ public final class Item {
 	/**
 	 * Sets the name of this {@link Item} on the GUI.
 	 * 
-	 * @param name
-	 *            The name to set.
+	 * @param name The name to set.
 	 */
 	public void setName(String name) {
 		this.name = name;
@@ -117,8 +91,7 @@ public final class Item {
 	/**
 	 * Sets the Material Name of this {@link Item}.
 	 * 
-	 * @param id
-	 *            The Name to set.
+	 * @param id The Name to set.
 	 */
 	public void setMaterial(String input) {
 		material = input;
@@ -130,16 +103,40 @@ public final class Item {
 	 * @return this item's buy price.
 	 */
 	public double getBuyPrice() {
-		return buyPrice;
+		if (buyPrice instanceof Double) {
+			return (Double) buyPrice;
+		}
+		return 0.0;
+	}
+
+	public Boolean canBuyItem() {
+		if (buyPrice instanceof Boolean) {
+			return false;
+		} else if (buyPrice instanceof Double) {
+			return true;
+		}
+		return false;
+	}
+
+	public Boolean canSellItem() {
+		if (sellPrice instanceof Boolean) {
+			return false;
+		} else if (sellPrice instanceof Double) {
+			if ((Double) sellPrice == 0) {
+				return false;
+			} else {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	/**
 	 * Sets the price to buy this {@link Item}.
 	 * 
-	 * @param buyPrice
-	 *            The price to set.
+	 * @param buyPrice The price to set.
 	 */
-	public void setBuyPrice(double buyPrice) {
+	public void setBuyPrice(Object buyPrice) {
 		this.buyPrice = buyPrice;
 	}
 
@@ -149,19 +146,21 @@ public final class Item {
 	 * @return this item's sell price.
 	 */
 	public double getSellPrice() {
-		return sellPrice;
+		if (sellPrice instanceof Double) {
+			return (Double) sellPrice;
+		}
+		return 0.0;
 	}
 
 	/**
 	 * Sets the money given for selling this {@link Item}.
 	 * 
-	 * @param sellPrice
-	 *            The price to set.
+	 * @param sellPrice The price to set.
 	 */
-	public void setSellPrice(double sellPrice) {
+	public void setSellPrice(Object sellPrice) {
 		this.sellPrice = sellPrice;
 	}
-	
+
 	/**
 	 * Gets the type of item that's being sold. {@link Item}.
 	 * 
@@ -179,23 +178,23 @@ public final class Item {
 	public void setType(ItemType input) {
 		this.itemType = input;
 	}
-	
+
 	public void setCommands(List<String> input) {
 		commands = input;
 	}
-	
-	public List<String> getCommands(){
+
+	public List<String> getCommands() {
 		return commands;
 	}
-	
+
 	public void setMobType(String id) {
 		mobType = id;
 	}
-	
+
 	public String getMobType() {
 		return mobType;
 	}
-	
+
 	public Boolean isMobSpawner() {
 		return mobType != null;
 	}

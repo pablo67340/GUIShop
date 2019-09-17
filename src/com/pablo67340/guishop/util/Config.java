@@ -9,7 +9,7 @@ public final class Config {
 	/**
 	 * True/False if GUIShop should use signs only.
 	 */
-	private static boolean signsOnly, silkSpawners;
+	private static boolean signsOnly;
 
 	/**
 	 * Common Language strings set in configuration.
@@ -18,7 +18,7 @@ public final class Config {
 	@SuppressWarnings("unused")
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
 			sellCommand, sellTitle, sold, taken, sound, full, currency, nopermission, qtyTitle, currencySuffix,
-			commandRemaining, commandAlready, commandExpired, commandPurchase, backButtonItem, backButtonText, accessTo;
+			commandRemaining, commandAlready, commandExpired, commandPurchase, backButtonItem, backButtonText, accessTo, cannotSell, cannotBuy, buyLore, sellLore, freeLore;
 
 	/**
 	 * Number of rows for the {@link Menu} GUI.
@@ -564,13 +564,85 @@ public final class Config {
 	public static String getCurrency() {
 		return currency;
 	}
-
-	public static void setSilkSpawners(Boolean usingSilk) {
-		silkSpawners = usingSilk;
+	
+	/**
+	 * Sets the Buy Lore
+	 * 
+	 */
+	public static void setBuyLore(String input) {
+		buyLore = input;
 	}
 
-	public static Boolean getSilkSpawners() {
-		return silkSpawners;
+	/**
+	 * Gets the Buy Lore
+	 * 
+	 */
+	public static String getBuyLore() {
+		return buyLore;
+	}
+	
+	/**
+	 * Sets the Sell Lore
+	 * 
+	 */
+	public static void setSellLore(String input) {
+		sellLore = input;
+	}
+
+	/**
+	 * Gets the Sell Lore
+	 * 
+	 */
+	public static String getSellLore() {
+		return sellLore;
+	}
+	
+	/**
+	 * Sets the Free Lore
+	 * 
+	 */
+	public static void setFreeLore(String input) {
+		freeLore = input;
+	}
+
+	/**
+	 * Gets the Free Lore
+	 * 
+	 */
+	public static String geFreeLore() {
+		return freeLore;
+	}
+	
+	/**
+	 * Sets the CannotBuy Lore
+	 * 
+	 */
+	public static void setCannotBuy(String input) {
+		cannotBuy = input;
+	}
+
+	/**
+	 * Gets the CannotBuy Lore
+	 * 
+	 */
+	public static String getCannotBuyLore() {
+		return cannotBuy;
+	}
+	
+	/**
+	 * Sets the CannotSell Lore
+	 * 
+	 */
+	public static void setCannotSell(String input) {
+		cannotSell = input;
+	}
+
+	/**
+	 * Gets the CannotSell Lore
+	 * 
+	 */
+	public static String getCannotSellLore() {
+		return cannotSell;
 	}
 
 }

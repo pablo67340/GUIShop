@@ -6,16 +6,25 @@ import java.util.concurrent.TimeUnit;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
+
+import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
 import org.bukkit.event.*;
+
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.*;
+import org.bukkit.inventory.ItemStack;
 
 import com.pablo67340.guishop.definition.Expires;
 import com.pablo67340.guishop.definition.ItemCommand;
 import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
+
+import me.ialistannen.mininbt.ItemNBTUtil;
+import me.ialistannen.mininbt.NBTWrappers.NBTTagCompound;
 
 public final class PlayerListener implements Listener {
 
@@ -128,9 +137,9 @@ public final class PlayerListener implements Listener {
 				if (Main.SELL_COMMANDS.contains(command)) {
 					if (player.hasPermission("guishop.sell") || player.isOp()) {
 						e.setCancelled(true);
-						@SuppressWarnings("unused")
-						Sell sell = new Sell(player);
-
+						Sell sell = new Sell();
+						sell.load();
+						sell.open(player);
 						return;
 					} else {
 						player.sendMessage(Config.getNoPermission());
@@ -226,7 +235,7 @@ public final class PlayerListener implements Listener {
 								Main.INSTANCE.createFiles();
 								Main.INSTANCE.loadDefaults();
 
-								player.sendMessage("Â§aGUIShop has been reloaded!");
+								player.sendMessage("§aGUIShop has been reloaded!");
 							}
 						} else {
 							printUsage(player);
@@ -263,6 +272,7 @@ public final class PlayerListener implements Listener {
 	public void onInteract(PlayerInteractEvent e) {
 		Player player = e.getPlayer();
 		Block block = e.getClickedBlock();
+
 		// If the block exists
 		if (block != null) {
 			// If the block has a state
@@ -287,6 +297,22 @@ public final class PlayerListener implements Listener {
 
 					}
 				}
+			}
+		}
+	}
+
+	@SuppressWarnings("deprecation")
+	@EventHandler
+	public void onBlockPlace(BlockPlaceEvent event) {
+		if (event.getItemInHand().getType() == Material.SPAWNER) {
+			ItemStack item = event.getItemInHand();
+			NBTTagCompound cmp = ItemNBTUtil.getTag(item);
+			if (cmp.hasKey("GUIShopSpawner")) {
+				String mobId = cmp.getString("GUIShopSpawner");
+				Block block = event.getBlockPlaced();
+				CreatureSpawner cs = (CreatureSpawner) block.getState();
+				cs.setSpawnedType(EntityType.fromName(mobId));
+				cs.update();
 			}
 		}
 	}

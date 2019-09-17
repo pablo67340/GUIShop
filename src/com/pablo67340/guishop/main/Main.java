@@ -15,7 +15,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-
 import com.pablo67340.SQLiteLib.Main.SQLiteLib;
 import com.pablo67340.guishop.definition.ItemCommand;
 import com.pablo67340.guishop.handler.*;
@@ -25,11 +24,6 @@ import com.pablo67340.guishop.listenable.Sell;
 
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Debugger;
-import com.pablo67340.guishop.util.Dependencies;
-
-import com.songoda.epicspawners.api.EpicSpawners;
-
-import de.dustplanet.util.SilkUtil;
 
 public final class Main extends JavaPlugin {
 
@@ -90,12 +84,6 @@ public final class Main extends JavaPlugin {
 	 */
 	public static final Set<String> SELL_COMMANDS = new HashSet<>();
 
-	/**
-	 * A {@link Set} that holds the names of each {@link Player} that currently has
-	 * the {@link Sell} GUI open.
-	 */
-	public static final Set<String> HAS_SELL_OPEN = new HashSet<>();
-	
 	public Map<Integer, List<Item>> loadedShops = new HashMap<>();
 
 	/**
@@ -115,7 +103,7 @@ public final class Main extends JavaPlugin {
 	public void onEnable() {
 		INSTANCE = this;
 		createFiles();
-		if (Dependencies.hasDependency("Vault")) {
+		if (Bukkit.getServer().getPluginManager().isPluginEnabled("Vault")) {
 
 			if (!setupEconomy()) {
 				getLogger().log(Level.INFO, "Vault could not detect an economy plugin!");
@@ -127,17 +115,6 @@ public final class Main extends JavaPlugin {
 				checkServerVersion();
 				getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 				loadDefaults();
-			}
-
-			if (Dependencies.hasDependency("SilkSpawners")) {
-				su = (SilkUtil) Dependencies.getDependencyInstance("SilkSpawners");
-				getLogger().log(Level.INFO, "SilkSpawners hooked!");
-			} else if (Dependencies.hasDependency("EpicSpawners")) {
-				su = (EpicSpawners) Dependencies.getDependencyInstance("EpicSpawners");
-				getLogger().log(Level.INFO, "EpicSpawners hooked!");
-			} else {
-				getLogger().log(Level.INFO, "SilkSpawners or EpicSpawners was not installed. Spawners disabled!");
-				useSpawners = false;
 			}
 
 		} else {
@@ -363,7 +340,6 @@ public final class Main extends JavaPlugin {
 		Config.setCurrencySuffix(
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("currency-suffix")));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("qty-title")));
-		Config.setSilkSpawners(getConfig().getBoolean("silkspawners"));
 		Config.setCommandAlready(
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("command-already")));
 		Config.setCommandRemaining(
@@ -376,6 +352,12 @@ public final class Main extends JavaPlugin {
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back-button-item")));
 		Config.setBackButtonText(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("back")));
 		Config.setAccessTo(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("access-to")));
+		Config.setBuyLore(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("buy-lore")));
+		Config.setSellLore(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("sell-lore")));
+		Config.setFreeLore(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("free-lore")));
+
+		Config.setCannotBuy(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cannot-buy")));
+		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("cannot-sell")));
 		getDataFolder();
 		for (String cmd : getMainConfig().getStringList("protected-commands")) {
 			protectedCommands.add(cmd);
@@ -509,8 +491,8 @@ public final class Main extends JavaPlugin {
 		return true;
 
 	}
-	
-	public Map<Integer, List<Item>> getLoadedShops(){
+
+	public Map<Integer, List<Item>> getLoadedShops() {
 		return this.loadedShops;
 	}
 

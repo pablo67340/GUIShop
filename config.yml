@@ -144,11 +144,20 @@ command-purchase: "&4This command can only be purchased from our shop!"
 
 access-to: "&aAccess to Commands:"
 
+buy-lore: "&fBuy: &c{amount}"
+
+sell-lore: "&fSell: &c{amount}"
+
+free-lore: "&fBuy: &aFREE"
+
+cannot-buy: "&cCannot Purchase"
+
+cannot-sell: "&cCannot Sell"
+
 ##This will disable the usage to the command to everyone, unless purchased from shop or player is OP.
 protected-commands:
   - '/fly'
   - '/suicide'
-
 
 
 DisabledWorlds:

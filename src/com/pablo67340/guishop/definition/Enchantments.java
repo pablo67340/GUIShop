@@ -159,7 +159,6 @@ public class Enchantments {
 		ALIASENCHANTMENTS.put("rodlure", Enchantment.LURE);
 	}
 
-	@SuppressWarnings("deprecation")
 	public static Enchantment getByName(String name) {
 		Enchantment enchantment;
 

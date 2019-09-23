@@ -22,6 +22,7 @@ import com.pablo67340.guishop.definition.ItemCommand;
 import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.XMaterial;
 
 import me.ialistannen.mininbt.ItemNBTUtil;
 import me.ialistannen.mininbt.NBTWrappers.NBTTagCompound;
@@ -301,10 +302,13 @@ public final class PlayerListener implements Listener {
 		}
 	}
 
+	/**
+	 * Custom MobSpawner placement method.
+	 */
 	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onBlockPlace(BlockPlaceEvent event) {
-		if (event.getItemInHand().getType() == Material.SPAWNER) {
+		if (event.getItemInHand().getType() == XMaterial.SPAWNER.parseMaterial()) {
 			ItemStack item = event.getItemInHand();
 			NBTTagCompound cmp = ItemNBTUtil.getTag(item);
 			if (cmp.hasKey("GUIShopSpawner")) {

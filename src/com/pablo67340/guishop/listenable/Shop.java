@@ -1,7 +1,6 @@
 package com.pablo67340.guishop.listenable;
 
 import java.util.*;
-import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -236,16 +235,8 @@ public class Shop {
 				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
 		PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
 		for (Item item : ITEMS) {
-			Material material = null;
-			if (material == null) {
-				if ((material = XMaterial.valueOf(item.getMaterial()).parseMaterial()) == null) {
-					Main.getInstance().getLogger().log(Level.WARNING,
-							"Could not parse material: " + item.getMaterial() + " for item #: " + index + 1);
-					continue;
-				}
-			}
 
-			ItemStack itemStack = new ItemStack(material, 1);
+			ItemStack itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
 
 			GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event, pane));
 
@@ -289,7 +280,7 @@ public class Shop {
 
 			if (item.getName() != null) {
 				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-			} else if (itemStack.getType() == Material.SPAWNER) {
+			} else if (item.isMobSpawner()) {
 				String mobName = item.getMobType();
 				mobName = mobName.toLowerCase();
 				mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");

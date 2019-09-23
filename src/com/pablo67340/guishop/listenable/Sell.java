@@ -78,7 +78,7 @@ public final class Sell {
 			}
 
 			if (item.getSellPrice() != 0) {
-				if (item.getMaterial().equalsIgnoreCase("SPAWNER")) {
+				if (item.isMobSpawner()) {
 					PRICETABLE.put(item.getMaterial() + ":" + item.getMobType().toLowerCase(),
 							new Price(item.getBuyPrice(), item.getSellPrice()));
 				} else {

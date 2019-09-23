@@ -98,7 +98,7 @@ public final class Menu {
 					}
 				}
 
-				ItemStack itemStack = new ItemStack(material);
+				ItemStack itemStack = XMaterial.valueOf(itemID).parseItem();
 						
 						
 				GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));

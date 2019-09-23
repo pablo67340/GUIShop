@@ -12,7 +12,7 @@ public final class Item {
 	private String name;
 
 	/**
-	 * The Material Name of this {@link Item}.
+	 * The Material of this {@link Item}.
 	 */
 	private String material;
 
@@ -80,7 +80,7 @@ public final class Item {
 	}
 
 	/**
-	 * Gets the ID of this {@link Item}.
+	 * Gets the String Material of this {@link Item}.
 	 * 
 	 * @return this item's ID.
 	 */
@@ -91,7 +91,7 @@ public final class Item {
 	/**
 	 * Sets the Material Name of this {@link Item}.
 	 * 
-	 * @param id The Name to set.
+	 * @param input The Name to set.
 	 */
 	public void setMaterial(String input) {
 		material = input;
@@ -196,7 +196,7 @@ public final class Item {
 	}
 
 	public Boolean isMobSpawner() {
-		return mobType != null;
+		return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
 	}
 
 }

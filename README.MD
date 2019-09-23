@@ -7,9 +7,6 @@
         <p><strong>GUIShop requires&nbsp;<a href="http://dev.bukkit.org/bukkit-plugins/vault/">Vault</a>&nbsp;to enable the plugin to hook into your economly so it can withdraw/deposit cash into your player's accounts.&nbsp;</strong></p>
     </li>
     <li>
-        <p><strong>GUIShop also requires&nbsp;<a title="SilkSpawners" href="https://dev.bukkit.org/projects/silkspawners">SilkSpawners</a>&nbsp;which allows the plugin to sell mob spawners to players, as mob spawners require a special method of setting their entity ID.&nbsp;</strong></p>
-    </li>
-    <li>
         <p><strong>GUIShop requires Java 7+.</strong></p>
     </li>
 </ul>

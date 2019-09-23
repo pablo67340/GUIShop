@@ -79,7 +79,8 @@ public class Quantity {
 		Integer multiplier = 1;
 		OutlinePane page = new OutlinePane(0, 0, 9, 6);
 		for (int x = 19; x <= 25; x++) {
-			ItemStack itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), multiplier);
+			ItemStack itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
+			itemStack.setAmount(multiplier);
 			GuiItem gItem = new GuiItem(itemStack, event -> onQuantityClick(event));
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();
 			List<String> lore = new ArrayList<>();
@@ -113,7 +114,7 @@ public class Quantity {
 
 			if (item.getName() != null) {
 				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-			} else if (itemStack.getType() == Material.SPAWNER) {
+			} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
 				String mobName = item.getMobType();
 				mobName = mobName.toLowerCase();
 				mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
@@ -132,7 +133,7 @@ public class Quantity {
 
 		if (!Config.getEscapeOnly()) {
 
-			ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
+			ItemStack backButtonItem = XMaterial.valueOf(Config.getBackButtonItem()).parseItem();
 
 			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -166,7 +167,7 @@ public class Quantity {
 			player.sendMessage(Config.getFull());
 			return;
 		}
-		
+
 		if (!item.canBuyItem()) {
 			player.sendMessage(Config.getCantBuy());
 			return;
@@ -190,7 +191,7 @@ public class Quantity {
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
 
-			itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
+			itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
 			// If the item has enchantments
 			if (item.getEnchantments() != null) {
 				if (itemStack.getType() == Material.ENCHANTED_BOOK) {
@@ -216,19 +217,12 @@ public class Quantity {
 			itemStack.setAmount(e.getCurrentItem().getAmount());
 			// If is shift clicking, buy 1.
 
-		} else {
-			itemStack = new ItemStack(XMaterial.valueOf(item.getMaterial()).parseMaterial(), quantity);
-			if (!Main.getInstance().usesSpawners()) {
-
-				player.sendMessage("Spawners Disabled! Dependencies not installed!");
-				return;
-			}
 		}
 
 		ItemMeta itemMeta = itemStack.getItemMeta();
 		if (item.getName() != null) {
 			itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-		} else if (itemStack.getType() == Material.SPAWNER) {
+		} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
 			String mobName = item.getMobType();
 			mobName = mobName.toLowerCase();
 			mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");

@@ -54,7 +54,7 @@ public final class Creator {
 	 * 
 	 * @param {@link Player}
 	 * 
-	 *        Open the player's chest
+	 *               Open the player's chest
 	 */
 	public void openChest() {
 		this.player.openInventory(chest.getInventory());
@@ -64,7 +64,7 @@ public final class Creator {
 	 * 
 	 * @param {@link Player}
 	 * 
-	 *        Clear the player's chest
+	 *               Clear the player's chest
 	 */
 	public void clearChest() {
 		this.chest.getInventory().clear();
@@ -252,7 +252,6 @@ public final class Creator {
 	 * 
 	 *             Loads the specific shop from the config
 	 */
-	@SuppressWarnings("deprecation")
 	public void loadShop() {
 		this.chest.getInventory().clear();
 		Integer index = 0;
@@ -264,7 +263,6 @@ public final class Creator {
 					if (map.containsKey("id")) {
 
 						String itemID = (String) map.get("id");
-
 						item.setMaterial(itemID);
 
 					} else if (map.containsKey("name")) {
@@ -293,8 +291,7 @@ public final class Creator {
 					}
 				}
 
-				ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()), 1);
-				
+				ItemStack itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
 
 				ItemMeta itemMeta = itemStack.getItemMeta();
 
@@ -316,7 +313,8 @@ public final class Creator {
 				this.chest.getInventory().setItem(index, itemStack);
 				if (!Config.getEscapeOnly()) {
 
-					ItemStack backButtonItem = new ItemStack(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
+					ItemStack backButtonItem = new ItemStack(
+							XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial());
 
 					ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -329,7 +327,7 @@ public final class Creator {
 				}
 
 			}
-			index+=1;
+			index += 1;
 		}
 		player.sendMessage(Config.getPrefix() + " Shop loaded!");
 	}

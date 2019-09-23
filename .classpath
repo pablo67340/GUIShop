@@ -17,8 +17,8 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.13/plugins/Vault.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.14.4/minecraft.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/GStore/IF-0.5.10.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/GStore/MiniNBT-1.0-SNAPSHOT.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.12/minecraft.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

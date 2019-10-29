@@ -1,178 +1,169 @@
 package com.pablo67340.guishop.listenable;
 
-import java.util.*;
-
-import java.util.logging.Level;
-
-import org.bukkit.*;
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
-
-import org.bukkit.event.inventory.InventoryClickEvent;
-
-import org.bukkit.inventory.*;
-import org.bukkit.inventory.meta.ItemMeta;
-
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
-
+import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.handler.ShopDir;
-import com.pablo67340.guishop.main.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ShopPane;
 import com.pablo67340.guishop.util.XMaterial;
+import org.bukkit.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.*;
+
+@SuppressWarnings({"JavaDoc", "SpellCheckingInspection"})
 public final class Menu {
 
-	/**
-	 * The GUI that is projected onto the screen when a {@link Player} opens the
-	 * {@link Menu}.
-	 */
-	private Gui GUI;
+    /**
+     * The GUI that is projected onto the screen when a {@link Player} opens the
+     * {@link Menu}.
+     */
+    private Gui GUI;
 
-	/**
-	 * The loaded shops read from the config.
-	 */
-	private Map<Integer, ShopDir> shops;
+    /**
+     * The loaded shops read from the config.
+     */
+    private Map<Integer, ShopDir> shops;
 
-	/**
-	 * The currently open shop associated with this Menu instance.
-	 */
-	private Shop openShop;
+    /**
+     * A {@link Map} that will store our {@link Shop}s when the server first starts.
+     *
+     * @key The index on the {@link Menu} that this shop is located at.
+     * @value The shop.
+     */
 
-	/**
-	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
-	 * 
-	 * @key The index on the {@link Menu} that this shop is located at.
-	 * @value The shop.
-	 */
+    public Menu() {
+        this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "Menu");
+        this.shops = new HashMap<>();
+    }
 
-	public Menu() {
-		this.GUI = new Gui(Main.getInstance(), Config.getMenuRows(), "Menu");
-		this.shops = new HashMap<>();
-	}
+    /**
+     * Preloads the configs into their corresponding objects.
+     */
+    public void preLoad(Player player) {
 
-	/**
-	 * Preloads the configs into their corresponding objects.
-	 */
-	public void preLoad(Player player) {
+        ShopPane page = new ShopPane(9, 1);
 
-		OutlinePane page = new OutlinePane(0, 0, 9, 6);
+        ConfigurationSection menuItems = Main.getINSTANCE().getConfig().getConfigurationSection("menu-items");
 
-		ConfigurationSection menuItems = Main.getInstance().getConfig().getConfigurationSection("menu-items");
+        assert menuItems != null;
+        for (String key : menuItems.getKeys(false)) {
 
-		for (String key : menuItems.getKeys(false)) {
+            if (!Main.getINSTANCE().getMainConfig().getBoolean("menu-items." + key + ".Enabled")) {
+                continue;
+            }
 
-			if (!Main.getInstance().getMainConfig().getBoolean("menu-items." + key + ".Enabled")) {
-				continue;
-			}
+            String shop = ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("menu-items." + key + ".Shop")));
 
-			String shop = ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString("menu-items." + key + ".Shop"));
+            String name = ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("menu-items." + key + ".Name")));
 
-			String name = ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString("menu-items." + key + ".Name"));
+            String description = ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("menu-items." + key + ".Desc")));
 
-			String description = ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString("menu-items." + key + ".Desc"));
+            List<String> lore = new ArrayList<>();
 
-			List<String> lore = new ArrayList<>();
+            if (description.length() > 0) {
+                lore.add(description);
+            }
 
-			if (description != null && description.length() > 0) {
-				lore.add(description);
-			}
+            shops.put(Integer.parseInt(key), new ShopDir(shop, name, description, lore));
 
-			shops.put(Integer.parseInt(key), new ShopDir(shop, name, description, lore));
+            if (player.hasPermission("guishop.slot." + key) || player.isOp()
+                    || player.hasPermission("guishop.slot.*")) {
+                String itemID = Main.getINSTANCE().getMainConfig().getString("menu-items." + key + ".Item");
 
-			if (player.hasPermission("guishop.slot." + key) || player.isOp()
-					|| player.hasPermission("guishop.slot.*")) {
-				String itemID = Main.getInstance().getMainConfig().getString("menu-items." + key + ".Item");
+                ItemStack itemStack = XMaterial.valueOf(itemID).parseItem();
 
-				Material material = null;
+                GuiItem gItem = new GuiItem(itemStack);
+                setName(gItem, name, lore);
 
-				if (material == null) {
-					if ((material = XMaterial.valueOf(itemID).parseMaterial()) == null) {
-						Main.getInstance().getLogger().log(Level.WARNING,
-								"Could not parse material: " + itemID + " for item #: " + key);
-						continue;
-					}
-				}
+                // SetItem no longer works with self created inventory object. Prefill with air?
+                page.addItem(gItem);
+            }
+        }
 
-				ItemStack itemStack = XMaterial.valueOf(itemID).parseItem();
-						
-						
-				GuiItem gItem = new GuiItem(itemStack, event -> onShopClick(event));
-				setName(gItem, name, lore);
+        GUI.addPane(page);
 
-				// SetItem no longer works with self created inventory object. Prefill with air?
-				page.addItem(gItem);
-			}
-		}
+    }
 
-		GUI.addPane(page);
+    /**
+     * Opens the GUI in this {@link Menu}.
+     */
+    void open(Player player) {
 
-	}
+        if (!player.hasPermission("guishop.use") && !player.isOp()) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("no-permission"))));
+            return;
+        }
 
-	/**
-	 * Opens the GUI in this {@link Menu}.
-	 */
-	public void open(Player player) {
+        if (Main.getINSTANCE().getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("disabled-world"))));
+            return;
+        }
+        preLoad(player);
+        GUI.setOnTopClick(this::onShopClick);
+        GUI.show(player);
+    }
 
-		if (!player.hasPermission("guishop.use") && !player.isOp()) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString("no-permission")));
-			return;
-		}
+    /**
+     * Sets the item's display name.
+     */
+    private void setName(GuiItem item, String name, List<String> lore) {
+        ItemMeta IM = item.getItem().getItemMeta();
 
-		if (Main.getInstance().getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-					Main.getInstance().getMainConfig().getString("disabled-world")));
-			return;
-		}
-		preLoad(player);
-		GUI.show(player);
-	}
+        if (name != null) {
+            assert IM != null;
+            IM.setDisplayName(name);
+        }
 
-	/**
-	 * Sets the item's display name.
-	 */
-	private void setName(GuiItem item, String name, List<String> lore) {
-		ItemMeta IM = item.getItem().getItemMeta();
+        if (lore != null && !lore.isEmpty()) {
+            assert IM != null;
+            IM.setLore(lore);
+        }
 
-		if (name != null) {
-			IM.setDisplayName(name);
-		}
+        item.getItem().setItemMeta(IM);
 
-		if (lore != null && !lore.isEmpty()) {
-			IM.setLore(lore);
-		}
+    }
 
-		item.getItem().setItemMeta(IM);
+    /**
+     * Handle global inventory click events, check if inventory is for GUIShop, if
+     * so, run logic.
+     */
+    private void onShopClick(InventoryClickEvent e) {
+        Player player = (Player) e.getWhoClicked();
+        e.setCancelled(true);
 
-	}
+        if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
+            return;
+        }
 
-	/**
-	 * Handle global inventory click events, check if inventory is for GUIShop, if
-	 * so, run logic.
-	 */
-	public void onShopClick(InventoryClickEvent e) {
-		Player player = (Player) e.getWhoClicked();
-		e.setCancelled(true);
+        ShopDir shopDef = shops.get(e.getSlot());
+        if (!shopDef.getShop().equalsIgnoreCase("")) {
+            /*
+             * The currently open shop associated with this Menu instance.
+             */
+            Shop openShop;
+            if (!Main.getINSTANCE().getLoadedShops().containsKey(e.getSlot())) {
+                openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+                        shopDef.getLore(), e.getSlot(), this);
+            } else {
+                openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
+                        shopDef.getLore(), e.getSlot(), this, Main.getINSTANCE().getLoadedShops().get(e.getSlot()));
+            }
+            openShop.loadItems();
+            openShop.open(player);
+        }
 
-		ShopDir shopDef = shops.get(e.getSlot());
-		if (!shopDef.getShop().equalsIgnoreCase("")) {
-			if (!Main.getInstance().getLoadedShops().containsKey(e.getSlot())) {
-				this.openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-						shopDef.getLore(), e.getSlot(), this);
-			} else {
-				this.openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(),
-						shopDef.getLore(), e.getSlot(), this, Main.getInstance().getLoadedShops().get(e.getSlot()));
-			}
-			this.openShop.loadItems(player);
-			this.openShop.open(player);
-			return;
-		}
-
-	}
+    }
 
 }

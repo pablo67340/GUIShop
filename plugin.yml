@@ -1,6 +1,6 @@
 name: GUIShop
-main: com.pablo67340.guishop.main.Main
-version: 7.2.1
+main: com.pablo67340.guishop.Main
+version: 7.2.2
 author: pablo67340
 description: Shop Plugin for any server.
 depend: [Vault]

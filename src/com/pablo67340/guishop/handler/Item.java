@@ -4,199 +4,86 @@ import java.util.List;
 
 import com.pablo67340.guishop.definition.ItemType;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public final class Item {
 
-	/**
-	 * The name of this {@link Item} when presented on the GUI.
-	 */
-	private String name;
+    /**
+     * The name of this {@link Item} when presented on the GUI.
+     */
+    @Getter
+    @Setter
+    private String name;
 
-	/**
-	 * The Material of this {@link Item}.
-	 */
-	private String material;
+    @Getter
+    @Setter
+    private int slot;
 
-	/**
-	 * The price to buy this {@link Item}.
-	 */
-	private Object buyPrice;
+    /**
+     * The Material of this {@link Item}.
+     */
+    @Getter
+    @Setter
+    private String material;
 
-	/**
-	 * The mob ID of this item if it's a spawner {@link Item}.
-	 */
-	private String mobType;
+    /**
+     * The price to buy this {@link Item}.
+     */
+    @Getter
+    @Setter
+    private Object buyPrice;
 
-	/**
-	 * The amount of money given when selling this {@link Item}.
-	 */
-	private Object sellPrice;
+    /**
+     * The mob ID of this item if it's a spawner {@link Item}.
+     */
+    @Getter
+    @Setter
+    private String mobType;
 
-	/**
-	 * The slot of this {@link Item} when presented on the GUI.
-	 */
-	private ItemType itemType;
+    /**
+     * The amount of money given when selling this {@link Item}.
+     */
+    @Getter
+    @Setter
+    private Object sellPrice;
 
-	/**
-	 * The enchantsments on this {@link Item}.
-	 */
-	private String[] enchantments;
+    /**
+     * The slot of this {@link Item} when presented on the GUI.
+     */
+    @Getter
+    @Setter
+    private ItemType itemType;
 
-	private List<String> commands;
+    /**
+     * The enchantsments on this {@link Item}.
+     */
+    @Getter
+    @Setter
+    private String[] enchantments;
 
-	/**
-	 * Sets the enchantments of this {@link Item}
-	 * 
-	 * @param enchantments The enchantments to set.
-	 */
-	public void setEnchantments(String[] input) {
-		enchantments = input;
-	}
+    @Getter
+    @Setter
+    private List<String> commands;
 
-	/**
-	 * Gets the enchantments of this {@link Item}
-	 * 
-	 * @return the item's enchantments.
-	 */
-	public String[] getEnchantments() {
-		return enchantments;
-	}
+    public Boolean canBuyItem() {
+        if (buyPrice instanceof Boolean) {
+            return false;
+        } else return buyPrice instanceof Double;
+    }
 
-	/**
-	 * Gets the name of this {@link Item} on the GUI.
-	 * 
-	 * @return the item's name.
-	 */
-	public String getName() {
-		return name;
-	}
+    public Boolean canSellItem() {
+        if (sellPrice instanceof Boolean) {
+            return false;
+        } else if (sellPrice instanceof Double) {
+            return (Double) sellPrice != 0;
+        }
+        return false;
+    }
 
-	/**
-	 * Sets the name of this {@link Item} on the GUI.
-	 * 
-	 * @param name The name to set.
-	 */
-	public void setName(String name) {
-		this.name = name;
-	}
+    public Boolean isMobSpawner() {
+        return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
+    }
 
-	/**
-	 * Gets the String Material of this {@link Item}.
-	 * 
-	 * @return this item's ID.
-	 */
-	public String getMaterial() {
-		return material;
-	}
-
-	/**
-	 * Sets the Material Name of this {@link Item}.
-	 * 
-	 * @param input The Name to set.
-	 */
-	public void setMaterial(String input) {
-		material = input;
-	}
-
-	/**
-	 * Gets the price to buy this {@link Item}.
-	 * 
-	 * @return this item's buy price.
-	 */
-	public double getBuyPrice() {
-		if (buyPrice instanceof Double) {
-			return (Double) buyPrice;
-		}
-		return 0.0;
-	}
-
-	public Boolean canBuyItem() {
-		if (buyPrice instanceof Boolean) {
-			return false;
-		} else if (buyPrice instanceof Double) {
-			return true;
-		}
-		return false;
-	}
-
-	public Boolean canSellItem() {
-		if (sellPrice instanceof Boolean) {
-			return false;
-		} else if (sellPrice instanceof Double) {
-			if ((Double) sellPrice == 0) {
-				return false;
-			} else {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/**
-	 * Sets the price to buy this {@link Item}.
-	 * 
-	 * @param buyPrice The price to set.
-	 */
-	public void setBuyPrice(Object buyPrice) {
-		this.buyPrice = buyPrice;
-	}
-
-	/**
-	 * Gets the money given for selling this {@link Item}.
-	 * 
-	 * @return this item's sell price.
-	 */
-	public double getSellPrice() {
-		if (sellPrice instanceof Double) {
-			return (Double) sellPrice;
-		}
-		return 0.0;
-	}
-
-	/**
-	 * Sets the money given for selling this {@link Item}.
-	 * 
-	 * @param sellPrice The price to set.
-	 */
-	public void setSellPrice(Object sellPrice) {
-		this.sellPrice = sellPrice;
-	}
-
-	/**
-	 * Gets the type of item that's being sold. {@link Item}.
-	 * 
-	 * @return ItemType
-	 */
-	public ItemType getItemType() {
-		return itemType;
-	}
-
-	/**
-	 * Sets the item type for this {@link Item}.
-	 * 
-	 * @param ItemType
-	 */
-	public void setType(ItemType input) {
-		this.itemType = input;
-	}
-
-	public void setCommands(List<String> input) {
-		commands = input;
-	}
-
-	public List<String> getCommands() {
-		return commands;
-	}
-
-	public void setMobType(String id) {
-		mobType = id;
-	}
-
-	public String getMobType() {
-		return mobType;
-	}
-
-	public Boolean isMobSpawner() {
-		return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
-	}
 
 }

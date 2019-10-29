@@ -5,6 +5,7 @@ import org.apache.commons.lang.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -30,6 +31,7 @@ import java.util.regex.Pattern;
  * Supports 1.8-1.14<br>
  * 1.13 and above as priority.
  */
+@SuppressWarnings({"unused", "SpellCheckingInspection", "deprecation"})
 public enum XMaterial {
     ACACIA_BOAT(0, "BOAT_ACACIA"),
     ACACIA_BUTTON(0, "WOOD_BUTTON"),
@@ -210,7 +212,7 @@ public enum XMaterial {
     COD_SPAWN_EGG(0, "1.13", "MONSTER_EGG"),
     COMMAND_BLOCK(0, "COMMAND"),
     COMMAND_BLOCK_MINECART(0, "COMMAND_MINECART"),
-    COMPARATOR(0, "REDSTONE_COMPARATOR", "REDSTONE_COMPARATOR_ON", "REDSTONE_COMPARATOR_OFF"),
+    COMPARATOR(0, "REDSTONE_COMPARATOR", "REDSTONE_COMPARATOR", "REDSTONE_COMPARATOR"),
     COMPASS(0),
     COMPOSTER(0, "1.14", "CAULDRON"),
     CONDUIT(0, "1.13"),
@@ -632,7 +634,7 @@ public enum XMaterial {
     OAK_PRESSURE_PLATE(0, "WOOD_PLATE"),
     OAK_SAPLING(0, "SAPLING"),
     OAK_SIGN(0, "SIGN"),
-    OAK_SLAB(0, "WOOD_STEP", "WOODEN_SLAB", "WOOD_DOUBLE_STEP"),
+    OAK_SLAB(0, "WOOD_STEP", "WOODEN_SLAB", "WOOD_STEP"),
     OAK_STAIRS(0, "WOOD_STAIRS"),
     OAK_TRAPDOOR(0, "TRAP_DOOR"),
     OAK_WALL_SIGN(0, "SIGN_POST", "WALL_SIGN"),
@@ -775,10 +777,10 @@ public enum XMaterial {
     RAVAGER_SPAWN_EGG(0, "1.14"),
     REDSTONE(0),
     REDSTONE_BLOCK(0),
-    REDSTONE_LAMP(0, "REDSTONE_LAMP_OFF", "REDSTONE_LAMP_ON"),
+    REDSTONE_LAMP(0, "REDSTONE_LAMP_ON", "REDSTONE_LAMP_ON"),
     REDSTONE_ORE(0, "GLOWING_REDSTONE_ORE"),
-    REDSTONE_TORCH(0, "REDSTONE_TORCH_ON", "REDSTONE_TORCH_OFF"),
-    REDSTONE_WALL_TORCH(1, "REDSTONE_TORCH_ON", "REDSTONE_TORCH_OFF"),
+    REDSTONE_TORCH(0, "REDSTONE_TORCH_ON", "REDSTONE_TORCH_ON"),
+    REDSTONE_WALL_TORCH(1, "REDSTONE_TORCH_ON", "REDSTONE_TORCH_ON"),
     REDSTONE_WIRE(0),
     RED_BANNER(1, "BANNER", "STANDING_BANNER"),
     RED_BED(14, "BED", "BED_BLOCK"),
@@ -805,7 +807,7 @@ public enum XMaterial {
     RED_TULIP(4, "RED_ROSE"),
     RED_WALL_BANNER(1, "WALL_BANNER"),
     RED_WOOL(14, "WOOL"),
-    REPEATER(0, "DIODE", "DIODE_BLOCK_ON", "DIODE_BLOCK_OFF"),
+    REPEATER(0, "DIODE", "DIODE_BLOCK", "DIODE_BLOCK"),
     REPEATING_COMMAND_BLOCK(0, "COMMAND", "COMMAND_REPEATING"),
     ROSE_BUSH(4, "DOUBLE_PLANT"),
     ROTTEN_FLESH(0),
@@ -892,7 +894,7 @@ public enum XMaterial {
     STONE_PICKAXE(0),
     STONE_PRESSURE_PLATE(0, "STONE_PLATE"),
     STONE_SHOVEL(0, "STONE_SPADE"),
-    STONE_SLAB(0, "STEP", "DOUBLE_STEP"),
+    STONE_SLAB(0, "STEP", "STONE_SLAB2"),
     STONE_STAIRS(0),
     STONE_SWORD(0),
     STRAY_SPAWN_EGG(6, "MONSTER_EGG"),
@@ -1084,10 +1086,10 @@ public enum XMaterial {
 
         if (search.isPresent()) {
             XMaterial found = search.get();
-            CACHED_SEARCH.put(found.legacy[0] + "," + found.getData(), found);
+            XMaterial put = CACHED_SEARCH.put(found.legacy[0] + "," + found.getData(), found);
             return found;
         }
-        return null;
+        return XMaterial.AIR;
     }
 
     /**
@@ -1119,7 +1121,7 @@ public enum XMaterial {
     /**
      * @see #matchXMaterial(String, byte)
      */
-    @Nullable
+    @NotNull
     public static XMaterial matchXMaterial(@Nonnull Material material) {
         return matchXMaterial(material.name());
     }
@@ -1130,7 +1132,7 @@ public enum XMaterial {
      *
      * @see #matchXMaterial(String, byte)
      */
-    @Nullable
+    @NotNull
     public static XMaterial matchXMaterial(@Nonnull String name) {
         // -1 Determines whether the item's data is unknown and only the name is given.
         // Checking if the item is damageable won't do anything as the data is not going to be checked in requestOldMaterial anyway.
@@ -1154,8 +1156,7 @@ public enum XMaterial {
      * @param item the ItemStack to match its material and data.
      * @see #matchXMaterial(String, byte)
      */
-    @Nullable
-    @SuppressWarnings("deprecation")
+    @NotNull
     public static XMaterial matchXMaterial(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "ItemStack cannot be null");
         return isDamageable(item.getType().name()) ? matchXMaterial(item.getType().name(), (byte) 0) :
@@ -1179,7 +1180,7 @@ public enum XMaterial {
 
         // TODO Temporary but works - Please find a more reasonable fix for duplicated materials.
         if (isDuplicated(name) && !isNewVersion())
-            return requestDuplicatedXMaterial(name, data);
+            return Objects.requireNonNull(requestDuplicatedXMaterial(name, data));
 
         return requestOldXMaterial(name, data);
     }
@@ -1205,11 +1206,11 @@ public enum XMaterial {
      * @param name the name of the material.
      * @return the duplicated XMaterial based on the version.
      */
-    @Nullable
+    @NotNull
     private static XMaterial requestDuplicatedXMaterial(@Nonnull String name, byte data) {
         Validate.notEmpty(name, "Material name cannot be null or empty");
         XMaterial mat = requestOldXMaterial(name, data);
-        return mat == null ? null : mat.name().endsWith("S") ? valueOf(name) : mat;
+        return mat.name().endsWith("S") ? valueOf(name) : mat;
     }
 
     /**
@@ -1395,7 +1396,7 @@ public enum XMaterial {
      */
     @Nonnull
     public String toWord() {
-        return toWord(this.parseMaterial().name());
+        return toWord(Objects.requireNonNull(this.parseMaterial()).name());
     }
 
     /**
@@ -1407,7 +1408,7 @@ public enum XMaterial {
      */
     @SuppressWarnings("deprecation")
     public int getId() {
-        return this.isNew() ? -1 : this.parseMaterial().getId();
+        return this.isNew() ? -1 : Objects.requireNonNull(this.parseMaterial()).getId();
     }
 
     public boolean isDuplicated() {
@@ -1471,7 +1472,7 @@ public enum XMaterial {
      *
      * @return an ItemStack with the same material (and data if in older versions.)
      */
-    @Nullable
+    @NotNull
     public ItemStack parseItem() {
         return parseItem(false);
     }
@@ -1482,10 +1483,10 @@ public enum XMaterial {
      * @param suggest if true {@link #parseMaterial(boolean)}
      * @return an ItemStack with the same material (and data if in older versions.)
      */
-    @Nullable
-    @SuppressWarnings("deprecation")
+    @NotNull
     public ItemStack parseItem(boolean suggest) {
         Material material = this.parseMaterial(suggest);
+        assert material != null;
         return isNewVersion() ? new ItemStack(material) : new ItemStack(material, 1, this.data);
     }
 
@@ -1556,7 +1557,6 @@ public enum XMaterial {
      * @param item item to check.
      * @return true if the material is the same as the item's material (and data if in older versions.)
      */
-    @SuppressWarnings("deprecation")
     public boolean isSimilar(@Nonnull ItemStack item) {
         Objects.requireNonNull(item, "ItemStack cannot be null");
         Objects.requireNonNull(item.getType(), "ItemStack's material cannot be null");
@@ -1622,7 +1622,7 @@ public enum XMaterial {
 
             if (legacyName.contains("/")) continue;
             XMaterial mat = matchXMaterial(parseLegacyVersionMaterialName(legacyName), this.data);
-            if (mat != null && this != mat) return mat;
+            if (this != mat) return mat;
         }
         return null;
     }

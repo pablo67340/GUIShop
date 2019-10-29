@@ -14,7 +14,7 @@ import java.sql.Connection;
 import com.pablo67340.SQLiteLib.Error.Errors;
 import com.pablo67340.SQLiteLib.Error.Error;
 import com.pablo67340.SQLiteLib.Main.SQLiteLib;
-import com.pablo67340.guishop.main.Main;
+import com.pablo67340.guishop.Main;
 
 public abstract class Database {
 
@@ -32,7 +32,7 @@ public abstract class Database {
 			close(ps, rs);
 
 		} catch (SQLException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE, "Unable to retreive connection", ex);
+			Main.getINSTANCE().getLogger().log(Level.SEVERE, "Unable to retreive connection", ex);
 		}
 	}
 
@@ -54,7 +54,7 @@ public abstract class Database {
 			ps = conn.prepareStatement(statement);
 			return !ps.execute();
 		} catch (SQLException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+			Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
 			return false;
 		} finally {
 			try {
@@ -63,7 +63,7 @@ public abstract class Database {
 				if (conn != null)
 					conn.close();
 			} catch (SQLException ex) {
-				Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+				Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
 				return false;
 			}
 		}
@@ -97,7 +97,7 @@ public abstract class Database {
 				return rs.getObject(row);
 			}
 		} catch (SQLException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+			Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
 		} finally {
 			try {
 				if (ps != null)
@@ -105,7 +105,7 @@ public abstract class Database {
 				if (conn != null)
 					conn.close();
 			} catch (SQLException ex) {
-				Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+				Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
 			}
 		}
 		return null;
@@ -142,7 +142,7 @@ public abstract class Database {
 			}
 			return objects;
 		} catch (SQLException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+			Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
 		} finally {
 			try {
 				if (ps != null)
@@ -150,7 +150,7 @@ public abstract class Database {
 				if (conn != null)
 					conn.close();
 			} catch (SQLException ex) {
-				Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+				Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
 			}
 		}
 		return null;
@@ -196,7 +196,7 @@ public abstract class Database {
 			}
 			return map;
 		} catch (SQLException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
+			Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionExecute(), ex);
 		} finally {
 			try {
 				if (ps != null)
@@ -204,7 +204,7 @@ public abstract class Database {
 				if (conn != null)
 					conn.close();
 			} catch (SQLException ex) {
-				Main.getInstance().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
+				Main.getINSTANCE().getLogger().log(Level.SEVERE, Errors.sqlConnectionClose(), ex);
 			}
 		}
 		return null;

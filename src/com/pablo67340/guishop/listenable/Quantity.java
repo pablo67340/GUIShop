@@ -1,9 +1,6 @@
 package com.pablo67340.guishop.listenable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
@@ -23,281 +20,290 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.pane.OutlinePane;
-
+import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.definition.Enchantments;
 
 import com.pablo67340.guishop.handler.Item;
-import com.pablo67340.guishop.main.Main;
+import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
-
+import com.pablo67340.guishop.util.ShopPane;
 import com.pablo67340.guishop.util.XMaterial;
 
-import me.ialistannen.mininbt.ItemNBTUtil;
-import me.ialistannen.mininbt.NBTWrappers.NBTTagCompound;
+class Quantity {
 
-public class Quantity {
+    /**
+     * The item currently being targetted.
+     */
+    private Item item;
 
-	/**
-	 * The item currently being targetted.
-	 */
-	private Item item;
+    /**
+     * The GUI that will be displayed.
+     */
+    private Gui GUI;
 
-	/**
-	 * The GUI that will be displayed.
-	 */
-	private Gui GUI;
+    /**
+     * The map containing the sell increments.
+     */
+    private Map<Integer, Integer> qty = new HashMap<>();
 
-	/**
-	 * The map containing the sell increments.
-	 */
-	private Map<Integer, Integer> qty = new HashMap<>();
+    /**
+     * The instance of the {@link Shop} that spawned this Quantity.
+     */
+    private Shop currentShop;
 
-	/**
-	 * The instance of the {@link Shop} that spawned this Quantity.
-	 */
-	private Shop currentShop;
+    Quantity(Item item, Shop shop) {
+        this.item = item;
+        this.currentShop = shop;
+    }
 
-	public Quantity(Item item, Shop shop) {
-		this.item = item;
-		this.currentShop = shop;
-	}
+    /**
+     * Opens the GUI to sell the items in.
+     */
+    void open(Player player) {
+        GUI.setOnClose(this::onClose);
+        GUI.setOnTopClick(this::onQuantityClick);
+        GUI.show(player);
+    }
 
-	/**
-	 * Opens the GUI to sell the items in.
-	 */
-	public void open(Player player) {
-		GUI.setOnClose(event -> onClose(event));
-		GUI.show(player);
-	}
+    /**
+     * Preloads the inventory to display items.
+     */
+    void loadInventory() {
+        GUI = new Gui(Main.getINSTANCE(), 6, Config.getQtyTitle());
+        int multiplier = 1;
+        ShopPane page = new ShopPane(9, 6);
+        for (int x = 19; x <= 25; x++) {
+            ItemStack itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
+            itemStack.setAmount(multiplier);
+            GuiItem gItem = new GuiItem(itemStack);
+            ItemMeta itemMeta = gItem.getItem().getItemMeta();
+            List<String> lore = new ArrayList<>();
 
-	/**
-	 * Preloads the inventory to display items.
-	 */
-	public void loadInventory() {
-		GUI = new Gui(Main.getInstance(), 6, Config.getQtyTitle());
-		Integer multiplier = 1;
-		OutlinePane page = new OutlinePane(0, 0, 9, 6);
-		for (int x = 19; x <= 25; x++) {
-			ItemStack itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
-			itemStack.setAmount(multiplier);
-			GuiItem gItem = new GuiItem(itemStack, event -> onQuantityClick(event));
-			ItemMeta itemMeta = gItem.getItem().getItemMeta();
-			List<String> lore = new ArrayList<>();
+            if (item.canBuyItem()) {
+                if ((Double) item.getBuyPrice() != 0) {
 
-			if (item.canBuyItem()) {
-				if (item.getBuyPrice() != 0) {
+                    lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
+                            + ((double) item.getBuyPrice() * multiplier) + Config.getCurrencySuffix()));
+                } else if ((double) item.getBuyPrice() == 0) {
+                    lore.add(Config.getFreeLore());
+                }
+            } else {
+                lore.add(Config.getCannotBuy());
+            }
 
-					lore.add(Config.getBuyLore().replace("{amount}",
-							Config.getCurrency() + (item.getBuyPrice() * multiplier) + Config.getCurrencySuffix()));
-				} else if (item.getBuyPrice() == 0) {
-					lore.add(Config.geFreeLore());
-				}
-			} else {
-				lore.add(Config.getCannotBuyLore());
-			}
+            if ((double) item.getSellPrice() != 0) {
+                lore.add(Config.getSellLore().replace("{amount}", Config.getCurrency()
+                        + ((double) item.getSellPrice() * multiplier) + Config.getCurrencySuffix()));
+            } else if ((double) item.getSellPrice() == 0) {
+                lore.add(Config.getCannotSell());
+            }
 
-			if (item.getSellPrice() != 0) {
-				lore.add(Config.getSellLore().replace("{amount}",
-						Config.getCurrency() + (item.getSellPrice() * multiplier) + Config.getCurrencySuffix()));
-			} else if (item.getSellPrice() == 0) {
-				lore.add(Config.getCannotSellLore());
-			}
+            assert itemMeta != null;
+            itemMeta.setLore(lore);
 
-			itemMeta.setLore(lore);
+            String type = itemStack.getType().toString();
 
-			String type = itemStack.getType().toString();
-			if ((type.contains("CHESTPLATE") || type.contains("LEGGINGS") || type.contains("BOOTS")
-					|| type.contains("HELMET")) && x >= 20) {
-				break;
-			}
+            boolean isInList = Config.getDisabledQty().stream().anyMatch(t -> spellCheck(type, t));
 
-			if (item.getName() != null) {
-				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-			} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
-				String mobName = item.getMobType();
-				mobName = mobName.toLowerCase();
-				mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
-				itemMeta.setDisplayName(mobName + " Spawner");
-			}
+            if (isInList && x >= 20) {
+                break;
+            }
 
-			gItem.getItem().setItemMeta(itemMeta);
+            if (item.getName() != null) {
+                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+            } else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
+                String mobName = item.getMobType();
+                mobName = mobName.toLowerCase();
+                mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+                itemMeta.setDisplayName(mobName + " Spawner");
+            }
 
-			for (int i = 0; i <= 54; i++) {
-				page.addItem(new GuiItem(new ItemStack(Material.AIR)));
-			}
-			page.insertItem(gItem, x);
-			qty.put(x, multiplier);
-			multiplier *= 2;
-		}
+            gItem.getItem().setItemMeta(itemMeta);
 
-		if (!Config.getEscapeOnly()) {
+            if (item.getEnchantments() != null) {
+                for (String enc : item.getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    String level = StringUtils.substringAfter(enc, ":");
+                    gItem.getItem().addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+                }
+            }
 
-			ItemStack backButtonItem = XMaterial.valueOf(Config.getBackButtonItem()).parseItem();
+            page.setItem(gItem, x);
+            qty.put(x, multiplier);
+            multiplier *= 2;
+        }
 
-			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
+        if (!Config.isEscapeOnly()) {
 
-			backButtonMeta.setDisplayName(
-					ChatColor.translateAlternateColorCodes('&', Main.INSTANCE.getConfig().getString("back")));
+            ItemStack backButtonItem = XMaterial.valueOf(Config.getBackButtonItem()).parseItem();
 
-			backButtonItem.setItemMeta(backButtonMeta);
+            ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
-			GuiItem gItem = new GuiItem(backButtonItem, event -> onQuantityClick(event));
-			page.insertItem(gItem, 53);
+            assert backButtonMeta != null;
+            backButtonMeta.setDisplayName(
+                    ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(Main.INSTANCE.getConfig().getString("back"))));
 
-		}
-		GUI.addPane(page);
+            backButtonItem.setItemMeta(backButtonMeta);
 
-	}
+            GuiItem gItem = new GuiItem(backButtonItem, this::onQuantityClick);
+            page.setItem(gItem, 53);
 
-	/**
-	 * Executes when an item is clicked inside the Quantity Inventory.
-	 */
-	public void onQuantityClick(InventoryClickEvent e) {
-		Player player = (Player) e.getWhoClicked();
-		e.setCancelled(true);
-		if (!Config.getEscapeOnly()) {
-			if (e.getSlot() == 53) {
-				currentShop.open(player);
-				return;
-			}
-		}
+        }
+        GUI.addPane(page);
 
-		if (player.getInventory().firstEmpty() == -1) {
-			player.sendMessage(Config.getFull());
-			return;
-		}
+    }
 
-		if (!item.canBuyItem()) {
-			player.sendMessage(Config.getCantBuy());
-			return;
-		}
+    private Boolean spellCheck(String type, String t) {
+        return type.contains(t);
+    }
 
-		// Does the quantity work out?
-		int quantity = qty.get(e.getSlot());
+    /**
+     * Executes when an item is clicked inside the Quantity Inventory.
+     */
+    private void onQuantityClick(InventoryClickEvent e) {
+        Player player = (Player) e.getWhoClicked();
+        e.setCancelled(true);
+        if (!Config.isEscapeOnly()) {
+            if (e.getSlot() == 53) {
+                currentShop.open(player);
+                return;
+            }
+        }
 
-		// If the quantity is 0
-		if (quantity == 0) {
-			player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
-					+ Config.getNotEnoughPost());
-			player.setItemOnCursor(new ItemStack(Material.AIR));
-			return;
-		}
+        if (e.getClickedInventory() == null) {
+            return;
+        }
 
-		Map<Integer, ItemStack> returnedItems = new HashMap<>();
+        if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
+            return;
+        }
 
-		ItemStack itemStack = null;
+        if (player.getInventory().firstEmpty() == -1) {
+            player.sendMessage(Config.getFull());
+            return;
+        }
 
-		// If the item is not a mob spawner
-		if (!item.isMobSpawner()) {
+        if (!item.canBuyItem()) {
+            player.sendMessage(Config.getCantBuy());
+            return;
+        }
 
-			itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
-			// If the item has enchantments
-			if (item.getEnchantments() != null) {
-				if (itemStack.getType() == Material.ENCHANTED_BOOK) {
-					EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
-					for (String enc : item.getEnchantments()) {
-						String enchantment = StringUtils.substringBefore(enc, ":");
-						String level = StringUtils.substringAfter(enc, ":");
-						meta.addStoredEnchant(Enchantments.getByName(enchantment), Integer.parseInt(level), true);
+        // Does the quantity work out?
+        int quantity = qty.get(e.getSlot());
 
-					}
-					itemStack.setItemMeta(meta);
-				} else {
+        // If the quantity is 0
+        if (quantity == 0) {
+            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
+                    + Config.getNotEnoughPost());
+            player.setItemOnCursor(new ItemStack(Material.AIR));
+            return;
+        }
 
-					for (String enc : item.getEnchantments()) {
-						String enchantment = StringUtils.substringBefore(enc, ":");
-						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+        ItemStack itemStack = new ItemStack(e.getCurrentItem().getType());
 
-					}
+        // If the item is not a mob spawner
+        if (!item.isMobSpawner()) {
+            // If the item has enchantments
+            if (item.getEnchantments() != null) {
+                if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                    EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
+                    for (String enc : item.getEnchantments()) {
+                        String enchantment = StringUtils.substringBefore(enc, ":");
+                        String level = StringUtils.substringAfter(enc, ":");
+                        assert meta != null;
+                        meta.addStoredEnchant(Enchantments.getByName(enchantment), Integer.parseInt(level), true);
 
-				}
-			}
-			itemStack.setAmount(e.getCurrentItem().getAmount());
-			// If is shift clicking, buy 1.
+                    }
+                    itemStack.setItemMeta(meta);
+                } else {
 
-		}
+                    for (String enc : item.getEnchantments()) {
+                        String enchantment = StringUtils.substringBefore(enc, ":");
+                        String level = StringUtils.substringAfter(enc, ":");
+                        itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
 
-		ItemMeta itemMeta = itemStack.getItemMeta();
-		if (item.getName() != null) {
-			itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-		} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
-			String mobName = item.getMobType();
-			mobName = mobName.toLowerCase();
-			mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
-			itemMeta.setDisplayName(mobName + " Spawner");
-		}
+                    }
 
-		itemStack.setItemMeta(itemMeta);
+                }
+            }
+            itemStack.setAmount(e.getCurrentItem().getAmount());
+            // If is shift clicking, buy 1.
 
-		double priceToPay = 0;
+        }
 
-		/*
-		 * If the map is empty, then the items purchased don't overflow the player's
-		 * inventory. Otherwise, we need to reimburse the player (subtract it from
-		 * priceToPay).
-		 */
+        ItemMeta itemMeta = itemStack.getItemMeta();
+        if (item.getName() != null) {
+            assert itemMeta != null;
+            itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+        } else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
+            String mobName = item.getMobType();
+            mobName = mobName.toLowerCase();
+            mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+            assert itemMeta != null;
+            itemMeta.setDisplayName(mobName + " Spawner");
+        }
 
-		double priceToReimburse = 0D;
+        itemStack.setItemMeta(itemMeta);
 
-		// if the item is not a shift click
+        double priceToPay;
 
-		while (returnedItems.values().iterator().hasNext()) {
-			priceToReimburse += (item.getBuyPrice() / e.getCurrentItem().getAmount());
-		}
-		priceToPay = (item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+        /*
+         * If the map is empty, then the items purchased don't overflow the player's
+         * inventory. Otherwise, we need to reimburse the player (subtract it from
+         * priceToPay).
+         */
 
-		// Check if the transition was successful
+        double priceToReimburse = 0D;
 
-		if (Main.getEconomy().withdrawPlayer(player, priceToPay).transactionSuccess()) {
-			// If the player has the sound enabled, play
-			// it!
-			if (Config.isSoundEnabled()) {
-				try {
-					player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
+        // if the item is not a shift click
 
-				} catch (Exception ex) {
-					Main.getInstance().getLogger().warning(
-							"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
-				}
-			}
-			player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
-					+ Config.getCurrencySuffix());
 
-			if (item.isMobSpawner()) {
-				NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
-				tag.setString("GUIShopSpawner", item.getMobType());
+        priceToPay = ((Double) item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
 
-				itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
-			}
+        // Check if the transition was successful
 
-			returnedItems = player.getInventory().addItem(itemStack);
+        if (Main.getECONOMY().withdrawPlayer(player, priceToPay).transactionSuccess()) {
+            // If the player has the sound enabled, play
+            // it!
+            if (Config.isSoundEnabled()) {
+                try {
+                    player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
 
-		} else {
-			player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
-		}
+                } catch (Exception ex) {
+                    Main.getINSTANCE().getLogger().warning(
+                            "Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
+                }
+            }
+            player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
+                    + Config.getCurrencySuffix());
 
-	}
+            if (item.isMobSpawner()) {
+                NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
+                tag.setString("GUIShopSpawner", item.getMobType());
 
-	/**
-	 * The inventory closeEvent handling for the Menu.
-	 */
-	public void onClose(InventoryCloseEvent e) {
-		Player player = (Player) e.getPlayer();
-		if (Config.getEscapeOnly()) {
-			GUI.setOnClose(null);
-			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-			scheduler.scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
-				@Override
-				public void run() {
-					currentShop.open(player);
-				}
-			}, 1L);
+                itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+            }
 
-		}
-		return;
+            player.getInventory().addItem(itemStack);
 
-	}
+        } else {
+            player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
+        }
+
+    }
+
+    /**
+     * The inventory closeEvent handling for the Menu.
+     */
+    private void onClose(InventoryCloseEvent e) {
+        Player player = (Player) e.getPlayer();
+        if (Config.isEscapeOnly()) {
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
+
+        }
+
+    }
 
 }

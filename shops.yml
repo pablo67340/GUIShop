@@ -481,7 +481,7 @@ Gear:
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
-  - enchantments: ''
+  - enchantments: 'DURABILITY:1'
   '8':
   - id: 'DIAMOND_SHOVEL'
   - name: ''
@@ -535,7 +535,7 @@ Gear:
   - name: ''
   - buy-price: 100.0
   - sell-price: 0.0
-  - enchantments: ''
+  - enchantments: 'DURABILITY:1 FORTUNE:1'
   '17':
   - id: 'IRON_SHOVEL'
   - name: ''

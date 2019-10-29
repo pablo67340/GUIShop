@@ -163,6 +163,34 @@ protected-commands:
 DisabledWorlds:
     -'Test'
 
+## Items to disable quantity stacking. 
+## This will force these items to only have
+## a quantity of 1. Good for swords, armor, etc.
+##
+## This is an item SEARCH. Meaning it is not the full item name.
+## E.G CHESTPLATE blocks ALL chestplates because all items contain
+## the word CHESTPLATE.
+disabled-qty-items:
+    - "CHESTPLATE"
+    - "LEGGINGS"
+    - "BOOTS"
+    - "HELMET"
+    - "BOW"
+    - "FISHING_ROD"
+    - "SHEARS"
+    - "NAME_TAG"
+    - "SWORD"
+    - "AXE"
+    - "PICKAXE"
+    - "SHOVEL"
+    - "SPADE"
+    - "HOE"
+    - "LEAD"
+    - "LEASH"
+    - "HORSE_ARMOR"
+    - "SADDLE"
+    - "BARDING"
+
 ##Menu Items
 Rows: 1
 

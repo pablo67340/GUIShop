@@ -8,7 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.logging.Level;
 
-import com.pablo67340.guishop.main.Main;
+import com.pablo67340.guishop.Main;
 
 public class SQLite extends Database {
 
@@ -33,7 +33,7 @@ public class SQLite extends Database {
 			try {
 				folder.createNewFile();
 			} catch (IOException e) {
-				Main.getInstance().getLogger().log(Level.SEVERE, "File write error: " + dbname + ".db");
+				Main.getINSTANCE().getLogger().log(Level.SEVERE, "File write error: " + dbname + ".db");
 			}
 		}
 		try {
@@ -44,9 +44,9 @@ public class SQLite extends Database {
 			connection = DriverManager.getConnection("jdbc:sqlite:" + folder);
 			return connection;
 		} catch (SQLException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE, "SQLite exception on initialize", ex);
+			Main.getINSTANCE().getLogger().log(Level.SEVERE, "SQLite exception on initialize", ex);
 		} catch (ClassNotFoundException ex) {
-			Main.getInstance().getLogger().log(Level.SEVERE,
+			Main.getINSTANCE().getLogger().log(Level.SEVERE,
 					"You need the SQLite JBDC library. Google it. Put it in /lib folder.");
 		}
 		return null;

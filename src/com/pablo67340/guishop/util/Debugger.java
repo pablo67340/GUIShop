@@ -1,16 +1,23 @@
 package com.pablo67340.guishop.util;
 
+import lombok.Getter;
+import lombok.Setter;
+
 public class Debugger {
 
 	/**
 	 * The error message
 	 * 
 	 */
+	@Getter
+	@Setter
 	private String errorMessage;
 
 	/**
 	 * True/False if fatal error
 	 */
+	@Getter
+	@Setter
 	private Boolean hasExploded;
 
 	/**
@@ -20,42 +27,4 @@ public class Debugger {
 	public Debugger() {
 		hasExploded = false;
 	}
-
-	/**
-	 * Set the {@link Debugger}'s error message.
-	 * 
-	 * @param Error
-	 */
-	public void setErrorMessage(String input) {
-		errorMessage = input;
-	}
-
-	/**
-	 * Get the {@link Debugger}'s error message.
-	 * 
-	 * @return Error
-	 */
-	public String getErrorMessage() {
-		return errorMessage;
-	}
-
-	/**
-	 * Set the {@link Debugger}'s fatal value.
-	 * 
-	 * @param Fatal
-	 */
-	public void setHasExploded(Boolean input) {
-		hasExploded = input;
-	}
-
-	/**
-	 * Set the {@link Debugger}'s fatal value.
-	 * 
-	 * @return hasExploded
-	 */
-	public Boolean hasExploded() {
-		return hasExploded;
-	}
-	
-
 }

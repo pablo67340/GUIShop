@@ -7,7 +7,7 @@
         <p><strong>GUIShop requires&nbsp;<a href="http://dev.bukkit.org/bukkit-plugins/vault/">Vault</a>&nbsp;to enable the plugin to hook into your economly so it can withdraw/deposit cash into your player's accounts.&nbsp;</strong></p>
     </li>
     <li>
-        <p><strong>GUIShop requires Java 7+.</strong></p>
+        <p><strong>GUIShop requires Java 8+.</strong></p>
     </li>
 </ul>
 <h2><a id="user-content-building" class="anchor" href="https://github.com/drtshock/Essentials#building" aria-hidden="true"></a>Building</h2>

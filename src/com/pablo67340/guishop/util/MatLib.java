@@ -1,19 +1,18 @@
 package com.pablo67340.guishop.util;
 
+import lombok.Getter;
+
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- *
  * @author Bryce
  */
+@SuppressWarnings("unused")
 public final class MatLib {
 
-    public static final Map<String, String> MAP = new HashMap<>();
-
-    public MatLib() {
-
-    }
+    @Getter
+    private static final Map<String, String> MAP = new HashMap<>();
 
     static {
         MAP.put("0:0", "AIR");
@@ -738,4 +737,3 @@ public final class MatLib {
     }
 
 }
-

@@ -63,6 +63,9 @@ class Quantity {
     void open(Player player) {
         GUI.setOnClose(this::onClose);
         GUI.setOnTopClick(this::onQuantityClick);
+        GUI.setOnBottomClick(event -> {
+        	event.setCancelled(true);
+        });
         GUI.show(player);
     }
 

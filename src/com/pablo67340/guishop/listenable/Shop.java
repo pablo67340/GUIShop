@@ -335,6 +335,9 @@ public class Shop {
         GUI.show(input);
         GUI.setOnClose(this::onClose);
         GUI.setOnTopClick(this::onShopClick);
+        GUI.setOnBottomClick(event -> {
+        	event.setCancelled(true);
+        });
     }
 
     private void onShopClick(InventoryClickEvent e) {

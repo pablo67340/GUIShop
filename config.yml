@@ -97,7 +97,8 @@ something-wrong: '&fSomething went wrong, contact an admin.'
 in-stacks: '&fPlease sell in stacks of &c'
 
 #Message when a player cannot sell a certain item.
-cant-sell: '&fSorry, you are not able to sell that item.'
+#{count} can be used to display the amount of non sellable, returned items.
+cant-sell: '&f({count}) item(s) failed to sell and have been returned to your inventory.'
 
 #Message when a player cannot buy a certain item.
 cant-buy: '&fSorry, you are not able to buy that item.'

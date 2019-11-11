@@ -112,6 +112,9 @@ public final class Menu {
         }
         preLoad(player);
         GUI.setOnTopClick(this::onShopClick);
+        GUI.setOnBottomClick(event -> {
+        	event.setCancelled(true);
+        });
         GUI.show(player);
     }
 

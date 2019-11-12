@@ -10,7 +10,7 @@ import net.milkbowl.vault.economy.Economy;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
 import org.bukkit.entity.Player;
@@ -18,8 +18,10 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
+
 import com.pablo67340.SQLiteLib.Main.SQLiteLib;
 import com.pablo67340.guishop.definition.ItemCommand;
+import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
@@ -27,6 +29,7 @@ import com.pablo67340.guishop.listenable.Sell;
 
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.Debugger;
+
 
 import lombok.Getter;
 
@@ -38,6 +41,12 @@ public final class Main extends JavaPlugin {
      */
     @Getter
     private File configf, specialf;
+    
+    /**
+     * The loaded shops read from the config.
+     */
+    @Getter
+    private Map<String, ShopDir> shops;
 
     /**
      * The configs FileConfiguration object.
@@ -78,7 +87,7 @@ public final class Main extends JavaPlugin {
     public static final Set<String> SELL_COMMANDS = new HashSet<>();
 
     @Getter
-    public Map<Integer, List<Item>> loadedShops = new HashMap<>();
+    public Map<String, List<Item>> loadedShops = new HashMap<>();
 
     /**
      * A {@link Map} that will store our {@link Creator}s when the server first
@@ -95,6 +104,7 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         INSTANCE = this;
+        shops = new HashMap<>();
         createFiles();
         if (Bukkit.getServer().getPluginManager().isPluginEnabled("Vault")) {
 
@@ -116,7 +126,43 @@ public final class Main extends JavaPlugin {
 
         sqlLib.initializeDatabase(this, "guishop_commands",
                 "CREATE TABLE IF NOT EXISTS commands (`id` INTEGER PRIMARY KEY, `uuid` varchar(256) not null, `command` text not null, `duration` varchar(16) not null, `start` varchar(16) not null)");
+        
+        loadShopDefs();
+    }
+    
+    public void loadShopDefs() {
+    	
+    	ConfigurationSection menuItems = Main.getINSTANCE().getConfig().getConfigurationSection("menu-items");
+    	
+        for (String key : menuItems.getKeys(true)) {
+        	
+        	System.out.println("Key: "+key);
 
+            if (!Main.getINSTANCE().getMainConfig().getBoolean("menu-items." + key + ".Enabled")) {
+                continue;
+            }
+
+            String shop = ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(menuItems.getString(key + ".Shop")));
+
+            String name = ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(menuItems.getString(key + ".Name")));
+
+            String description = ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(menuItems.getString(key + ".Desc")));
+            
+            ItemType itemType = ItemType.valueOf(menuItems.getString(key+".Type"));
+            
+            String itemID = menuItems.getString(key+".Item");
+
+            List<String> lore = new ArrayList<>();
+
+            if (description.length() > 0) {
+                lore.add(description);
+            }
+
+            Main.getINSTANCE().getShops().put(name, new ShopDir(shop, name, description, lore, itemType, itemID));
+        }
     }
 
     public void addCommand(UUID uuid, String cmd, String duration, String startDate) {

@@ -68,8 +68,6 @@ public class Shop {
 
     private Boolean hasClicked = false;
 
-    private Integer menuSlot;
-
     private int pageC = 0;
 
     private PaginatedPane currentPane;
@@ -81,13 +79,12 @@ public class Shop {
      * @param description The description of the shop.
      * @param lore        The lore of the shop.
      */
-    Shop(String shop, String name, String description, List<String> lore, Integer slot, Menu menuInstance) {
+    Shop(String shop, String name, String description, List<String> lore, Menu menuInstance) {
         this.name = name;
         this.shop = shop;
         this.description = description;
         this.lore = lore;
         this.menuInstance = menuInstance;
-        this.menuSlot = slot;
     }
 
     /**
@@ -97,14 +94,13 @@ public class Shop {
      * @param description The description of the shop.
      * @param lore        The lore of the shop.
      */
-    Shop(String shop, String name, String description, List<String> lore, Integer slot, Menu menuInstance,
+    Shop(String shop, String name, String description, List<String> lore, Menu menuInstance,
          List<Item> items) {
         this.name = name;
         this.shop = shop;
         this.description = description;
         this.lore = lore;
         this.menuInstance = menuInstance;
-        this.menuSlot = slot;
         this.items = items;
     }
 
@@ -295,7 +291,7 @@ public class Shop {
                 pane.addPane(pageC, page);
                 applyButtons(page);
                 GUI.addPane(pane);
-                Main.getINSTANCE().getLoadedShops().put(menuSlot, items);
+                Main.getINSTANCE().getLoadedShops().put(name, items);
             }
             index += 1;
         }

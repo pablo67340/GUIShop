@@ -143,7 +143,7 @@ public final class PlayerListener implements Listener {
 
 						if (Main.getINSTANCE().getShops().containsKey(cut[1])) {
 
-							ShopDir shopDef = Main.getINSTANCE().getShops().get(cut[1]);
+							ShopDir shopDef = Main.getINSTANCE().getShops().get(cut[1].toLowerCase());
 
 							new Menu().openShop(player, shopDef);
 

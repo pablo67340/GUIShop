@@ -43,35 +43,35 @@ public final class Menu {
 	public void preLoad(Player player) {
 
 		ShopPane page = new ShopPane(9, 1);
-		
+
 		Integer slot = 0;
 
 		for (ShopDir shopDef : Main.getINSTANCE().getShops().values()) {
-
 
 			if (shopDef.getItemType() == ItemType.SHOP) {
 				if (player.hasPermission("guishop.slot." + slot) || player.isOp()
 						|| player.hasPermission("guishop.slot.*")) {
 					page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
 				}
-			}else {
+			} else {
+				System.out.println("Adding item: " + shopDef.getItemID());
 				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
 			}
-			slot+=1;
+			slot += 1;
 		}
 
 		GUI.addPane(page);
 
 	}
-	
-	
+
 	public GuiItem buildMenuItem(String itemID, ShopDir shopDef) {
-		
 
 		ItemStack itemStack = XMaterial.valueOf(itemID).parseItem();
 
 		GuiItem gItem = new GuiItem(itemStack);
-		setName(gItem, shopDef.getName(), shopDef.getLore(), shopDef);
+		if (shopDef.getItemType() != ItemType.BLANK) {
+			setName(gItem, shopDef.getName(), shopDef.getLore(), shopDef);
+		}
 		return gItem;
 	}
 
@@ -130,24 +130,28 @@ public final class Menu {
 		if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
 			return;
 		}
-		
+
 		ShopDir shopDef = new ArrayList<>(Main.getINSTANCE().getShops().values()).get(e.getSlot());
 
-		openShop(player, shopDef);
+		if (shopDef.getItemType() == ItemType.SHOP) {
+			openShop(player, shopDef);
+		}
 
 	}
 
 	public void openShop(Player player, ShopDir shopDef) {
-		
+
 		if (!shopDef.getShop().equalsIgnoreCase("")) {
 			/*
 			 * The currently open shop associated with this Menu instance.
 			 */
 			Shop openShop;
 			if (!Main.getINSTANCE().getLoadedShops().containsKey(shopDef.getName())) {
-				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this);
+				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+						this);
 			} else {
-				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
+				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+						this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
 			}
 			openShop.loadItems();
 			openShop.open(player);

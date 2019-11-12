@@ -121,7 +121,7 @@ signs-only: false
 signs-only-message: '&cYou can only access the shop by clicking a [&cGUIShop&f] sign!'
 
 #Menu row count
-menu-rows: 1
+menu-rows: 3
 
 #Enable sound on purchase
 enable-sound: true
@@ -193,9 +193,39 @@ disabled-qty-items:
     - "BARDING"
 
 ##Menu Items
-Rows: 1
+Rows: 3
 
 menu-items:
+  Pane0:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane1:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane2:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane3:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane4:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane5:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane6:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane7:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  PaneCornerRight:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane8:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
   Raiding:
     Type: 'SHOP'
     Enabled: true
@@ -208,18 +238,12 @@ menu-items:
     Item: 'EMERALD'
     Desc: '&8(&fOres&8)'
     Name: '&aOres'
-  Farming:
+  FarmingDrops:
     Type: 'SHOP'
     Enabled: true
     Item: 'WHEAT_SEEDS'
     Desc: '&8(&fFarming&8)'
-    Name: '&eFarming'
-  Drops:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'BONE_MEAL'
-    Desc: '&8(&fDrops&8)'
-    Name: '&cDrops'
+    Name: '&eFarming/Drops'
   Brewing:
     Type: 'SHOP'
     Enabled: true
@@ -244,6 +268,37 @@ menu-items:
     Item: 'STONE'
     Desc: '&8(&fBlocks&8)'
     Name: '&6Blocks'
+  Pane9:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  PaneCornerBottomLeft:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane10:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane11:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane12:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane13:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane14:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+  Pane15:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+  Pane16:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
+    Pane17:
+    Type: 'DUMMY'
+    Item: 'RED_STAINED_GLASS_PANE'
+
   
 ## DO NOT TOUCH BELOW THIS LINE!
 ver: 1.7

@@ -1,12 +1,10 @@
-package com.pablo67340.guishop.handler;
+package com.pablo67340.guishop.definition;
 
 import java.util.List;
 
-import com.pablo67340.guishop.definition.ItemType;
-
 import lombok.Getter;
 
-public class ShopDir {
+public class ShopDef {
 
     @Getter
     public String name, shop, description, itemID;
@@ -17,7 +15,7 @@ public class ShopDir {
     @Getter
     public ItemType itemType;
 
-    public ShopDir(String shop, String name, String description, List<String> lore, ItemType itemType, String itemID) {
+    public ShopDef(String shop, String name, String description, List<String> lore, ItemType itemType, String itemID) {
         this.name = name;
         this.shop = shop;
         this.description = description;

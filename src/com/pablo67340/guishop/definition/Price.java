@@ -1,4 +1,4 @@
-package com.pablo67340.guishop.handler;
+package com.pablo67340.guishop.definition;
 
 import lombok.Getter;
 

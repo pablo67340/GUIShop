@@ -13,13 +13,10 @@
 
 
 ##################################################
-#        Looking for a Custom Plugin?            #
-#    Look no further! Visit ShulkerBox           #
-#   To hire a Dev! A Developer will make it!     #
-#          http://mcmart.org/                #
+#             Looking for Item Names?            #
 ##################################################
-
-
+#           https://tinyurl.com/okqdcvo          #
+##################################################
 
 ## Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
 prefix: '[&cGUIShop&f]'
@@ -135,14 +132,6 @@ ingame-config: true
 #The title of the quantity inventory.
 qty-title: "&4Select Amount"
 
-command-already: "&4You already own one or more of the specified commands!"
-
-command-time-remaining: "&4Command Expires in: &e{TIME}"
-
-command-expired: "&4Command has expired! Please purchase from shop!"
-
-command-purchase: "&4This command can only be purchased from our shop!"
-
 access-to: "&aAccess to Commands:"
 
 buy-lore: "&fBuy: &c{amount}"
@@ -154,12 +143,6 @@ free-lore: "&fBuy: &aFREE"
 cannot-buy: "&cCannot Purchase"
 
 cannot-sell: "&cCannot Sell"
-
-##This will disable the usage to the command to everyone, unless purchased from shop or player is OP.
-protected-commands:
-  - '/fly'
-  - '/suicide'
-
 
 DisabledWorlds:
     -'Test'
@@ -270,38 +253,34 @@ menu-items:
     Name: '&6Blocks'
   Pane9:
     Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
+    Item: 'RED_STAINED_GLASS_PANE'
   PaneCornerBottomLeft:
     Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
+    Item: 'BLUE_STAINED_GLASS_PANE'
   Pane10:
     Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
+    Item: 'RED_STAINED_GLASS_PANE'
   Pane11:
     Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
+    Item: 'BLUE_STAINED_GLASS_PANE'
   Pane12:
     Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
+    Item: 'RED_STAINED_GLASS_PANE'
   Pane13:
     Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
+    Item: 'BLUE_STAINED_GLASS_PANE'
   Pane14:
     Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
+    Item: 'RED_STAINED_GLASS_PANE'
   Pane15:
     Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
+    Item: 'BLUE_STAINED_GLASS_PANE'
   Pane16:
     Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-    Pane17:
-    Type: 'DUMMY'
     Item: 'RED_STAINED_GLASS_PANE'
-
-  
-## DO NOT TOUCH BELOW THIS LINE!
-ver: 1.7
+  Pane17:
+    Type: 'DUMMY'
+    Item: 'BLUE_STAINED_GLASS_PANE'
 
  ################################
  ## Developed by pablo67340    ##

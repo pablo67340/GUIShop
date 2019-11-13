@@ -15,6 +15,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.XMaterial;
 

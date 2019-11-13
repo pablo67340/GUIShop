@@ -6,7 +6,7 @@ import java.util.Map;
 
 import org.bukkit.enchantments.Enchantment;
 
-@SuppressWarnings({"SpellCheckingInspection", "deprecation"})
+@SuppressWarnings({"deprecation"})
 public class Enchantments {
     /**
      * Official enchantment names/enchantment objects.

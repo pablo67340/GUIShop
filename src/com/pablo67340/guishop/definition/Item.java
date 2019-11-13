@@ -1,8 +1,6 @@
-package com.pablo67340.guishop.handler;
+package com.pablo67340.guishop.definition;
 
 import java.util.List;
-
-import com.pablo67340.guishop.definition.ItemType;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -54,6 +52,14 @@ public final class Item {
     @Getter
     @Setter
     private ItemType itemType;
+    
+    @Getter
+    @Setter
+    private List<String> lore;
+    
+    @Getter
+    @Setter
+    private List<String> commands;
 
     /**
      * The enchantsments on this {@link Item}.
@@ -61,10 +67,6 @@ public final class Item {
     @Getter
     @Setter
     private String[] enchantments;
-
-    @Getter
-    @Setter
-    private List<String> commands;
 
     public Boolean canBuyItem() {
         if (buyPrice instanceof Boolean) {

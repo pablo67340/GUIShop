@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.definition;
 
-@SuppressWarnings({"unused", "SpellCheckingInspection"})
+@SuppressWarnings({"unused"})
 public enum MobType {
 
     ELDER_GUARDIAN(4), WITHER_SKELETON(5), STRAY(6), HUSK(23), ZOMBIE_VILLAGER(27), SKELETON_HORSE(28),

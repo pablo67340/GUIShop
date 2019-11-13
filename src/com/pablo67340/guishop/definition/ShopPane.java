@@ -1,4 +1,4 @@
-package com.pablo67340.guishop.util;
+package com.pablo67340.guishop.definition;
 
 import java.util.ArrayList;
 import java.util.Collection;

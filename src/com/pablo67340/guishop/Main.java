@@ -7,7 +7,6 @@ import java.util.logging.Level;
 
 import net.milkbowl.vault.economy.Economy;
 
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,20 +17,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.pablo67340.SQLiteLib.Main.SQLiteLib;
-import com.pablo67340.guishop.definition.ItemCommand;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.Debugger;
 
 import lombok.Getter;
 
-@SuppressWarnings("SpellCheckingInspection")
 public final class Main extends JavaPlugin {
 
 	/**
@@ -44,7 +41,7 @@ public final class Main extends JavaPlugin {
 	 * The loaded shops read from the config.
 	 */
 	@Getter
-	private Map<String, ShopDir> shops;
+	private Map<String, ShopDef> shops;
 
 	/**
 	 * The configs FileConfiguration object.
@@ -63,12 +60,6 @@ public final class Main extends JavaPlugin {
 	 */
 	@Getter
 	public static Main INSTANCE;
-
-	/**
-	 * An instance of the Debugger class.
-	 */
-	@Getter
-	public static Debugger debugger = new Debugger();
 
 	/**
 	 * A {@link Set} that will store every command that can be used by a
@@ -93,12 +84,6 @@ public final class Main extends JavaPlugin {
 	 */
 	public static final Map<String, Creator> CREATOR = new HashMap<>();
 
-	@Getter
-	public static final Set<String> protectedCommands = new HashSet<>();
-
-	@Getter
-	private SQLiteLib sqlLib;
-
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
@@ -112,18 +97,12 @@ public final class Main extends JavaPlugin {
 				return;
 			}
 
-			if (updateConfig()) {
-				getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-				loadDefaults();
-			}
+			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+			loadDefaults();
 
 		} else {
 			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
 		}
-		sqlLib = new SQLiteLib();
-
-		sqlLib.initializeDatabase(this, "guishop_commands",
-				"CREATE TABLE IF NOT EXISTS commands (`id` INTEGER PRIMARY KEY, `uuid` varchar(256) not null, `command` text not null, `duration` varchar(16) not null, `start` varchar(16) not null)");
 
 		loadShopDefs();
 	}
@@ -135,10 +114,10 @@ public final class Main extends JavaPlugin {
 		for (String key : menuItems.getKeys(false)) {
 
 			String name = menuItems.getString(key + ".Name") != null ? ChatColor.translateAlternateColorCodes('&',
-					Objects.requireNonNull(menuItems.getString(key + ".Name"))) : "";
+					Objects.requireNonNull(menuItems.getString(key + ".Name"))) : " ";
 
-			String description = menuItems.getString(key + ".Desc") != null ? ChatColor
-					.translateAlternateColorCodes('&', Objects.requireNonNull(menuItems.getString(key + ".Desc"))) : "";
+			String description = menuItems.getString(key + ".Desc") != null ? ChatColor.translateAlternateColorCodes(
+					'&', Objects.requireNonNull(menuItems.getString(key + ".Desc"))) : " ";
 
 			ItemType itemType = menuItems.getString(key + ".Type") != null
 					? ItemType.valueOf(menuItems.getString(key + ".Type"))
@@ -150,8 +129,6 @@ public final class Main extends JavaPlugin {
 				}
 			}
 
-			System.out.println("ItemType: " + itemType + " name: " + key);
-
 			String itemID = itemType != ItemType.BLANK ? menuItems.getString(key + ".Item") : "AIR";
 
 			List<String> lore = new ArrayList<>();
@@ -160,47 +137,10 @@ public final class Main extends JavaPlugin {
 				lore.add(description);
 			}
 
-			shops.put(key.toLowerCase(), new ShopDir(key, name, description, lore, itemType, itemID));
-		}
-	}
-
-	public void addCommand(UUID uuid, String cmd, String duration, String startDate) {
-
-		String statement = "INSERT INTO commands (uuid, command, duration, start) VALUES ('" + uuid.toString() + "','"
-				+ cmd + "','" + duration + "','" + startDate + "')";
-		sqlLib.getDatabase("guishop_commands").executeStatement(statement);
-
-	}
-
-	public void removeCommand(UUID uuid, String command) {
-		sqlLib.getDatabase("guishop_commands")
-				.executeStatement("REMOVE FROM commands WHERE command = " + command + " AND uuid = " + uuid.toString());
-
-	}
-
-	public ItemCommand loadCommands(UUID uuid) {
-		List<String> commands = new ArrayList<>();
-		List<Object> commandRow = sqlLib.getDatabase("guishop_commands")
-				.queryRow("SELECT command FROM commands WHERE uuid = '" + uuid + "'", "command");
-		List<Object> durationRow = sqlLib.getDatabase("guishop_commands")
-				.queryRow("SELECT duration FROM commands WHERE uuid = '" + uuid + "'", "duration");
-		List<Object> startRow = sqlLib.getDatabase("guishop_commands")
-				.queryRow("SELECT start FROM commands WHERE uuid = '" + uuid + "'", "start");
-		int index = -1;
-		String startDate = "";
-		for (Object object : commandRow) {
-			index += 1;
-			String cmd = (String) object;
-			String duration = (String) durationRow.get(index);
-			String finalCommand = cmd + "::" + duration;
-			commands.add(finalCommand);
-			startDate = (String) startRow.get(index);
+			shops.put(key.toLowerCase(), new ShopDef(key, name, description, lore, itemType, itemID));
 		}
 
-		// Change to dateTimeFormatter. Close Deprecation warning
-
-		return new ItemCommand(commands, uuid, false, startDate);
-
+		new Menu().itemWarmup();
 	}
 
 	/**
@@ -220,88 +160,6 @@ public final class Main extends JavaPlugin {
 		ECONOMY = rsp.getProvider();
 
 		return true;
-	}
-
-	/**
-	 * Check if the config is up to date. If not, Attempt recursive auto-update.
-	 */
-	@SuppressWarnings("unused")
-	private Boolean updateConfig() {
-		double ver = getMainConfig().getDouble("ver");
-		if (ver == 1.0) {
-			getLogger().warning("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("menu-cols", null);
-			getMainConfig().set("ver", 1.1);
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			updateConfig();
-			return true;
-		} else if (ver == 1.1) {
-			getLogger().warning("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("full-inventory", "&cPlease empty your inventory!");
-			getMainConfig().set("ver", 1.2);
-			updateConfig();
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			return true;
-		} else if (ver == 1.2) {
-			getLogger().warning("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("currency", "$");
-			getMainConfig().set("ver", 1.3);
-			updateConfig();
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			return true;
-		} else if (ver == 1.3) {
-			getLogger().warning("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("ver", 1.4);
-			updateConfig();
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			return true;
-		} else if (ver == 1.4) {
-			getLogger().warning("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("ver", 1.5);
-			getMainConfig().set("currency-suffix", "");
-			getMainConfig().set("qty-title", "&4Select Amount");
-			updateConfig();
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			return true;
-		} else if (ver == 1.5) {
-			getLogger().warning("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("ver", 1.6);
-			getMainConfig().set("command-already", "&4 You already own one or more of the specified commands!");
-			getMainConfig().set("command-time-remaining", "&4 Command Expires in: &e{TIME}");
-			getMainConfig().set("command-expired", "&4Command has expired! Please purchase from shop!");
-			List<String> commands = new ArrayList<>();
-			commands.add("/suicide");
-			commands.add("/fly");
-			getMainConfig().set("protected-commands", commands);
-			updateConfig();
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			return true;
-		} else if (ver == 1.6) {
-			getLogger().info("The config version is outdated! Automatically updating config...");
-			getMainConfig().set("ver", 1.7);
-			getMainConfig().set("command-already", "&4You already own one or more of the specified commands!");
-			getMainConfig().set("command-time-remaining", "&4Command Expires in: &e{TIME}");
-			getMainConfig().set("command-expired", "&4Command has expired! Please purchase from shop!");
-			getMainConfig().set("command-purchase", "&4This command can only be purchased from our shop!");
-			getMainConfig().set("access-to", "&aAccess to Commands:");
-			updateConfig();
-			saveMainConfig();
-			getLogger().warning("Config update successful!");
-			return true;
-		} else if (ver == 1.7) {
-			getLogger().info("Config all up to date!");
-			return true;
-		} else {
-			getLogger().warning("The config version is outdated! Please delete your config.yml and restart!");
-			getServer().getPluginManager().disablePlugin(this);
-			return false;
-		}
 	}
 
 	/**
@@ -345,14 +203,6 @@ public final class Main extends JavaPlugin {
 				Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("qty-title"))));
-		Config.setCommandAlready(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("command-already"))));
-		Config.setCommandRemaining(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("command-time-remaining"))));
-		Config.setCommandExpired(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("command-expired"))));
-		Config.setCommandPurchase(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("command-purchase"))));
 		Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("back-button-item"))));
 		Config.setBackButtonText(
@@ -371,36 +221,11 @@ public final class Main extends JavaPlugin {
 		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
-		protectedCommands.addAll(getMainConfig().getStringList("protected-commands"));
-	}
-
-	/**
-	 * Force save the main config.
-	 */
-	private void saveMainConfig() {
-		try {
-			getMainConfig().save(configf);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Force save the shop config.
-	 */
-	@SuppressWarnings("unused")
-	public void saveShopConfig() {
-		try {
-			getCustomConfig().save(specialf);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
 	}
 
 	/**
 	 * Force create all YML files.
 	 */
-	@SuppressWarnings("ResultOfMethodCallIgnored")
 	public void createFiles() {
 
 		configf = new File(getDataFolder(), "config.yml");
@@ -429,22 +254,6 @@ public final class Main extends JavaPlugin {
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
-
-	public Boolean purchaseCommands(UUID uuid, List<String> commands) {
-		ItemCommand itemCommand = loadCommands(uuid);
-
-		for (String cmd : commands) {
-			String command = StringUtils.substringBefore(cmd, "::");
-			if (itemCommand.getValidCommands().contains(command)) {
-				return false;
-			}
-		}
-
-		Date date = new Date();
-		new ItemCommand(commands, uuid, true, date.toString());
-		return true;
-
 	}
 
 }

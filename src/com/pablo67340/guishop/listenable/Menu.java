@@ -4,9 +4,9 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.handler.ShopDir;
+import com.pablo67340.guishop.definition.ShopDef;
+import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.ShopPane;
 import com.pablo67340.guishop.util.XMaterial;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -16,8 +16,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.logging.Level;
 
-@SuppressWarnings({ "JavaDoc", "SpellCheckingInspection" })
 public final class Menu {
 
 	/**
@@ -25,6 +27,8 @@ public final class Menu {
 	 * {@link Menu}.
 	 */
 	private Gui GUI;
+
+	public static final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 
 	/**
 	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
@@ -37,6 +41,25 @@ public final class Menu {
 		this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "Menu");
 	}
 
+	public void itemWarmup() {
+		Thread t1 = new Thread(() -> {
+			Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
+			long startTime = System.currentTimeMillis();
+			ShopPane page = new ShopPane(9, 1);
+
+			// We need to load 1 single item to get spigot to load
+			// whatever item utils it needs too. Usually takes about 4s.
+			for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
+				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
+				break;
+			}
+			long estimatedTime = System.currentTimeMillis() - startTime;
+			Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
+		});
+		t1.start();
+
+	}
+
 	/**
 	 * Preloads the configs into their corresponding objects.
 	 */
@@ -44,35 +67,30 @@ public final class Menu {
 
 		ShopPane page = new ShopPane(9, 1);
 
-		Integer slot = 0;
-
-		for (ShopDir shopDef : Main.getINSTANCE().getShops().values()) {
+		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
 
 			if (shopDef.getItemType() == ItemType.SHOP) {
-				if (player.hasPermission("guishop.slot." + slot) || player.isOp()
-						|| player.hasPermission("guishop.slot.*")) {
+				if (player.hasPermission("guishop.shop." + shopDef.getShop()) || player.isOp()
+						|| player.hasPermission("guishop.shop.*")) {
 					page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
 				}
 			} else {
-				System.out.println("Adding item: " + shopDef.getItemID());
 				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
 			}
-			slot += 1;
 		}
 
 		GUI.addPane(page);
 
 	}
 
-	public GuiItem buildMenuItem(String itemID, ShopDir shopDef) {
+	public GuiItem buildMenuItem(String itemID, ShopDef shopDef) {
 
-		ItemStack itemStack = XMaterial.valueOf(itemID).parseItem();
+		ItemStack itemStack = XMaterial.matchXMaterial(itemID).parseItem();
 
-		GuiItem gItem = new GuiItem(itemStack);
 		if (shopDef.getItemType() != ItemType.BLANK) {
-			setName(gItem, shopDef.getName(), shopDef.getLore(), shopDef);
+			setName(itemStack, shopDef.getName(), shopDef.getLore(), shopDef);
 		}
-		return gItem;
+		return new GuiItem(itemStack);
 	}
 
 	/**
@@ -91,19 +109,22 @@ public final class Menu {
 					Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("disabled-world"))));
 			return;
 		}
+
 		preLoad(player);
+
 		GUI.setOnTopClick(this::onShopClick);
 		GUI.setOnBottomClick(event -> {
 			event.setCancelled(true);
 		});
 		GUI.show(player);
+
 	}
 
 	/**
 	 * Sets the item's display name.
 	 */
-	private void setName(GuiItem item, String name, List<String> lore, ShopDir shopDef) {
-		ItemMeta IM = item.getItem().getItemMeta();
+	private ItemStack setName(ItemStack item, String name, List<String> lore, ShopDef shopDef) {
+		ItemMeta IM = item.getItemMeta();
 
 		if (name != null) {
 			assert IM != null;
@@ -115,7 +136,9 @@ public final class Menu {
 			IM.setLore(lore);
 		}
 
-		item.getItem().setItemMeta(IM);
+		item.setItemMeta(IM);
+
+		return item;
 
 	}
 
@@ -131,7 +154,7 @@ public final class Menu {
 			return;
 		}
 
-		ShopDir shopDef = new ArrayList<>(Main.getINSTANCE().getShops().values()).get(e.getSlot());
+		ShopDef shopDef = new ArrayList<>(Main.getINSTANCE().getShops().values()).get(e.getSlot());
 
 		if (shopDef.getItemType() == ItemType.SHOP) {
 			openShop(player, shopDef);
@@ -139,9 +162,9 @@ public final class Menu {
 
 	}
 
-	public void openShop(Player player, ShopDir shopDef) {
+	public void openShop(Player player, ShopDef shopDef) {
 
-		if (!shopDef.getShop().equalsIgnoreCase("")) {
+		if (shopDef.getItemType() == ItemType.SHOP) {
 			/*
 			 * The currently open shop associated with this Menu instance.
 			 */

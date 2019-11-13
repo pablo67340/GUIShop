@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
  * Supports 1.8-1.14<br>
  * 1.13 and above as priority.
  */
-@SuppressWarnings({"unused", "SpellCheckingInspection", "deprecation"})
+@SuppressWarnings({"unused", "deprecation"})
 public enum XMaterial {
     ACACIA_BOAT(0, "BOAT_ACACIA"),
     ACACIA_BUTTON(0, "WOOD_BUTTON"),
@@ -1406,7 +1406,6 @@ public enum XMaterial {
      *
      * @return the ID of the material. -1 if it's a new block.
      */
-    @SuppressWarnings("deprecation")
     public int getId() {
         return this.isNew() ? -1 : Objects.requireNonNull(this.parseMaterial()).getId();
     }

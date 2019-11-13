@@ -17,9 +17,9 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.MobType;
-import com.pablo67340.guishop.handler.Item;
-import com.pablo67340.guishop.handler.Price;
+import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 

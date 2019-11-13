@@ -375,6 +375,8 @@ public class Shop {
 		str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
 		str = str.replace("{ITEM_NAME}", item.getName());
 		str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
+		str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
+		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
 
 		return str;
 	}

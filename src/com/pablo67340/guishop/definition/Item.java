@@ -71,7 +71,10 @@ public final class Item {
     public Boolean canBuyItem() {
         if (buyPrice instanceof Boolean) {
             return false;
-        } else return buyPrice instanceof Double;
+        } else if (buyPrice instanceof Integer || buyPrice instanceof Double) {
+        	return true;
+        }
+        return false;
     }
 
     public Boolean canSellItem() {

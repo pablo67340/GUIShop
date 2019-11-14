@@ -83,12 +83,22 @@ class Quantity {
 			List<String> lore = new ArrayList<>();
 
 			if (item.canBuyItem()) {
-				if ((Double) item.getBuyPrice() != 0) {
+				if (item.getBuyPrice() instanceof Double) {
+					if ((Double) item.getBuyPrice() != 0) {
 
-					lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-							+ ((double) item.getBuyPrice() * multiplier) + Config.getCurrencySuffix()));
-				} else if ((double) item.getBuyPrice() == 0) {
-					lore.add(Config.getFreeLore());
+						lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
+								+ ((double) item.getBuyPrice() * multiplier) + Config.getCurrencySuffix()));
+					} else if ((double) item.getBuyPrice() == 0) {
+						lore.add(Config.getFreeLore());
+					}
+				} else {
+					if ((Integer) item.getBuyPrice() != 0) {
+
+						lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
+								+ (((Integer) item.getBuyPrice()).doubleValue() * multiplier) + Config.getCurrencySuffix()));
+					} else if ((double) item.getBuyPrice() == 0) {
+						lore.add(Config.getFreeLore());
+					}
 				}
 			} else {
 				lore.add(Config.getCannotBuy());
@@ -259,8 +269,13 @@ class Quantity {
 		double priceToReimburse = 0D;
 
 		// if the item is not a shift click
+		
+		if (item.getBuyPrice() instanceof Double) {
 
-		priceToPay = ((Double) item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+			priceToPay = ((Double) item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+		}else {
+			priceToPay = (((Integer) item.getBuyPrice()).doubleValue() * e.getCurrentItem().getAmount()) - priceToReimburse;
+		}
 
 		// Check if the transition was successful
 

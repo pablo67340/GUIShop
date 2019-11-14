@@ -41,8 +41,8 @@ Raiding:
   '5':
     id: 'DROPPER'
     name: ''
-    buy-price: 135.0
-    sell-price: 0.0
+    buy-price: false
+    sell-price: false
     enchantments: ''
   '6':
     id: 'DISPENSER'

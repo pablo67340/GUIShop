@@ -140,7 +140,7 @@ public class Shop {
 				item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
 
 				item.setItemType(
-						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.BLANK);
+						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
 				item.setLore((section.contains("lore") ? section.getStringList("lore") : new ArrayList<>()));
 				item.setCommands(
@@ -174,11 +174,21 @@ public class Shop {
 			List<String> lore = new ArrayList<>();
 
 			if (item.canBuyItem()) {
-				if ((Double) item.getBuyPrice() != 0.0) {
-					lore.add(Config.getBuyLore().replace("{amount}",
-							Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
+				if (item.getBuyPrice() instanceof Double) {
+					if ((Double) item.getBuyPrice() != 0.0) {
+						lore.add(Config.getBuyLore().replace("{amount}",
+								Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
+					} else {
+						lore.add(Config.getFreeLore());
+					}
 				} else {
-					lore.add(Config.getFreeLore());
+					if ((Integer) item.getBuyPrice() != 0.0) {
+						lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
+								+ ((Integer) item.getBuyPrice()).doubleValue() + Config.getCurrencySuffix()));
+					} else {
+						lore.add(Config.getFreeLore());
+					}
+
 				}
 			} else {
 				lore.add(Config.getCannotBuy());
@@ -352,7 +362,7 @@ public class Shop {
 
 			Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
-			if (item.getItemType() == ItemType.SHOP) {
+			if (item.getItemType() == ItemType.SHOP && item.canBuyItem()) {
 				new Quantity(item, this).loadInventory().open(player);
 			} else if (item.getItemType() == ItemType.COMMAND) {
 				if (Main.getECONOMY().withdrawPlayer(player, (Double) item.getBuyPrice()).transactionSuccess()) {
@@ -364,6 +374,8 @@ public class Shop {
 					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
 							+ Config.getNotEnoughPost());
 				}
+			} else {
+				player.sendMessage(Config.getPrefix() +" "+ Config.getCannotBuy());
 			}
 		}
 	}

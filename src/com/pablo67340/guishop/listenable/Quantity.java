@@ -29,6 +29,8 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.XMaterial;
 
+import lombok.Getter;
+
 class Quantity {
 
 	/**
@@ -51,15 +53,19 @@ class Quantity {
 	 */
 	private Shop currentShop;
 
-	Quantity(Item item, Shop shop) {
+	@Getter
+	private Player player;
+
+	Quantity(Item item, Shop shop, Player input) {
 		this.item = item;
 		this.currentShop = shop;
+		this.player = input;
 	}
 
 	/**
 	 * Opens the GUI to sell the items in.
 	 */
-	void open(Player player) {
+	void open() {
 		GUI.setOnClose(this::onClose);
 		GUI.setOnTopClick(this::onQuantityClick);
 		GUI.setOnBottomClick(event -> {
@@ -94,8 +100,9 @@ class Quantity {
 				} else {
 					if ((Integer) item.getBuyPrice() != 0) {
 
-						lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-								+ (((Integer) item.getBuyPrice()).doubleValue() * multiplier) + Config.getCurrencySuffix()));
+						lore.add(Config.getBuyLore().replace("{amount}",
+								Config.getCurrency() + (((Integer) item.getBuyPrice()).doubleValue() * multiplier)
+										+ Config.getCurrencySuffix()));
 					} else if ((double) item.getBuyPrice() == 0) {
 						lore.add(Config.getFreeLore());
 					}
@@ -104,12 +111,9 @@ class Quantity {
 				lore.add(Config.getCannotBuy());
 			}
 
-			if ((double) item.getSellPrice() != 0) {
-				lore.add(Config.getSellLore().replace("{amount}", Config.getCurrency()
-						+ ((double) item.getSellPrice() * multiplier) + Config.getCurrencySuffix()));
-			} else if ((double) item.getSellPrice() == 0) {
-				lore.add(Config.getCannotSell());
-			}
+			item.getShopLore().forEach(str -> {
+				lore.add(ChatColor.translateAlternateColorCodes('&', str));
+			});
 
 			assert itemMeta != null;
 			itemMeta.setLore(lore);
@@ -122,8 +126,8 @@ class Quantity {
 				break;
 			}
 
-			if (item.getName() != null) {
-				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+			if (item.hasShopName()) {
+				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
 			} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
 				String mobName = item.getMobType();
 				mobName = mobName.toLowerCase();
@@ -214,7 +218,7 @@ class Quantity {
 		}
 
 		ItemStack itemStack = new ItemStack(e.getCurrentItem().getType());
-
+		ItemMeta itemMeta = itemStack.getItemMeta();
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
 			// If the item has enchantments
@@ -228,7 +232,6 @@ class Quantity {
 						meta.addStoredEnchant(Enchantments.getByName(enchantment), Integer.parseInt(level), true);
 
 					}
-					itemStack.setItemMeta(meta);
 				} else {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
@@ -244,10 +247,18 @@ class Quantity {
 
 		}
 
-		ItemMeta itemMeta = itemStack.getItemMeta();
-		if (item.getName() != null) {
+		List<String> lore = new ArrayList<>();
+
+		item.getBuyLore().forEach(str -> {
+			lore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, item)));
+		});
+
+		itemMeta.setLore(lore);
+
+		if (item.hasBuyName()) {
 			assert itemMeta != null;
-			itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
+			itemMeta.setDisplayName(
+					ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(item.getBuyName(), player, item)));
 		} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
 			String mobName = item.getMobType();
 			mobName = mobName.toLowerCase();
@@ -269,12 +280,13 @@ class Quantity {
 		double priceToReimburse = 0D;
 
 		// if the item is not a shift click
-		
+
 		if (item.getBuyPrice() instanceof Double) {
 
 			priceToPay = ((Double) item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
-		}else {
-			priceToPay = (((Integer) item.getBuyPrice()).doubleValue() * e.getCurrentItem().getAmount()) - priceToReimburse;
+		} else {
+			priceToPay = (((Integer) item.getBuyPrice()).doubleValue() * e.getCurrentItem().getAmount())
+					- priceToReimburse;
 		}
 
 		// Check if the transition was successful

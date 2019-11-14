@@ -476,10 +476,14 @@ Gear:
     enchantments: ''
   '5':
     id: 'DIAMOND_SWORD'
-    name: ''
-    buy-price: 100.0
-    sell-price: 0.0
-    enchantments: ''
+    name: '&bSword of the &0Unbreaking'
+    buy-price: 100
+    enchantments: 'DURABILITY:1'
+    shop-lore:
+      - '&aThis is the sword of unbreakingness'
+    buy-name: "&a{PLAYER_NAME}'s {ITEM_NAME}"
+    buy-lore:
+      - "&aPurchased by {PLAYER_NAME} for {BUY_PRICE}"
   '6':
     id: 'DIAMOND_AXE'
     name: ''

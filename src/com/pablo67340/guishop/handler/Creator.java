@@ -1,319 +1,150 @@
 package com.pablo67340.guishop.handler;
 
-import java.io.IOException;
 import java.util.*;
 
-import org.apache.commons.lang.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.Chest;
-import org.bukkit.enchantments.Enchantment;
+
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.definition.ShopDef;
+
+import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.XMaterial;
 
+import lombok.Getter;
+
 public final class Creator {
 
-    private final Player player;
-    public Chest chest;
-    public String name;
-    private List<String> lore = new ArrayList<>(2);
+	private final Player player;
+	@Getter
+	public Chest chest;
+	public String name;
+	private List<String> lore = new ArrayList<>(2);
+	@Getter
+	private Shop shop;
+	@Getter
+	private ShopDef shopDef;
 
-    public Creator(Player p) {
-        this.player = p;
-        this.lore.add(" ");
-        this.lore.add(" ");
-        this.lore.add(" ");
-    }
+	public Creator(Player p) {
+		this.player = p;
+	}
 
-    /**
-     * Set the chest needed to config GUIShop
-     */
-    public void setChest() {
-        BlockState potentialchest = this.player.getTargetBlock(null, 100).getState();
-        this.chest = (Chest) potentialchest;
-        this.player.sendMessage(Config.getPrefix() + " Target chest has been set!");
-    }
+	/**
+	 * Set the chest needed to config GUIShop
+	 */
+	public void setChest() {
+		BlockState potentialchest = this.player.getTargetBlock(null, 100).getState();
+		this.chest = (Chest) potentialchest;
+		this.player.sendMessage(Config.getPrefix() + " Target chest has been set!");
+	}
 
-    /**
-     * Open the player's chest
-     */
-    @SuppressWarnings("unused")
-    public void openChest() {
-        this.player.openInventory(chest.getInventory());
-    }
+	/**
+	 * Open the player's chest
+	 */
+	@SuppressWarnings("unused")
+	public void openChest() {
+		this.player.openInventory(chest.getInventory());
+	}
 
-    /**
-     * Clear the player's chest
-     */
-    @SuppressWarnings("unused")
-    public void clearChest() {
-        this.chest.getInventory().clear();
-    }
+	/**
+	 * Clear the player's chest
+	 */
+	@SuppressWarnings("unused")
+	public void clearChest() {
+		this.chest.getInventory().clear();
+	}
 
-    /**
-     * @param input shop name
-     *              <p>
-     *              Set the current edited shop
-     */
-    public void setShopName(String input) {
-        this.name = input;
-        this.player.sendMessage(Config.getPrefix() + " Shop name set!");
-    }
+	/**
+	 * @param input shop name
+	 *              <p>
+	 *              Set the current edited shop
+	 */
+	public void setShopName(String input) {
+		if (Main.getINSTANCE().getShops().containsKey(input)) {
+			shopDef = Main.getINSTANCE().getShops().get(input);
+		} else {
+			shopDef = new ShopDef(input, input, "", new ArrayList<>(), ItemType.SHOP, "AIR");
+		}
+		this.name = input;
+		this.player.sendMessage(Config.getPrefix() + " Shop name set!");
+	}
 
-    /**
-     * @param price Price
-     *              <p>
-     *              Set an item's buy price
-     */
-    @SuppressWarnings("deprecation")
-    public void setPrice(Double price) {
-        ItemStack item;
-        if (XMaterial.isNewVersion()) {
-            item = this.player.getInventory().getItemInMainHand();
-        } else {
-            item = this.player.getItemInHand();
-        }
-        ItemMeta im = item.getItemMeta();
-        assert im != null;
-        if (im.getLore() == null) {
-            this.lore.set(0, " ");
-            this.lore.set(1, " ");
-            this.lore.set(2, " ");
-        }
-        this.lore.set(0, price.toString());
-        im.setLore(lore);
-        item.setItemMeta(im);
-        this.player.sendMessage(Config.getPrefix() + " Price set: " + price);
-    }
+	/**
+	 * @param price Price
+	 *              <p>
+	 *              Set an item's buy price
+	 */
+	@SuppressWarnings("deprecation")
+	public void setPrice(Double price) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = this.player.getInventory().getItemInMainHand();
+		} else {
+			item = this.player.getItemInHand();
+		}
 
-    /**
-     * @param sell Sell value
-     *             <p>
-     *             Set an item's sell price
-     */
-    @SuppressWarnings("deprecation")
-    public void setSell(Double sell) {
-        ItemStack item;
-        if (XMaterial.isNewVersion()) {
-            item = this.player.getInventory().getItemInMainHand();
-        } else {
-            item = this.player.getItemInHand();
-        }
-        ItemMeta im = item.getItemMeta();
-        assert im != null;
-        if (im.getLore() == null) {
-            this.lore.set(0, " ");
-            this.lore.set(1, " ");
-            this.lore.set(2, " ");
-        }
-        this.lore.set(1, sell.toString());
-        im.setLore(lore);
-        item.setItemMeta(im);
-        this.player.sendMessage(Config.getPrefix() + " Sell value set: " + sell);
-    }
+		this.player.sendMessage(Config.getPrefix() + " Price set: " + price);
+	}
 
-    /**
-     * @param name Name
-     *             Set the item's name
-     */
-    @SuppressWarnings("deprecation")
-    public void setName(String name) {
-        ItemStack item;
-        if (XMaterial.isNewVersion()) {
-            item = this.player.getInventory().getItemInMainHand();
-        } else {
-            item = this.player.getItemInHand();
-        }
-        ItemMeta im = item.getItemMeta();
-        assert im != null;
-        if (im.getLore() == null) {
-            this.lore.set(0, " ");
-            this.lore.set(1, " ");
-            this.lore.set(2, " ");
-        }
-        this.lore.set(2, name);
-        im.setLore(lore);
-        item.setItemMeta(im);
-        this.player.sendMessage(Config.getPrefix() + " name value set: " + name);
-    }
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public void setSell(Double sell) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = this.player.getInventory().getItemInMainHand();
+		} else {
+			item = this.player.getItemInHand();
+		}
 
-    /**
-     * Save's the specified shop to the config
-     */
-    @SuppressWarnings({"rawtypes", "deprecation"})
-    public void saveShop() {
+		this.player.sendMessage(Config.getPrefix() + " Sell value set: " + sell);
+	}
 
-        int index = 0;
-        for (ItemStack itm : this.chest.getInventory().getContents()) {
-            List<Map> citem = new ArrayList<>(this.chest.getInventory().getContents().length);
-            if (itm != null) {
-                if (itm.hasItemMeta()) {
-                    index += 1;
-                    Map<String, String> iName = new HashMap<>();
-                    Map<String, Double> iBuy = new HashMap<>();
-                    Map<String, Double> iSell = new HashMap<>();
-                    Map<String, String> iItemID = new HashMap<>();
-                    Map<String, String> iEnchantments = new HashMap<>();
-                    Map<String, Integer> iSlot = new HashMap<>();
-                    ItemMeta im = itm.getItemMeta();
-                    assert im != null;
-                    List<String> lore = im.getLore();
-                    double price = 0.0;
-                    double sell = 0.0;
-                    String name = "";
-                    assert lore != null;
-                    if (!lore.get(0).equalsIgnoreCase(" ")) {
-                        price = Double.parseDouble(lore.get(0));
-                    }
+	/**
+	 * @param name Name Set the item's name
+	 */
+	@SuppressWarnings("deprecation")
+	public void setName(String name) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = this.player.getInventory().getItemInMainHand();
+		} else {
+			item = this.player.getItemInHand();
+		}
+		ItemMeta im = item.getItemMeta();
+		assert im != null;
+		if (im.getLore() == null) {
+			this.lore.set(0, " ");
+			this.lore.set(1, " ");
+			this.lore.set(2, " ");
+		}
+		this.lore.set(2, name);
+		im.setLore(lore);
+		item.setItemMeta(im);
+		this.player.sendMessage(Config.getPrefix() + " name value set: " + name);
+	}
 
-                    if (!lore.get(1).equalsIgnoreCase(" ")) {
-                        sell = Double.parseDouble(lore.get(1));
-                    }
+	public void loadShop() {
+		this.shop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore());
+		this.shop.setIsEditor(true);
+		this.shop.loadItems();
+	}
 
-                    if (!lore.get(2).equalsIgnoreCase(" ")) {
-                        name = lore.get(2);
-                    }
+	public void saveShop() {
 
-                    String itemID = Integer.toString(Objects.requireNonNull(itm.getData()).getItemType().getId());
-                    String data = Byte.toString(itm.getData().getData());
-                    itemID = itemID + ":" + data;
+	}
 
-                    String enchantments;
-                    StringBuilder builder = new StringBuilder();
-                    for (Enchantment ench : itm.getEnchantments().keySet()) {
-                        builder.append(ench.getName()).append(":").append(itm.getEnchantmentLevel(ench)).append(" ");
-                    }
-                    enchantments = builder.toString();
-                    iItemID.put("id", itemID);
-                    iName.put("name", name);
-                    iBuy.put("buy-price", price);
-                    iSell.put("sell-price", sell);
-                    iSlot.put("slot", index - 1);
-                    iEnchantments.put("enchantments", enchantments.trim());
-
-                    citem.add(iItemID);
-                    citem.add(iSlot);
-                    citem.add(iName);
-                    citem.add(iBuy);
-                    citem.add(iSell);
-                    citem.add(iEnchantments);
-
-                    Main.getINSTANCE().getCustomConfig().set(this.name + "." + index, citem);
-
-                    for (Player p : Bukkit.getOnlinePlayers()) {
-
-                        Menu menu = new Menu();
-                        menu.preLoad(p);
-                    }
-                }
-            } else {
-                Main.getINSTANCE().getCustomConfig().set(this.name + ".index", null);
-            }
-        }
-        try {
-            Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        Main.INSTANCE.reloadConfig();
-        Main.INSTANCE.createFiles();
-        Main.INSTANCE.loadDefaults();
-
-        player.sendMessage(Config.getPrefix() + " Shop saved!");
-    }
-
-    /**
-     * Loads the specific shop from the config
-     */
-    @SuppressWarnings("deprecation")
-    public void loadShop() {
-        this.chest.getInventory().clear();
-        int index = 0;
-        for (String str : Main.getINSTANCE().getCustomConfig().getKeys(true)) {
-            if (str.contains(".") && str.contains(this.name)) {
-                Item item = new Item();
-                List<Map<?, ?>> citem = Main.getINSTANCE().getCustomConfig().getMapList(str);
-                for (Map<?, ?> map : citem) {
-                    if (map.containsKey("id")) {
-
-                        String itemID = (String) map.get("id");
-                        item.setMaterial(itemID);
-
-                    } else if (map.containsKey("name")) {
-                        item.setName((String) map.get("name"));
-                    } else if (map.containsKey("buy-price")) {
-                        Integer buy;
-                        Double buy2;
-                        try {
-                            buy = (Integer) map.get("buy-price");
-                            item.setBuyPrice(buy);
-                        } catch (Exception e) {
-                            buy2 = (Double) map.get("buy-price");
-                            item.setBuyPrice(buy2);
-                        }
-                    } else if (map.containsKey("sell-price")) {
-                        Integer sell;
-                        Double sell2;
-
-                        try {
-                            sell = (Integer) map.get("sell-price");
-                            item.setSellPrice(sell);
-                        } catch (Exception e) {
-                            sell2 = (Double) map.get("sell-price");
-                            item.setSellPrice(sell2);
-                        }
-                    }
-                }
-
-                ItemStack itemStack = XMaterial.valueOf(item.getMaterial()).parseItem();
-
-                ItemMeta itemMeta = itemStack.getItemMeta();
-
-                assert itemMeta != null;
-                itemMeta.setLore(Arrays.asList(Double.toString((Double) item.getBuyPrice()),
-                        Double.toString((Double) item.getSellPrice()), item.getName()));
-
-                if (item.getName() != null)
-                    itemMeta.setDisplayName(item.getName());
-                itemStack.setItemMeta(itemMeta);
-
-                if (item.getEnchantments() != null) {
-
-                    for (String enc : item.getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
-                        itemStack.addUnsafeEnchantment(Objects.requireNonNull(Enchantment.getByName(enchantment)), Integer.parseInt(level));
-                    }
-                }
-                this.chest.getInventory().setItem(index, itemStack);
-                if (!Config.isEscapeOnly()) {
-
-                    ItemStack backButtonItem = new ItemStack(
-                            Objects.requireNonNull(XMaterial.valueOf(Config.getBackButtonItem()).parseMaterial()));
-
-                    ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-                    assert backButtonMeta != null;
-                    backButtonMeta.setDisplayName(
-                            ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(Main.INSTANCE.getConfig().getString("back"))));
-
-                    backButtonItem.setItemMeta(backButtonMeta);
-
-                    this.chest.getInventory().setItem(this.chest.getInventory().getSize(), backButtonItem);
-                }
-
-            }
-            index += 1;
-        }
-        player.sendMessage(Config.getPrefix() + " Shop loaded!");
-    }
+	public void openShop() {
+		shop.open(player);
+	}
 
 }

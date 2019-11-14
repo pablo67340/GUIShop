@@ -4,7 +4,7 @@ import java.util.Objects;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
-
+import org.bukkit.block.Chest;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
 
@@ -86,9 +86,7 @@ public final class PlayerListener implements Listener {
 			if (Main.SELL_COMMANDS.contains(command)) {
 				if (player.hasPermission("guishop.sell") || player.isOp()) {
 					e.setCancelled(true);
-					Sell sell = new Sell();
-					sell.load();
-					sell.open(player);
+					new Sell().open(player);
 					return;
 				} else {
 					player.sendMessage(Config.getNoPermission());
@@ -241,6 +239,12 @@ public final class PlayerListener implements Listener {
 						player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
 					}
 
+				}
+			} else if (block.getState() instanceof Chest) {
+				Chest chest = (Chest) block.getState();
+				if (Main.CREATOR.get(player.getName()).getChest().getLocation().distance(chest.getLocation()) == 0.0) {
+					e.setCancelled(true);
+					Main.CREATOR.get(player.getName()).openShop();
 				}
 			}
 		}

@@ -12,7 +12,7 @@ public final class Item {
      */
     @Getter
     @Setter
-    private String name;
+    private String shopName, buyName;
 
     @Getter
     @Setter
@@ -55,7 +55,7 @@ public final class Item {
     
     @Getter
     @Setter
-    private List<String> lore;
+    private List<String> buyLore, shopLore;
     
     @Getter
     @Setter
@@ -84,6 +84,14 @@ public final class Item {
             return (Double) sellPrice != 0;
         }
         return false;
+    }
+    
+    public Boolean hasShopName() {
+    	return !shopName.equalsIgnoreCase(" ");
+    }
+    
+    public Boolean hasBuyName() {
+    	return !buyName.equalsIgnoreCase(" ");
     }
 
     public Boolean isMobSpawner() {

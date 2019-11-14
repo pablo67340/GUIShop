@@ -51,7 +51,6 @@ public final class Menu {
 			// whatever item utils it needs too. Usually takes about 4s.
 			for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
 				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
-				break;
 			}
 			long estimatedTime = System.currentTimeMillis() - startTime;
 			Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
@@ -162,7 +161,7 @@ public final class Menu {
 
 	}
 
-	public void openShop(Player player, ShopDef shopDef) {
+	public Shop openShop(Player player, ShopDef shopDef) {
 
 		if (shopDef.getItemType() == ItemType.SHOP) {
 			/*
@@ -178,7 +177,9 @@ public final class Menu {
 			}
 			openShop.loadItems();
 			openShop.open(player);
+			return openShop;
 		}
+		return null;
 	}
 
 }

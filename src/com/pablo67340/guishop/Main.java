@@ -19,12 +19,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
-
 import com.pablo67340.guishop.util.Config;
 
 import lombok.Getter;
@@ -77,11 +77,15 @@ public final class Main extends JavaPlugin {
 
 	@Getter
 	public Map<String, List<Item>> loadedShops = new HashMap<>();
+	
+	@Getter
+	private final Map<String, Price> PRICETABLE = new HashMap<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
 	 * starts.
 	 */
+	@Getter
 	public static final Map<String, Creator> CREATOR = new HashMap<>();
 
 	@Override
@@ -123,10 +127,9 @@ public final class Main extends JavaPlugin {
 					? ItemType.valueOf(menuItems.getString(key + ".Type"))
 					: ItemType.SHOP;
 
-			if (itemType == ItemType.SHOP) {
-				if (!menuItems.getBoolean(key + ".Enabled")) {
-					continue;
-				}
+			if (!menuItems.getBoolean(key + ".Enabled") && itemType == ItemType.SHOP) {
+				continue;
+
 			}
 
 			String itemID = itemType != ItemType.BLANK ? menuItems.getString(key + ".Item") : "AIR";
@@ -141,6 +144,7 @@ public final class Main extends JavaPlugin {
 		}
 
 		new Menu().itemWarmup();
+		loadPRICETABLE();
 	}
 
 	/**
@@ -207,8 +211,6 @@ public final class Main extends JavaPlugin {
 				Objects.requireNonNull(getMainConfig().getString("back-button-item"))));
 		Config.setBackButtonText(
 				ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getMainConfig().getString("back"))));
-		Config.setAccessTo(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("access-to"))));
 		Config.setBuyLore(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("buy-lore"))));
 		Config.setSellLore(ChatColor.translateAlternateColorCodes('&',
@@ -221,6 +223,48 @@ public final class Main extends JavaPlugin {
 		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
+	}
+	
+	
+	private void loadPRICETABLE() {
+		Item item;
+
+		for (String shop : Main.getINSTANCE().getCustomConfig().getKeys(false)) {
+
+			ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
+
+			assert config != null;
+			for (String str : config.getKeys(false)) {
+
+				item = new Item();
+
+				ConfigurationSection section = config.getConfigurationSection(str);
+
+				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
+				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
+
+				item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
+
+				item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
+
+				item.setItemType(
+						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
+
+				if (item.getSellPrice() != null && (!(item.getSellPrice() instanceof Boolean))) {
+
+					Double sellPrice = item.getSellPrice() instanceof Integer
+							? ((Integer) item.getSellPrice()).doubleValue()
+							: ((Double) item.getSellPrice());
+
+					if (item.isMobSpawner()) {
+						PRICETABLE.put(item.getMaterial() + ":" + item.getMobType().toLowerCase(),
+								new Price(sellPrice));
+					} else {
+						PRICETABLE.put(item.getMaterial(), new Price(sellPrice));
+					}
+				}
+			}
+		}
 	}
 
 	/**
@@ -243,17 +287,28 @@ public final class Main extends JavaPlugin {
 
 		mainConfig = new YamlConfiguration();
 		customConfig = new YamlConfiguration();
-		try {
-			try {
-				mainConfig.load(configf);
-				customConfig.load(specialf);
-			} catch (InvalidConfigurationException e) {
-				e.printStackTrace();
-			}
 
-		} catch (IOException e) {
+		try {
+			mainConfig.load(configf);
+			customConfig.load(specialf);
+		} catch (InvalidConfigurationException | IOException e) {
 			e.printStackTrace();
 		}
+
+	}
+	
+	public static String placeholderIfy(String input, Player player, Item item) {
+		String str = input;
+
+		str = str.replace("{PLAYER_NAME}", player.getName());
+		str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
+		str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
+		str = str.replace("{ITEM_BUY_NAME}", item.getBuyName());
+		str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
+		str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
+		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
+
+		return str;
 	}
 
 }

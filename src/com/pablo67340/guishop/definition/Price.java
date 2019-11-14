@@ -17,5 +17,13 @@ public final class Price {
         this.buyPrice = buyPrice;
         this.sellPrice = sellPrice;
     }
+    
+    /**
+     * Constructor, build entire {@link Price} at once.
+     */
+    public Price(double sellPrice) {
+        this.buyPrice = 0.0;
+        this.sellPrice = sellPrice;
+    }
 
 }

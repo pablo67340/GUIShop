@@ -97,98 +97,13 @@ public final class PlayerListener implements Listener {
 
 			if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")) {
 				e.setCancelled(true);
-
-				if (cut.length > 1) {
-
-					if (cut[1].equalsIgnoreCase("start")) {
-						if (player.hasPermission("guishop.creator") || player.isOp()) {
-							player.sendMessage(Config.getPrefix() + " Entered creator mode!");
-							Main.CREATOR.put(player.getName(), new Creator(player));
-						} else {
-							player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
-							e.setCancelled(true);
-							return;
+				if (cut.length == 2) {
+					if (cut[1].equalsIgnoreCase("edit")) {
+						if (player.hasPermission("guishop.admin")) {
+							Main.getCREATOR().put(player.getName(), new Creator(player));
+							openShop(player);
 						}
-					} else if (cut[1].equalsIgnoreCase("stop")) {
-						if (player.hasPermission("guishop.creator")) {
-							player.sendMessage(Config.getPrefix() + " Exited creator mode!");
-							Main.CREATOR.remove(player.getName());
-						} else {
-							player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
-						}
-					} else if (cut[1].equalsIgnoreCase("setchest")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							Main.CREATOR.get(player.getName()).setChest();
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("setshopname")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							Main.CREATOR.get(player.getName()).setShopName(cut[2]);
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("saveshop")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							if (Main.CREATOR.get(player.getName()).name == null) {
-								player.sendMessage(Config.getPrefix() + "Set a shop name!");
-							} else if (Main.CREATOR.get(player.getName()).chest == null) {
-								player.sendMessage(Config.getPrefix() + " Set a chest location!");
-							} else {
-								Main.CREATOR.get(player.getName()).saveShop();
-							}
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("p")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							Main.CREATOR.get(player.getName()).setPrice(Double.parseDouble(cut[2]));
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("s")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							Main.CREATOR.get(player.getName()).setSell(Double.parseDouble(cut[2]));
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("n")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							StringBuilder name = new StringBuilder();
-							for (String str : cut) {
-								if (!str.equalsIgnoreCase(cut[2])) {
-									name.append(str).append(" ");
-								}
-							}
-							Main.CREATOR.get(player.getName()).setName(name.toString().trim());
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("loadshop")) {
-						if (Main.CREATOR.containsKey(player.getName())) {
-							if (Main.CREATOR.get(player.getName()).name == null) {
-								player.sendMessage(Config.getPrefix() + "Set a shop name!");
-							} else if (Main.CREATOR.get(player.getName()).chest == null) {
-								player.sendMessage(Config.getPrefix() + " Set a chest location!");
-							} else {
-								Main.CREATOR.get(player.getName()).loadShop();
-							}
-						} else {
-							player.sendMessage(Config.getPrefix() + " You need to start a creator session!");
-						}
-					} else if (cut[1].equalsIgnoreCase("reload")) {
-						if (player.hasPermission("guishop.reload") || player.isOp()) {
-							Main.INSTANCE.reloadConfig();
-							Main.INSTANCE.createFiles();
-							Main.INSTANCE.loadDefaults();
-
-							player.sendMessage("�aGUIShop has been reloaded!");
-						}
-					} else {
-						printUsage(player);
 					}
-				} else {
-					printUsage(player);
 				}
 			}
 
@@ -239,12 +154,6 @@ public final class PlayerListener implements Listener {
 						player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
 					}
 
-				}
-			} else if (block.getState() instanceof Chest) {
-				Chest chest = (Chest) block.getState();
-				if (Main.CREATOR.get(player.getName()).getChest().getLocation().distance(chest.getLocation()) == 0.0) {
-					e.setCancelled(true);
-					Main.CREATOR.get(player.getName()).openShop();
 				}
 			}
 		}

@@ -73,8 +73,7 @@ public class Shop {
 
 	private PaginatedPane currentPane;
 
-	@Getter
-	private Boolean editor = false;
+	int oldPage = 0;
 
 	/**
 	 * The constructor for a {@link Shop}.
@@ -276,6 +275,7 @@ public class Shop {
 					applyButtons(page);
 				}
 				lastIndex = index;
+				System.out.println("Adding page to: " + pageC);
 				pane.addPane(pageC, page);
 				pageC += 1;
 				page = new ShopPane(9, 6);
@@ -288,6 +288,7 @@ public class Shop {
 			}
 
 			if (index + 1 == items.size()) {
+				System.out.println("Adding page to: " + pageC);
 				pane.addPane(pageC, page);
 				applyButtons(page);
 				GUI.addPane(pane);
@@ -330,7 +331,7 @@ public class Shop {
 	 */
 	public void open(Player input) {
 		GUI.show(input);
-		if (!editor) {
+		if (!Main.getCREATOR().containsKey(input.getName())) {
 			GUI.setOnBottomClick(event -> {
 				event.setCancelled(true);
 			});
@@ -341,11 +342,11 @@ public class Shop {
 	}
 
 	private void onShopClick(InventoryClickEvent e) {
-		if (!editor) {
+		Player player = (Player) e.getWhoClicked();
+		if (!Main.getCREATOR().containsKey(player.getName())) {
 			e.setCancelled(true);
 		}
 
-		Player player = (Player) e.getWhoClicked();
 		hasClicked = true;
 
 		/*
@@ -372,28 +373,27 @@ public class Shop {
 			if (e.getSlot() == 51) {
 				hasClicked = true;
 
-				Pane[] arr = new Pane[54];
-				arr = currentPane.getPanes().toArray(arr);
-				arr[currentPane.getPage()].setVisible(false);
+				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
+				System.out.println("Switched to page: " + (currentPane.getPage() + 1));
 				currentPane.setPage(currentPane.getPage() + 1);
 
-				arr[currentPane.getPage()].setVisible(true);
+				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
 				GUI.update();
 				return;
 				// Backward Button
 			} else if (e.getSlot() == 47) {
 				hasClicked = true;
-				Pane[] arr = new Pane[54];
-				arr = currentPane.getPanes().toArray(arr);
-				arr[currentPane.getPage()].setVisible(false);
+
+				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
+				System.out.println("Switched to page: " + (currentPane.getPage() - 1));
 				currentPane.setPage(currentPane.getPage() - 1);
 
-				arr[currentPane.getPage()].setVisible(true);
+				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
 				GUI.update();
 				return;
 				// Back Button
 			} else if (e.getSlot() == 53 && !Config.isEscapeOnly()) {
-				if (menuInstance != null && !editor) {
+				if (menuInstance != null && !Main.getCREATOR().containsKey(player.getName())) {
 					menuInstance.open(player);
 				}
 				return;
@@ -402,7 +402,7 @@ public class Shop {
 			/*
 			 * If the player has enough money to purchase the item, then allow them to.
 			 */
-			if (!editor) {
+			if (!Main.getCREATOR().containsKey(player.getName())) {
 				Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
 				if (item.getItemType() == ItemType.SHOP && item.canBuyItem()) {
@@ -428,8 +428,9 @@ public class Shop {
 	 * The inventory closeEvent handling for the Menu.
 	 */
 	private void onClose(InventoryCloseEvent e) {
-		if (!editor) {
-			Player player = (Player) e.getPlayer();
+		System.out.println("Close");
+		Player player = (Player) e.getPlayer();
+		if (!Main.getCREATOR().containsKey(player.getName())) {
 			if (Config.isEscapeOnly() && !hasClicked) {
 				BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 				scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> menuInstance.open(player), 1L);
@@ -438,19 +439,45 @@ public class Shop {
 				hasClicked = false;
 			}
 		} else {
-			if (!hasClicked) {
-
-				
-				
-			} else {
+			if (hasClicked) {
 				hasClicked = false;
 			}
-		}
-	}
 
-	public Shop setIsEditor(Boolean editor) {
-		this.editor = editor;
-		return this;
+			if (currentPane.getPage() != 0) {
+				System.out.println("Saving pane to: " + (currentPane.getPage() - 1));
+			} else {
+				System.out.println("Saving pane to: " + (currentPane.getPage() + 1));
+			}
+
+			// Collections.reverse(panes);
+			ItemStack[] items = GUI.getInventory().getContents();
+			int slot = 0;
+			for (ItemStack item : items) {
+				if (item != null) {
+
+					if (currentPane.getPage() != 0) {
+						((ShopPane) (currentPane.getPane(currentPane.getPage() - 1))).getINSTANCE()
+								.setItem(new GuiItem(item), slot);
+					} else {
+						((ShopPane) (currentPane.getPane(currentPane.getPage() + 1))).getINSTANCE()
+								.setItem(new GuiItem(item), slot);
+					}
+				} else {
+					if (currentPane.getPage() != 0) {
+
+						((ShopPane) (currentPane.getPane(currentPane.getPage() - 1))).getINSTANCE()
+								.setItem(new GuiItem(new ItemStack(Material.AIR)), slot);
+					} else {
+						((ShopPane) (currentPane.getPane(currentPane.getPage() - 1))).getINSTANCE()
+								.setItem(new GuiItem(new ItemStack(Material.AIR)), slot);
+					}
+				}
+				slot += 1;
+			}
+
+			System.out.println("current Page after updates: " + currentPane.getPage());
+
+		}
 	}
 
 }

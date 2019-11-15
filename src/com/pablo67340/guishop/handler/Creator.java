@@ -23,7 +23,6 @@ public final class Creator {
 
 	private final Player player;
 	@Getter
-	public Chest chest;
 	public String name;
 	private List<String> lore = new ArrayList<>(2);
 	@Getter
@@ -35,45 +34,6 @@ public final class Creator {
 		this.player = p;
 	}
 
-	/**
-	 * Set the chest needed to config GUIShop
-	 */
-	public void setChest() {
-		BlockState potentialchest = this.player.getTargetBlock(null, 100).getState();
-		this.chest = (Chest) potentialchest;
-		this.player.sendMessage(Config.getPrefix() + " Target chest has been set!");
-	}
-
-	/**
-	 * Open the player's chest
-	 */
-	@SuppressWarnings("unused")
-	public void openChest() {
-		this.player.openInventory(chest.getInventory());
-	}
-
-	/**
-	 * Clear the player's chest
-	 */
-	@SuppressWarnings("unused")
-	public void clearChest() {
-		this.chest.getInventory().clear();
-	}
-
-	/**
-	 * @param input shop name
-	 *              <p>
-	 *              Set the current edited shop
-	 */
-	public void setShopName(String input) {
-		if (Main.getINSTANCE().getShops().containsKey(input)) {
-			shopDef = Main.getINSTANCE().getShops().get(input);
-		} else {
-			shopDef = new ShopDef(input, input, "", new ArrayList<>(), ItemType.SHOP, "AIR");
-		}
-		this.name = input;
-		this.player.sendMessage(Config.getPrefix() + " Shop name set!");
-	}
 
 	/**
 	 * @param price Price
@@ -133,18 +93,6 @@ public final class Creator {
 		this.player.sendMessage(Config.getPrefix() + " name value set: " + name);
 	}
 
-	public void loadShop() {
-		this.shop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore());
-		this.shop.setIsEditor(true);
-		this.shop.loadItems();
-	}
-
-	public void saveShop() {
-
-	}
-
-	public void openShop() {
-		shop.open(player);
-	}
+	
 
 }

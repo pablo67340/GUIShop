@@ -19,10 +19,12 @@ import org.jetbrains.annotations.NotNull;
 public class ShopPane extends Pane {
 
 	private Map<Integer, GuiItem> items;
+	public static ShopPane INSTANCE;
 
 	public ShopPane(int length, int height) {
 		super(length, height);
 		items = new HashMap<>();
+		INSTANCE = this;
 	}
 
 	public void addItem(GuiItem item) {
@@ -61,6 +63,10 @@ public class ShopPane extends Pane {
 	@Override
 	public Collection<Pane> getPanes() {
 		return new HashSet<>();
+	}
+	
+	public ShopPane getINSTANCE() {
+		return INSTANCE;
 	}
 
 }

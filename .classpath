@@ -19,6 +19,6 @@
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.14.4/plugins/Vault.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.14.4/minecraft.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/lombok.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/IF-0.5.12.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/IF-0.5.12.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

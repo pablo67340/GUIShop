@@ -440,8 +440,7 @@ public class Shop {
 		} else {
 			if (!hasClicked) {
 
-				GUI.update();
-				GUI.getInventory().
+				
 				
 			} else {
 				hasClicked = false;

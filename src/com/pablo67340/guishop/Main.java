@@ -260,6 +260,7 @@ public final class Main extends JavaPlugin {
 						PRICETABLE.put(item.getMaterial() + ":" + item.getMobType().toLowerCase(),
 								new Price(sellPrice));
 					} else {
+						System.out.println("Added: "+item.getMaterial());
 						PRICETABLE.put(item.getMaterial(), new Price(sellPrice));
 					}
 				}

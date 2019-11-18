@@ -97,11 +97,31 @@ public final class PlayerListener implements Listener {
 
 			if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")) {
 				e.setCancelled(true);
-				if (cut.length == 2) {
+				if (cut.length >= 2) {
 					if (cut[1].equalsIgnoreCase("edit")) {
 						if (player.hasPermission("guishop.admin")) {
 							Main.getCREATOR().put(player.getName(), new Creator(player));
 							openShop(player);
+						}
+					} else if (cut[1].equalsIgnoreCase("p")) {
+						if (Main.getCREATOR().containsKey(player.getName())) {
+							Object result = null;
+							if (cut[2].equalsIgnoreCase("false")) {
+								result = false;
+							} else {
+								try {
+									result = Double.parseDouble(cut[2]);
+								} catch (Exception ex) {
+									try {
+										result = Integer.parseInt(cut[2]);
+									} catch (Exception ex2) {
+										player.sendMessage("Please use a valid value");
+									}
+								}
+							}
+							Main.getCREATOR().get(player.getName()).setPrice(result);
+						} else {
+							player.sendMessage("Please edit a shop first!");
 						}
 					}
 				}

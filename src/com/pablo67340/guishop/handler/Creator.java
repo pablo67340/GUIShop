@@ -2,15 +2,10 @@ package com.pablo67340.guishop.handler;
 
 import java.util.*;
 
-import org.bukkit.block.BlockState;
-import org.bukkit.block.Chest;
-
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
 
 import com.pablo67340.guishop.listenable.Shop;
@@ -48,6 +43,13 @@ public final class Creator {
 		} else {
 			item = this.player.getItemInHand();
 		}
+		
+		ItemMeta im = item.getItemMeta();
+		List<String> lore = im.getLore();
+		lore.set(0, Config.getBuyLore()+" "+price);
+		
+		im.setLore(lore);
+		item.setItemMeta(im);
 
 		this.player.sendMessage(Config.getPrefix() + " Price set: " + price);
 	}

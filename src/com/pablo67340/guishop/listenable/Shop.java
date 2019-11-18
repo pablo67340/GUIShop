@@ -16,7 +16,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
@@ -373,6 +372,15 @@ public class Shop {
 			if (e.getSlot() == 51) {
 				hasClicked = true;
 
+				ItemStack[] items = GUI.getInventory().getContents();
+
+				int slot = 0;
+				for (ItemStack item : items) {
+					((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
+							slot);
+					slot += 1;
+				}
+
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
 				System.out.println("Switched to page: " + (currentPane.getPage() + 1));
 				currentPane.setPage(currentPane.getPage() + 1);
@@ -383,6 +391,15 @@ public class Shop {
 				// Backward Button
 			} else if (e.getSlot() == 47) {
 				hasClicked = true;
+
+				ItemStack[] items = GUI.getInventory().getContents();
+
+				int slot = 0;
+				for (ItemStack item : items) {
+					((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
+							slot);
+					slot += 1;
+				}
 
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
 				System.out.println("Switched to page: " + (currentPane.getPage() - 1));
@@ -442,40 +459,6 @@ public class Shop {
 			if (hasClicked) {
 				hasClicked = false;
 			}
-
-			if (currentPane.getPage() != 0) {
-				System.out.println("Saving pane to: " + (currentPane.getPage() - 1));
-			} else {
-				System.out.println("Saving pane to: " + (currentPane.getPage() + 1));
-			}
-
-			// Collections.reverse(panes);
-			ItemStack[] items = GUI.getInventory().getContents();
-			int slot = 0;
-			for (ItemStack item : items) {
-				if (item != null) {
-
-					if (currentPane.getPage() != 0) {
-						((ShopPane) (currentPane.getPane(currentPane.getPage() - 1))).getINSTANCE()
-								.setItem(new GuiItem(item), slot);
-					} else {
-						((ShopPane) (currentPane.getPane(currentPane.getPage() + 1))).getINSTANCE()
-								.setItem(new GuiItem(item), slot);
-					}
-				} else {
-					if (currentPane.getPage() != 0) {
-
-						((ShopPane) (currentPane.getPane(currentPane.getPage() - 1))).getINSTANCE()
-								.setItem(new GuiItem(new ItemStack(Material.AIR)), slot);
-					} else {
-						((ShopPane) (currentPane.getPane(currentPane.getPage() - 1))).getINSTANCE()
-								.setItem(new GuiItem(new ItemStack(Material.AIR)), slot);
-					}
-				}
-				slot += 1;
-			}
-
-			System.out.println("current Page after updates: " + currentPane.getPage());
 
 		}
 	}

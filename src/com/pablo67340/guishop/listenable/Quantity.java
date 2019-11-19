@@ -137,11 +137,14 @@ class Quantity {
 
 			gItem.getItem().setItemMeta(itemMeta);
 
-			if (item.getEnchantments().length > 1) {
-				for (String enc : item.getEnchantments()) {
-					String enchantment = StringUtils.substringBefore(enc, ":");
-					String level = StringUtils.substringAfter(enc, ":");
-					gItem.getItem().addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+			if (item.hasEnchantments()) {
+				if (item.getEnchantments().length > 1) {
+					for (String enc : item.getEnchantments()) {
+						String enchantment = StringUtils.substringBefore(enc, ":");
+						String level = StringUtils.substringAfter(enc, ":");
+						gItem.getItem().addUnsafeEnchantment(Enchantments.getByName(enchantment),
+								Integer.parseInt(level));
+					}
 				}
 			}
 
@@ -222,7 +225,7 @@ class Quantity {
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
 			// If the item has enchantments
-			if (item.getEnchantments().length > 1) {
+			if (item.hasEnchantments()) {
 				if (itemStack.getType() == Material.ENCHANTED_BOOK) {
 					EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
 					for (String enc : item.getEnchantments()) {

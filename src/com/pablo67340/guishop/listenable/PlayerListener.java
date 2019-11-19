@@ -4,7 +4,6 @@ import java.util.Objects;
 
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
 
@@ -20,10 +19,10 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 
-import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.XMaterial;
 
 public final class PlayerListener implements Listener {
@@ -100,29 +99,51 @@ public final class PlayerListener implements Listener {
 				if (cut.length >= 2) {
 					if (cut[1].equalsIgnoreCase("edit")) {
 						if (player.hasPermission("guishop.admin")) {
-							Main.getCREATOR().put(player.getName(), new Creator(player));
+							Main.getCREATOR().add(player.getName());
 							openShop(player);
 						}
 					} else if (cut[1].equalsIgnoreCase("p")) {
-						if (Main.getCREATOR().containsKey(player.getName())) {
-							Object result = null;
-							if (cut[2].equalsIgnoreCase("false")) {
-								result = false;
-							} else {
+						Object result = null;
+						if (cut[2].equalsIgnoreCase("false")) {
+							result = false;
+						} else {
+							try {
+								result = Double.parseDouble(cut[2]);
+							} catch (Exception ex) {
 								try {
-									result = Double.parseDouble(cut[2]);
-								} catch (Exception ex) {
-									try {
-										result = Integer.parseInt(cut[2]);
-									} catch (Exception ex2) {
-										player.sendMessage("Please use a valid value");
-									}
+									result = Integer.parseInt(cut[2]);
+								} catch (Exception ex2) {
+									player.sendMessage("Please use a valid value");
 								}
 							}
-							Main.getCREATOR().get(player.getName()).setPrice(result);
-						} else {
-							player.sendMessage("Please edit a shop first!");
 						}
+						ItemUtil.setPrice(result, player);
+
+					} else if (cut[1].equalsIgnoreCase("s")) {
+						Object result = null;
+						if (cut[2].equalsIgnoreCase("false")) {
+							result = false;
+						} else {
+							try {
+								result = Double.parseDouble(cut[2]);
+							} catch (Exception ex) {
+								try {
+									result = Integer.parseInt(cut[2]);
+								} catch (Exception ex2) {
+									player.sendMessage("Please use a valid value");
+								}
+							}
+						}
+						ItemUtil.setSell(result, player);
+
+					} else if (cut[1].equalsIgnoreCase("n")) {
+						if (cut.length == 3) {
+							ItemUtil.setName(cut[2], player);
+						} else {
+							player.sendMessage("Please specify a custom name.");
+						}
+					}else {
+						printUsage(player);
 					}
 				}
 			}
@@ -135,10 +156,7 @@ public final class PlayerListener implements Listener {
 	 */
 	private void printUsage(Player player) {
 		player.sendMessage("        Proper Usage:        ");
-		player.sendMessage("/guishop start - Starts creator session");
-		player.sendMessage("/guishop setchest - Sets chest location to chest you look at");
-		player.sendMessage("/guishop setshopname - Sets the current shop you're working in");
-		player.sendMessage("/guishop loadshop - Loads current shop into chest!");
+		player.sendMessage("/guishop edit - Opens in Editor Mode");
 		player.sendMessage("/guishop p - Set item in hand's buy price");
 		player.sendMessage("/guishop s - Set item in hand's sell price");
 		player.sendMessage("/guishop n - Set item in hand's name");

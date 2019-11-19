@@ -21,7 +21,6 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopDef;
-import com.pablo67340.guishop.handler.*;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -86,7 +85,7 @@ public final class Main extends JavaPlugin {
 	 * starts.
 	 */
 	@Getter
-	public static final Map<String, Creator> CREATOR = new HashMap<>();
+	public static final List<String> CREATOR = new ArrayList<>();
 
 	@Override
 	public void onEnable() {

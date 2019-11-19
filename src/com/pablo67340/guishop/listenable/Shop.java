@@ -17,11 +17,8 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagByte;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagDouble;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagInt;
+
 import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
@@ -145,22 +142,26 @@ public class Shop {
 			for (String str : config.getKeys(false)) {
 
 				item = new Item();
-				index += 1;
 
 				ConfigurationSection section = config.getConfigurationSection(str);
 
-				item.setSlot((Integer.parseInt(str) - 1));
+				item.setSlot((Integer.parseInt(str)));
 
 				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
 				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
-				item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : " "));
-				item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : " "));
-				item.setEnchantments(
-						(section.contains("enchantments") ? (String) section.get("enchantments") : "").split(" "));
+				item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
+				item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : null));
+				if (section.contains("enchantments")) {
+					String enchantments = section.getString("enchantments");
+					if (!enchantments.equalsIgnoreCase(" ")) {
+						item.setEnchantments(enchantments.split(" "));
+					}
+				}
 
 				item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
 
 				item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
+				System.out.println("Loaded Buy: " + item.getBuyPrice());
 
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
@@ -186,8 +187,10 @@ public class Shop {
 				}
 				System.out.println("Added: " + item.getMaterial());
 				items.add(item);
+				index += 1;
 			}
 			loadShop();
+
 		} else {
 			loadShop();
 		}
@@ -243,9 +246,14 @@ public class Shop {
 					lore.add(Config.getCannotSell());
 				}
 
-				item.getShopLore().forEach(str -> {
-					lore.add(ChatColor.translateAlternateColorCodes('&', str));
-				});
+				if (item.hasShopLore()) {
+					item.getShopLore().forEach(str -> {
+						if (!lore.contains(str) && !lore
+								.contains(Config.getBuyLore().replace("{AMOUNT}", item.getBuyPrice().toString()))) {
+							lore.add(ChatColor.translateAlternateColorCodes('&', str));
+						}
+					});
+				}
 
 				if (!lore.isEmpty()) {
 					assert itemMeta != null;
@@ -266,13 +274,14 @@ public class Shop {
 				itemStack.setItemMeta(itemMeta);
 
 				gItem = new GuiItem(itemStack);
-
-				if (item.getEnchantments().length > 1) {
-					for (String enc : item.getEnchantments()) {
-						String enchantment = StringUtils.substringBefore(enc, ":");
-						String level = StringUtils.substringAfter(enc, ":");
-						gItem.getItem().addUnsafeEnchantment(Enchantments.getByName(enchantment),
-								Integer.parseInt(level));
+				if (item.getEnchantments() != null) {
+					if (item.getEnchantments().length > 1) {
+						for (String enc : item.getEnchantments()) {
+							String enchantment = StringUtils.substringBefore(enc, ":");
+							String level = StringUtils.substringAfter(enc, ":");
+							gItem.getItem().addUnsafeEnchantment(Enchantments.getByName(enchantment),
+									Integer.parseInt(level));
+						}
 					}
 				}
 			}
@@ -281,6 +290,8 @@ public class Shop {
 			if (index == items.size() || ((index) - lastIndex) == 44) {
 				if (item.getItemType() == ItemType.SHOP) {
 					page.setItem(gItem, item.getSlot());
+				} else {
+					page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
 				}
 
 				if (items.size() > 45) {
@@ -294,15 +305,22 @@ public class Shop {
 			} else {
 				if (pageC == 0) {
 					if (item.getItemType() == ItemType.SHOP) {
-						page.setItem(gItem, item.getSlot() - lastIndex);
+						page.setItem(gItem, item.getSlot());
+					} else {
+						page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
 					}
 				} else {
 
 					if (item.getItemType() == ItemType.SHOP) {
 						page.setItem(gItem, item.getSlot() - lastIndex - 1);
+					} else {
+						System.out.println("Set item to: " + (item.getSlot()));
+						page.setDummy(item.getSlot() - lastIndex - 1, new ItemStack(Material.AIR));
 					}
 				}
 			}
+
+			System.out.println("Index: " + (index + 1) + " items: " + items.size());
 
 			if (index + 1 == items.size()) {
 				System.out.println("Adding page to: " + pageC);
@@ -320,8 +338,9 @@ public class Shop {
 	}
 
 	private void applyButtons(ShopPane page) {
-		System.out.println("Applying Buttons");
-		if (page.getItems().size() == 45) {
+		System.out.println("Applying Buttons: " + GUI.getInventory().getContents().length);
+		System.out.println("Applying Buttons: " + page.getItems().size());
+		if (page.getINSTANCE().getItemsMap().containsKey(44)) {
 			page.setItem(new GuiItem(new ItemStack(Material.ARROW)), 51);
 		}
 		if (pageC > 0) {
@@ -349,8 +368,11 @@ public class Shop {
 	 * Open the player's shop
 	 */
 	public void open(Player input) {
+		currentPane.setPage(0);
+		System.out.println("Showing: " + currentPane.getPage());
 		GUI.show(input);
-		if (!Main.getCREATOR().containsKey(input.getName())) {
+		System.out.println("Showing: " + currentPane.getPage());
+		if (!Main.getCREATOR().contains(input.getName())) {
 			GUI.setOnBottomClick(event -> {
 				event.setCancelled(true);
 			});
@@ -362,8 +384,9 @@ public class Shop {
 
 	private void onShopClick(InventoryClickEvent e) {
 		Player player = (Player) e.getWhoClicked();
-		if (!Main.getCREATOR().containsKey(player.getName())) {
+		if (!Main.getCREATOR().contains(player.getName())) {
 			e.setCancelled(true);
+			hasClicked = true;
 		}
 
 		/*
@@ -427,7 +450,7 @@ public class Shop {
 				return;
 				// Back Button
 			} else if (e.getSlot() == 53 && !Config.isEscapeOnly()) {
-				if (menuInstance != null && !Main.getCREATOR().containsKey(player.getName())) {
+				if (menuInstance != null && !Main.getCREATOR().contains(player.getName())) {
 					menuInstance.open(player);
 				}
 				return;
@@ -436,7 +459,7 @@ public class Shop {
 			/*
 			 * If the player has enough money to purchase the item, then allow them to.
 			 */
-			if (!Main.getCREATOR().containsKey(player.getName())) {
+			if (!Main.getCREATOR().contains(player.getName())) {
 				Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
 				if (item.getItemType() == ItemType.SHOP && item.canBuyItem()) {
@@ -464,7 +487,7 @@ public class Shop {
 	private void onClose(InventoryCloseEvent e) {
 		System.out.println("Close");
 		Player player = (Player) e.getPlayer();
-		if (!Main.CREATOR.containsKey(player.getName())) {
+		if (!Main.CREATOR.contains(player.getName())) {
 			if (Config.isEscapeOnly() && !hasClicked) {
 				BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 				scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> menuInstance.open(player), 1L);
@@ -487,32 +510,37 @@ public class Shop {
 	private void saveShop(InventoryCloseEvent e) {
 		Main.getINSTANCE().getCustomConfig().set(shop, null);
 		Main.getINSTANCE().getCustomConfig().createSection(shop);
-		ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
-		int slots = GUI.getInventory().getSize();
+		int slots = GUI.getInventory().getSize() - 9;
 		for (Integer slot = 0; slot <= (slots - 1); slot++) {
 			ItemStack itemStack = GUI.getInventory().getItem(slot);
-			Item item = new Item();
-			ConfigurationSection section = config.createSection(slot.toString());
+
+			Item item = items.get(slot) != null ? items.get(slot) : new Item();
 			if (itemStack != null) {
 				ItemMeta im = itemStack.getItemMeta();
 
 				item.setItemType(ItemType.SHOP);
 				item.setMaterial(itemStack.getType().toString());
 
-				Object buyPrice = getBuyPrice(itemStack);
+				System.out.println("saveShop canBuy: " + item.canBuyItem());
+				if (!item.canBuyItem()) {
 
-				if (buyPrice instanceof Boolean) {
-					item.setBuyPrice((Boolean) buyPrice);
-				} else {
-					item.setBuyPrice((Double) buyPrice);
+					Object buyPrice = getBuyPrice(itemStack);
+
+					if (buyPrice instanceof Boolean) {
+						item.setBuyPrice((Boolean) buyPrice);
+					} else {
+						item.setBuyPrice((Double) buyPrice);
+					}
 				}
 
 				Object sellPrice = getSellPrice(itemStack);
 
-				if (sellPrice instanceof Boolean) {
-					item.setSellPrice((Boolean) sellPrice);
-				} else {
-					item.setSellPrice((Double) sellPrice);
+				if (!item.canSellItem()) {
+					if (sellPrice instanceof Boolean) {
+						item.setSellPrice((Boolean) sellPrice);
+					} else {
+						item.setSellPrice((Double) sellPrice);
+					}
 				}
 
 				if (im.hasDisplayName()) {
@@ -520,24 +548,39 @@ public class Shop {
 				}
 
 				if (im.hasLore()) {
-					item.setShopLore(im.getLore());
+					List<String> lore = im.getLore();
+					List<String> cleaned = new ArrayList<>();
+					for (String str : lore) {
+						System.out.println("Lore STR:" + ChatColor.stripColor(str));
+						if (!(ChatColor.stripColor(str)
+								.contains(ChatColor.stripColor(Config.getBuyLore().replace("{amount}", ""))))
+								&& !(ChatColor.stripColor(str)
+										.contains(ChatColor.stripColor(Config.getSellLore().replace("{amount}", ""))))
+								&& !(ChatColor.stripColor(str).contains(ChatColor.stripColor(Config.getCannotBuy())))
+								&& !(ChatColor.stripColor(str)
+										.contains(ChatColor.stripColor(Config.getCannotSell())))) {
+							cleaned.add(str);
+						}
+					}
+					item.setShopLore(cleaned);
 				}
 
 				System.out.println("Saving: " + itemStack.getType());
 				items.set(slot, item);
 			} else {
+				items.remove(slot);
 				Item blank = new Item();
 				blank.setItemType(ItemType.BLANK);
 				items.set(slot, blank);
 			}
 		}
-		saveItems();
+		saveItems(e);
 	}
 
 	/**
 	 * Load the specified shop
 	 */
-	public void saveItems() {
+	public void saveItems(InventoryCloseEvent e) {
 
 		Integer index = 0;
 
@@ -551,6 +594,7 @@ public class Shop {
 			section.set("type", item.getItemType().toString());
 			section.set("id", item.getMaterial());
 			section.set("buy-price", item.getBuyPrice());
+			System.out.println("Saved Buy: " + item.getBuyPrice());
 			section.set("sell-price", item.getSellPrice());
 			section.set("shop-lore", item.getShopLore());
 			section.set("shop-name", item.getShopName());
@@ -562,6 +606,8 @@ public class Shop {
 		} catch (Exception ex) {
 			System.out.println("Error Saving: " + ex.getMessage());
 		}
+
+		Main.getCREATOR().remove(e.getPlayer().getName());
 
 	}
 

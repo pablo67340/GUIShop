@@ -120,7 +120,10 @@ public final class ItemUtil {
 	/**
 	 * @param sell Sell value
 	 *             <p>
+	 * 
 	 *             Set an item's sell price
+	 *             
+	 *             TODO: Add support for spaces in name
 	 */
 	@SuppressWarnings("deprecation")
 	public static void setName(String name, Player player) {

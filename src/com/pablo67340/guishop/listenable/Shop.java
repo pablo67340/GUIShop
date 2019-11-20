@@ -502,18 +502,17 @@ public class Shop {
 		Main.getINSTANCE().getCustomConfig().createSection(shop);
 		int slots = items.size() - 1;
 		int mult;
-		
-		
+
 		if (currentPane.getPage() == 0) {
-			mult = (currentPane.getPage()+1) * 44;
-		}else {
+			mult = (currentPane.getPage() + 1) * 44;
+		} else {
 			mult = (currentPane.getPage()) * 44;
 		}
 		int pageSlots = 0;
 		int pageItemCounter = 0;
 
-		System.out.println("Slots: "+slots+" mult "+mult);
-		
+		System.out.println("Slots: " + slots + " mult " + mult);
+
 		pageSlots = slots - mult - 1;
 
 		System.out.println("total page slots: " + pageSlots + " mult: " + mult);
@@ -521,9 +520,9 @@ public class Shop {
 		for (Integer slot = 0; slot <= pageSlots; slot++) {
 
 			if (currentPane.getPage() == 0) {
-			pageItemCounter = slot;
-			}else {
-				pageItemCounter = slot + mult+1;
+				pageItemCounter = slot;
+			} else {
+				pageItemCounter = slot + mult + 1;
 			}
 
 			ItemStack itemStack = GUI.getInventory().getItem(slot);
@@ -540,20 +539,22 @@ public class Shop {
 				item.setItemType(ItemType.SHOP);
 				item.setMaterial(itemStack.getType().toString());
 				item.setSlot(pageItemCounter);
+				if (comp.hasKey("buyPrice")) {
+					Object buyPrice = getBuyPrice(itemStack);
 
-				Object buyPrice = getBuyPrice(itemStack);
-
-				if (buyPrice instanceof Boolean) {
-					item.setBuyPrice((Boolean) buyPrice);
-				} else {
-					item.setBuyPrice((Double) buyPrice);
+					if (buyPrice instanceof Boolean) {
+						item.setBuyPrice((Boolean) buyPrice);
+					} else {
+						item.setBuyPrice((Double) buyPrice);
+					}
 				}
-
-				Object sellPrice = getSellPrice(itemStack);
-				if (sellPrice instanceof Boolean) {
-					item.setSellPrice((Boolean) sellPrice);
-				} else {
-					item.setSellPrice((Double) sellPrice);
+				if (comp.hasKey("sellPrice")) {
+					Object sellPrice = getSellPrice(itemStack);
+					if (sellPrice instanceof Boolean) {
+						item.setSellPrice((Boolean) sellPrice);
+					} else {
+						item.setSellPrice((Double) sellPrice);
+					}
 				}
 
 				if (im.hasDisplayName()) {
@@ -609,8 +610,13 @@ public class Shop {
 			section.set("id", item.getMaterial());
 			section.set("buy-price", item.getBuyPrice());
 			section.set("sell-price", item.getSellPrice());
-			section.set("shop-lore", item.getShopLore());
-			section.set("shop-name", item.getShopName());
+			if (item.getShopLore().size() > 0) {
+				section.set("shop-lore", item.getShopLore());
+			}
+			System.out.println("HasName: "+item.hasShopName()+" name:"+item.getShopName()+":");
+			if (item.hasShopName()) {
+				section.set("shop-name", item.getShopName());
+			}
 		}
 		try {
 			Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());

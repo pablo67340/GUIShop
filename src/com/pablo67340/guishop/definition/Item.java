@@ -92,7 +92,7 @@ public final class Item {
 	}
 
 	public Boolean hasShopName() {
-		return (shopName != null ? true : false);
+		return (shopName != null ? shopName.equalsIgnoreCase("") ? false : true : false);
 	}
 
 	public Boolean hasBuyName() {

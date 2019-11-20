@@ -501,17 +501,30 @@ public class Shop {
 		Main.getINSTANCE().getCustomConfig().set(shop, null);
 		Main.getINSTANCE().getCustomConfig().createSection(shop);
 		int slots = items.size() - 1;
-		int mult = (currentPane.getPage()) * 44;
+		int mult;
+		
+		
+		if (currentPane.getPage() == 0) {
+			mult = (currentPane.getPage()+1) * 44;
+		}else {
+			mult = (currentPane.getPage()) * 44;
+		}
 		int pageSlots = 0;
 		int pageItemCounter = 0;
 
+		System.out.println("Slots: "+slots+" mult "+mult);
+		
 		pageSlots = slots - mult - 1;
 
 		System.out.println("total page slots: " + pageSlots + " mult: " + mult);
 
 		for (Integer slot = 0; slot <= pageSlots; slot++) {
 
-			pageItemCounter = slot+mult;
+			if (currentPane.getPage() == 0) {
+			pageItemCounter = slot;
+			}else {
+				pageItemCounter = slot + mult+1;
+			}
 
 			ItemStack itemStack = GUI.getInventory().getItem(slot);
 
@@ -590,6 +603,7 @@ public class Shop {
 
 		assert config != null;
 		for (Item item : items) {
+			config.set(item.getSlot() + "", null);
 			ConfigurationSection section = config.createSection(item.getSlot() + "");
 			section.set("type", item.getItemType().toString());
 			section.set("id", item.getMaterial());
@@ -604,7 +618,9 @@ public class Shop {
 			System.out.println("Error Saving: " + ex.getMessage());
 		}
 
-		Main.getCREATOR().remove(player.getName());
+		if (!hasClicked) {
+			Main.getCREATOR().remove(player.getName());
+		}
 
 	}
 

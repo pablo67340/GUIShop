@@ -84,7 +84,7 @@ public final class Item {
 		if (sellPrice instanceof Boolean) {
 			return false;
 		} else if (sellPrice instanceof Double) {
-			return true;
+			return ((Double)sellPrice != 0.0);
 		} else if (sellPrice instanceof Object) {
 			return false;
 		}

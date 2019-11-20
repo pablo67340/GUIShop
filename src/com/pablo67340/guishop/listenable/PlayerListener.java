@@ -136,9 +136,15 @@ public final class PlayerListener implements Listener {
 						}
 						ItemUtil.setSell(result, player);
 
-					} else if (cut[1].equalsIgnoreCase("n")) {
+					} else if (cut[1].equalsIgnoreCase("sn")) {
 						if (cut.length == 3) {
-							ItemUtil.setName(cut[2], player);
+							ItemUtil.setShopName(cut[2], player);
+						} else {
+							player.sendMessage("Please specify a custom name.");
+						}
+					}else if (cut[1].equalsIgnoreCase("bn")) {
+						if (cut.length == 3) {
+							ItemUtil.setBuyName(cut[2], player);
 						} else {
 							player.sendMessage("Please specify a custom name.");
 						}
@@ -157,9 +163,9 @@ public final class PlayerListener implements Listener {
 	private void printUsage(Player player) {
 		player.sendMessage("        Proper Usage:        ");
 		player.sendMessage("/guishop edit - Opens in Editor Mode");
-		player.sendMessage("/guishop p - Set item in hand's buy price");
-		player.sendMessage("/guishop s - Set item in hand's sell price");
-		player.sendMessage("/guishop n - Set item in hand's name");
+		player.sendMessage("/guishop price/p - Set item in hand's buy price");
+		player.sendMessage("/guishop sell/s - Set item in hand's sell price");
+		player.sendMessage("/guishop shopname/sn - Set item in hand's Shop-Name");
 	}
 
 	// When the inventory closes

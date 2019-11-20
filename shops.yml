@@ -1,20 +1,50 @@
-##################################################
-#             Looking for Item Names?            #
-##################################################
-#           https://tinyurl.com/okqdcvo          #
-##################################################
+###########################################################################
+#                           Looking for Item Names?                       #
+###########################################################################
+#                          https://tinyurl.com/okqdcvo                    #
+###########################################################################
+#                               Placeholders                              #
+#               Placeholders are available to you for item                #
+#                options such as: shop-name, buy-name,                    #
+#                   shop-lore, buy-lore and commands.                     #
+#                                                                         #
+#  {ITEM_SHOP_NAME} - The declared shop-name.                             #
+#  {ITEM_BUY_NAME} - The declared buy-name.                               #
+#  {PLAYER_NAME} - Name of player who clicks shop item. Only Supports     #
+#  buy-lore, buy-name, commands.                                          #
+#  {PLAYER_UUID} - UUID of player who clicks shop item. Only Supports     #
+#  buy-lore, buy-name, commands.                                          #
+#  {BUY_PRICE} - The declared buy-price of the item.                      #
+#  {SELL_PRICE} - The declared sell-price of the item.                    #
+#  {CURRENY_SYMBOL} - The declared symbol in config.yml                   #
+#  {CURRENCY_SUFFIX} - The declared suffix in config.yml                  #
+###########################################################################
+#                    Available Item Fields & Their Purpose:               #
+#                      REQ = REQUIRED, OPT = OPTIONAL.                    #
+#                                                                         #
+# id ~ REQ ~ Material name of the Item. Use names from the link above.    #
+# type ~ OPT ~ SHOP, COMMAND, BLANK, DUMMY, Default: SHOP.                #
+# shop-name ~ OPT ~ Custom name of item only inside the shop.             #
+# buy-name ~ OPT ~ Custom name of item only on purchased item.            #
+# buy-price ~ REQ ~ Cost of the item, false to prevent buying.            #
+# sell-price ~ REQ ~ Sell value of item. false to prevent selling.        #
+# enchantments ~ OPT ~ Enchantments of an item. E.G 'DURA:1 SHARP:2'      #
+# shop-lore ~ OPT ~ Custom lore to display only on the shop item.         #
+# buy-lore ~ OPT ~ Custom lore to display on purchased item.              #
+# commands ~ Required only if type is COMMAND ~ List of commands to run.  #
+# #########################################################################
 
 
 
 Raiding:
   '0':
     id: 'COMPARATOR'
-    name: '&4Heal Command Test'
+    type: COMMAND
+    shop-name: '&4Heal Command Test'
     buy-price: 200.0
     sell-price: 100.0
     enchantments: ''
-    type: COMMAND
-    lore:
+    shop-lore:
       - '&aLine 1'
       - '&bLine 2'
     commands:
@@ -22,237 +52,237 @@ Raiding:
       - 'broadcast {PLAYER_NAME} purchased {ITEM_NAME} for {BUY_PRICE}.'
   '1':
     id: 'PISTON'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 50.2
     enchantments: ''
   '2':
     id: 'STICKY_PISTON'
-    name: ''
+    shop-name: ''
     buy-price: 132.0
     sell-price: 0.0
     enchantments: ''
   '3':
     id: 'REDSTONE_BLOCK'
-    name: ''
+    shop-name: ''
     buy-price: 150
     sell-price: 0.0
     enchantments: ''
   '4':
     id: 'DROPPER'
-    name: ''
+    shop-name: ''
     buy-price: false
     sell-price: false
     enchantments: ''
   '5':
     id: 'DISPENSER'
-    name: ''
+    shop-name: ''
     buy-price: 135.0
     sell-price: 0.0
     enchantments: ''
   '6':
     id: 'LEVER'
-    name: ''
+    shop-name: ''
     buy-price: 5.0
     sell-price: 0.0
     enchantments: ''
   '7':
     id: 'STONE_BUTTON'
-    name: ''
+    shop-name: ''
     buy-price: 5.0
     sell-price: 0.0
     enchantments: ''
   '8':
     id: 'OAK_BUTTON'
-    name: ''
+    shop-name: ''
     buy-price: 5.0
     sell-price: 0.0
     enchantments: ''
   '9':
     id: 'STONE_PRESSURE_PLATE'
-    name: ''
+    shop-name: ''
     buy-price: 5.0
     sell-price: 0.0
     enchantments: ''
   '10':
     id: 'OAK_PRESSURE_PLATE'
-    name: ''
+    shop-name: ''
     buy-price: 5.0
     sell-price: 0.0
     enchantments: ''
   '11':
     id: 'REDSTONE_TORCH'
-    name: ''
+    shop-name: ''
     buy-price: 2.0
     sell-price: 0.0
     enchantments: ''
   '12':
     id: 'TRIPWIRE_HOOK'
-    name: ''
+    shop-name: ''
     buy-price: 50.0
     sell-price: 0.0
     enchantments: ''
   '13':
     id: 'ACACIA_SIGN'
-    name: ''
+    shop-name: ''
     buy-price: 1.0
     sell-price: 0.0
     enchantments: ''
   '14':
     id: 'COBWEB'
-    name: ''
+    shop-name: ''
     buy-price: 8.0
     sell-price: 0.0
     enchantments: ''
   '15':
     id: 'REDSTONE'
-    name: ''
+    shop-name: ''
     buy-price: 1.0
     sell-price: 1.0
     enchantments: ''
   '16':
     id: 'WATER_BUCKET'
-    name: ''
+    shop-name: ''
     buy-price: 150.0
     sell-price: 0.0
     enchantments: ''
   '17':
     id: 'LAVA_BUCKET'
-    name: ''
+    shop-name: ''
     buy-price: 150.0
     sell-price: 0.0
     enchantments: ''
   '18':
     id: 'STONE_SLAB'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '19':
     id: 'OAK_SLAB'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '20':
     id: 'REDSTONE_LAMP'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
 Ores:
   '0':
     id: 'EMERALD'
-    name: ''
+    shop-name: ''
     buy-price: 150.0
     sell-price: 50.0
     enchantments: ''
   '1':
     id: 'DIAMOND'
-    name: ''
+    shop-name: ''
     buy-price: 375.0
     sell-price: 75.0
     enchantments: ''
   '2':
     id: 'GOLD_INGOT'
-    name: ''
+    shop-name: ''
     buy-price: 30.0
     sell-price: 10.0
     enchantments: ''
   '3':
     id: 'IRON_INGOT'
-    name: ''
+    shop-name: ''
     buy-price: 8.0
     sell-price: 5.0
     enchantments: ''
   '4':
     id: 'COAL'
-    name: ''
+    shop-name: ''
     buy-price: 4.0
     sell-price: 1.0
     enchantments: ''
   '5':
     id: 'CHARCOAL'
-    name: ''
+    shop-name: ''
     buy-price: 4.0
     sell-price: 1.0
     enchantments: ''
   '6':
     id: 'REDSTONE'
-    name: ''
+    shop-name: ''
     buy-price: 1.0
     sell-price: 1.0
     enchantments: ''
   '7':
     id: 'LAPIS_LAZULI'
-    name: ''
+    shop-name: ''
     buy-price: 1.0
     sell-price: 1.0
     enchantments: ''
   '8':
     id: 'QUARTZ'
-    name: ''
+    shop-name: ''
     buy-price: 8.0
     sell-price: 1.0
     enchantments: ''
 FarmingDrops:
   '0':
     id: 'OAK_SAPLING'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '1':
     id: 'SPRUCE_SAPLING'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '2':
     id: 'BIRCH_SAPLING'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '3':
     id: 'JUNGLE_SAPLING'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '4':
     id: 'ACACIA_SAPLING'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '5':
     id: 'DARK_OAK_SAPLING'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '6':
     id: 'WHEAT_SEEDS'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 0.0
     enchantments: ''
   '7':
     id: 'PUMPKIN_SEEDS'
-    name: ''
+    shop-name: ''
     buy-price: 31.0
     sell-price: 0.0
     enchantments: ''
   '8':
     id: 'PUMPKIN'
-    name: ''
+    shop-name: ''
     buy-price: 150.0
     sell-price: 5.0
     enchantments: ''
   '9':
     id: 'SUGAR_CANE'
-    name: ''
+    shop-name: ''
     buy-price: 12.0
     sell-price: 4.0
     enchantments: ''
@@ -264,355 +294,355 @@ FarmingDrops:
     enchantments: ''
   '11':
     id: 'NETHER_WART'
-    name: ''
+    shop-name: ''
     buy-price: 12.0
     sell-price: 3.0
     enchantments: ''
   '12':
     id: 'COCOA_BEANS'
-    name: ''
+    shop-name: ''
     buy-price: 3.0
     sell-price: 1.0
     enchantments: ''
   '13':
     id: 'VINE'
-    name: ''
+    shop-name: ''
     buy-price: 10.0
     sell-price: 0.0
     enchantments: ''
   '14':
     id: 'BROWN_MUSHROOM'
-    name: ''
+    shop-name: ''
     buy-price: 75.0
     sell-price: 0.0
     enchantments: ''
   '15':
     id: 'RED_MUSHROOM'
-    name: ''
+    shop-name: ''
     buy-price: 75.0
     sell-price: 0.0
     enchantments: ''
   '16':
     id: 'WHEAT'
-    name: ''
+    shop-name: ''
     buy-price: 9.0
     sell-price: 3.0
     enchantments: ''
   '17':
     id: 'BONE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '18':
     id: 'ARROW'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '19':
     id: 'ROTTEN_FLESH'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '20':
     id: 'GUNPOWDER'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '21':
     id: 'BLAZE_ROD'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '22':
     id: 'SPIDER_EYE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '23':
     id: 'STRING'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '24':
     id: 'ENDER_PEARL'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '25':
     id: 'SLIME_BALL'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '26':
     id: 'LEATHER'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '27':
     id: 'FEATHER'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '28':
     id: 'EGG'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '29':
     id: 'STICK'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '30':
     id: 'INK_SAC'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '31':
     id: 'GOLD_NUGGET'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '32':
     id: 'GHAST_TEAR'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
 Brewing:
   '0':
     id: 'GHAST_TEAR'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 20.0
     enchantments: ''
   '1':
     id: 'SPIDER_EYE'
-    name: ''
+    shop-name: ''
     buy-price: 2.0
     sell-price: 0.0
     enchantments: ''
   '2':
     id: 'FERMENTED_SPIDER_EYE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '3':
     id: 'GOLDEN_CARROT'
-    name: ''
+    shop-name: ''
     buy-price: 25.0
     sell-price: 0.0
     enchantments: ''
   '4':
     id: 'MELON'
-    name: ''
+    shop-name: ''
     buy-price: 50.0
     sell-price: 0.0
     enchantments: ''
   '5':
     id: 'BLAZE_ROD'
-    name: ''
+    shop-name: ''
     buy-price: 7.0
     sell-price: 2.0
     enchantments: ''
   '6':
     id: 'NETHER_WART'
-    name: ''
+    shop-name: ''
     buy-price: 12.0
     sell-price: 3.0
     enchantments: ''
   '7':
     id: 'MAGMA_CREAM'
-    name: ''
+    shop-name: ''
     buy-price: 20.0
     sell-price: 10.0
     enchantments: ''
   '8':
     id: 'BREWING_STAND'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
 Gear:
   '0':
     id: 'DIAMOND_HELMET'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '1':
     id: 'DIAMOND_CHESTPLATE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '2':
     id: 'DIAMOND_LEGGINGS'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '3':
     id: 'DIAMOND_BOOTS'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '4':
     id: 'DIAMOND_SWORD'
-    name: '&bSword of the &0Unbreaking'
+    shop-name: '&bSword of the &0Unbreaking'
     buy-price: 100
     enchantments: 'DURABILITY:1'
     shop-lore:
       - '&aThis is the sword of unbreakingness'
-    buy-name: "&a{PLAYER_NAME}'s {ITEM_NAME}"
+    buy-shop-name: "&a{PLAYER_NAME}'s {ITEM_NAME}"
     buy-lore:
       - "&aPurchased by {PLAYER_NAME} for {BUY_PRICE}"
   '5':
     id: 'DIAMOND_AXE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '6':
     id: 'DIAMOND_PICKAXE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: 'DURABILITY:1'
   '7':
     id: 'DIAMOND_SHOVEL'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '8':
     id: 'DIAMOND_HOE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '9':
     id: 'IRON_HELMET'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '10':
     id: 'IRON_CHESTPLATE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '11':
     id: 'IRON_LEGGINGS'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '12':
     id: 'IRON_BOOTS'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '13':
     id: 'IRON_SWORD'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '14':
     id: 'IRON_AXE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '15':
     id: 'IRON_PICKAXE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: 'DURABILITY:1 FORTUNE:1'
   '16':
     id: 'IRON_SHOVEL'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '17':
     id: 'IRON_HOE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '18':
     id: 'BOW'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '19':
     id: 'FISHING_ROD'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '20':
     id: 'SHEARS'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '21':
     id: 'NAME_TAG'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '22':
     id: 'LEAD'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '23':
     id: 'DIAMOND_HORSE_ARMOR'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '24':
     id: 'GOLDEN_HORSE_ARMOR'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '25':
     id: 'IRON_HORSE_ARMOR'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '26':
     id: 'SADDLE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
@@ -620,497 +650,497 @@ Spawners:
   '0':
     id: 'SPAWNER'
     mobType: 'CREEPER'
-    name: 'Creeper Spawner'
+    shop-name: 'Creeper Spawner'
     buy-price: 75000.0
     sell-price: 0.0
     enchantments: ''
   '1':
     id: 'SPAWNER'
     mobType: 'SKELETON'
-    name: 'Skeleton Spawner'
+    shop-name: 'Skeleton Spawner'
     buy-price: 100000.0
     sell-price: 0.0
     enchantments: ''
   '2':
     id: 'SPAWNER'
     mobType: 'SPIDER'
-    name: 'Spider Spawner'
+    shop-name: 'Spider Spawner'
     buy-price: 140000.0
     sell-price: 0.0
     enchantments: ''
   '3':
     id: 'SPAWNER'
     mobType: 'GIANT'
-    name: 'Giant Zombie Spawner'
+    shop-name: 'Giant Zombie Spawner'
     buy-price: 140000.0
     sell-price: 0.0
     enchantments: ''
   '4':
     id: 'SPAWNER'
     mobType: 'ZOMBIE'
-    name: 'Zombie Spawner'
+    shop-name: 'Zombie Spawner'
     buy-price: 140000.0
     sell-price: 0.0
     enchantments: ''
   '5':
     id: 'SPAWNER'
     mobType: 'SLIME'
-    name: 'Slime Spawner'
+    shop-name: 'Slime Spawner'
     buy-price: 140000.0
     sell-price: 0.0
     enchantments: ''
   '6':
     id: 'SPAWNER'
     mobType: 'GHAST'
-    name: 'Ghast Spawner'
+    shop-name: 'Ghast Spawner'
     buy-price: 180000.0
     sell-price: 0.0
     enchantments: ''
   '7':
     id: 'SPAWNER'
     mobType: 'ZOMBIE_PIGMAN'
-    name: 'Zombie Pigman Spawner'
+    shop-name: 'Zombie Pigman Spawner'
     buy-price: 180000.0
     sell-price: 0.0
     enchantments: ''
   '8':
     id: 'SPAWNER'
     mobType: 'ENDERMAN'
-    name: 'Enderman Spawner'
+    shop-name: 'Enderman Spawner'
     buy-price: 350000.0
     sell-price: 0.0
     enchantments: ''
   '9':
     id: 'SPAWNER'
     mobType: 'CAVE_SPIDER'
-    name: 'Cave Spider Spawner'
+    shop-name: 'Cave Spider Spawner'
     buy-price: 150000.0
     sell-price: 0.0
     enchantments: ''
 Blocks:
   '0':
     id: 'STONE_BRICKS'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '1':
     id: 'MOSSY_STONE_BRICKS'
-    name: ''
+    shop-name: ''
     buy-price: 110.0
     sell-price: 0.0
     enchantments: ''
   '2':
     id: 'CRACKED_STONE_BRICKS'
-    name: ''
+    shop-name: ''
     buy-price: 120.0
     sell-price: 0.0
     enchantments: ''
   '3':
     id: 'CHISELED_STONE_BRICKS'
-    name: ''
+    shop-name: ''
     buy-price: 130.0
     sell-price: 0.0
     enchantments: ''
   '4':
     id: 'STONE'
-    name: ''
+    shop-name: ''
     buy-price: 140.0
     sell-price: 0.0
     enchantments: ''
   '5':
     id: 'COBBLESTONE'
-    name: ''
+    shop-name: ''
     buy-price: 150.0
     sell-price: 0.0
     enchantments: ''
   '6':
     id: 'MOSSY_COBBLESTONE'
-    name: ''
+    shop-name: ''
     buy-price: 160.0
     sell-price: 0.0
     enchantments: ''
   '7':
     id: 'MYCELIUM'
-    name: ''
+    shop-name: ''
     buy-price: 170.0
     sell-price: 0.0
     enchantments: ''
   '8':
     id: 'GRASS'
-    name: ''
+    shop-name: ''
     buy-price: 180.0
     sell-price: 0.0
     enchantments: ''
   '9':
     id: 'DIRT'
-    name: ''
+    shop-name: ''
     buy-price: 190.0
     sell-price: 0.0
     enchantments: ''
   '10':
     id: 'OAK_LOG'
-    name: ''
+    shop-name: ''
     buy-price: 200.0
     sell-price: 0.0
     enchantments: ''
   '11':
     id: 'SPRUCE_LOG'
-    name: ''
+    shop-name: ''
     buy-price: 210.0
     sell-price: 0.0
     enchantments: ''
   '12':
     id: 'BIRCH_LOG'
-    name: ''
+    shop-name: ''
     buy-price: 220.0
     sell-price: 0.0
     enchantments: ''
   '13':
     id: 'JUNGLE_LOG'
-    name: ''
+    shop-name: ''
     buy-price: 230.0
     sell-price: 0.0
     enchantments: ''
   '14':
     id: 'ACACIA_LOG'
-    name: ''
+    shop-name: ''
     buy-price: 240.0
     sell-price: 0.0
     enchantments: ''
   '15':
     id: 'DARK_OAK_LOG'
-    name: ''
+    shop-name: ''
     buy-price: 250.0
     sell-price: 0.0
     enchantments: ''
   '16':
     id: 'SPONGE'
-    name: ''
+    shop-name: ''
     buy-price: 260.0
     sell-price: 0.0
     enchantments: ''
   '17':
     id: 'BRICKS'
-    name: ''
+    shop-name: ''
     buy-price: 270.0
     sell-price: 0.0
     enchantments: ''
   '18':
     id: 'BIRCH_WOOD'
-    name: ''
+    shop-name: ''
     buy-price: 280.0
     sell-price: 0.0
     enchantments: ''
   '19':
     id: 'JUNGLE_WOOD'
-    name: ''
+    shop-name: ''
     buy-price: 290.0
     sell-price: 0.0
     enchantments: ''
   '20':
     id: 'ACACIA_WOOD'
-    name: ''
+    shop-name: ''
     buy-price: 300.0
     sell-price: 0.0
     enchantments: ''
   '21':
     id: 'DARK_OAK_WOOD'
-    name: ''
+    shop-name: ''
     buy-price: 310.0
     sell-price: 0.0
     enchantments: ''
   '22':
     id: 'WHITE_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 320.0
     sell-price: 0.0
     enchantments: ''
   '23':
     id: 'CLAY'
-    name: ''
+    shop-name: ''
     buy-price: 330.0
     sell-price: 0.0
     enchantments: ''
   '24':
     id: 'LIGHT_BLUE_TERRACOTTA'
-    name: ''
+    shop-name: ''
     buy-price: 340.0
     sell-price: 0.0
     enchantments: ''
   '25':
     id: 'OBSIDIAN'
-    name: ''
+    shop-name: ''
     buy-price: 350.0
     sell-price: 0.0
     enchantments: ''
   '26':
     id: 'SANDSTONE'
-    name: ''
+    shop-name: ''
     buy-price: 360.0
     sell-price: 0.0
     enchantments: ''
   '27':
     id: 'SAND'
-    name: ''
+    shop-name: ''
     buy-price: 370.0
     sell-price: 0.0
     enchantments: ''
   '28':
     id: 'RED_SAND'
-    name: ''
+    shop-name: ''
     buy-price: 380.0
     sell-price: 0.0
     enchantments: ''
   '29':
     id: 'GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 390.0
     sell-price: 0.0
     enchantments: ''
   '30':
     id: 'GRAVEL'
-    name: ''
+    shop-name: ''
     buy-price: 101.0
     sell-price: 0.0
     enchantments: ''
   '31':
     id: 'QUARTZ_BLOCK'
-    name: ''
+    shop-name: ''
     buy-price: 102.0
     sell-price: 0.0
     enchantments: ''
   '32':
     id: 'CHISELED_QUARTZ_BLOCK'
-    name: ''
+    shop-name: ''
     buy-price: 103.0
     sell-price: 0.0
     enchantments: ''
   '33':
     id: 'QUARTZ_PILLAR'
-    name: ''
+    shop-name: ''
     buy-price: 104.0
     sell-price: 0.0
     enchantments: ''
   '34':
     id: 'NETHER_BRICK'
-    name: ''
+    shop-name: ''
     buy-price: 105.0
     sell-price: 0.0
     enchantments: ''
   '35':
     id: 'NETHERRACK'
-    name: ''
+    shop-name: ''
     buy-price: 106.0
     sell-price: 0.0
     enchantments: ''
   '36':
     id: 'SOUL_SAND'
-    name: ''
+    shop-name: ''
     buy-price: 107.0
     sell-price: 0.0
     enchantments: ''
   '37':
     id: 'GLOWSTONE'
-    name: ''
+    shop-name: ''
     buy-price: 108.0
     sell-price: 0.0
     enchantments: ''
   '38':
     id: 'ENCHANTING_TABLE'
-    name: ''
+    shop-name: ''
     buy-price: 100.0
     sell-price: 0.0
     enchantments: ''
   '39':
     id: 'BOOKSHELF'
-    name: ''
+    shop-name: ''
     buy-price: 109.0
     sell-price: 0.0
     enchantments: ''
   '40':
     id: 'SNOW_BLOCK'
-    name: ''
+    shop-name: ''
     buy-price: 110.0
     sell-price: 0.0
     enchantments: ''
   '41':
     id: 'ICE'
-    name: ''
+    shop-name: ''
     buy-price: 111.0
     sell-price: 0.0
     enchantments: ''
   '42':
     id: 'PACKED_ICE'
-    name: ''
+    shop-name: ''
     buy-price: 112.0
     sell-price: 0.0
     enchantments: ''
   '43':
     id: 'END_STONE'
-    name: ''
+    shop-name: ''
     buy-price: 113.0
     sell-price: 0.0
     enchantments: ''
   '44':
     id: 'BEACON'
-    name: ''
+    shop-name: ''
     buy-price: 114.0
     sell-price: 0.0
     enchantments: ''
   '45':
     id: 'WHITE_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 115.0
     sell-price: 0.0
     enchantments: ''
   '46':
     id: 'ORANGE_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 116.0
     sell-price: 0.0
     enchantments: ''
   '47':
     id: 'MAGENTA_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 117.0
     sell-price: 0.0
     enchantments: ''
   '48':
     id: 'LIGHT_BLUE_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 118.0
     sell-price: 0.0
     enchantments: ''
   '49':
     id: 'YELLOW_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 119.0
     sell-price: 0.0
     enchantments: ''
   '50':
     id: 'LIME_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 120.0
     sell-price: 0.0
     enchantments: ''
   '51':
     id: 'PINK_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 121.0
     sell-price: 0.0
     enchantments: ''
   '52':
     id: 'GRAY_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 122.0
     sell-price: 0.0
     enchantments: ''
   '53':
     id: 'LIGHT_GRAY_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 123.0
     sell-price: 0.0
     enchantments: ''
   '54':
     id: 'CYAN_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 124.0
     sell-price: 0.0
     enchantments: ''
   '55':
     id: 'PURPLE_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 125.0
     sell-price: 0.0
     enchantments: ''
   '56':
     id: 'BLUE_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 126.0
     sell-price: 0.0
     enchantments: ''
   '57':
     id: 'BROWN_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 127.0
     sell-price: 0.0
     enchantments: ''
   '58':
     id: 'GREEN_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 128.0
     sell-price: 0.0
     enchantments: ''
   '59':
     id: 'RED_WOOL'
-    name: ''
+    shop-name: ''
     buy-price: 129.0
     sell-price: 0.0
     enchantments: ''
   '60':
     id: 'WHITE_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 131.0
     sell-price: 0.0
     enchantments: ''
   '61':
     id: 'ORANGE_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 132.0
     sell-price: 0.0
     enchantments: ''
   '62':
     id: 'MAGENTA_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 133.0
     sell-price: 0.0
     enchantments: ''
   '63':
     id: 'LIGHT_BLUE_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 134.0
     sell-price: 0.0
     enchantments: ''
   '64':
     id: 'YELLOW_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 135.0
     sell-price: 0.0
     enchantments: ''
   '65':
     id: 'LIME_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 136.0
     sell-price: 0.0
     enchantments: ''
   '66':
     id: 'PINK_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 137.0
     sell-price: 0.0
     enchantments: ''
   '67':
     id: 'GRAY_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 138.0
     sell-price: 0.0
     enchantments: ''
   '68':
     id: 'LIGHT_GRAY_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 139.0
     sell-price: 0.0
     enchantments: ''
   '69':
     id: 'CYAN_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 140.0
     sell-price: 0.0
     enchantments: ''
   '70':
     id: 'PURPLE_STAINED_GLASS'
-    name: ''
+    shop-name: ''
     buy-price: 141.0
     sell-price: 0.0
     enchantments: ''

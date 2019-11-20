@@ -16,7 +16,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 
@@ -77,7 +76,7 @@ public class Shop {
 	private PaginatedPane currentPane;
 
 	int oldPage = 0;
-	
+
 	private Integer lastIndex = 0;
 
 	/**
@@ -135,16 +134,12 @@ public class Shop {
 
 			items = new ArrayList<>();
 
-			Integer index = 0;
-
-			Item item;
-
 			ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
 
 			assert config != null;
 			for (String str : config.getKeys(false)) {
 
-				item = new Item();
+				Item item = new Item();
 
 				ConfigurationSection section = config.getConfigurationSection(str);
 
@@ -164,7 +159,6 @@ public class Shop {
 				item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
 
 				item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
-				System.out.println("Loaded Buy: " + item.getBuyPrice());
 
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
@@ -188,9 +182,8 @@ public class Shop {
 						Main.getINSTANCE().getPRICETABLE().put(item.getMaterial(), new Price(sellPrice));
 					}
 				}
-				System.out.println("Added: " + item.getMaterial());
 				items.add(item);
-				index += 1;
+
 			}
 			loadShop();
 
@@ -212,7 +205,7 @@ public class Shop {
 
 			ItemStack itemStack;
 			GuiItem gItem = null;
-			if (item.getItemType() == ItemType.SHOP) {
+			if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 				itemStack = XMaterial.matchXMaterial(item.getMaterial()).parseItem();
 
 				assert itemStack != null;
@@ -291,7 +284,7 @@ public class Shop {
 
 			// Create Page
 			if (index == items.size() || ((index) - lastIndex) == 44) {
-				if (item.getItemType() == ItemType.SHOP) {
+				if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 					page.setItem(gItem, item.getSlot());
 				} else {
 					page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
@@ -301,32 +294,27 @@ public class Shop {
 					applyButtons(page);
 				}
 				lastIndex = index;
-				System.out.println("Adding page to: " + pageC);
 				pane.addPane(pageC, page);
 				pageC += 1;
 				page = new ShopPane(9, 6);
 			} else {
 				if (pageC == 0) {
-					if (item.getItemType() == ItemType.SHOP) {
+					if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 						page.setItem(gItem, item.getSlot());
 					} else {
 						page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
 					}
 				} else {
 
-					if (item.getItemType() == ItemType.SHOP) {
+					if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 						page.setItem(gItem, item.getSlot() - lastIndex - 1);
 					} else {
-						System.out.println("Set item to: " + (item.getSlot()));
 						page.setDummy(item.getSlot() - lastIndex - 1, new ItemStack(Material.AIR));
 					}
 				}
 			}
 
-			System.out.println("Index: " + (index + 1) + " items: " + items.size());
-
 			if (index + 1 == items.size()) {
-				System.out.println("Adding page to: " + pageC);
 				pane.addPane(pageC, page);
 				applyButtons(page);
 				GUI.addPane(pane);
@@ -341,8 +329,6 @@ public class Shop {
 	}
 
 	private void applyButtons(ShopPane page) {
-		System.out.println("Applying Buttons: " + GUI.getInventory().getContents().length);
-		System.out.println("Applying Buttons: " + page.getItems().size());
 		if (page.getINSTANCE().getItemsMap().containsKey(44)) {
 			page.setItem(new GuiItem(new ItemStack(Material.ARROW)), 51);
 		}
@@ -372,9 +358,7 @@ public class Shop {
 	 */
 	public void open(Player input) {
 		currentPane.setPage(0);
-		System.out.println("Showing: " + currentPane.getPage());
 		GUI.show(input);
-		System.out.println("Showing: " + currentPane.getPage());
 		if (!Main.getCREATOR().contains(input.getName())) {
 			GUI.setOnBottomClick(event -> {
 				event.setCancelled(true);
@@ -415,17 +399,18 @@ public class Shop {
 			// Forward Button
 			if (e.getSlot() == 51) {
 				hasClicked = true;
+				if (Main.getCREATOR().contains(player.getName())) {
+					ItemStack[] items = GUI.getInventory().getContents();
 
-				ItemStack[] items = GUI.getInventory().getContents();
+					int slot = 0;
+					for (ItemStack item : items) {
+						((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
+								slot);
+						slot += 1;
+					}
 
-				int slot = 0;
-				for (ItemStack item : items) {
-					((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
-							slot);
-					slot += 1;
-					System.out.println("Slot: " + slot);
+					saveShop(player);
 				}
-				saveShop(player);
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
 				System.out.println("Switched to page: " + (currentPane.getPage() + 1));
 				currentPane.setPage(currentPane.getPage() + 1);
@@ -437,15 +422,17 @@ public class Shop {
 			} else if (e.getSlot() == 47) {
 				hasClicked = true;
 
-				ItemStack[] items = GUI.getInventory().getContents();
+				if (Main.getCREATOR().contains(player.getName())) {
+					ItemStack[] items = GUI.getInventory().getContents();
 
-				int slot = 0;
-				for (ItemStack item : items) {
-					((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
-							slot);
-					slot += 1;
+					int slot = 0;
+					for (ItemStack item : items) {
+						((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
+								slot);
+						slot += 1;
+					}
+					saveShop(player);
 				}
-				saveShop(player);
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
 				System.out.println("Switched to page: " + (currentPane.getPage() - 1));
 				currentPane.setPage(currentPane.getPage() - 1);
@@ -490,7 +477,6 @@ public class Shop {
 	 * The inventory closeEvent handling for the Menu.
 	 */
 	private void onClose(InventoryCloseEvent e) {
-		System.out.println("Close");
 		Player player = (Player) e.getPlayer();
 		if (!Main.CREATOR.contains(player.getName())) {
 			if (Config.isEscapeOnly() && !hasClicked) {
@@ -505,7 +491,6 @@ public class Shop {
 				System.out.println("Saving Edits");
 				saveShop(player);
 			} else {
-				System.out.println("was clicked");
 				hasClicked = false;
 			}
 		}
@@ -515,68 +500,61 @@ public class Shop {
 	private void saveShop(Player input) {
 		Main.getINSTANCE().getCustomConfig().set(shop, null);
 		Main.getINSTANCE().getCustomConfig().createSection(shop);
-		System.out.println("Saving Page: "+currentPane.getPage());
-		int slots = items.size()-1;
-		int mult = (currentPane.getPage())*44;
+		int slots = items.size() - 1;
+		int mult = (currentPane.getPage()) * 44;
 		int pageSlots = 0;
 		int pageItemCounter = 0;
-		
-		if (currentPane.getPage() > 0) {
-			pageSlots = slots - mult-1;
-		}else {
-			pageSlots = 44;
-		}
-		System.out.println("total page slots: "+pageSlots+" mult: "+mult);
-		
+
+		pageSlots = slots - mult - 1;
+
+		System.out.println("total page slots: " + pageSlots + " mult: " + mult);
+
 		for (Integer slot = 0; slot <= pageSlots; slot++) {
-			
-			if (currentPane.getPage() > 0) {
-				pageItemCounter = (slot+mult)+1;
-			}else {
-				pageItemCounter = 44;
-			}
-			
-			System.out.println("getting: "+(slot));
+
+			pageItemCounter = slot+mult;
+
 			ItemStack itemStack = GUI.getInventory().getItem(slot);
 
 			Item item = items.get(pageItemCounter) != null ? items.get(pageItemCounter) : new Item();
 			if (itemStack != null) {
+				System.out.println("item: " + item.getMaterial() + " stack: " + itemStack.getType());
+				if (!item.getMaterial().equalsIgnoreCase(itemStack.getType().toString())) {
+					item = new Item();
+				}
+				NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
 				ItemMeta im = itemStack.getItemMeta();
 
 				item.setItemType(ItemType.SHOP);
 				item.setMaterial(itemStack.getType().toString());
+				item.setSlot(pageItemCounter);
 
-				System.out.println("saveShop canBuy: " + item.canBuyItem());
-				if (!item.canBuyItem()) {
+				Object buyPrice = getBuyPrice(itemStack);
 
-					Object buyPrice = getBuyPrice(itemStack);
-
-					if (buyPrice instanceof Boolean) {
-						item.setBuyPrice((Boolean) buyPrice);
-					} else {
-						item.setBuyPrice((Double) buyPrice);
-					}
+				if (buyPrice instanceof Boolean) {
+					item.setBuyPrice((Boolean) buyPrice);
+				} else {
+					item.setBuyPrice((Double) buyPrice);
 				}
 
 				Object sellPrice = getSellPrice(itemStack);
-
-				if (!item.canSellItem()) {
-					if (sellPrice instanceof Boolean) {
-						item.setSellPrice((Boolean) sellPrice);
-					} else {
-						item.setSellPrice((Double) sellPrice);
-					}
+				if (sellPrice instanceof Boolean) {
+					item.setSellPrice((Boolean) sellPrice);
+				} else {
+					item.setSellPrice((Double) sellPrice);
 				}
 
 				if (im.hasDisplayName()) {
 					item.setShopName(im.getDisplayName());
 				}
 
+				if (comp.hasKey("buyName")) {
+					item.setBuyName(comp.getString("buyName"));
+				}
+
 				if (im.hasLore()) {
 					List<String> lore = im.getLore();
 					List<String> cleaned = new ArrayList<>();
 					for (String str : lore) {
-						System.out.println("Lore STR:" + ChatColor.stripColor(str));
 						if (!(ChatColor.stripColor(str)
 								.contains(ChatColor.stripColor(Config.getBuyLore().replace("{amount}", ""))))
 								&& !(ChatColor.stripColor(str)
@@ -590,8 +568,8 @@ public class Shop {
 					item.setShopLore(cleaned);
 				}
 
-				System.out.println("Saving: " + itemStack.getType() +" to "+pageItemCounter);
-				items.set(pageItemCounter, item);
+				items.set(item.getSlot(), item);
+				System.out.println("Set item: " + item.getMaterial() + " to " + item.getSlot());
 			} else {
 				Item blank = new Item();
 				blank.setItemType(ItemType.BLANK);
@@ -606,24 +584,19 @@ public class Shop {
 	 */
 	public void saveItems(Player player) {
 
-		Integer index = 0;
-
 		Main.getINSTANCE().getCustomConfig().set(shop, null);
 
 		ConfigurationSection config = Main.getINSTANCE().getCustomConfig().createSection(shop);
 
 		assert config != null;
 		for (Item item : items) {
-			ConfigurationSection section = config.createSection(index.toString());
+			ConfigurationSection section = config.createSection(item.getSlot() + "");
 			section.set("type", item.getItemType().toString());
 			section.set("id", item.getMaterial());
 			section.set("buy-price", item.getBuyPrice());
-			System.out.println("Saved Buy: " + item.getBuyPrice());
 			section.set("sell-price", item.getSellPrice());
 			section.set("shop-lore", item.getShopLore());
 			section.set("shop-name", item.getShopName());
-
-			index += 1;
 		}
 		try {
 			Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());

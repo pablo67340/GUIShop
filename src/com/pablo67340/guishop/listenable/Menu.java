@@ -12,6 +12,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -27,6 +28,8 @@ public final class Menu {
 	 * {@link Menu}.
 	 */
 	private Gui GUI;
+
+	private Boolean hasClicked = false;
 
 	public static final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 
@@ -45,12 +48,11 @@ public final class Menu {
 		Thread t1 = new Thread(() -> {
 			Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
 			long startTime = System.currentTimeMillis();
-			ShopPane page = new ShopPane(9, 1);
-
-			// We need to load 1 single item to get spigot to load
-			// whatever item utils it needs too. Usually takes about 4s.
 			for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
-				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
+				if (shopDef.getItemType() == ItemType.SHOP) {
+					new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
+							.loadItems();
+				}
 			}
 			long estimatedTime = System.currentTimeMillis() - startTime;
 			Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
@@ -115,6 +117,9 @@ public final class Menu {
 		GUI.setOnBottomClick(event -> {
 			event.setCancelled(true);
 		});
+		if (Main.getCREATOR().contains(player.getName())) {
+			GUI.setOnClose(event -> onClose(event));
+		}
 		GUI.show(player);
 
 	}
@@ -153,6 +158,8 @@ public final class Menu {
 			return;
 		}
 
+		hasClicked = true;
+
 		ShopDef shopDef = new ArrayList<>(Main.getINSTANCE().getShops().values()).get(e.getSlot());
 
 		if (shopDef.getItemType() == ItemType.SHOP) {
@@ -172,14 +179,25 @@ public final class Menu {
 				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
 						this);
 			} else {
+				System.out.println("Loaded from cache");
 				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
 						this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
 			}
+
 			openShop.loadItems();
 			openShop.open(player);
 			return openShop;
 		}
 		return null;
+	}
+
+	private void onClose(InventoryCloseEvent e) {
+		if (!hasClicked) {
+			Player p = (Player) e.getPlayer();
+			if (Main.getCREATOR().contains(p.getName())) {
+				Main.getCREATOR().remove(p.getName());
+			}
+		}
 	}
 
 }

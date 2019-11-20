@@ -25,6 +25,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.XMaterial;
 
 import lombok.Getter;
 
@@ -76,7 +77,7 @@ public final class Main extends JavaPlugin {
 
 	@Getter
 	public Map<String, List<Item>> loadedShops = new HashMap<>();
-	
+
 	@Getter
 	private final Map<String, Price> PRICETABLE = new HashMap<>();
 
@@ -223,8 +224,7 @@ public final class Main extends JavaPlugin {
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
 	}
-	
-	
+
 	private void loadPRICETABLE() {
 		Item item;
 
@@ -259,7 +259,6 @@ public final class Main extends JavaPlugin {
 						PRICETABLE.put(item.getMaterial() + ":" + item.getMobType().toLowerCase(),
 								new Price(sellPrice));
 					} else {
-						System.out.println("Added: "+item.getMaterial());
 						PRICETABLE.put(item.getMaterial(), new Price(sellPrice));
 					}
 				}
@@ -296,15 +295,24 @@ public final class Main extends JavaPlugin {
 		}
 
 	}
-	
+
 	public static String placeholderIfy(String input, Player player, Item item) {
 		String str = input;
 
 		str = str.replace("{PLAYER_NAME}", player.getName());
 		str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
-		str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
-		str = str.replace("{ITEM_BUY_NAME}", item.getBuyName());
+		if (item.hasShopName()) {
+			str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
+		}else {
+			str = str.replace("{ITEM_SHOP_NAME}", XMaterial.matchXMaterial(item.getMaterial()).name());
+		}
+		if (item.hasBuyName()) {
+			str = str.replace("{ITEM_BUY_NAME}", item.getBuyName());
+		}else {
+			str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).name());
+		}
 		str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
+		str = str.replace("{SELL_PRICE}", item.getSellPrice().toString());
 		str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
 		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
 

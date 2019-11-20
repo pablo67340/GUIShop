@@ -118,15 +118,16 @@ public final class ItemUtil {
 	}
 
 	/**
-	 * @param sell Sell value
+	 * @param name The Item Name
+	 * @param player The player who clicked the item.
 	 *             <p>
 	 * 
-	 *             Set an item's sell price
+	 *             Set an item's shop-name
 	 *             
 	 *             TODO: Add support for spaces in name
 	 */
 	@SuppressWarnings("deprecation")
-	public static void setName(String name, Player player) {
+	public static void setShopName(String name, Player player) {
 		ItemStack item;
 		name = ChatColor.translateAlternateColorCodes('&', name);
 		if (XMaterial.isNewVersion()) {
@@ -148,6 +149,38 @@ public final class ItemUtil {
 		}
 
 		player.sendMessage(Config.getPrefix() + " Name set: " + name);
+	}
+	
+	/**
+	 * @param name The Item Name
+	 * @param player The player who clicked the item.
+	 *             <p>
+	 * 
+	 *             Set an item's buy-name
+	 *             
+	 *             TODO: Add support for spaces in name
+	 */
+	@SuppressWarnings("deprecation")
+	public static void setBuyName(String name, Player player) {
+		ItemStack item;
+		name = ChatColor.translateAlternateColorCodes('&', name);
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		comp.setString("buyName", name);
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Buy-Name set: " + name);
 	}
 
 }

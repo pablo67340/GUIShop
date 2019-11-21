@@ -240,21 +240,22 @@ class Quantity {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
 						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
-
+						System.out.println("Added Enc: "+Enchantments.getByName(enchantment)+":"+level);
 					}
 
 				}
 			}
 			itemStack.setAmount(e.getCurrentItem().getAmount());
-			// If is shift clicking, buy 1.
 
 		}
 
 		List<String> lore = new ArrayList<>();
 
-		item.getBuyLore().forEach(str -> {
-			lore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, item)));
-		});
+		if (item.hasBuyLore()) {
+			item.getBuyLore().forEach(str -> {
+				lore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, item)));
+			});
+		}
 
 		itemMeta.setLore(lore);
 

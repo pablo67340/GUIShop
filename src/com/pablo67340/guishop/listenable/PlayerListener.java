@@ -140,15 +140,83 @@ public final class PlayerListener implements Listener {
 						if (cut.length == 3) {
 							ItemUtil.setShopName(cut[2], player);
 						} else {
-							player.sendMessage("Please specify a custom name.");
+							player.sendMessage("Please specify a custom sell-name.");
 						}
-					}else if (cut[1].equalsIgnoreCase("bn")) {
+					} else if (cut[1].equalsIgnoreCase("bn")) {
 						if (cut.length == 3) {
 							ItemUtil.setBuyName(cut[2], player);
 						} else {
-							player.sendMessage("Please specify a custom name.");
+							player.sendMessage("Please specify a custom buy-name.");
 						}
-					}else {
+					} else if (cut[1].equalsIgnoreCase("e")) {
+						if (cut.length >= 3) {
+							String enchantments = "";
+							for (int x = 2; x <= cut.length - 1; x++) {
+								enchantments += cut[x] + " ";
+							}
+							ItemUtil.setEnchantments(enchantments.trim(), player);
+						} else {
+							player.sendMessage("Please specify enchantments. E.G 'dura:1 sharp:2'");
+						}
+					} else if (cut[1].equalsIgnoreCase("asll")) {
+						if (cut.length >= 3) {
+							String line = "";
+							for (int x = 2; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.addToShopLore(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else if (cut[1].equalsIgnoreCase("dsll")) {
+						if (cut.length >= 3) {
+							int slot = Integer.parseInt(cut[2]);
+							ItemUtil.deleteShopLore(slot, player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else if (cut[1].equalsIgnoreCase("esll")) {
+						if (cut.length >= 3) {
+							String line = "";
+							int slot = Integer.parseInt(cut[2]);
+							for (int x = 3; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.editShopLore(slot, ChatColor.translateAlternateColorCodes('&', line.trim()),
+									player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					}else if (cut[1].equalsIgnoreCase("abll")) {
+						if (cut.length >= 3) {
+							String line = "";
+							for (int x = 2; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.addToShopLore(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else if (cut[1].equalsIgnoreCase("dsll")) {
+						if (cut.length >= 3) {
+							int slot = Integer.parseInt(cut[2]);
+							ItemUtil.deleteBuyLore(slot, player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else if (cut[1].equalsIgnoreCase("ebll")) {
+						if (cut.length >= 3) {
+							String line = "";
+							int slot = Integer.parseInt(cut[2]);
+							for (int x = 3; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.editBuyLore(slot, ChatColor.translateAlternateColorCodes('&', line.trim()),
+									player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else {
 						printUsage(player);
 					}
 				}
@@ -163,9 +231,14 @@ public final class PlayerListener implements Listener {
 	private void printUsage(Player player) {
 		player.sendMessage("        Proper Usage:        ");
 		player.sendMessage("/guishop edit - Opens in Editor Mode");
-		player.sendMessage("/guishop price/p - Set item in hand's buy price");
-		player.sendMessage("/guishop sell/s - Set item in hand's sell price");
-		player.sendMessage("/guishop shopname/sn - Set item in hand's Shop-Name");
+		player.sendMessage("/guishop price/p {price} - Set item in hand's buy price");
+		player.sendMessage("/guishop sell/s {price} - Set item in hand's sell price");
+		player.sendMessage("/guishop shopname/sn {name} - Set item in hand's Shop-Name");
+		player.sendMessage("/guishop buyname/bn {name} - Set item in hand's Buy-Name");
+		player.sendMessage("/guishop enchant/e {enchants} - Set item in hand's Enchantments");
+		player.sendMessage("/guishop asll {line} - Add Shop Lore Line");
+		player.sendMessage("/guishop dsll {lineNumber} - Delete Shop Lore Line. Starts at 0");
+		player.sendMessage("/guishop esll {lineNumber} {line} - Edit Shop Lore Line. Starts at 0");
 	}
 
 	// When the inventory closes

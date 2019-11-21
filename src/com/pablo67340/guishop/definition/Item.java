@@ -84,7 +84,7 @@ public final class Item {
 		if (sellPrice instanceof Boolean) {
 			return false;
 		} else if (sellPrice instanceof Double) {
-			return ((Double)sellPrice != 0.0);
+			return ((Double) sellPrice != 0.0);
 		} else if (sellPrice instanceof Object) {
 			return false;
 		}
@@ -100,11 +100,33 @@ public final class Item {
 	}
 
 	public Boolean hasShopLore() {
-		return shopLore != null || shopLore.size() != 0;
+		if (shopLore == null) {
+			return false;
+		}
+		if (shopLore.size() == 0) {
+			return false;
+		}
+		return true;
+	}
+
+	public Boolean hasBuyLore() {
+		if (buyLore == null) {
+			return false;
+		}
+		if (buyLore.size() == 0) {
+			return false;
+		}
+		return true;
 	}
 
 	public Boolean hasEnchantments() {
-		return enchantments != null;
+		if (enchantments == null) {
+			return false;
+		}
+		if (enchantments[0].equalsIgnoreCase("")) {
+			return false;
+		}
+		return true;
 	}
 
 	public Boolean isMobSpawner() {

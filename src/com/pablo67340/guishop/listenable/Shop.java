@@ -565,6 +565,10 @@ public class Shop {
 					item.setBuyName(comp.getString("buyName"));
 				}
 
+				if (comp.hasKey("enchantments")) {
+					item.setEnchantments(comp.getString("enchantments").split(" "));
+				}
+
 				if (im.hasLore()) {
 					List<String> lore = im.getLore();
 					List<String> cleaned = new ArrayList<>();
@@ -610,12 +614,26 @@ public class Shop {
 			section.set("id", item.getMaterial());
 			section.set("buy-price", item.getBuyPrice());
 			section.set("sell-price", item.getSellPrice());
-			if (item.getShopLore().size() > 0) {
+			if (item.hasShopLore()) {
 				section.set("shop-lore", item.getShopLore());
 			}
-			System.out.println("HasName: "+item.hasShopName()+" name:"+item.getShopName()+":");
+			System.out.println("HasName: " + item.hasShopName() + " name:" + item.getShopName() + ":");
 			if (item.hasShopName()) {
 				section.set("shop-name", item.getShopName());
+			}
+			if (item.hasBuyName()) {
+				section.set("buy-name", item.getBuyName());
+			}
+			if (item.hasEnchantments()) {
+				String parsed = "";
+				for (String str : item.getEnchantments()) {
+				    parsed += str + " ";
+				}
+				System.out.println("Item had:"+item.getEnchantments()[0]+":");
+				section.set("enchantments", parsed.trim());
+			}
+			if (item.hasShopLore()) {
+				section.set("shop-lore", item.getShopLore());
 			}
 		}
 		try {

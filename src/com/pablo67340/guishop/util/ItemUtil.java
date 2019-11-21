@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.util;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.ChatColor;
@@ -118,13 +119,13 @@ public final class ItemUtil {
 	}
 
 	/**
-	 * @param name The Item Name
+	 * @param name   The Item Name
 	 * @param player The player who clicked the item.
-	 *             <p>
+	 *               <p>
 	 * 
-	 *             Set an item's shop-name
-	 *             
-	 *             TODO: Add support for spaces in name
+	 *               Set an item's shop-name
+	 * 
+	 *               TODO: Add support for spaces in name
 	 */
 	@SuppressWarnings("deprecation")
 	public static void setShopName(String name, Player player) {
@@ -150,15 +151,15 @@ public final class ItemUtil {
 
 		player.sendMessage(Config.getPrefix() + " Name set: " + name);
 	}
-	
+
 	/**
-	 * @param name The Item Name
+	 * @param name   The Item Name
 	 * @param player The player who clicked the item.
-	 *             <p>
+	 *               <p>
 	 * 
-	 *             Set an item's buy-name
-	 *             
-	 *             TODO: Add support for spaces in name
+	 *               Set an item's buy-name
+	 * 
+	 *               TODO: Add support for spaces in name
 	 */
 	@SuppressWarnings("deprecation")
 	public static void setBuyName(String name, Player player) {
@@ -181,6 +182,281 @@ public final class ItemUtil {
 		}
 
 		player.sendMessage(Config.getPrefix() + " Buy-Name set: " + name);
+	}
+
+	/**
+	 * @param name   The Item Name
+	 * @param player The player who clicked the item.
+	 *               <p>
+	 * 
+	 *               Set an item's buy-name
+	 * 
+	 *               TODO: Add support for spaces in name
+	 */
+	@SuppressWarnings("deprecation")
+	public static void setEnchantments(String enchantments, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		comp.setString("enchantments", enchantments);
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Enchantments set: " + enchantments.trim());
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void addToShopLore(String line, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		List<String> lore = new ArrayList<>();
+
+		ItemMeta im = item.getItemMeta();
+		if (im.getLore() != null) {
+			lore.addAll(im.getLore());
+		}
+
+		lore.add(ChatColor.translateAlternateColorCodes('&', line));
+
+		im.setLore(lore);
+		item.setItemMeta(im);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Lore:");
+		for (String str : lore) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void editShopLore(Integer index, String line, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		List<String> lore = new ArrayList<>();
+
+		ItemMeta im = item.getItemMeta();
+		if (im.getLore() != null) {
+			lore.addAll(im.getLore());
+		}
+
+		lore.set(index, ChatColor.translateAlternateColorCodes('&', line));
+
+		im.setLore(lore);
+		item.setItemMeta(im);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Edited line in lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Lore:");
+		for (String str : lore) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void deleteShopLore(int index, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		List<String> lore = new ArrayList<>();
+
+		ItemMeta im = item.getItemMeta();
+		if (im.getLore() != null) {
+			lore.addAll(im.getLore());
+		}
+
+		String line = lore.get(index);
+
+		lore.remove(index);
+
+		im.setLore(lore);
+		item.setItemMeta(im);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Deleted line to lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Lore:");
+		for (String str : lore) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void addToBuyLore(String line, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		line = ChatColor.translateAlternateColorCodes('&', line);
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		if (comp.hasKey("loreLines")) {
+			line = comp.getString("loreLines")+"::"+line;
+		}
+		String[] lines = line.split("::");
+		comp.setString("loreLines", line);
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Lore:");
+		for (String str : lines) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void editBuyLore(Integer slot, String line, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		line = ChatColor.translateAlternateColorCodes('&', line);
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		String[] lines = null;
+		if (comp.hasKey("loreLines")) {
+			System.out.println("Lore: "+comp.getString("loreLines"));
+			lines = comp.getString("loreLines").split("::");
+		}
+		
+		List<String> lines2 = Arrays.asList(lines);
+		lines2.set(slot, line);
+		
+		String fnl = "";
+		for (String str : lines2) {
+			fnl+=str+"::";
+		}
+		
+		comp.setString("loreLines", fnl);
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Added line to lore: " + fnl);
+		player.sendMessage(Config.getPrefix() + " Current Lore:");
+		for (String str : lines2) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void deleteBuyLore(int index, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		List<String> lore = new ArrayList<>();
+
+		ItemMeta im = item.getItemMeta();
+		if (im.getLore() != null) {
+			lore.addAll(im.getLore());
+		}
+
+		String line = lore.get(index);
+
+		lore.remove(index);
+
+		im.setLore(lore);
+		item.setItemMeta(im);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Deleted line to lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Lore:");
+		for (String str : lore) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
 	}
 
 }

@@ -68,29 +68,6 @@ public final class Item {
 	@Setter
 	private String[] enchantments;
 
-	public Boolean canBuyItem() {
-
-		if (buyPrice instanceof Boolean) {
-			return false;
-		} else if (buyPrice instanceof Double) {
-			return true;
-		} else if (buyPrice instanceof Object) {
-			return false;
-		}
-		return false;
-	}
-
-	public Boolean canSellItem() {
-		if (sellPrice instanceof Boolean) {
-			return false;
-		} else if (sellPrice instanceof Double) {
-			return ((Double) sellPrice != 0.0);
-		} else if (sellPrice instanceof Object) {
-			return false;
-		}
-		return false;
-	}
-
 	public Boolean hasShopName() {
 		return (shopName != null ? shopName.equalsIgnoreCase("") ? false : true : false);
 	}
@@ -129,8 +106,50 @@ public final class Item {
 		return true;
 	}
 
+	public boolean hasCommands() {
+		if (commands == null) {
+			return false;
+		}
+		if (commands.size() == 0) {
+			return false;
+		}
+		return true;
+	}
+
 	public Boolean isMobSpawner() {
 		return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
+	}
+
+	public Boolean hasSellPrice() {
+		if (sellPrice == null) {
+			return false;
+		}
+
+		if (sellPrice instanceof Boolean) {
+			if (((Boolean) sellPrice) == false) {
+				return false;
+			}
+		}
+
+		if (sellPrice instanceof Double) {
+			if (((Double) sellPrice) == 0.0) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	public Boolean hasBuyPrice() {
+		if (buyPrice == null) {
+			return false;
+		}
+
+		if (buyPrice instanceof Boolean) {
+			if (((Boolean) buyPrice) == false) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 }

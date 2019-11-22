@@ -88,7 +88,7 @@ class Quantity {
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();
 			List<String> lore = new ArrayList<>();
 
-			if (item.canBuyItem()) {
+			if (item.hasBuyPrice()) {
 				if (item.getBuyPrice() instanceof Double) {
 					if ((Double) item.getBuyPrice() != 0) {
 
@@ -204,7 +204,7 @@ class Quantity {
 			return;
 		}
 
-		if (!item.canBuyItem()) {
+		if (!item.hasBuyPrice()) {
 			player.sendMessage(Config.getCantBuy());
 			return;
 		}
@@ -240,7 +240,6 @@ class Quantity {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
 						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
-						System.out.println("Added Enc: "+Enchantments.getByName(enchantment)+":"+level);
 					}
 
 				}

@@ -179,7 +179,6 @@ public final class Menu {
 				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
 						this);
 			} else {
-				System.out.println("Loaded from cache");
 				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
 						this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
 			}

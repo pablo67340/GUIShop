@@ -20,6 +20,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.ItemUtil;
@@ -102,7 +103,7 @@ public final class PlayerListener implements Listener {
 							Main.getCREATOR().add(player.getName());
 							openShop(player);
 						}
-					} else if (cut[1].equalsIgnoreCase("p")) {
+					} else if (cut[1].equalsIgnoreCase("p") || cut[1].equalsIgnoreCase("price")) {
 						Object result = null;
 						if (cut[2].equalsIgnoreCase("false")) {
 							result = false;
@@ -119,7 +120,7 @@ public final class PlayerListener implements Listener {
 						}
 						ItemUtil.setPrice(result, player);
 
-					} else if (cut[1].equalsIgnoreCase("s")) {
+					} else if (cut[1].equalsIgnoreCase("s") || cut[1].equalsIgnoreCase("sell")) {
 						Object result = null;
 						if (cut[2].equalsIgnoreCase("false")) {
 							result = false;
@@ -136,19 +137,27 @@ public final class PlayerListener implements Listener {
 						}
 						ItemUtil.setSell(result, player);
 
-					} else if (cut[1].equalsIgnoreCase("sn")) {
-						if (cut.length == 3) {
-							ItemUtil.setShopName(cut[2], player);
+					} else if (cut[1].equalsIgnoreCase("sn") || cut[1].equalsIgnoreCase("shopname")) {
+						if (cut.length >= 3) {
+							String line = "";
+							for (int x = 2; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.setShopName(line, player);
 						} else {
 							player.sendMessage("Please specify a custom sell-name.");
 						}
-					} else if (cut[1].equalsIgnoreCase("bn")) {
-						if (cut.length == 3) {
-							ItemUtil.setBuyName(cut[2], player);
+					} else if (cut[1].equalsIgnoreCase("bn") || cut[1].equalsIgnoreCase("buyname")) {
+						if (cut.length >= 3) {
+							String line = "";
+							for (int x = 2; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.setBuyName(line, player);
 						} else {
 							player.sendMessage("Please specify a custom buy-name.");
 						}
-					} else if (cut[1].equalsIgnoreCase("e")) {
+					} else if (cut[1].equalsIgnoreCase("e") || cut[1].equalsIgnoreCase("enchant")) {
 						if (cut.length >= 3) {
 							String enchantments = "";
 							for (int x = 2; x <= cut.length - 1; x++) {
@@ -216,6 +225,46 @@ public final class PlayerListener implements Listener {
 						} else {
 							player.sendMessage("Please specify a line.");
 						}
+					} else if (cut[1].equalsIgnoreCase("t")) {
+						if (cut.length >= 3) {
+							String type = cut[2];
+							if (ItemType.valueOf(type) == null) {
+								player.sendMessage("Invalid Type! Accepted: SHOP, COMMAND, BLANK, DUMMY");
+								return;
+							}
+							ItemUtil.setType(cut[2], player);
+						} else {
+							player.sendMessage("Please specify a type.");
+						}
+					} else if (cut[1].equalsIgnoreCase("ac")) {
+						if (cut.length >= 3) {
+							String line = "";
+							for (int x = 2; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.addCommand(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else if (cut[1].equalsIgnoreCase("ec")) {
+						if (cut.length >= 3) {
+							String line = "";
+							int slot = Integer.parseInt(cut[2]);
+							for (int x = 3; x <= cut.length - 1; x++) {
+								line += cut[x] + " ";
+							}
+							ItemUtil.editCommand(slot, ChatColor.translateAlternateColorCodes('&', line.trim()),
+									player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
+					} else if (cut[1].equalsIgnoreCase("dc")) {
+						if (cut.length >= 3) {
+							int slot = Integer.parseInt(cut[2]);
+							ItemUtil.deleteCommand(slot, player);
+						} else {
+							player.sendMessage("Please specify a line.");
+						}
 					} else {
 						printUsage(player);
 					}
@@ -242,6 +291,9 @@ public final class PlayerListener implements Listener {
 		player.sendMessage("/guishop abll {line} - Add Buy Lore Line");
 		player.sendMessage("/guishop dbll {lineNumber} - Delete Buy Lore Line. Starts at 0");
 		player.sendMessage("/guishop ebll {lineNumber} {line} - Edit Buy Lore Line. Starts at 0");
+		player.sendMessage("/guishop ac {command} - Add Command to item");
+		player.sendMessage("/guishop dc {lineNumber} - Delete Command by line. Starts at 0");
+		player.sendMessage("/guishop ec {lineNumber} {cmd} - Edit Command by line. Starts at 0");
 	}
 
 	// When the inventory closes

@@ -303,16 +303,20 @@ public final class Main extends JavaPlugin {
 		str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
 		if (item.hasShopName()) {
 			str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
-		}else {
+		} else {
 			str = str.replace("{ITEM_SHOP_NAME}", XMaterial.matchXMaterial(item.getMaterial()).name());
 		}
 		if (item.hasBuyName()) {
 			str = str.replace("{ITEM_BUY_NAME}", item.getBuyName());
-		}else {
+		} else {
 			str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).name());
 		}
-		str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
-		str = str.replace("{SELL_PRICE}", item.getSellPrice().toString());
+		if (item.hasBuyPrice()) {
+			str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
+		}
+		if (item.hasSellPrice()) {
+			str = str.replace("{SELL_PRICE}", item.getSellPrice().toString());
+		}
 		str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
 		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
 

@@ -42,8 +42,6 @@ public final class ItemUtil {
 
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
-		System.out.println("Setting");
-
 		if (price instanceof Double) {
 			comp.setDouble("buyPrice", (Double) price);
 		} else if (price instanceof Integer) {
@@ -93,8 +91,6 @@ public final class ItemUtil {
 		item.setItemMeta(im);
 
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
-
-		System.out.println("Setting");
 
 		if (price instanceof Double) {
 			comp.setDouble("sellPrice", (Double) price);
@@ -349,6 +345,7 @@ public final class ItemUtil {
 		}
 
 		line = ChatColor.translateAlternateColorCodes('&', line);
+		String addedLine = line;
 
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
 		if (comp.hasKey("loreLines")) {
@@ -364,7 +361,7 @@ public final class ItemUtil {
 			player.setItemInHand(fnl);
 		}
 
-		player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Added line to lore: " + addedLine);
 		player.sendMessage(Config.getPrefix() + " Current Lore:");
 		for (String str : lines) {
 			player.sendMessage(Config.getPrefix() + " - " + str);
@@ -390,7 +387,6 @@ public final class ItemUtil {
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
 		String[] lines = null;
 		if (comp.hasKey("loreLines")) {
-			System.out.println("Lore: " + comp.getString("loreLines"));
 			lines = comp.getString("loreLines").split("::");
 		}
 
@@ -424,7 +420,7 @@ public final class ItemUtil {
 	 *             Set an item's sell price
 	 */
 	@SuppressWarnings("deprecation")
-	public static void deleteBuyLore(int index, Player player) {
+	public static void deleteBuyLore(int slot, Player player) {
 		ItemStack item;
 		if (XMaterial.isNewVersion()) {
 			item = player.getInventory().getItemInMainHand();
@@ -432,19 +428,23 @@ public final class ItemUtil {
 			item = player.getItemInHand();
 		}
 
-		List<String> lore = new ArrayList<>();
-
-		ItemMeta im = item.getItemMeta();
-		if (im.getLore() != null) {
-			lore.addAll(im.getLore());
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		String[] lines = null;
+		if (comp.hasKey("loreLines")) {
+			lines = comp.getString("loreLines").split("::");
 		}
 
-		String line = lore.get(index);
+		List<String> lines2 = Arrays.asList(lines);
+		String line = lines2.get(slot);
+		lines2.remove(slot);
 
-		lore.remove(index);
+		String fnl = "";
+		for (String str : lines2) {
+			fnl += str + "::";
+		}
 
-		im.setLore(lore);
-		item.setItemMeta(im);
+		comp.setString("loreLines", fnl);
+		item = ItemNBTUtil.setNBTTag(comp, item);
 
 		if (XMaterial.isNewVersion()) {
 			player.getInventory().setItemInMainHand(item);
@@ -452,9 +452,167 @@ public final class ItemUtil {
 			player.setItemInHand(item);
 		}
 
-		player.sendMessage(Config.getPrefix() + " Deleted line to lore: " + line);
+		player.sendMessage(Config.getPrefix() + " Removed line to lore: " + line);
 		player.sendMessage(Config.getPrefix() + " Current Lore:");
-		for (String str : lore) {
+		for (String str : lines2) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void setType(String type, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+
+		comp.setString("itemType", type);
+
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Set Item Type: " + type);
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void addCommand(String line, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		line = ChatColor.translateAlternateColorCodes('&', line);
+		String addedLine = line;
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		if (comp.hasKey("loreLines")) {
+			line = comp.getString("commands") + "::" + line;
+		}
+		String[] lines = line.split("::");
+		comp.setString("commands", line);
+		ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(fnl);
+		} else {
+			player.setItemInHand(fnl);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Added Command to item: " + addedLine);
+		player.sendMessage(Config.getPrefix() + " Current Commands:");
+		for (String str : lines) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void editCommand(Integer slot, String line, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		line = ChatColor.translateAlternateColorCodes('&', line);
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		String[] lines = null;
+		if (comp.hasKey("commands")) {
+			lines = comp.getString("commands").split("::");
+		}
+
+		List<String> lines2 = Arrays.asList(lines);
+		lines2.set(slot, line);
+
+		String fnl = "";
+		for (String str : lines2) {
+			fnl += str + "::";
+		}
+
+		comp.setString("commands", fnl);
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Added command to item: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Commands:");
+		for (String str : lines2) {
+			player.sendMessage(Config.getPrefix() + " - " + str);
+		}
+	}
+
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void deleteCommand(int slot, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+		String[] lines = null;
+		if (comp.hasKey("commands")) {
+			lines = comp.getString("commands").split("::");
+		}
+
+		List<String> lines2 = Arrays.asList(lines);
+		String line = lines2.get(slot);
+		lines2.remove(slot);
+
+		String fnl = "";
+		for (String str : lines2) {
+			fnl += str + "::";
+		}
+
+		comp.setString("commands", fnl);
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Removed command from item: " + line);
+		player.sendMessage(Config.getPrefix() + " Current Commands:");
+		for (String str : lines2) {
 			player.sendMessage(Config.getPrefix() + " - " + str);
 		}
 	}

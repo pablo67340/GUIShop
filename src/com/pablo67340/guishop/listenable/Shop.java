@@ -1,7 +1,7 @@
 package com.pablo67340.guishop.listenable;
 
-import java.nio.file.StandardOpenOption;
 import java.util.*;
+import java.util.logging.Level;
 
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.*;
@@ -215,7 +215,7 @@ public class Shop {
 
 				List<String> lore = new ArrayList<>();
 
-				if (item.canBuyItem()) {
+				if (item.hasBuyPrice()) {
 					if (item.getBuyPrice() instanceof Double) {
 						if ((Double) item.getBuyPrice() != 0.0) {
 							lore.add(Config.getBuyLore().replace("{amount}",
@@ -224,7 +224,7 @@ public class Shop {
 							lore.add(Config.getFreeLore());
 						}
 					} else {
-						if ((Integer) item.getBuyPrice() != 0.0) {
+						if ((Integer) item.getBuyPrice() != 0) {
 							lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
 									+ ((Integer) item.getBuyPrice()).doubleValue() + Config.getCurrencySuffix()));
 						} else {
@@ -236,7 +236,7 @@ public class Shop {
 					lore.add(Config.getCannotBuy());
 				}
 
-				if (item.canSellItem()) {
+				if (item.hasSellPrice()) {
 					lore.add(Config.getSellLore().replace("{amount}",
 							Config.getCurrency() + item.getSellPrice() + Config.getCurrencySuffix()));
 				} else {
@@ -413,7 +413,6 @@ public class Shop {
 					saveShop(player);
 				}
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-				System.out.println("Switched to page: " + (currentPane.getPage() + 1));
 				currentPane.setPage(currentPane.getPage() + 1);
 
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
@@ -435,7 +434,6 @@ public class Shop {
 					saveShop(player);
 				}
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-				System.out.println("Switched to page: " + (currentPane.getPage() - 1));
 				currentPane.setPage(currentPane.getPage() - 1);
 
 				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
@@ -455,7 +453,7 @@ public class Shop {
 			if (!Main.getCREATOR().contains(player.getName())) {
 				Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
-				if (item.getItemType() == ItemType.SHOP && item.canBuyItem()) {
+				if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
 					new Quantity(item, this, player).loadInventory().open();
 				} else if (item.getItemType() == ItemType.COMMAND) {
 					if (Main.getECONOMY().withdrawPlayer(player, (Double) item.getBuyPrice()).transactionSuccess()) {
@@ -489,7 +487,6 @@ public class Shop {
 			}
 		} else {
 			if (!hasClicked) {
-				System.out.println("Saving Edits");
 				saveShop(player);
 			} else {
 				hasClicked = false;
@@ -512,11 +509,7 @@ public class Shop {
 		int pageSlots = 0;
 		int pageItemCounter = 0;
 
-		System.out.println("Slots: " + slots + " mult " + mult);
-
 		pageSlots = slots - mult - 1;
-
-		System.out.println("total page slots: " + pageSlots + " mult: " + mult);
 
 		for (Integer slot = 0; slot <= pageSlots; slot++) {
 
@@ -530,8 +523,8 @@ public class Shop {
 
 			Item item = items.get(pageItemCounter) != null ? items.get(pageItemCounter) : new Item();
 			if (itemStack != null) {
-				System.out.println("item: " + item.getMaterial() + " stack: " + itemStack.getType());
-				if (!item.getMaterial().equalsIgnoreCase(itemStack.getType().toString())) {
+				if (!item.getMaterial().equalsIgnoreCase(itemStack.getType().toString())
+						|| item.getItemType() == null) {
 					item = new Item();
 				}
 				NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
@@ -570,6 +563,15 @@ public class Shop {
 					item.setEnchantments(comp.getString("enchantments").split(" "));
 				}
 
+				if (comp.hasKey("itemType")) {
+					item.setItemType(ItemType.valueOf(comp.getString("itemType")));
+				}
+
+				if (comp.hasKey("commands")) {
+					item.setItemType(ItemType.COMMAND);
+					item.setCommands(Arrays.asList(comp.getString("commands").split("::")));
+				}
+
 				if (im.hasLore()) {
 					List<String> lore = im.getLore();
 					List<String> cleaned = new ArrayList<>();
@@ -587,8 +589,13 @@ public class Shop {
 					item.setShopLore(cleaned);
 				}
 
+				if (comp.hasKey("loreLines")) {
+					String line = comp.getString("loreLines");
+					String[] lore = line.split("::");
+					item.setBuyLore(Arrays.asList(lore));
+				}
+
 				items.set(item.getSlot(), item);
-				System.out.println("Set item: " + item.getMaterial() + " to " + item.getSlot());
 			} else {
 				Item blank = new Item();
 				blank.setItemType(ItemType.BLANK);
@@ -613,12 +620,15 @@ public class Shop {
 			ConfigurationSection section = config.createSection(item.getSlot() + "");
 			section.set("type", item.getItemType().toString());
 			section.set("id", item.getMaterial());
-			section.set("buy-price", item.getBuyPrice());
-			section.set("sell-price", item.getSellPrice());
+			if (item.hasBuyPrice()) {
+				section.set("buy-price", item.getBuyPrice());
+			}
+			if (item.hasSellPrice()) {
+				section.set("sell-price", item.getSellPrice());
+			}
 			if (item.hasShopLore()) {
 				section.set("shop-lore", item.getShopLore());
 			}
-			System.out.println("HasName: " + item.hasShopName() + " name:" + item.getShopName() + ":");
 			if (item.hasShopName()) {
 				section.set("shop-name", item.getShopName());
 			}
@@ -628,27 +638,31 @@ public class Shop {
 			if (item.hasEnchantments()) {
 				String parsed = "";
 				for (String str : item.getEnchantments()) {
-				    parsed += str + " ";
+					parsed += str + " ";
 				}
-				System.out.println("Item had:"+item.getEnchantments()[0]+":");
 				section.set("enchantments", parsed.trim());
 			}
 			if (item.hasShopLore()) {
 				section.set("shop-lore", item.getShopLore());
 			}
+			if (item.hasBuyLore()) {
+				section.set("buy-lore", item.getBuyLore());
+			}
+			if (item.hasCommands()) {
+				section.set("commands", item.getCommands());
+			}
 		}
 		try {
 			Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());
-			
 
-			
 		} catch (Exception ex) {
-			System.out.println("Error Saving: " + ex.getMessage());
+			Main.getINSTANCE().getLogger().log(Level.WARNING, ex.getMessage());
 		}
 
 		if (!hasClicked) {
 			Main.getCREATOR().remove(player.getName());
 		}
+		player.sendMessage("§aShop Saved!");
 
 	}
 

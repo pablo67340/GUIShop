@@ -352,16 +352,16 @@ public final class ItemUtil {
 
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
 		if (comp.hasKey("loreLines")) {
-			line = comp.getString("loreLines")+"::"+line;
+			line = comp.getString("loreLines") + "::" + line;
 		}
 		String[] lines = line.split("::");
 		comp.setString("loreLines", line);
-		item = ItemNBTUtil.setNBTTag(comp, item);
+		ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
 
 		if (XMaterial.isNewVersion()) {
-			player.getInventory().setItemInMainHand(item);
+			player.getInventory().setItemInMainHand(fnl);
 		} else {
-			player.setItemInHand(item);
+			player.setItemInHand(fnl);
 		}
 
 		player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
@@ -390,18 +390,18 @@ public final class ItemUtil {
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
 		String[] lines = null;
 		if (comp.hasKey("loreLines")) {
-			System.out.println("Lore: "+comp.getString("loreLines"));
+			System.out.println("Lore: " + comp.getString("loreLines"));
 			lines = comp.getString("loreLines").split("::");
 		}
-		
+
 		List<String> lines2 = Arrays.asList(lines);
 		lines2.set(slot, line);
-		
+
 		String fnl = "";
 		for (String str : lines2) {
-			fnl+=str+"::";
+			fnl += str + "::";
 		}
-		
+
 		comp.setString("loreLines", fnl);
 		item = ItemNBTUtil.setNBTTag(comp, item);
 
@@ -411,7 +411,7 @@ public final class ItemUtil {
 			player.setItemInHand(item);
 		}
 
-		player.sendMessage(Config.getPrefix() + " Added line to lore: " + fnl);
+		player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
 		player.sendMessage(Config.getPrefix() + " Current Lore:");
 		for (String str : lines2) {
 			player.sendMessage(Config.getPrefix() + " - " + str);

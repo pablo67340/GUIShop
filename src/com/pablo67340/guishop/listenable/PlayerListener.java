@@ -187,13 +187,13 @@ public final class PlayerListener implements Listener {
 						} else {
 							player.sendMessage("Please specify a line.");
 						}
-					}else if (cut[1].equalsIgnoreCase("abll")) {
+					} else if (cut[1].equalsIgnoreCase("abll")) {
 						if (cut.length >= 3) {
 							String line = "";
 							for (int x = 2; x <= cut.length - 1; x++) {
 								line += cut[x] + " ";
 							}
-							ItemUtil.addToShopLore(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
+							ItemUtil.addToBuyLore(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
 						} else {
 							player.sendMessage("Please specify a line.");
 						}
@@ -239,6 +239,9 @@ public final class PlayerListener implements Listener {
 		player.sendMessage("/guishop asll {line} - Add Shop Lore Line");
 		player.sendMessage("/guishop dsll {lineNumber} - Delete Shop Lore Line. Starts at 0");
 		player.sendMessage("/guishop esll {lineNumber} {line} - Edit Shop Lore Line. Starts at 0");
+		player.sendMessage("/guishop abll {line} - Add Buy Lore Line");
+		player.sendMessage("/guishop dbll {lineNumber} - Delete Buy Lore Line. Starts at 0");
+		player.sendMessage("/guishop ebll {lineNumber} {line} - Edit Buy Lore Line. Starts at 0");
 	}
 
 	// When the inventory closes

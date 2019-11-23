@@ -479,51 +479,61 @@ Spawners:
     id: SPAWNER
     buy-price: 75000.0
     shop-name: Creeper Spawner
+    mobType: 'CREEPER'
   '1':
     type: SHOP
     id: SPAWNER
     buy-price: 100000.0
     shop-name: Skeleton Spawner
+    mobType: 'SKELETON'
   '2':
     type: SHOP
     id: SPAWNER
     buy-price: 140000.0
     shop-name: Spider Spawner
+    mobType: 'SPIDER'
   '3':
     type: SHOP
     id: SPAWNER
     buy-price: 140000.0
     shop-name: Giant Zombie Spawner
+    mobType: 'GIANT'
   '4':
     type: SHOP
     id: SPAWNER
     buy-price: 140000.0
     shop-name: Zombie Spawner
+    mobType: 'ZOMBIE'
   '5':
     type: SHOP
     id: SPAWNER
     buy-price: 140000.0
     shop-name: Slime Spawner
+    mobType: 'SLIME'
   '6':
     type: SHOP
     id: SPAWNER
     buy-price: 180000.0
     shop-name: Ghast Spawner
+    mobType: 'GHAST'
   '7':
     type: SHOP
     id: SPAWNER
     buy-price: 180000.0
     shop-name: Zombie Pigman Spawner
+    mobType: 'ZOMBIE_PIGMAN'
   '8':
     type: SHOP
     id: SPAWNER
     buy-price: 350000.0
     shop-name: Enderman Spawner
+    mobType: 'ENDERMAN'
   '9':
     type: SHOP
     id: SPAWNER
     buy-price: 150000.0
     shop-name: Cave Spider Spawner
+    mobType: 'CAVE_SPIDER'
 Blocks:
   '0':
     type: SHOP

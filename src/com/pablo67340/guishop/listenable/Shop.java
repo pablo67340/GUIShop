@@ -571,6 +571,10 @@ public class Shop {
 					item.setItemType(ItemType.COMMAND);
 					item.setCommands(Arrays.asList(comp.getString("commands").split("::")));
 				}
+				
+				if (comp.hasKey("mobType")) {
+					item.setMobType(comp.getString("mobType"));
+				}
 
 				if (im.hasLore()) {
 					List<String> lore = im.getLore();
@@ -650,6 +654,9 @@ public class Shop {
 			}
 			if (item.hasCommands()) {
 				section.set("commands", item.getCommands());
+			}
+			if (item.hasMobType()) {
+				section.set("mobType", item.getMobType());
 			}
 		}
 		try {

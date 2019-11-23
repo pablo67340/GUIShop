@@ -617,4 +617,33 @@ public final class ItemUtil {
 		}
 	}
 
+	/**
+	 * @param sell Sell value
+	 *             <p>
+	 *             Set an item's sell price
+	 */
+	@SuppressWarnings("deprecation")
+	public static void setMobType(String type, Player player) {
+		ItemStack item;
+		if (XMaterial.isNewVersion()) {
+			item = player.getInventory().getItemInMainHand();
+		} else {
+			item = player.getItemInHand();
+		}
+
+		NBTTagCompound comp = ItemNBTUtil.getTag(item);
+
+		comp.setString("mobType", type);
+
+		item = ItemNBTUtil.setNBTTag(comp, item);
+
+		if (XMaterial.isNewVersion()) {
+			player.getInventory().setItemInMainHand(item);
+		} else {
+			player.setItemInHand(item);
+		}
+
+		player.sendMessage(Config.getPrefix() + " Set Item Mob Type: " + type);
+	}
+
 }

@@ -265,6 +265,12 @@ public final class PlayerListener implements Listener {
 						} else {
 							player.sendMessage("Please specify a line.");
 						}
+					} else if (cut[1].equalsIgnoreCase("mt")) {
+						if (cut.length == 3) {
+							ItemUtil.setMobType(cut[2], player);
+						} else {
+							player.sendMessage("Please specify a type");
+						}
 					} else {
 						printUsage(player);
 					}
@@ -294,6 +300,8 @@ public final class PlayerListener implements Listener {
 		player.sendMessage("/guishop ac {command} - Add Command to item");
 		player.sendMessage("/guishop dc {lineNumber} - Delete Command by line. Starts at 0");
 		player.sendMessage("/guishop ec {lineNumber} {cmd} - Edit Command by line. Starts at 0");
+		player.sendMessage("/guishop mt {type} - Set an item's mob type. Used for Spawners/Eggs.");
+		player.sendMessage("/guishop t {type} - Set an item's type. BLANK, SHOP, COMMAND, DUMMY");
 	}
 
 	// When the inventory closes

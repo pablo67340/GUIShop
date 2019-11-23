@@ -151,5 +151,15 @@ public final class Item {
 		}
 		return true;
 	}
+	
+	public Boolean hasMobType() {
+		if (mobType == null) {
+			return false;
+		}
+		if (mobType.equalsIgnoreCase("")) {
+			return false;
+		}
+		return true;
+	}
 
 }

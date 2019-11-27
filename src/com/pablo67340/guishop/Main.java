@@ -256,10 +256,11 @@ public final class Main extends JavaPlugin {
 							: ((Double) item.getSellPrice());
 
 					if (item.isMobSpawner()) {
-						PRICETABLE.put(item.getMaterial() + ":" + item.getMobType().toLowerCase(),
+						PRICETABLE.put(item.getMaterial().toUpperCase() + ":" + item.getMobType().toLowerCase(),
 								new Price(sellPrice));
 					} else {
-						PRICETABLE.put(item.getMaterial(), new Price(sellPrice));
+						PRICETABLE.put(item.getMaterial().toUpperCase(), new Price(sellPrice));
+						System.out.println("Added: "+item.getMaterial().toUpperCase()+" with price: "+sellPrice);
 					}
 				}
 			}

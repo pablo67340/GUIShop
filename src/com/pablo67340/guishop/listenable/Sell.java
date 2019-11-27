@@ -67,6 +67,7 @@ public final class Sell {
 						.getSellPrice();
 
 			} else {
+				System.out.println("Does pricetable have: " + item.getType().toString() + "?");
 				if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getType().toString())) {
 					countSell += 1;
 					couldntSell = true;
@@ -86,12 +87,15 @@ public final class Sell {
 
 		if (couldntSell) {
 			player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", countSell + ""));
+			return;
 		}
 
-		Main.getECONOMY().depositPlayer(player.getName(), moneyToGive);
+		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
-		if (moneyToGive > 0) {
-			player.sendMessage(Config.getSold() + moneyToGive + Config.getAdded());
+		Main.getECONOMY().depositPlayer(player.getName(), moneyToGiveRounded);
+
+		if (moneyToGiveRounded > 0) {
+			player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
 		}
 		GUI.getInventory().clear();
 	}

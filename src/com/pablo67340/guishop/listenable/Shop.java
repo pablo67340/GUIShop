@@ -147,7 +147,7 @@ public class Shop {
 				item.setSlot((Integer.parseInt(str)));
 
 				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
-				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
+				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
 				item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
 				item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : null));
 				if (section.contains("enchantments")) {

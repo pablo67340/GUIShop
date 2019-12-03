@@ -10,7 +10,7 @@
 	<!-- Project information -->
 	<groupId>com.pablo67340.GUIShop</groupId>
 	<artifactId>GUIShop</artifactId>
-	<version>7.2.2</version>
+	<version>7.3.1</version>
 	<name>GUIShop</name>
 	<url>https://www.spigotmc.org/resources/guishop.2451/</url>
 	<description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>

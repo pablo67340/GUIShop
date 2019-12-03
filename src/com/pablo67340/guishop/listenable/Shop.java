@@ -377,6 +377,61 @@ public class Shop {
 			hasClicked = true;
 		}
 
+		if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
+			return;
+		}
+
+
+		// Forward Button
+		if (e.getSlot() == 51) {
+			hasClicked = true;
+			if (Main.getCREATOR().contains(player.getName())) {
+				ItemStack[] items = GUI.getInventory().getContents();
+
+				int slot = 0;
+				for (ItemStack item : items) {
+					((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
+							slot);
+					slot += 1;
+				}
+
+				saveShop(player);
+			}
+			((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
+			currentPane.setPage(currentPane.getPage() + 1);
+
+			((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
+			GUI.update();
+			return;
+			// Backward Button
+		} else if (e.getSlot() == 47) {
+			hasClicked = true;
+
+			if (Main.getCREATOR().contains(player.getName())) {
+				ItemStack[] items = GUI.getInventory().getContents();
+
+				int slot = 0;
+				for (ItemStack item : items) {
+					((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
+							slot);
+					slot += 1;
+				}
+				saveShop(player);
+			}
+			((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
+			currentPane.setPage(currentPane.getPage() - 1);
+
+			((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
+			GUI.update();
+			return;
+			// Back Button
+		} else if (e.getSlot() == 53 && !Config.isEscapeOnly()) {
+			if (menuInstance != null && !Main.getCREATOR().contains(player.getName())) {
+				menuInstance.open(player);
+			}
+			return;
+		}
+
 		/*
 		 * If the player's inventory is full
 		 */
@@ -385,91 +440,29 @@ public class Shop {
 			return;
 		}
 
-		if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
-			return;
-		}
+		/*
+		 * If the player has enough money to purchase the item, then allow them to.
+		 */
+		if (!Main.getCREATOR().contains(player.getName())) {
+			Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
-		if (e.getSlot() >= 0 && e.getSlot() < GUI.getItems().size()) {
-			/*
-			 * If the player clicks the 'back' button, then open the menu. Otherwise, If the
-			 * user clicks the forward button, load and open next page, Otherwise, If the
-			 * user clicks the backward button, load and open the previous page, Otherwise
-			 * Attempt to purchase the clicked item.
-			 */
-
-			// Forward Button
-			if (e.getSlot() == 51) {
-				hasClicked = true;
-				if (Main.getCREATOR().contains(player.getName())) {
-					ItemStack[] items = GUI.getInventory().getContents();
-
-					int slot = 0;
-					for (ItemStack item : items) {
-						((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
-								slot);
-						slot += 1;
-					}
-
-					saveShop(player);
-				}
-				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-				currentPane.setPage(currentPane.getPage() + 1);
-
-				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
-				GUI.update();
-				return;
-				// Backward Button
-			} else if (e.getSlot() == 47) {
-				hasClicked = true;
-
-				if (Main.getCREATOR().contains(player.getName())) {
-					ItemStack[] items = GUI.getInventory().getContents();
-
-					int slot = 0;
-					for (ItemStack item : items) {
-						((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
-								slot);
-						slot += 1;
-					}
-					saveShop(player);
-				}
-				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-				currentPane.setPage(currentPane.getPage() - 1);
-
-				((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
-				GUI.update();
-				return;
-				// Back Button
-			} else if (e.getSlot() == 53 && !Config.isEscapeOnly()) {
-				if (menuInstance != null && !Main.getCREATOR().contains(player.getName())) {
-					menuInstance.open(player);
-				}
-				return;
-			}
-
-			/*
-			 * If the player has enough money to purchase the item, then allow them to.
-			 */
-			if (!Main.getCREATOR().contains(player.getName())) {
-				Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
-
-				if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
-					new Quantity(item, this, player).loadInventory().open();
-				} else if (item.getItemType() == ItemType.COMMAND) {
-					if (Main.getECONOMY().withdrawPlayer(player, (Double) item.getBuyPrice()).transactionSuccess()) {
-						item.getCommands().forEach(str -> {
-							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
-									Main.placeholderIfy(str, player, item));
-						});
-					} else {
-						player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
-								+ Config.getNotEnoughPost());
-					}
+			if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
+				new Quantity(item, this, player).loadInventory().open();
+			} else if (item.getItemType() == ItemType.COMMAND) {
+				if (Main.getECONOMY().withdrawPlayer(player, (Double) item.getBuyPrice()).transactionSuccess()) {
+					item.getCommands().forEach(str -> {
+						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
+								Main.placeholderIfy(str, player, item));
+					});
 				} else {
-					player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
+							+ Config.getNotEnoughPost());
 				}
+			} else {
+				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
 			}
 		}
+
 	}
 
 	/**
@@ -571,7 +564,7 @@ public class Shop {
 					item.setItemType(ItemType.COMMAND);
 					item.setCommands(Arrays.asList(comp.getString("commands").split("::")));
 				}
-				
+
 				if (comp.hasKey("mobType")) {
 					item.setMobType(comp.getString("mobType"));
 				}

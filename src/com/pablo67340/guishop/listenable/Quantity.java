@@ -220,7 +220,7 @@ class Quantity {
 			return;
 		}
 
-		ItemStack itemStack = new ItemStack(e.getCurrentItem().getType());
+		ItemStack itemStack = e.getCurrentItem().clone();
 		ItemMeta itemMeta = itemStack.getItemMeta();
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {

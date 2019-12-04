@@ -260,7 +260,6 @@ public final class Main extends JavaPlugin {
 								new Price(sellPrice));
 					} else {
 						PRICETABLE.put(item.getMaterial().toUpperCase(), new Price(sellPrice));
-						System.out.println("Added: "+item.getMaterial().toUpperCase()+" with price: "+sellPrice);
 					}
 				}
 			}

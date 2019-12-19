@@ -304,12 +304,12 @@ public final class Main extends JavaPlugin {
 		if (item.hasShopName()) {
 			str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
 		} else {
-			str = str.replace("{ITEM_SHOP_NAME}", XMaterial.matchXMaterial(item.getMaterial()).name());
+			str = str.replace("{ITEM_SHOP_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
 		}
 		if (item.hasBuyName()) {
 			str = str.replace("{ITEM_BUY_NAME}", item.getBuyName());
 		} else {
-			str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).name());
+			str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
 		}
 		if (item.hasBuyPrice()) {
 			str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());

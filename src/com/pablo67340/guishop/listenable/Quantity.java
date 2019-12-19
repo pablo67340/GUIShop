@@ -6,7 +6,6 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.Sound;
 
 import org.bukkit.entity.Player;
 
@@ -22,12 +21,13 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-import com.pablo67340.guishop.definition.Enchantments;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
+import com.pablo67340.guishop.util.XSound;
 
 import lombok.Getter;
 
@@ -82,7 +82,7 @@ class Quantity {
 		int multiplier = 1;
 		ShopPane page = new ShopPane(9, 6);
 		for (int x = 19; x <= 25; x++) {
-			ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).parseItem();
+			ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 			itemStack.setAmount(multiplier);
 			GuiItem gItem = new GuiItem(itemStack);
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();
@@ -142,7 +142,7 @@ class Quantity {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
-						gItem.getItem().addUnsafeEnchantment(Enchantments.getByName(enchantment),
+						gItem.getItem().addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
 								Integer.parseInt(level));
 					}
 				}
@@ -155,7 +155,7 @@ class Quantity {
 
 		if (!Config.isEscapeOnly()) {
 
-			ItemStack backButtonItem = XMaterial.matchXMaterial(Config.getBackButtonItem()).parseItem();
+			ItemStack backButtonItem = XMaterial.matchXMaterial(Config.getBackButtonItem()).get().parseItem();
 
 			ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -232,14 +232,14 @@ class Quantity {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
 						assert meta != null;
-						meta.addStoredEnchant(Enchantments.getByName(enchantment), Integer.parseInt(level), true);
+						meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
 
 					}
 				} else {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(Enchantments.getByName(enchantment), Integer.parseInt(level));
+						itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
 					}
 
 				}
@@ -298,13 +298,9 @@ class Quantity {
 			// If the player has the sound enabled, play
 			// it!
 			if (Config.isSoundEnabled()) {
-				try {
-					player.playSound(player.getLocation(), Sound.valueOf(Config.getSound()), 1, 1);
 
-				} catch (Exception ex) {
-					Main.getINSTANCE().getLogger().warning(
-							"Incorrect sound specified in config. Make sure you are using sounds from the right version of your server!");
-				}
+				player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
+
 			}
 			player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
 					+ Config.getCurrencySuffix());

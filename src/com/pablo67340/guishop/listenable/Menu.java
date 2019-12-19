@@ -86,7 +86,7 @@ public final class Menu {
 
 	public GuiItem buildMenuItem(String itemID, ShopDef shopDef) {
 
-		ItemStack itemStack = XMaterial.matchXMaterial(itemID).parseItem();
+		ItemStack itemStack = XMaterial.matchXMaterial(itemID).get().parseItem();
 
 		if (shopDef.getItemType() != ItemType.BLANK) {
 			setName(itemStack, shopDef.getName(), shopDef.getLore(), shopDef);

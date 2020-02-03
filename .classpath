@@ -16,8 +16,8 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.15.1/plugins/Vault.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.15.1/minecraft.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.15.2/plugins/Vault.jar"/>
+	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/1.15.2/minecraft.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/Libs/lombok.jar"/>
 	<classpathentry kind="lib" path="C:/Users/Bryce/Desktop/GStore/IF-0.5.15.jar"/>
 	<classpathentry kind="output" path="target/classes"/>

@@ -67,7 +67,6 @@ public final class Sell {
 						.getSellPrice();
 
 			} else {
-				System.out.println("Does pricetable have: " + item.getType().toString() + "?");
 				if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getType().toString())) {
 					countSell += 1;
 					couldntSell = true;
@@ -87,7 +86,6 @@ public final class Sell {
 
 		if (couldntSell) {
 			player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", countSell + ""));
-			return;
 		}
 
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;

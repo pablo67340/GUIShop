@@ -129,6 +129,9 @@ purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 #Enable in-game creator.
 ingame-config: true
 
+#Enable DEBUG mode
+debug-mode: false
+
 #The title of the quantity inventory.
 qty-title: "&4Select Amount"
 

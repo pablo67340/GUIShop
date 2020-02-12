@@ -25,6 +25,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XMaterial;
 
 import lombok.Getter;
@@ -87,6 +88,9 @@ public final class Main extends JavaPlugin {
 	 */
 	@Getter
 	public static final List<String> CREATOR = new ArrayList<>();
+	
+	@Getter
+	private final MatLib matLib = new MatLib();
 
 	@Override
 	public void onEnable() {
@@ -223,6 +227,7 @@ public final class Main extends JavaPlugin {
 		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
+		Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));
 	}
 
 	private void loadPRICETABLE() {
@@ -321,6 +326,10 @@ public final class Main extends JavaPlugin {
 		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
 
 		return str;
+	}
+	
+	public static void log(String input) {
+		Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP][DEBUG]: "+input);
 	}
 
 }

@@ -15,7 +15,7 @@ public final class Config {
 	 */
 	@Getter
 	@Setter
-	private static boolean signsOnly, escapeOnly, soundEnabled, enableCreator;
+	private static boolean signsOnly, escapeOnly, soundEnabled, enableCreator, debugMode;
 	
 	@Getter
 	private static List<String> disabledQty = new ArrayList<>();

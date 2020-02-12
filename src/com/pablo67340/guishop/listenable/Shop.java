@@ -26,6 +26,7 @@ import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
 
@@ -206,98 +207,122 @@ public class Shop {
 
 			ItemStack itemStack;
 			GuiItem gItem = null;
-			if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
-				itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
+			
+			
+			itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 
-				assert itemStack != null;
-
-				if (itemStack == null) {
-					Main.getINSTANCE().getLogger().log(Level.WARNING, "ERROR: Item number " + item.getSlot()
-							+ " in shop " + this.shop + " has an incorrect Material Value");
-					item.setItemType(ItemType.BLANK);
-				} else {
-
-					ItemMeta itemMeta = itemStack.getItemMeta();
-
-					List<String> lore = new ArrayList<>();
-
-					if (item.hasBuyPrice()) {
-						if (item.getBuyPrice() instanceof Double) {
-							if ((Double) item.getBuyPrice() != 0.0) {
-								lore.add(Config.getBuyLore().replace("{amount}",
-										Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
-							} else {
-								lore.add(Config.getFreeLore());
-							}
-						} else {
-							if ((Integer) item.getBuyPrice() != 0) {
-								lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-										+ ((Integer) item.getBuyPrice()).doubleValue() + Config.getCurrencySuffix()));
-							} else {
-								lore.add(Config.getFreeLore());
-							}
-
-						}
-					} else {
-						lore.add(Config.getCannotBuy());
+			try {
+				gItem = new GuiItem(itemStack);
+			} catch (Exception ex2) {
+				if (Config.isDebugMode()) {
+					Main.log("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
+				}
+				try {
+					itemStack = new ItemStack(Material.valueOf(item.getMaterial() + "_OFF"));
+					gItem = new GuiItem(itemStack);
+				} catch (Exception ex3) {
+					if (Config.isDebugMode()) {
+						Main.log("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
 					}
 
-					if (item.hasSellPrice()) {
-						lore.add(Config.getSellLore().replace("{amount}",
-								Config.getCurrency() + item.getSellPrice() + Config.getCurrencySuffix()));
-					} else {
-						lore.add(Config.getCannotSell());
-					}
-
-					if (item.hasShopLore()) {
-						item.getShopLore().forEach(str -> {
-							if (!lore.contains(str) && !lore
-									.contains(Config.getBuyLore().replace("{AMOUNT}", item.getBuyPrice().toString()))) {
-								lore.add(ChatColor.translateAlternateColorCodes('&', str));
-							}
-						});
-					}
-
-					if (!lore.isEmpty()) {
-						assert itemMeta != null;
-						itemMeta.setLore(lore);
-					}
-
-					if (item.hasShopName()) {
-						assert itemMeta != null;
-						itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
-					} else if (item.isMobSpawner()) {
-						String mobName = item.getMobType();
-						mobName = mobName.toLowerCase();
-						mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
-						assert itemMeta != null;
-						itemMeta.setDisplayName(mobName + " Spawner");
-					}
-
-					itemStack.setItemMeta(itemMeta);
+					// Final Stand, lets try to find this user's item
+					String itemID = MatLib.getMAP().get(item.getMaterial());
+					String[] idParts = itemID.split(":");
+					Integer id = Integer.parseInt(idParts[0]);
+					short data = Short.parseShort(idParts[1]);
+					// Use for comment injection method for forward & backward compat
+					//itemStack = new ItemStack(id, 1, (short) data);
 
 					try {
 						gItem = new GuiItem(itemStack);
-					} catch (NullPointerException ex) {
-						System.out.println(XMaterial.matchXMaterial(item.getMaterial()).get().toString());
-						Main.getINSTANCE().getLogger().log(Level.WARNING, "ERROR: Item number " + item.getSlot()
-								+ "("+item.getMaterial()+") in shop " + this.shop + " cannot be spawned on this server version.");
+					} catch (Exception ex4) {
+						if (Config.isDebugMode()) {
+							Main.log("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
+						}
+						
 						item.setItemType(ItemType.BLANK);
 						item.setEnchantments(null);
 					}
 
-					if (item.getEnchantments() != null) {
-						if (item.getEnchantments().length > 1) {
-							for (String enc : item.getEnchantments()) {
-								String enchantment = StringUtils.substringBefore(enc, ":");
-								String level = StringUtils.substringAfter(enc, ":");
-								gItem.getItem().addUnsafeEnchantment(
-										XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
-										Integer.parseInt(level));
-							}
+				}
+			}
+			
+			
+			// Checks if an item is either a shop item or command item. This also handles
+			// Null items as there is a item type switch in the lines above.
+			if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
+
+				ItemMeta itemMeta = gItem.getItem().getItemMeta();
+
+				List<String> lore = new ArrayList<>();
+
+				if (item.hasBuyPrice()) {
+					if (item.getBuyPrice() instanceof Double) {
+						if ((Double) item.getBuyPrice() != 0.0) {
+							lore.add(Config.getBuyLore().replace("{amount}",
+									Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
+						} else {
+							lore.add(Config.getFreeLore());
+						}
+					} else {
+						if ((Integer) item.getBuyPrice() != 0) {
+							lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
+									+ ((Integer) item.getBuyPrice()).doubleValue() + Config.getCurrencySuffix()));
+						} else {
+							lore.add(Config.getFreeLore());
+						}
+
+					}
+				} else {
+					lore.add(Config.getCannotBuy());
+				}
+
+				if (item.hasSellPrice()) {
+					lore.add(Config.getSellLore().replace("{amount}",
+							Config.getCurrency() + item.getSellPrice() + Config.getCurrencySuffix()));
+				} else {
+					lore.add(Config.getCannotSell());
+				}
+
+				if (item.hasShopLore()) {
+					item.getShopLore().forEach(str -> {
+						if (!lore.contains(str) && !lore
+								.contains(Config.getBuyLore().replace("{AMOUNT}", item.getBuyPrice().toString()))) {
+							lore.add(ChatColor.translateAlternateColorCodes('&', str));
+						}
+					});
+				}
+
+				if (!lore.isEmpty()) {
+					assert itemMeta != null;
+					itemMeta.setLore(lore);
+				}
+
+				if (item.hasShopName()) {
+					assert itemMeta != null;
+					itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
+				} else if (item.isMobSpawner()) {
+					String mobName = item.getMobType();
+					mobName = mobName.toLowerCase();
+					mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+					assert itemMeta != null;
+					itemMeta.setDisplayName(mobName + " Spawner");
+				}
+
+				gItem.getItem().setItemMeta(itemMeta);
+
+				if (item.getEnchantments() != null) {
+					if (item.getEnchantments().length > 1) {
+						for (String enc : item.getEnchantments()) {
+							String enchantment = StringUtils.substringBefore(enc, ":");
+							String level = StringUtils.substringAfter(enc, ":");
+							gItem.getItem().addUnsafeEnchantment(
+									XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
+									Integer.parseInt(level));
 						}
 					}
 				}
+
 			}
 
 			// Create Page

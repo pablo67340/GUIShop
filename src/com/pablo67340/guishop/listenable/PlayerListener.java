@@ -271,6 +271,12 @@ public final class PlayerListener implements Listener {
 						} else {
 							player.sendMessage("Please specify a type");
 						}
+					} else if (cut[1].equalsIgnoreCase("reload")) {
+						if (player.hasPermission("guishop.reload") || player.isOp()) {
+							Main.getINSTANCE().reload(player);
+						} else {
+							player.sendMessage("§cNo Permission!");
+						}
 					} else {
 						printUsage(player);
 					}

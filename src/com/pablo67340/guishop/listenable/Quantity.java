@@ -111,7 +111,7 @@ class Quantity {
 					Integer id = Integer.parseInt(idParts[0]);
 					short data = Short.parseShort(idParts[1]);
 					// Use for comment injection method for forward & backward compat
-					//itemStack = new ItemStack(id, 1, (short) data);
+					itemStack = new ItemStack(id, 1, (short) data);
 
 					try {
 						gItem = new GuiItem(itemStack);

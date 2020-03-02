@@ -300,6 +300,31 @@ public final class Main extends JavaPlugin {
 		}
 
 	}
+	
+	public void reload(Player player) {
+		createFiles();
+		shops.clear();
+		PRICETABLE.clear();
+		BUY_COMMANDS.clear();
+		SELL_COMMANDS.clear();
+		loadedShops.clear();
+		CREATOR.clear();
+		reloadConfig();
+		reloadCustomConfig();
+		loadDefaults();
+		loadShopDefs();
+		player.sendMessage("§aGUIShop Reloaded");
+		
+	}
+	
+	public void reloadCustomConfig() {
+		try {
+			customConfig.load(specialf);
+		} catch (IOException | InvalidConfigurationException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	public static String placeholderIfy(String input, Player player, Item item) {
 		String str = input;

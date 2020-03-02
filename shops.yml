@@ -48,7 +48,7 @@ Raiding:
     shop-name: '&4Heal Command Test'
     commands:
     - heal {PLAYER_NAME}
-    - broadcast {PLAYER_NAME} purchased {ITEM_NAME} for {BUY_PRICE}.
+    - broadcast {PLAYER_NAME} purchased {ITEM_SHOP_NAME}&a for {BUY_PRICE}.
   '1':
     type: SHOP
     id: PISTON

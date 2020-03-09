@@ -32,10 +32,15 @@ public final class ItemUtil {
 
 		ItemMeta im = item.getItemMeta();
 		if (im.getLore() != null) {
-			lore.addAll(im.getLore());
+			
+			im.getLore().forEach((str) -> {
+				if (!str.contains(ChatColor.stripColor(Config.getBuyLore().replace("{amount}", "")))) {
+					lore.add(str);
+				}else {
+					lore.add(Config.getBuyLore().replace("{amount}", price + ""));
+				}
+			});
 		}
-
-		lore.add(Config.getBuyLore().replace("{amount}", price + ""));
 
 		im.setLore(lore);
 		item.setItemMeta(im);

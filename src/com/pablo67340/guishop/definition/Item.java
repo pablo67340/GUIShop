@@ -17,6 +17,10 @@ public final class Item {
 	@Getter
 	@Setter
 	private int slot;
+	
+	@Getter
+	@Setter
+	private int configSlot;
 
 	/**
 	 * The Material of this {@link Item}.

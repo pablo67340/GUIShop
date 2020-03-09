@@ -24,11 +24,13 @@ import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
+import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XMaterial;
 
 import lombok.Getter;
+import lombok.Setter;
 
 public final class Main extends JavaPlugin {
 
@@ -77,7 +79,7 @@ public final class Main extends JavaPlugin {
 	public static final Set<String> SELL_COMMANDS = new HashSet<>();
 
 	@Getter
-	public Map<String, List<Item>> loadedShops = new HashMap<>();
+	public Map<String, Map<Integer, Item>> loadedShops = new HashMap<>();
 
 	@Getter
 	private final Map<String, Price> PRICETABLE = new HashMap<>();
@@ -88,9 +90,16 @@ public final class Main extends JavaPlugin {
 	 */
 	@Getter
 	public static final List<String> CREATOR = new ArrayList<>();
-	
+
 	@Getter
 	private final MatLib matLib = new MatLib();
+
+	@Getter
+	@Setter
+	private Boolean creatorRefresh = false;
+
+	@Getter
+	private final Map<UUID, Shop> openShopInstances = new HashMap<>();
 
 	@Override
 	public void onEnable() {
@@ -300,23 +309,25 @@ public final class Main extends JavaPlugin {
 		}
 
 	}
-	
-	public void reload(Player player) {
+
+	public void reload(Player player, Boolean ignoreCreator) {
 		createFiles();
 		shops.clear();
 		PRICETABLE.clear();
 		BUY_COMMANDS.clear();
 		SELL_COMMANDS.clear();
 		loadedShops.clear();
-		CREATOR.clear();
+		if (!ignoreCreator) {
+			CREATOR.clear();
+		}
 		reloadConfig();
 		reloadCustomConfig();
 		loadDefaults();
 		loadShopDefs();
 		player.sendMessage("§aGUIShop Reloaded");
-		
+
 	}
-	
+
 	public void reloadCustomConfig() {
 		try {
 			customConfig.load(specialf);
@@ -352,9 +363,15 @@ public final class Main extends JavaPlugin {
 
 		return str;
 	}
-	
+
 	public static void log(String input) {
-		Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP][DEBUG]: "+input);
+		Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP]: " + input);
+	}
+
+	public static void debugLog(String input) {
+		if (Config.isDebugMode()) {
+			Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP][DEBUG]: " + input);
+		}
 	}
 
 }

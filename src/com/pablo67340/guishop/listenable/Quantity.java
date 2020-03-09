@@ -85,25 +85,21 @@ class Quantity {
 		ShopPane page = new ShopPane(9, 6);
 		for (int x = 19; x <= 25; x++) {
 
-			
 			ItemStack itemStack;
 			GuiItem gItem = null;
-			
+
 			itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 
 			try {
 				gItem = new GuiItem(itemStack);
 			} catch (Exception ex2) {
-				if (Config.isDebugMode()) {
-					Main.log("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
-				}
+				Main.debugLog("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
+
 				try {
 					itemStack = new ItemStack(Material.valueOf(item.getMaterial() + "_OFF"));
 					gItem = new GuiItem(itemStack);
 				} catch (Exception ex3) {
-					if (Config.isDebugMode()) {
-						Main.log("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
-					}
+					Main.debugLog("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
 
 					// Final Stand, lets try to find this user's item
 					String itemID = MatLib.getMAP().get(item.getMaterial());
@@ -116,16 +112,15 @@ class Quantity {
 					try {
 						gItem = new GuiItem(itemStack);
 					} catch (Exception ex4) {
-						if (Config.isDebugMode()) {
-							Main.log("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
-						}
+						Main.debugLog("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
+
 						item.setItemType(ItemType.BLANK);
 						item.setEnchantments(null);
 					}
 
 				}
 			}
-			
+
 			gItem.getItem().setAmount(multiplier);
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();
 			List<String> lore = new ArrayList<>();
@@ -184,7 +179,8 @@ class Quantity {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
-						gItem.getItem().addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
+						gItem.getItem().addUnsafeEnchantment(
+								XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
 								Integer.parseInt(level));
 					}
 				}
@@ -263,7 +259,7 @@ class Quantity {
 		}
 
 		ItemStack itemStack = new ItemStack(e.getCurrentItem().getType());
-		ItemMeta itemMeta = itemStack.getItemMeta();
+		
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
 			// If the item has enchantments
@@ -274,14 +270,17 @@ class Quantity {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
 						assert meta != null;
-						meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+						meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
+								Integer.parseInt(level), true);
 
 					}
 				} else {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
-						itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
+						itemStack.addUnsafeEnchantment(
+								XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
+								Integer.parseInt(level));
 					}
 
 				}
@@ -297,6 +296,8 @@ class Quantity {
 				lore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, item)));
 			});
 		}
+		
+		ItemMeta itemMeta = itemStack.getItemMeta();
 
 		itemMeta.setLore(lore);
 

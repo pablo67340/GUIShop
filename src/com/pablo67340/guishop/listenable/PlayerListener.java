@@ -36,6 +36,11 @@ public final class PlayerListener implements Listener {
 	public static final PlayerListener INSTANCE = new PlayerListener();
 
 	private void openShop(Player player) {
+		if (Main.getINSTANCE().getCreatorRefresh()) {
+			player.sendMessage("§aGUIShop config was recently edited in creator mode. Reloading before opening...");
+			Main.getINSTANCE().reload(player, true);
+			Main.getINSTANCE().setCreatorRefresh(false);
+		}
 		Menu menu = new Menu();
 		menu.open(player);
 	}
@@ -98,9 +103,10 @@ public final class PlayerListener implements Listener {
 			if (cut[0].equalsIgnoreCase("guishop") || cut[0].equalsIgnoreCase("gs")) {
 				e.setCancelled(true);
 				if (cut.length >= 2) {
-					if (cut[1].equalsIgnoreCase("edit")) {
+					if (cut[1].equalsIgnoreCase("edit") || cut[1].equalsIgnoreCase("e")) {
 						if (player.hasPermission("guishop.admin")) {
 							Main.getCREATOR().add(player.getName());
+							Main.debugLog("Added player to creator mode");
 							openShop(player);
 						}
 					} else if (cut[1].equalsIgnoreCase("p") || cut[1].equalsIgnoreCase("price")) {
@@ -273,13 +279,15 @@ public final class PlayerListener implements Listener {
 						}
 					} else if (cut[1].equalsIgnoreCase("reload")) {
 						if (player.hasPermission("guishop.reload") || player.isOp()) {
-							Main.getINSTANCE().reload(player);
+							Main.getINSTANCE().reload(player, false);
 						} else {
 							player.sendMessage("§cNo Permission!");
 						}
 					} else {
 						printUsage(player);
 					}
+				} else {
+					printUsage(player);
 				}
 			}
 
@@ -290,24 +298,24 @@ public final class PlayerListener implements Listener {
 	 * Print the usage of the plugin to the player.
 	 */
 	private void printUsage(Player player) {
-		player.sendMessage("        Proper Usage:        ");
-		player.sendMessage("/guishop edit - Opens in Editor Mode");
-		player.sendMessage("/guishop price/p {price} - Set item in hand's buy price");
-		player.sendMessage("/guishop sell/s {price} - Set item in hand's sell price");
-		player.sendMessage("/guishop shopname/sn {name} - Set item in hand's Shop-Name");
-		player.sendMessage("/guishop buyname/bn {name} - Set item in hand's Buy-Name");
-		player.sendMessage("/guishop enchant/e {enchants} - Set item in hand's Enchantments");
-		player.sendMessage("/guishop asll {line} - Add Shop Lore Line");
-		player.sendMessage("/guishop dsll {lineNumber} - Delete Shop Lore Line. Starts at 0");
-		player.sendMessage("/guishop esll {lineNumber} {line} - Edit Shop Lore Line. Starts at 0");
-		player.sendMessage("/guishop abll {line} - Add Buy Lore Line");
-		player.sendMessage("/guishop dbll {lineNumber} - Delete Buy Lore Line. Starts at 0");
-		player.sendMessage("/guishop ebll {lineNumber} {line} - Edit Buy Lore Line. Starts at 0");
-		player.sendMessage("/guishop ac {command} - Add Command to item");
-		player.sendMessage("/guishop dc {lineNumber} - Delete Command by line. Starts at 0");
-		player.sendMessage("/guishop ec {lineNumber} {cmd} - Edit Command by line. Starts at 0");
-		player.sendMessage("/guishop mt {type} - Set an item's mob type. Used for Spawners/Eggs.");
-		player.sendMessage("/guishop t {type} - Set an item's type. BLANK, SHOP, COMMAND, DUMMY");
+		player.sendMessage("§dG§9U§8I§3S§dh§9o§8p §3C§do§9m§8m§3a§dn§8d§3s§d:");
+		player.sendMessage("§7/guishop §eedit/e §0- §aOpens in Editor Mode");
+		player.sendMessage("§7/guishop §eprice/p {price} §0- §aSet item in hand's buy price");
+		player.sendMessage("§7/guishop §esell/s {price} §0- §aSet item in hand's sell price");
+		player.sendMessage("§7/guishop §eshopname/sn {name} §0- §aSet item in hand's Shop-Name");
+		player.sendMessage("§7/guishop §ebuyname/bn {name} §0- §aSet item in hand's Buy-Name");
+		player.sendMessage("§7/guishop §eenchant/e {enchants} §0- §aSet item in hand's Enchantments");
+		player.sendMessage("§7/guishop §easll {line} §0- §aAdd Shop Lore Line");
+		player.sendMessage("§7/guishop §edsll {lineNumber} §0- §aDelete Shop Lore Line. Starts at 0");
+		player.sendMessage("§7/guishop §eesll {lineNumber} {line} §0- §aEdit Shop Lore Line. Starts at 0");
+		player.sendMessage("§7/guishop §eabll {line} §0- §aAdd Buy Lore Line");
+		player.sendMessage("§7/guishop §edbll {lineNumber} §0- §aDelete Buy Lore Line. Starts at 0");
+		player.sendMessage("§7/guishop §eebll {lineNumber} {line} §0- §aEdit Buy Lore Line. Starts at 0");
+		player.sendMessage("§7/guishop §eac {command} §0- §aAdd Command to item");
+		player.sendMessage("§7/guishop §edc {lineNumber} §0- §aDelete Command by line. Starts at 0");
+		player.sendMessage("§7/guishop §eec {lineNumber} {cmd} §0- §aEdit Command by line. Starts at 0");
+		player.sendMessage("§7/guishop §emt {type} §0- §aSet an item's mob type. Used for Spawners/Eggs.");
+		player.sendMessage("§7/guishop §et {type} §0- §aSet an item's type. BLANK, SHOP, COMMAND, DUMMY");
 	}
 
 	// When the inventory closes
@@ -349,7 +357,7 @@ public final class PlayerListener implements Listener {
 	 * Custom MobSpawner placement method.
 	 */
 	@SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		if (event.getItemInHand().getType() == XMaterial.SPAWNER.parseMaterial()) {
 

@@ -1,6 +1,6 @@
 name: GUIShop
 main: com.pablo67340.guishop.Main
-version: 7.3.7
+version: 7.3.8
 author: pablo67340
 description: Shop Plugin for any server.
 depend: [Vault]
@@ -18,3 +18,8 @@ permissions:
     guishop.creator:
         default: false
         description: Grants access to GUIShop Creator
+commands:
+  guishop:
+    description: Base GUIShop command. Displays help.
+    permission: guishop.use
+    aliases: gs

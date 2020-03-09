@@ -185,7 +185,7 @@ public final class Menu {
 
 			openShop.loadItems();
 			openShop.open(player);
-			return openShop;
+			return Main.getINSTANCE().getOpenShopInstances().put(player.getUniqueId(), openShop);
 		}
 		return null;
 	}

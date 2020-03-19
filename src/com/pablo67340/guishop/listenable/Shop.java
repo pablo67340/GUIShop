@@ -739,7 +739,7 @@ public class Shop {
 			Main.debugLog("Removed from creator");
 			Main.getCREATOR().remove(player.getName());
 		}
-		player.sendMessage("§aShop Saved!");
+		Main.sendMessage(player, "&aShop Saved!");
 
 	}
 

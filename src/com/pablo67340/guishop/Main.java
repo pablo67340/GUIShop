@@ -23,6 +23,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.pablo67340.guishop.definition.DynamicPriceProvider;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.Price;
@@ -63,6 +64,12 @@ public final class Main extends JavaPlugin {
 	 */
 	@Getter
 	private static Economy ECONOMY;
+	
+	/**
+	 * the instance of the dynamic price provider, if dynamic pricing is used
+	 */
+	@Getter
+	private static DynamicPriceProvider DYNAMICPRICING;
 
 	/**
 	 * An instance of this class.
@@ -133,6 +140,9 @@ public final class Main extends JavaPlugin {
 			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 			getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
 			loadDefaults();
+			if (Config.isDynamicPricing() && !setupDynamicPricing()) {
+				Config.setDynamicPricing(false);
+			}
 
 		} else {
 			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
@@ -227,6 +237,20 @@ public final class Main extends JavaPlugin {
 
 		ECONOMY = rsp.getProvider();
 
+		return true;
+	}
+	
+	/**
+	 * Find the dynamic price provider if present
+	 */
+	private boolean setupDynamicPricing() {
+		RegisteredServiceProvider<DynamicPriceProvider> rsp = getServer().getServicesManager().getRegistration(DynamicPriceProvider.class);
+		
+		if (rsp == null) {
+			return false;
+		}
+		DYNAMICPRICING = rsp.getProvider();
+		
 		return true;
 	}
 

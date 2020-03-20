@@ -26,7 +26,7 @@ public final class Sell {
 	/**
 	 * Open the {@link Sell} GUI.
 	 */
-	void open(Player player) {
+	public void open(Player player) {
 		GUI = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &rSell"));
 		GUI.setOnClose(this::onSellClose);
 		StaticPane pane = new StaticPane(0, 0, 9, 6);
@@ -51,7 +51,9 @@ public final class Sell {
 
 			Double sellPrice;
 
-			if (Objects.requireNonNull(item.getData()).getItemType().getId() == 52) {
+			if (item.getType().name().equals("SPAWNER") /* 1.13+ */
+			        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
+			   ) {
 
 				NBTTagCompound cmp = ItemNBTUtil.getTag(item);
 				data = MobType.valueOf(cmp.getString("EntityId"));
@@ -90,9 +92,9 @@ public final class Sell {
 
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
-		Main.getECONOMY().depositPlayer(player.getName(), moneyToGiveRounded);
-
 		if (moneyToGiveRounded > 0) {
+			Main.getECONOMY().depositPlayer(player.getName(), moneyToGiveRounded);
+			
 			player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
 		}
 		GUI.getInventory().clear();

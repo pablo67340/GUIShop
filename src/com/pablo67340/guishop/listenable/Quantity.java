@@ -285,9 +285,9 @@ class Quantity {
 
 				}
 			}
-			itemStack.setAmount(e.getCurrentItem().getAmount());
-
 		}
+		
+		itemStack.setAmount(e.getCurrentItem().getAmount());
 
 		List<String> lore = new ArrayList<>();
 

@@ -92,9 +92,9 @@ public final class Sell {
 
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
-		Main.getECONOMY().depositPlayer(player.getName(), moneyToGiveRounded);
-
 		if (moneyToGiveRounded > 0) {
+			Main.getECONOMY().depositPlayer(player.getName(), moneyToGiveRounded);
+			
 			player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
 		}
 		GUI.getInventory().clear();

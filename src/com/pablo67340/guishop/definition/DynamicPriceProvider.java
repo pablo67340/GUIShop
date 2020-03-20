@@ -6,8 +6,8 @@ public interface DynamicPriceProvider {
 	
 	double calculateSellPrice(String item, int quantity, double staticBuyPrice, double staticSellPrice);
 	
-	void buyItem(int quantity);
+	void buyItem(String item, int quantity);
 	
-	void sellItem(int quantity);
+	void sellItem(String item, int quantity);
 	
 }

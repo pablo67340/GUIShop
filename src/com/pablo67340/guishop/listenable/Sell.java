@@ -26,7 +26,7 @@ public final class Sell {
 	/**
 	 * Open the {@link Sell} GUI.
 	 */
-	void open(Player player) {
+	public void open(Player player) {
 		GUI = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &rSell"));
 		GUI.setOnClose(this::onSellClose);
 		StaticPane pane = new StaticPane(0, 0, 9, 6);

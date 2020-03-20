@@ -129,6 +129,9 @@ purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 #Enable in-game creator.
 ingame-config: true
 
+#Enable dynamic pricing
+dynamic-pricing: false
+
 #Enable DEBUG mode
 debug-mode: false
 

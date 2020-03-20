@@ -287,6 +287,7 @@ public final class Main extends JavaPlugin {
 		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
+		Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
 		Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));
 	}
 

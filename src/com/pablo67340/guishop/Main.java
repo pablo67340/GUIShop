@@ -2,13 +2,19 @@ package com.pablo67340.guishop;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;
 
+import com.pablo67340.guishop.commands.BuyCommand;
+import com.pablo67340.guishop.commands.GuishopCommand;
+import com.pablo67340.guishop.commands.SellCommand;
 import net.milkbowl.vault.economy.Economy;
 
+import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.command.CommandMap;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
@@ -101,6 +107,16 @@ public final class Main extends JavaPlugin {
 	@Getter
 	private final Map<UUID, Shop> openShopInstances = new HashMap<>();
 
+	/**
+	 * The current buy command
+	 */
+	private BuyCommand buyCommand = null;
+
+	/**
+	 * The current sell command
+	 */
+	private SellCommand sellCommand = null;
+
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
@@ -115,6 +131,7 @@ public final class Main extends JavaPlugin {
 			}
 
 			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+			getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
 			loadDefaults();
 
 		} else {
@@ -158,6 +175,40 @@ public final class Main extends JavaPlugin {
 
 		new Menu().itemWarmup();
 		loadPRICETABLE();
+		registerCommands();
+	}
+
+	/**
+	 * Register the GUIShop commands with the bukkit server
+	 */
+	public void registerCommands() {
+		getLogger().info("Registering commands " + StringUtils.join(Main.BUY_COMMANDS, "|") + " and " + StringUtils.join(Main.SELL_COMMANDS, "|"));
+
+		try {
+			final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+
+			bukkitCommandMap.setAccessible(true);
+			CommandMap commandMap = (CommandMap) bukkitCommandMap.get(Bukkit.getServer());
+
+			// Unregister old commands
+			if (buyCommand != null) {
+				buyCommand.unregister(commandMap);
+			}
+
+			if (sellCommand != null) {
+				sellCommand.unregister(commandMap);
+			}
+
+			// Register new commands
+			buyCommand = new BuyCommand(new ArrayList<>(Main.BUY_COMMANDS));
+			commandMap.register(buyCommand.getName(), buyCommand);
+
+			sellCommand = new SellCommand(new ArrayList<>(Main.SELL_COMMANDS));
+			commandMap.register(sellCommand.getName(), sellCommand);
+
+		} catch (IllegalAccessException | NoSuchFieldException e) {
+			e.printStackTrace();
+		}
 	}
 
 	/**

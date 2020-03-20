@@ -43,7 +43,7 @@ public class BuyCommand extends BukkitCommand {
                 }
 
             } else {
-                player.sendMessage("§cShop not found");
+                Main.sendMessage(player, "&cShop not found");
             }
         }
 

@@ -203,7 +203,7 @@ public class GuishopCommand implements CommandExecutor {
                 if (player.hasPermission("guishop.reload") || player.isOp()) {
                     Main.getINSTANCE().reload(player, false);
                 } else {
-                    player.sendMessage("§cNo Permission!");
+                    Main.sendMessage(player, "&cNo Permission!");
                 }
             } else {
                 PlayerListener.INSTANCE.printUsage(player);

@@ -37,7 +37,6 @@ public final class Sell {
 	/**
 	 * Sell items inside the {@link Sell} GUI.
 	 */
-	@SuppressWarnings("deprecation")
 	public void sell(Player player) {
 
 		double moneyToGive = 0;
@@ -93,7 +92,7 @@ public final class Sell {
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
 		if (moneyToGiveRounded > 0) {
-			Main.getECONOMY().depositPlayer(player.getName(), moneyToGiveRounded);
+			Main.getECONOMY().depositPlayer(player, moneyToGiveRounded);
 			
 			player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
 		}

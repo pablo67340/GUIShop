@@ -51,7 +51,9 @@ public final class Sell {
 
 			Double sellPrice;
 
-			if (Objects.requireNonNull(item.getData()).getItemType().getId() == 52) {
+			if (item.getType().name().equals("SPAWNER") /* 1.13+ */
+			        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
+			   `) {
 
 				NBTTagCompound cmp = ItemNBTUtil.getTag(item);
 				data = MobType.valueOf(cmp.getString("EntityId"));

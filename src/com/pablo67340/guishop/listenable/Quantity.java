@@ -31,6 +31,8 @@ import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
 import com.pablo67340.guishop.util.XSound;
 
+import space.arim.legacyitemconstructor.LegacyItemConstructor;
+
 import lombok.Getter;
 
 class Quantity {
@@ -106,8 +108,7 @@ class Quantity {
 					String[] idParts = itemID.split(":");
 					Integer id = Integer.parseInt(idParts[0]);
 					short data = Short.parseShort(idParts[1]);
-					// Use for comment injection method for forward & backward compat
-					itemStack = new ItemStack(id, 1, (short) data);
+					itemStack = LegacyItemConstructor.invoke(id, 1, data);
 
 					try {
 						gItem = new GuiItem(itemStack);

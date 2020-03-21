@@ -1,4 +1,4 @@
-package com.pablo67340.guishop.definition;
+package com.pablo67340.guishop.api;
 
 public interface DynamicPriceProvider {
 	

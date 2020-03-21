@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;
 
+import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.commands.BuyCommand;
 import com.pablo67340.guishop.commands.GuishopCommand;
 import com.pablo67340.guishop.commands.SellCommand;
@@ -23,7 +24,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import com.pablo67340.guishop.definition.DynamicPriceProvider;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.Price;

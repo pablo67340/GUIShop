@@ -46,6 +46,10 @@
 			<url>https://hub.spigotmc.org/nexus/content/repositories/snapshots/</url>
 		</repository>
 		<repository>
+			<id>arim-repo</id>
+			<url>https://dl.cloudsmith.io/public/anand-beh/arim-repo/maven/</url>
+		</repository>
+		<repository>
 			<id>vault-repo</id>
 			<url>http://nexus.hc.to/content/repositories/pub_releases</url>
 		</repository>
@@ -74,6 +78,11 @@
 			<groupId>com.github.stefvanschie.inventoryframework</groupId>
 			<artifactId>IF</artifactId>
 			<version>0.5.12</version>
+		</dependency>
+		<dependency>
+			<groupId>space.arim</groupId>
+			<artifactId>legacyitemconstructor</artifactId>
+			<version>0.1.1-SNAPSHOT</version>
 		</dependency>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -120,6 +129,7 @@
 						<includes>
 							<include>com.pablo67340.GUIShop</include>
 							<include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
+							<include>space.arim:legacyitemconstructor</include>
 						</includes>
 					</artifactSet>
 				</configuration>

@@ -375,7 +375,7 @@ public final class Main extends JavaPlugin {
 		reloadCustomConfig();
 		loadDefaults();
 		loadShopDefs();
-		player.sendMessage("§aGUIShop Reloaded");
+		sendMessage(player, "&aGUIShop Reloaded");
 
 	}
 
@@ -423,6 +423,16 @@ public final class Main extends JavaPlugin {
 		if (Config.isDebugMode()) {
 			Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP][DEBUG]: " + input);
 		}
+	}
+	
+	/**
+	 * Sends a message using '{@literal &}' colour codes instead of 'Â§' codes.
+	 * 
+	 * @param player the recipient
+	 * @param message the message, which uses {@literal &} colour codes
+	 */
+	public static void sendMessage(Player player, String message) {
+		player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 	}
 
 }

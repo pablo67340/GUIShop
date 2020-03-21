@@ -56,14 +56,14 @@ public final class Sell {
 
 			String itemString = Item.getItemStringForItemStack(item);
 
-			if (!Main.getINSTANCE().getPRICETABLE().containsKey(itemString)) {
+			Price price = Main.getINSTANCE().getPRICETABLE().get(itemString);
+			if (price == null || price.getSellPrice() < 0) {
 				countSell += 1;
 				couldntSell = true;
 				player.getInventory().addItem(item);
 				continue;
 			}
 
-			Price price = Main.getINSTANCE().getPRICETABLE().get(itemString);
 			int quantity = item.getAmount();
 
 			// buy price must be defined for dynamic pricing to work

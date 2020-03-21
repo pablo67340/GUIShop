@@ -317,7 +317,6 @@ public final class Main extends JavaPlugin {
 	}
 
 	private void loadPRICETABLE() {
-		Item item;
 
 		for (String shop : Main.getINSTANCE().getCustomConfig().getKeys(false)) {
 
@@ -326,7 +325,7 @@ public final class Main extends JavaPlugin {
 			assert config != null;
 			for (String str : config.getKeys(false)) {
 
-				item = new Item();
+				Item item = new Item();
 
 				ConfigurationSection section = config.getConfigurationSection(str);
 
@@ -340,10 +339,7 @@ public final class Main extends JavaPlugin {
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
-				if (item.getSellPrice() != null && (!(item.getSellPrice() instanceof Boolean))) {
-
-					PRICETABLE.put(item.getItemString(), item.generatePricing());
-				}
+				PRICETABLE.computeIfAbsent(item.getItemString(), (is) -> item.generatePricing());
 			}
 		}
 	}

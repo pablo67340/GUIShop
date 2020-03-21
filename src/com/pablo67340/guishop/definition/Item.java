@@ -296,10 +296,9 @@ public final class Item {
 	 * @return a price object reflecting this item's pricing
 	 */
 	public Price generatePricing() {
-		if (hasBuyPrice()) {
-			return new Price(getBuyPriceAsDouble(), getSellPriceAsDouble());
-		}
-		return new Price(getSellPriceAsDouble());
+		double buyPrice = (hasBuyPrice()) ? getBuyPriceAsDouble() : -1D;
+		double sellPrice = (hasSellPrice()) ? getSellPriceAsDouble() : -1D;
+		return new Price(buyPrice, sellPrice);
 	}
 	
 	/**

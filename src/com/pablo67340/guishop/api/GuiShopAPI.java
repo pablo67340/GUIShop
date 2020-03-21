@@ -5,6 +5,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.listenable.Sell;
 
 /**
@@ -45,7 +46,8 @@ public class GuiShopAPI {
 	 * @return whether it can be sold
 	 */
 	public static boolean canBeSold(ItemStack item) {
-		return Main.getINSTANCE().getPRICETABLE().containsKey(Item.getItemStringForItemStack(item));
+		Price price = Main.getINSTANCE().getPRICETABLE().get(Item.getItemStringForItemStack(item));
+		return price != null && price.getSellPrice() >= 0;
 	}
 	
 }

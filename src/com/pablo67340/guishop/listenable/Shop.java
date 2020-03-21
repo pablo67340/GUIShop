@@ -176,11 +176,7 @@ public class Shop {
 					item.setCommands(
 							(section.contains("commands") ? section.getStringList("commands") : new ArrayList<>()));
 
-					if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getMaterial())
-							&& item.getSellPrice() != null && (!(item.getSellPrice() instanceof Boolean))) {
-
-						Main.getINSTANCE().getPRICETABLE().put(item.getItemString(), item.generatePricing());
-					}
+					Main.getINSTANCE().getPRICETABLE().computeIfAbsent(item.getItemString(), (is) -> item.generatePricing());
 					items.put(item.getSlot(), item);
 
 				}

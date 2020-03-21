@@ -2,6 +2,10 @@ package com.pablo67340.guishop.definition;
 
 import java.util.List;
 
+import org.bukkit.inventory.ItemStack;
+
+import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 
@@ -296,6 +300,32 @@ public final class Item {
 			return new Price(getBuyPriceAsDouble(), getSellPriceAsDouble());
 		}
 		return new Price(getSellPriceAsDouble());
+	}
+	
+	/**
+	 * Equivalent of {@link Item#getItemString()} for an <i>ItemStack</i>,
+	 * i.e., any minecraft item, not just a shop item. <br>
+	 * <br>
+	 * If the item is a mob spawner, <code>item.getType().toString().toUpperCase
+	 * + ":" + mobType.toString().toLowerCase()</code> is returned where
+	 * <i>mobtype</i> is the mob type of the mob spawner.
+	 * Otherwise, <code>getType().toString().toUpperCase</code> is simply returned.
+	 * 
+	 * @param item the itemstack
+	 * @return the item string representation of the itemstack
+	 */
+	public static String getItemStringForItemStack(ItemStack item) {
+		if (item.getType().name().equals("SPAWNER") /* 1.13+ */
+		        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
+		   ) {
+
+			NBTTagCompound cmp = ItemNBTUtil.getTag(item);
+			Object data = MobType.valueOf(cmp.getString("EntityId"));
+
+			return item.getType().toString().toUpperCase() + ":" + data.toString().toLowerCase();
+
+		}
+		return item.getType().toString().toUpperCase();
 	}
 
 }

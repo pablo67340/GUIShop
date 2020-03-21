@@ -10,10 +10,7 @@ import org.bukkit.inventory.*;
 import com.github.stefvanschie.inventoryframework.Gui;
 
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-
-import com.pablo67340.guishop.definition.MobType;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
@@ -37,31 +34,27 @@ public final class Sell {
 	 * Sell items inside the {@link Sell} GUI.
 	 */
 	public void sell(Player player) {
-
+		sellItems(player, GUI.getInventory().getContents());
+		GUI.getInventory().clear();
+	}
+	
+	/**
+	 * Sells the specified items on the behalf of a player
+	 * 
+	 * @param player the player
+	 * @param items the items
+	 */
+	public static void sellItems(Player player, ItemStack[] items) {
 		double moneyToGive = 0;
 		boolean couldntSell = false;
 		int countSell = 0;
-		for (ItemStack item : GUI.getInventory().getContents()) {
-			Object data;
+		for (ItemStack item : items) {
+
 			if (item == null) {
 				continue;
 			}
 
-			String itemString;
-
-			if (item.getType().name().equals("SPAWNER") /* 1.13+ */
-			        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
-			   ) {
-
-				NBTTagCompound cmp = ItemNBTUtil.getTag(item);
-				data = MobType.valueOf(cmp.getString("EntityId"));
-
-				itemString = item.getType().toString().toUpperCase() + ":" + data.toString().toLowerCase();
-
-			} else {
-
-				itemString = item.getType().toString().toUpperCase();
-			}
+			String itemString = Item.getItemStringForItemStack(item);
 
 			if (!Main.getINSTANCE().getPRICETABLE().containsKey(itemString)) {
 				countSell += 1;
@@ -95,7 +88,6 @@ public final class Sell {
 			
 			player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
 		}
-		GUI.getInventory().clear();
 	}
 
 	private void onSellClose(InventoryCloseEvent event) {

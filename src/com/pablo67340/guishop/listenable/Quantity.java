@@ -126,28 +126,7 @@ class Quantity {
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();
 			List<String> lore = new ArrayList<>();
 
-			if (item.hasBuyPrice()) {
-				if (item.getBuyPrice() instanceof Double) {
-					if ((Double) item.getBuyPrice() != 0) {
-
-						lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-								+ ((double) item.getBuyPrice() * multiplier) + Config.getCurrencySuffix()));
-					} else if ((double) item.getBuyPrice() == 0) {
-						lore.add(Config.getFreeLore());
-					}
-				} else {
-					if ((Integer) item.getBuyPrice() != 0) {
-
-						lore.add(Config.getBuyLore().replace("{amount}",
-								Config.getCurrency() + (((Integer) item.getBuyPrice()).doubleValue() * multiplier)
-										+ Config.getCurrencySuffix()));
-					} else if ((double) item.getBuyPrice() == 0) {
-						lore.add(Config.getFreeLore());
-					}
-				}
-			} else {
-				lore.add(Config.getCannotBuy());
-			}
+			lore.add(item.getBuyLore(multiplier));
 
 			item.getShopLore().forEach(str -> {
 				lore.add(ChatColor.translateAlternateColorCodes('&', str));
@@ -253,7 +232,7 @@ class Quantity {
 
 		// If the quantity is 0
 		if (quantity == 0) {
-			player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
+			player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.calculateBuyPrice(1)
 					+ Config.getNotEnoughPost());
 			player.setItemOnCursor(new ItemStack(Material.AIR));
 			return;
@@ -328,13 +307,22 @@ class Quantity {
 
 		// if the item is not a shift click
 
-		if (item.getBuyPrice() instanceof Double) {
+		int amount = e.getCurrentItem().getAmount();
 
-			priceToPay = ((Double) item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+		Runnable dynamicPricingUpdate = null;
+
+		// sell price must be defined and nonzero for dynamic pricing to work
+		if (Config.isDynamicPricing() && item.hasSellPrice()) {
+
+			String itemString = item.getItemString();
+			dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, amount);
+
+			priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, amount, item.getBuyPriceAsDouble(), item.getSellPriceAsDouble());
 		} else {
-			priceToPay = (((Integer) item.getBuyPrice()).doubleValue() * e.getCurrentItem().getAmount())
-					- priceToReimburse;
+			priceToPay = item.getBuyPriceAsDouble() * amount;
 		}
+
+		priceToPay -= priceToReimburse;
 
 		// Check if the transition was successful
 
@@ -354,6 +342,10 @@ class Quantity {
 				tag.setString("GUIShopSpawner", item.getMobType());
 
 				itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+			}
+			
+			if (dynamicPricingUpdate != null) {
+				dynamicPricingUpdate.run();
 			}
 
 			player.getInventory().addItem(itemStack);

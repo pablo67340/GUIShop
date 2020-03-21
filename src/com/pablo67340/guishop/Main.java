@@ -341,16 +341,7 @@ public final class Main extends JavaPlugin {
 
 				if (item.getSellPrice() != null && (!(item.getSellPrice() instanceof Boolean))) {
 
-					Double sellPrice = item.getSellPrice() instanceof Integer
-							? ((Integer) item.getSellPrice()).doubleValue()
-							: ((Double) item.getSellPrice());
-
-					if (item.isMobSpawner()) {
-						PRICETABLE.put(item.getMaterial().toUpperCase() + ":" + item.getMobType().toLowerCase(),
-								new Price(sellPrice));
-					} else {
-						PRICETABLE.put(item.getMaterial().toUpperCase(), new Price(sellPrice));
-					}
+					PRICETABLE.put(item.getItemString(), item.generatePricing());
 				}
 			}
 		}
@@ -429,10 +420,10 @@ public final class Main extends JavaPlugin {
 			str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
 		}
 		if (item.hasBuyPrice()) {
-			str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
+			str = str.replace("{BUY_PRICE}", Double.toString(item.calculateBuyPrice(1)));
 		}
 		if (item.hasSellPrice()) {
-			str = str.replace("{SELL_PRICE}", item.getSellPrice().toString());
+			str = str.replace("{SELL_PRICE}", Double.toString(item.calculateSellPrice(1)));
 		}
 		str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
 		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());

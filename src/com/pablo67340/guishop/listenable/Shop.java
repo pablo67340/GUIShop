@@ -23,7 +23,6 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
@@ -178,17 +177,9 @@ public class Shop {
 							(section.contains("commands") ? section.getStringList("commands") : new ArrayList<>()));
 
 					if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getMaterial())
-							&& (!(item.getSellPrice() instanceof Boolean))) {
-						Double sellPrice = item.getSellPrice() instanceof Integer
-								? ((Integer) item.getSellPrice()).doubleValue()
-								: ((Double) item.getSellPrice());
+							&& item.getSellPrice() != null && (!(item.getSellPrice() instanceof Boolean))) {
 
-						if (item.isMobSpawner()) {
-							Main.getINSTANCE().getPRICETABLE().put(
-									item.getMaterial() + ":" + item.getMobType().toLowerCase(), new Price(sellPrice));
-						} else {
-							Main.getINSTANCE().getPRICETABLE().put(item.getMaterial(), new Price(sellPrice));
-						}
+						Main.getINSTANCE().getPRICETABLE().put(item.getItemString(), item.generatePricing());
 					}
 					items.put(item.getSlot(), item);
 
@@ -255,38 +246,14 @@ public class Shop {
 
 				List<String> lore = new ArrayList<>();
 
-				if (item.hasBuyPrice()) {
-					if (item.getBuyPrice() instanceof Double) {
-						if ((Double) item.getBuyPrice() != 0.0) {
-							lore.add(Config.getBuyLore().replace("{amount}",
-									Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
-						} else {
-							lore.add(Config.getFreeLore());
-						}
-					} else {
-						if ((Integer) item.getBuyPrice() != 0) {
-							lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-									+ ((Integer) item.getBuyPrice()).doubleValue() + Config.getCurrencySuffix()));
-						} else {
-							lore.add(Config.getFreeLore());
-						}
+				lore.add(item.getBuyLore(1));
 
-					}
-				} else {
-					lore.add(Config.getCannotBuy());
-				}
-
-				if (item.hasSellPrice()) {
-					lore.add(Config.getSellLore().replace("{amount}",
-							Config.getCurrency() + item.getSellPrice() + Config.getCurrencySuffix()));
-				} else {
-					lore.add(Config.getCannotSell());
-				}
+				lore.add(item.getSellLore(1));
 
 				if (item.hasShopLore()) {
 					item.getShopLore().forEach(str -> {
-						if (!lore.contains(str) && !lore
-								.contains(Config.getBuyLore().replace("{AMOUNT}", item.getBuyPrice().toString()))) {
+						if (!lore.contains(str) && !lore.contains(
+								Config.getBuyLore().replace("{AMOUNT}", Double.toString(item.calculateBuyPrice(1))))) {
 							lore.add(ChatColor.translateAlternateColorCodes('&', str));
 						}
 					});
@@ -490,13 +457,32 @@ public class Shop {
 			if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
 				new Quantity(item, this, player).loadInventory().open();
 			} else if (item.getItemType() == ItemType.COMMAND) {
-				if (Main.getECONOMY().withdrawPlayer(player, (Double) item.getBuyPrice()).transactionSuccess()) {
+
+				double priceToPay;
+
+				Runnable dynamicPricingUpdate = null;
+
+				// sell price must be defined and nonzero for dynamic pricing to work
+				if (Config.isDynamicPricing() && item.hasSellPrice()) {
+
+					String itemString = item.getItemString();
+					dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, 1);
+
+					priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, 1, item.getBuyPriceAsDouble(), item.getSellPriceAsDouble());
+				} else {
+					priceToPay = item.getBuyPriceAsDouble();
+				}
+
+				if (Main.getECONOMY().withdrawPlayer(player, priceToPay).transactionSuccess()) {
 					item.getCommands().forEach(str -> {
 						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
 								Main.placeholderIfy(str, player, item));
 					});
+					if (dynamicPricingUpdate != null) {
+						dynamicPricingUpdate.run();
+					}
 				} else {
-					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
+					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay
 							+ Config.getNotEnoughPost());
 				}
 			} else {

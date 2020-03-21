@@ -1,7 +1,5 @@
 package com.pablo67340.guishop.listenable;
 
-import java.util.Objects;
-
 import org.bukkit.ChatColor;
 
 import org.bukkit.entity.Player;
@@ -16,6 +14,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 
 import com.pablo67340.guishop.definition.MobType;
+import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 
@@ -48,7 +47,7 @@ public final class Sell {
 				continue;
 			}
 
-			Double sellPrice;
+			String itemString;
 
 			if (item.getType().name().equals("SPAWNER") /* 1.13+ */
 			        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
@@ -57,31 +56,31 @@ public final class Sell {
 				NBTTagCompound cmp = ItemNBTUtil.getTag(item);
 				data = MobType.valueOf(cmp.getString("EntityId"));
 
-				if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getType().toString() + ":" + data)) {
-					player.getInventory().addItem(item);
-					player.sendMessage(Config.getPrefix() + Config.getCantSell());
-					continue;
-
-				}
-
-				sellPrice = Main.getINSTANCE().getPRICETABLE().get(item.getType().toString() + ":" + data)
-						.getSellPrice();
+				itemString = item.getType().toString().toUpperCase() + ":" + data.toString().toLowerCase();
 
 			} else {
-				if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getType().toString())) {
-					countSell += 1;
-					couldntSell = true;
-					player.getInventory().addItem(item);
-					continue;
-				}
 
-				sellPrice = Main.getINSTANCE().getPRICETABLE().get(item.getType().toString()).getSellPrice();
-
+				itemString = item.getType().toString().toUpperCase();
 			}
 
-			Integer quantity = item.getAmount();
+			if (!Main.getINSTANCE().getPRICETABLE().containsKey(itemString)) {
+				countSell += 1;
+				couldntSell = true;
+				player.getInventory().addItem(item);
+				continue;
+			}
 
-			moneyToGive += quantity * sellPrice;
+			Price price = Main.getINSTANCE().getPRICETABLE().get(itemString);
+			int quantity = item.getAmount();
+
+			// buy price must be defined for dynamic pricing to work
+			if (Config.isDynamicPricing() && price.getBuyPrice() != 0) {
+				moneyToGive += Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
+						price.getBuyPrice(), price.getSellPrice());
+				Main.getDYNAMICPRICING().sellItem(itemString, quantity);
+			} else {
+				moneyToGive += quantity * price.getSellPrice();
+			}
 
 		}
 

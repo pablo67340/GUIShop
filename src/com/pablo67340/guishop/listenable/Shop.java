@@ -174,7 +174,7 @@ public class Shop {
 							(section.contains("commands") ? section.getStringList("commands") : new ArrayList<>()));
 
 					Main.getINSTANCE().getPRICETABLE().computeIfAbsent(item.getItemString(), (is) -> item.generatePricing());
-					if (section.contains("show-in-gui", true)) {
+					if (section.getBoolean("show-in-gui", true)) {
 						items.put(item.getSlot(), item);
 					}
 

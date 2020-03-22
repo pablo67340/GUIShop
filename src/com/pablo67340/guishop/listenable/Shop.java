@@ -240,6 +240,11 @@ public class Shop {
 			// Null items as there is a item type switch in the lines above.
 			if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 
+				if (gItem == null || gItem.getItem().getItemMeta() == null) {
+					Main.debugLog("Item " + item.getMaterial() + " could not be resolved");
+					continue;
+				}
+
 				ItemMeta itemMeta = gItem.getItem().getItemMeta();
 
 				List<String> lore = new ArrayList<>();

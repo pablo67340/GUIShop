@@ -2,12 +2,18 @@ package com.pablo67340.guishop.definition;
 
 import java.util.List;
 
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
+import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.MatLib;
+import com.pablo67340.guishop.util.XMaterial;
+
+import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -56,6 +62,13 @@ public final class Item {
 	@Getter
 	@Setter
 	private Object sellPrice;
+	
+	/**
+	 * Whether this item, specifically, uses dynamic pricing
+	 */
+	@Getter
+	@Setter
+	private boolean useDynamicPricing;
 
 	/**
 	 * The slot of this {@link Item} when presented on the GUI.
@@ -325,6 +338,50 @@ public final class Item {
 
 		}
 		return item.getType().toString().toUpperCase();
+	}
+	
+	/**
+	 * Parses the material of this Item. <br>
+	 * If the material cannot be resolved, <code>null</code> should be returned.
+	 * 
+	 * @return a gui item using the appropriate itemstack
+	 */
+	public GuiItem parseMaterial() {
+		ItemStack itemStack;
+		GuiItem gItem = null;
+
+		itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
+
+		try {
+			gItem = new GuiItem(itemStack);
+		} catch (Exception ex2) {
+			Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting OFF Fix...");
+
+			try {
+				itemStack = new ItemStack(Material.valueOf(getMaterial() + "_OFF"));
+				gItem = new GuiItem(itemStack);
+			} catch (Exception ex3) {
+				Main.debugLog("OFF Fix for: " + getMaterial() + " Failed. Attempting ItemID Lookup...");
+
+				// Final Stand, lets try to find this user's item
+				String itemID = MatLib.getMAP().get(getMaterial());
+				String[] idParts = itemID.split(":");
+				Integer id = Integer.parseInt(idParts[0]);
+				short data = Short.parseShort(idParts[1]);
+				itemStack = LegacyItemConstructor.invoke(id, 1, data);
+
+				try {
+					gItem = new GuiItem(itemStack);
+				} catch (Exception ex4) {
+					Main.debugLog("ItemID Fix for: " + getMaterial() + " Failed. Falling back to air.");
+
+					setItemType(ItemType.BLANK);
+					setEnchantments(null);
+				}
+
+			}
+		}
+		return gItem;
 	}
 
 }

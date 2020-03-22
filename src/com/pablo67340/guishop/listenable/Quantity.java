@@ -22,16 +22,12 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
 import com.pablo67340.guishop.util.XSound;
-
-import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
 import lombok.Getter;
 
@@ -87,40 +83,9 @@ class Quantity {
 		ShopPane page = new ShopPane(9, 6);
 		for (int x = 19; x <= 25; x++) {
 
-			ItemStack itemStack;
-			GuiItem gItem = null;
+			GuiItem gItem = item.parseMaterial();
 
-			itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
-
-			try {
-				gItem = new GuiItem(itemStack);
-			} catch (Exception ex2) {
-				Main.debugLog("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
-
-				try {
-					itemStack = new ItemStack(Material.valueOf(item.getMaterial() + "_OFF"));
-					gItem = new GuiItem(itemStack);
-				} catch (Exception ex3) {
-					Main.debugLog("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
-
-					// Final Stand, lets try to find this user's item
-					String itemID = MatLib.getMAP().get(item.getMaterial());
-					String[] idParts = itemID.split(":");
-					Integer id = Integer.parseInt(idParts[0]);
-					short data = Short.parseShort(idParts[1]);
-					itemStack = LegacyItemConstructor.invoke(id, 1, data);
-
-					try {
-						gItem = new GuiItem(itemStack);
-					} catch (Exception ex4) {
-						Main.debugLog("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
-
-						item.setItemType(ItemType.BLANK);
-						item.setEnchantments(null);
-					}
-
-				}
-			}
+			ItemStack itemStack = gItem.getItem();
 
 			gItem.getItem().setAmount(multiplier);
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();

@@ -26,11 +26,8 @@ import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
-
-import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
 import lombok.Getter;
 
@@ -200,47 +197,13 @@ public class Shop {
 
 		for (Item item : items.values()) {
 
-			ItemStack itemStack;
-			GuiItem gItem = null;
-
-			itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
-
-			try {
-				gItem = new GuiItem(itemStack);
-			} catch (Exception ex2) {
-				Main.debugLog("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
-
-				try {
-					itemStack = new ItemStack(Material.valueOf(item.getMaterial() + "_OFF"));
-					gItem = new GuiItem(itemStack);
-				} catch (Exception ex3) {
-					Main.debugLog("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
-
-					// Final Stand, lets try to find this user's item
-					String itemID = MatLib.getMAP().get(item.getMaterial());
-					String[] idParts = itemID.split(":");
-					Integer id = Integer.parseInt(idParts[0]);
-					short data = Short.parseShort(idParts[1]);
-					itemStack = LegacyItemConstructor.invoke(id, 1, data);
-
-					try {
-						gItem = new GuiItem(itemStack);
-					} catch (Exception ex4) {
-
-						Main.debugLog("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
-
-						item.setItemType(ItemType.BLANK);
-						item.setEnchantments(null);
-					}
-
-				}
-			}
+			GuiItem gItem = item.parseMaterial();
 
 			// Checks if an item is either a shop item or command item. This also handles
 			// Null items as there is a item type switch in the lines above.
 			if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 
-				if (gItem == null || gItem.getItem().getItemMeta() == null) {
+				if (gItem == null) {
 					Main.debugLog("Item " + item.getMaterial() + " could not be resolved");
 					continue;
 				}

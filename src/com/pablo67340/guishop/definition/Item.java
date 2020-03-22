@@ -331,8 +331,13 @@ public final class Item {
 		        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
 		   ) {
 
+			Object data;
 			NBTTagCompound cmp = ItemNBTUtil.getTag(item);
-			Object data = MobType.valueOf(cmp.getString("EntityId"));
+			if (cmp.hasKey("GUIShopSpawner")) {
+				data = cmp.getString("GUIShopSpawner");
+			} else {
+				data = MobType.valueOf(cmp.getString("EntityId"));
+			}
 
 			return item.getType().toString().toUpperCase() + ":" + data.toString().toLowerCase();
 

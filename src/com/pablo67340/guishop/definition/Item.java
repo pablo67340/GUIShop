@@ -342,46 +342,58 @@ public final class Item {
 	
 	/**
 	 * Parses the material of this Item. <br>
-	 * If the material cannot be resolved, <code>null</code> should be returned.
+	 * If the material cannot be resolved, <code>null</code> should be returned. <br>
+	 * <br>
+	 * This operation is somewhat resource intensive. Consider running asynchronously.
+	 * (Keep in mind thread safety of course)
 	 * 
 	 * @return a gui item using the appropriate itemstack
 	 */
 	public GuiItem parseMaterial() {
-		ItemStack itemStack;
+
 		GuiItem gItem = null;
+		ItemStack itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
 
-		itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
+		if (itemStack != null) { // Change since 7.3.9: If underlying itemstack cannot be resolved (is null), fail immediately
+			try {
+				gItem = new GuiItem(itemStack);
+				return gItem; // if itemStack is nonnull and no exception thrown, attempt has succeeded
+			} catch (Exception ex2) {}
+		}
 
-		try {
-			gItem = new GuiItem(itemStack);
-		} catch (Exception ex2) {
+		if (getMaterial().endsWith("_ON")) { // Change since 7.3.9: Only use OFF fix if _ON is detected
+
 			Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting OFF Fix...");
 
 			try {
-				itemStack = new ItemStack(Material.valueOf(getMaterial() + "_OFF"));
+				// remove the "_ON" and add "_OFF"
+				itemStack = new ItemStack(Material.valueOf(getMaterial().substring(0, getMaterial().length() - 2) + "OFF"));
 				gItem = new GuiItem(itemStack);
-			} catch (Exception ex3) {
-				Main.debugLog("OFF Fix for: " + getMaterial() + " Failed. Attempting ItemID Lookup...");
+				return gItem; // if no exception thrown, attempt has succeeded
+			} catch (Exception ex3) {}
 
-				// Final Stand, lets try to find this user's item
-				String itemID = MatLib.getMAP().get(getMaterial());
-				String[] idParts = itemID.split(":");
-				Integer id = Integer.parseInt(idParts[0]);
-				short data = Short.parseShort(idParts[1]);
-				itemStack = LegacyItemConstructor.invoke(id, 1, data);
-
-				try {
-					gItem = new GuiItem(itemStack);
-				} catch (Exception ex4) {
-					Main.debugLog("ItemID Fix for: " + getMaterial() + " Failed. Falling back to air.");
-
-					setItemType(ItemType.BLANK);
-					setEnchantments(null);
-				}
-
-			}
+			Main.debugLog("OFF Fix for: " + getMaterial() + " Failed. Attempting ItemID Lookup...");
 		}
-		return gItem;
+
+		// Final Stand, lets try to find this user's item
+		try {
+			String itemID = MatLib.getMAP().get(getMaterial());
+			String[] idParts = itemID.split(":");
+			int id = Integer.parseInt(idParts[0]);
+			short data = Short.parseShort(idParts[1]);
+
+			itemStack = LegacyItemConstructor.invoke(id, 1, data); // can never be null
+
+			gItem = new GuiItem(itemStack);
+			return gItem;
+		} catch (Exception ex4) {}
+
+		Main.debugLog("ItemID Fix for: " + getMaterial() + " Failed. Falling back to air.");
+
+		setItemType(ItemType.BLANK);
+		setEnchantments(null);
+		// null indicates failure
+		return null;
 	}
 
 }

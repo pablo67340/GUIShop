@@ -108,7 +108,7 @@ public final class PlayerListener implements Listener {
 	 * Custom MobSpawner placement method.
 	 */
 	@SuppressWarnings("deprecation")
-	@EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		if (event.getItemInHand().getType() == XMaterial.SPAWNER.parseMaterial()) {
 

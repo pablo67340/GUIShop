@@ -301,6 +301,17 @@ public final class Item {
 	}
 	
 	/**
+	 * Checks if the item is a mob spawner, accounting for
+	 * differences in server versions.
+	 * 
+	 * @param item the itemstack
+	 * @return whether the item is a mob spawner
+	 */
+	public static boolean isSpawnerItem(ItemStack item) {
+		return item.getType() == XMaterial.SPAWNER.parseMaterial();
+	}
+
+	/**
 	 * Equivalent of {@link Item#getItemString()} for an <i>ItemStack</i>,
 	 * i.e., any minecraft item, not just a shop item. <br>
 	 * <br>
@@ -313,9 +324,7 @@ public final class Item {
 	 * @return the item string representation of the itemstack
 	 */
 	public static String getItemStringForItemStack(ItemStack item) {
-		if (item.getType().name().equals("SPAWNER") /* 1.13+ */
-		        || item.getType().name().equals("MOB_SPAWNER") /* 1.7 - 1.12 */
-		   ) {
+		if (isSpawnerItem(item)) {
 
 			Object data;
 			NBTTagCompound cmp = ItemNBTUtil.getTag(item);

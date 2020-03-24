@@ -20,6 +20,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.util.Config;
@@ -110,7 +111,7 @@ public final class PlayerListener implements Listener {
 	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-		if (event.getItemInHand().getType() == XMaterial.SPAWNER.parseMaterial()) {
+		if (Item.isSpawnerItem(event.getItemInHand())) {
 
 			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
 			scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {

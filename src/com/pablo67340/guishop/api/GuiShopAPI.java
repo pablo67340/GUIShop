@@ -39,7 +39,10 @@ public class GuiShopAPI {
 	
 	/**
 	 * Determines whether the specified item could be sold
-	 * through the sell GUI.
+	 * through the sell GUI. <br>
+	 * <br>
+	 * Formally, if an item is listed in the shops.yml with
+	 * a nonzero sell price, it can be sold.
 	 * 
 	 * @param item the itemstack which would be sold
 	 * @return whether it can be sold
@@ -47,6 +50,22 @@ public class GuiShopAPI {
 	public static boolean canBeSold(ItemStack item) {
 		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
 		return shopItem != null && shopItem.hasSellPrice();
+	}
+	
+	/**
+	 * Determines whether the specified item could be bought
+	 * (has a buy price). An item is considered to be able
+	 * to be purchased even if it is not displayed in the GUI. <br>
+	 * <br>
+	 * Formally, if an item is listed in the shops.yml with a
+	 * defined buy price, it can be bought.
+	 * 
+	 * @param item the itemstack which would be bought
+	 * @return whether it can be bought
+	 */
+	public static boolean canBeBought(ItemStack item) {
+		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+		return shopItem != null && shopItem.hasBuyPrice();
 	}
 	
 }

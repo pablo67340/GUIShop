@@ -7,7 +7,6 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.MatLib;
@@ -326,15 +325,9 @@ public final class Item {
 	public static String getItemStringForItemStack(ItemStack item) {
 		if (isSpawnerItem(item)) {
 
-			Object data;
-			NBTTagCompound cmp = ItemNBTUtil.getTag(item);
-			if (cmp.hasKey("GUIShopSpawner")) {
-				data = cmp.getString("GUIShopSpawner");
-			} else {
-				data = MobType.valueOf(cmp.getString("EntityId"));
-			}
+			MobType mobType = MobType.getFromNbt(ItemNBTUtil.getTag(item));
 
-			return item.getType().toString().toUpperCase() + ":" + data.toString().toLowerCase();
+			return item.getType().toString().toUpperCase() + ":" + mobType.toString().toLowerCase();
 
 		}
 		return item.getType().toString().toUpperCase();

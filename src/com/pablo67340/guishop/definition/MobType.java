@@ -1,5 +1,7 @@
 package com.pablo67340.guishop.definition;
 
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+
 @SuppressWarnings({"unused"})
 public enum MobType {
 
@@ -20,5 +22,17 @@ public enum MobType {
     public int getMobId() {
         return this.mobId;
     }
+    
+	public static MobType getFromNbt(NBTTagCompound cmp) {
+		if (cmp.hasKey("GUIShopSpawner")) {
+			return valueOf(cmp.getString("GUIShopSpawner"));
+
+		} else if (cmp.hasKey("BlockEntityTag")) {
+			NBTTagCompound subCmp = (NBTTagCompound) cmp.get("BlockEntityTag");
+			return valueOf(subCmp.getString("EntityId").toUpperCase());
+		}
+		// default to pig
+		return PIG;
+	}
 
 }

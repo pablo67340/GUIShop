@@ -338,6 +338,8 @@ public final class Main extends JavaPlugin {
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
+				item.setUseDynamicPricing(section.getBoolean("use-dynamic-price", true));
+
 				ITEMTABLE.put(item.getItemString(), item);
 			}
 		}

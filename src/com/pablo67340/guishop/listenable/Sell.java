@@ -66,7 +66,7 @@ public final class Sell {
 			int quantity = item.getAmount();
 
 			// buy price must be defined for dynamic pricing to work
-			if (Config.isDynamicPricing() && shopItem.hasBuyPrice()) {
+			if (Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
 				moneyToGive += Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
 						shopItem.getBuyPriceAsDouble(), shopItem.getSellPriceAsDouble());
 				Main.getDYNAMICPRICING().sellItem(itemString, quantity);

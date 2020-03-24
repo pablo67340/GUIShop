@@ -277,7 +277,7 @@ class Quantity {
 		Runnable dynamicPricingUpdate = null;
 
 		// sell price must be defined and nonzero for dynamic pricing to work
-		if (Config.isDynamicPricing() && item.hasSellPrice()) {
+		if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
 			String itemString = item.getItemString();
 			dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, amount);

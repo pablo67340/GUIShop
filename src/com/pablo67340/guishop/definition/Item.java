@@ -217,7 +217,7 @@ public final class Item {
 	 */
 	public double calculateBuyPrice(int quantity) {
 		// sell price must be defined and nonzero for dynamic pricing to work
-		if (Config.isDynamicPricing() && hasSellPrice()) {
+		if (Config.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
 			
 			return Main.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDouble(),
 					getSellPriceAsDouble());
@@ -237,7 +237,7 @@ public final class Item {
 	 */
 	public double calculateSellPrice(int quantity) {
 		// buy price must be defined for dynamic pricing to work
-		if (Config.isDynamicPricing() && hasBuyPrice()) {
+		if (Config.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
 			
 			return Main.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDouble(),
 					getSellPriceAsDouble());

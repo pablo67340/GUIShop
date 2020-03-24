@@ -166,6 +166,8 @@ public class Shop {
 					item.setItemType(
 							section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
+					item.setUseDynamicPricing(section.getBoolean("use-dynamic-price", true));
+
 					item.setShopLore(
 							(section.contains("shop-lore") ? section.getStringList("shop-lore") : new ArrayList<>()));
 					item.setBuyLore(
@@ -429,7 +431,7 @@ public class Shop {
 				Runnable dynamicPricingUpdate = null;
 
 				// sell price must be defined and nonzero for dynamic pricing to work
-				if (Config.isDynamicPricing() && item.hasSellPrice()) {
+				if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
 					String itemString = item.getItemString();
 					dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, 1);

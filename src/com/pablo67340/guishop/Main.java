@@ -26,7 +26,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
@@ -95,7 +94,7 @@ public final class Main extends JavaPlugin {
 	public Map<String, Map<Integer, Item>> loadedShops = new HashMap<>();
 
 	@Getter
-	private final Map<String, Price> PRICETABLE = new HashMap<>();
+	private final Map<String, Item> ITEMTABLE = new HashMap<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
@@ -339,7 +338,7 @@ public final class Main extends JavaPlugin {
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
-				PRICETABLE.computeIfAbsent(item.getItemString(), (is) -> item.generatePricing());
+				ITEMTABLE.put(item.getItemString(), item);
 			}
 		}
 	}
@@ -377,7 +376,7 @@ public final class Main extends JavaPlugin {
 	public void reload(Player player, Boolean ignoreCreator) {
 		createFiles();
 		shops.clear();
-		PRICETABLE.clear();
+		ITEMTABLE.clear();
 		BUY_COMMANDS.clear();
 		SELL_COMMANDS.clear();
 		loadedShops.clear();

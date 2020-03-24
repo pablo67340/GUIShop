@@ -11,7 +11,6 @@ import com.github.stefvanschie.inventoryframework.Gui;
 
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 
@@ -56,8 +55,8 @@ public final class Sell {
 
 			String itemString = Item.getItemStringForItemStack(item);
 
-			Price price = Main.getINSTANCE().getPRICETABLE().get(itemString);
-			if (price == null || price.getSellPrice() < 0) {
+			Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
+			if (shopItem == null || !shopItem.hasSellPrice()) {
 				countSell += 1;
 				couldntSell = true;
 				player.getInventory().addItem(item);
@@ -67,12 +66,12 @@ public final class Sell {
 			int quantity = item.getAmount();
 
 			// buy price must be defined for dynamic pricing to work
-			if (Config.isDynamicPricing() && price.getBuyPrice() != 0) {
+			if (Config.isDynamicPricing() && shopItem.hasBuyPrice()) {
 				moneyToGive += Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
-						price.getBuyPrice(), price.getSellPrice());
+						shopItem.getBuyPriceAsDouble(), shopItem.getSellPriceAsDouble());
 				Main.getDYNAMICPRICING().sellItem(itemString, quantity);
 			} else {
-				moneyToGive += quantity * price.getSellPrice();
+				moneyToGive += quantity * shopItem.getSellPriceAsDouble();
 			}
 
 		}

@@ -301,20 +301,6 @@ public final class Item {
 	}
 	
 	/**
-	 * Assuming the sell price is an integer or a double,
-	 * create a corresponding {@link Price} for this item. <br>
-	 * If this item has no buy price, the result's
-	 * {@link Price#getBuyPrice()} will return <code>0</code>.
-	 * 
-	 * @return a price object reflecting this item's pricing
-	 */
-	public Price generatePricing() {
-		double buyPrice = (hasBuyPrice()) ? getBuyPriceAsDouble() : -1D;
-		double sellPrice = (hasSellPrice()) ? getSellPriceAsDouble() : -1D;
-		return new Price(buyPrice, sellPrice);
-	}
-	
-	/**
 	 * Equivalent of {@link Item#getItemString()} for an <i>ItemStack</i>,
 	 * i.e., any minecraft item, not just a shop item. <br>
 	 * <br>

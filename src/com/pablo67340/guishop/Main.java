@@ -140,7 +140,7 @@ public final class Main extends JavaPlugin {
 			getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
 			loadDefaults();
 			if (Config.isDynamicPricing() && !setupDynamicPricing()) {
-				getLogger().log(Level.INFO, "Could not find a DynamicPricingProvider! Disabling dynamic pricing...");
+				getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
 				Config.setDynamicPricing(false);
 			}
 

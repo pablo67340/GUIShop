@@ -231,7 +231,7 @@ public final class Main extends JavaPlugin {
 
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
 
-		if (rsp == null) {
+		if (rsp == null || rsp.getProvider() == null) {
 			return false;
 		}
 
@@ -246,7 +246,7 @@ public final class Main extends JavaPlugin {
 	private boolean setupDynamicPricing() {
 		RegisteredServiceProvider<DynamicPriceProvider> rsp = getServer().getServicesManager().getRegistration(DynamicPriceProvider.class);
 		
-		if (rsp == null) {
+		if (rsp == null || rsp.getProvider() == null) {
 			return false;
 		}
 		DYNAMICPRICING = rsp.getProvider();

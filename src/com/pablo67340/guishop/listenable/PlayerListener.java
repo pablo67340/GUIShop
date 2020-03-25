@@ -122,8 +122,14 @@ public final class PlayerListener implements Listener {
 					String mobId = cmp.getString("GUIShopSpawner");
 					Block block = event.getBlockPlaced();
 					CreatureSpawner cs = (CreatureSpawner) block.getState();
-					cs.setSpawnedType(Objects.requireNonNull(EntityType.fromName(mobId)));
-					cs.update();
+					
+					EntityType type = EntityType.fromName(mobId);
+					if (type != null) {
+						cs.setSpawnedType(type);
+						cs.update();
+					} else {
+						Main.log("Invalid EntityType in shops.yml" + mobId);
+					}
 				}
 			}, 1L);
 

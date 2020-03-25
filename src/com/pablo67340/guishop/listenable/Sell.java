@@ -22,7 +22,7 @@ public final class Sell {
 	 * Open the {@link Sell} GUI.
 	 */
 	public void open(Player player) {
-		GUI = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', "Menu &f> &rSell"));
+		GUI = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getSellTitle()));
 		GUI.setOnClose(this::onSellClose);
 		StaticPane pane = new StaticPane(0, 0, 9, 6);
 		GUI.addPane(pane);

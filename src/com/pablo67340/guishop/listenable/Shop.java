@@ -194,7 +194,7 @@ public class Shop {
 		ShopPane page = new ShopPane(9, 6);
 
 		this.GUI = new Gui(Main.getINSTANCE(), 6,
-				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+				ChatColor.translateAlternateColorCodes('&', Config.getShopTitle().replace("{shopname}", getName())));
 		PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
 
 		for (Item item : items.values()) {

@@ -135,6 +135,15 @@ dynamic-pricing: false
 #Enable DEBUG mode
 debug-mode: false
 
+#The overall shop menu title
+menu-title: "Menu"
+
+#The title of a specific shop inventory
+shop-title: "Menu &f> &r{shopname}"
+
+#The title of the sell inventory
+sell-title: "Menu &f> &rSell"
+
 #The title of the quantity inventory.
 qty-title: "&4Select Amount"
 

@@ -16,7 +16,7 @@
 #  buy-lore, buy-name, commands.                                          #
 #  {BUY_PRICE} - The declared buy-price of the item.                      #
 #  {SELL_PRICE} - The declared sell-price of the item.                    #
-#  {CURRENY_SYMBOL} - The declared symbol in config.yml                   #
+#  {CURRENCY_SYMBOL} - The declared symbol in config.yml                   #
 #  {CURRENCY_SUFFIX} - The declared suffix in config.yml                  #
 ###########################################################################
 #                    Available Item Fields & Their Purpose:               #

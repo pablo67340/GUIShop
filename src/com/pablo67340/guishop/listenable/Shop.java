@@ -23,15 +23,11 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
-
-import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
 import lombok.Getter;
 
@@ -170,6 +166,8 @@ public class Shop {
 					item.setItemType(
 							section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
+					item.setUseDynamicPricing(section.getBoolean("use-dynamic-price", true));
+
 					item.setShopLore(
 							(section.contains("shop-lore") ? section.getStringList("shop-lore") : new ArrayList<>()));
 					item.setBuyLore(
@@ -177,20 +175,10 @@ public class Shop {
 					item.setCommands(
 							(section.contains("commands") ? section.getStringList("commands") : new ArrayList<>()));
 
-					if (!Main.getINSTANCE().getPRICETABLE().containsKey(item.getMaterial())
-							&& (!(item.getSellPrice() instanceof Boolean))) {
-						Double sellPrice = item.getSellPrice() instanceof Integer
-								? ((Integer) item.getSellPrice()).doubleValue()
-								: ((Double) item.getSellPrice());
-
-						if (item.isMobSpawner()) {
-							Main.getINSTANCE().getPRICETABLE().put(
-									item.getMaterial() + ":" + item.getMobType().toLowerCase(), new Price(sellPrice));
-						} else {
-							Main.getINSTANCE().getPRICETABLE().put(item.getMaterial(), new Price(sellPrice));
-						}
+					Main.getINSTANCE().getITEMTABLE().put(item.getItemString(), item);
+					if (section.getBoolean("show-in-gui", true)) {
+						items.put(item.getSlot(), item);
 					}
-					items.put(item.getSlot(), item);
 
 				}
 				loadShop();
@@ -206,45 +194,16 @@ public class Shop {
 		ShopPane page = new ShopPane(9, 6);
 
 		this.GUI = new Gui(Main.getINSTANCE(), 6,
-				ChatColor.translateAlternateColorCodes('&', "Menu &f> &r") + getName());
+				ChatColor.translateAlternateColorCodes('&', Config.getShopTitle().replace("{shopname}", getName())));
 		PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
 
 		for (Item item : items.values()) {
 
-			ItemStack itemStack;
-			GuiItem gItem = null;
+			GuiItem gItem = item.parseMaterial();
 
-			itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
-
-			try {
-				gItem = new GuiItem(itemStack);
-			} catch (Exception ex2) {
-				Main.debugLog("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
-
-				try {
-					itemStack = new ItemStack(Material.valueOf(item.getMaterial() + "_OFF"));
-					gItem = new GuiItem(itemStack);
-				} catch (Exception ex3) {
-					Main.debugLog("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
-
-					// Final Stand, lets try to find this user's item
-					String itemID = MatLib.getMAP().get(item.getMaterial());
-					String[] idParts = itemID.split(":");
-					Integer id = Integer.parseInt(idParts[0]);
-					short data = Short.parseShort(idParts[1]);
-					itemStack = LegacyItemConstructor.invoke(id, 1, data);
-
-					try {
-						gItem = new GuiItem(itemStack);
-					} catch (Exception ex4) {
-
-						Main.debugLog("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
-
-						item.setItemType(ItemType.BLANK);
-						item.setEnchantments(null);
-					}
-
-				}
+			if (gItem == null) {
+				Main.debugLog("Item " + item.getMaterial() + " could not be resolved");
+				continue;
 			}
 
 			// Checks if an item is either a shop item or command item. This also handles
@@ -255,38 +214,14 @@ public class Shop {
 
 				List<String> lore = new ArrayList<>();
 
-				if (item.hasBuyPrice()) {
-					if (item.getBuyPrice() instanceof Double) {
-						if ((Double) item.getBuyPrice() != 0.0) {
-							lore.add(Config.getBuyLore().replace("{amount}",
-									Config.getCurrency() + item.getBuyPrice() + Config.getCurrencySuffix()));
-						} else {
-							lore.add(Config.getFreeLore());
-						}
-					} else {
-						if ((Integer) item.getBuyPrice() != 0) {
-							lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-									+ ((Integer) item.getBuyPrice()).doubleValue() + Config.getCurrencySuffix()));
-						} else {
-							lore.add(Config.getFreeLore());
-						}
+				lore.add(item.getBuyLore(1));
 
-					}
-				} else {
-					lore.add(Config.getCannotBuy());
-				}
-
-				if (item.hasSellPrice()) {
-					lore.add(Config.getSellLore().replace("{amount}",
-							Config.getCurrency() + item.getSellPrice() + Config.getCurrencySuffix()));
-				} else {
-					lore.add(Config.getCannotSell());
-				}
+				lore.add(item.getSellLore(1));
 
 				if (item.hasShopLore()) {
 					item.getShopLore().forEach(str -> {
-						if (!lore.contains(str) && !lore
-								.contains(Config.getBuyLore().replace("{AMOUNT}", item.getBuyPrice().toString()))) {
+						if (!lore.contains(str) && !lore.contains(
+								Config.getBuyLore().replace("{AMOUNT}", Double.toString(item.calculateBuyPrice(1))))) {
 							lore.add(ChatColor.translateAlternateColorCodes('&', str));
 						}
 					});
@@ -490,13 +425,32 @@ public class Shop {
 			if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
 				new Quantity(item, this, player).loadInventory().open();
 			} else if (item.getItemType() == ItemType.COMMAND) {
-				if (Main.getECONOMY().withdrawPlayer(player, (Double) item.getBuyPrice()).transactionSuccess()) {
+
+				double priceToPay;
+
+				Runnable dynamicPricingUpdate = null;
+
+				// sell price must be defined and nonzero for dynamic pricing to work
+				if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+
+					String itemString = item.getItemString();
+					dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, 1);
+
+					priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, 1, item.getBuyPriceAsDouble(), item.getSellPriceAsDouble());
+				} else {
+					priceToPay = item.getBuyPriceAsDouble();
+				}
+
+				if (Main.getECONOMY().withdrawPlayer(player, priceToPay).transactionSuccess()) {
 					item.getCommands().forEach(str -> {
 						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
 								Main.placeholderIfy(str, player, item));
 					});
+					if (dynamicPricingUpdate != null) {
+						dynamicPricingUpdate.run();
+					}
 				} else {
-					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + item.getBuyPrice()
+					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay
 							+ Config.getNotEnoughPost());
 				}
 			} else {

@@ -22,16 +22,12 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XEnchantment;
 import com.pablo67340.guishop.util.XMaterial;
 import com.pablo67340.guishop.util.XSound;
-
-import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
 import lombok.Getter;
 
@@ -87,67 +83,15 @@ class Quantity {
 		ShopPane page = new ShopPane(9, 6);
 		for (int x = 19; x <= 25; x++) {
 
-			ItemStack itemStack;
-			GuiItem gItem = null;
+			GuiItem gItem = item.parseMaterial();
 
-			itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
-
-			try {
-				gItem = new GuiItem(itemStack);
-			} catch (Exception ex2) {
-				Main.debugLog("Failed to find item by Material: " + item.getMaterial() + ". Attempting OFF Fix...");
-
-				try {
-					itemStack = new ItemStack(Material.valueOf(item.getMaterial() + "_OFF"));
-					gItem = new GuiItem(itemStack);
-				} catch (Exception ex3) {
-					Main.debugLog("OFF Fix for: " + item.getMaterial() + " Failed. Attempting ItemID Lookup...");
-
-					// Final Stand, lets try to find this user's item
-					String itemID = MatLib.getMAP().get(item.getMaterial());
-					String[] idParts = itemID.split(":");
-					Integer id = Integer.parseInt(idParts[0]);
-					short data = Short.parseShort(idParts[1]);
-					itemStack = LegacyItemConstructor.invoke(id, 1, data);
-
-					try {
-						gItem = new GuiItem(itemStack);
-					} catch (Exception ex4) {
-						Main.debugLog("ItemID Fix for: " + item.getMaterial() + " Failed. Falling back to air.");
-
-						item.setItemType(ItemType.BLANK);
-						item.setEnchantments(null);
-					}
-
-				}
-			}
+			ItemStack itemStack = gItem.getItem();
 
 			gItem.getItem().setAmount(multiplier);
 			ItemMeta itemMeta = gItem.getItem().getItemMeta();
 			List<String> lore = new ArrayList<>();
 
-			if (item.hasBuyPrice()) {
-				if (item.getBuyPrice() instanceof Double) {
-					if ((Double) item.getBuyPrice() != 0) {
-
-						lore.add(Config.getBuyLore().replace("{amount}", Config.getCurrency()
-								+ ((double) item.getBuyPrice() * multiplier) + Config.getCurrencySuffix()));
-					} else if ((double) item.getBuyPrice() == 0) {
-						lore.add(Config.getFreeLore());
-					}
-				} else {
-					if ((Integer) item.getBuyPrice() != 0) {
-
-						lore.add(Config.getBuyLore().replace("{amount}",
-								Config.getCurrency() + (((Integer) item.getBuyPrice()).doubleValue() * multiplier)
-										+ Config.getCurrencySuffix()));
-					} else if ((double) item.getBuyPrice() == 0) {
-						lore.add(Config.getFreeLore());
-					}
-				}
-			} else {
-				lore.add(Config.getCannotBuy());
-			}
+			lore.add(item.getBuyLore(multiplier));
 
 			item.getShopLore().forEach(str -> {
 				lore.add(ChatColor.translateAlternateColorCodes('&', str));
@@ -253,7 +197,7 @@ class Quantity {
 
 		// If the quantity is 0
 		if (quantity == 0) {
-			player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.getBuyPrice()
+			player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.calculateBuyPrice(1)
 					+ Config.getNotEnoughPost());
 			player.setItemOnCursor(new ItemStack(Material.AIR));
 			return;
@@ -328,13 +272,22 @@ class Quantity {
 
 		// if the item is not a shift click
 
-		if (item.getBuyPrice() instanceof Double) {
+		int amount = e.getCurrentItem().getAmount();
 
-			priceToPay = ((Double) item.getBuyPrice() * e.getCurrentItem().getAmount()) - priceToReimburse;
+		Runnable dynamicPricingUpdate = null;
+
+		// sell price must be defined and nonzero for dynamic pricing to work
+		if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+
+			String itemString = item.getItemString();
+			dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, amount);
+
+			priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, amount, item.getBuyPriceAsDouble(), item.getSellPriceAsDouble());
 		} else {
-			priceToPay = (((Integer) item.getBuyPrice()).doubleValue() * e.getCurrentItem().getAmount())
-					- priceToReimburse;
+			priceToPay = item.getBuyPriceAsDouble() * amount;
 		}
+
+		priceToPay -= priceToReimburse;
 
 		// Check if the transition was successful
 
@@ -354,6 +307,10 @@ class Quantity {
 				tag.setString("GUIShopSpawner", item.getMobType());
 
 				itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+			}
+			
+			if (dynamicPricingUpdate != null) {
+				dynamicPricingUpdate.run();
 			}
 
 			player.getInventory().addItem(itemStack);

@@ -1,5 +1,7 @@
 package com.pablo67340.guishop.definition;
 
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+
 @SuppressWarnings({"unused"})
 public enum MobType {
 

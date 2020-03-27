@@ -15,7 +15,7 @@ public final class Config {
 	 */
 	@Getter
 	@Setter
-	private static boolean signsOnly, escapeOnly, soundEnabled, enableCreator, debugMode;
+	private static boolean signsOnly, escapeOnly, soundEnabled, enableCreator, dynamicPricing, debugMode;
 	
 	@Getter
 	private static List<String> disabledQty = new ArrayList<>();
@@ -27,7 +27,7 @@ public final class Config {
 	@Getter
 	@Setter
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
-			sellCommand, sellTitle, sold, taken, sound, full, currency, noPermission, qtyTitle, currencySuffix,
+			sellCommand, menuTitle, shopTitle, sellTitle, sold, taken, sound, full, currency, noPermission, qtyTitle, currencySuffix,
 			backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore, sellLore, freeLore;
 
 	/**

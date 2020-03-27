@@ -6,6 +6,7 @@ import java.lang.reflect.Field;
 import java.util.*;
 import java.util.logging.Level;
 
+import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.commands.BuyCommand;
 import com.pablo67340.guishop.commands.GuishopCommand;
 import com.pablo67340.guishop.commands.SellCommand;
@@ -25,7 +26,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.Price;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
@@ -63,6 +63,12 @@ public final class Main extends JavaPlugin {
 	 */
 	@Getter
 	private static Economy ECONOMY;
+	
+	/**
+	 * the instance of the dynamic price provider, if dynamic pricing is used
+	 */
+	@Getter
+	private static DynamicPriceProvider DYNAMICPRICING;
 
 	/**
 	 * An instance of this class.
@@ -88,7 +94,7 @@ public final class Main extends JavaPlugin {
 	public Map<String, Map<Integer, Item>> loadedShops = new HashMap<>();
 
 	@Getter
-	private final Map<String, Price> PRICETABLE = new HashMap<>();
+	private final Map<String, Item> ITEMTABLE = new HashMap<>();
 
 	/**
 	 * A {@link Map} that will store our {@link Creator}s when the server first
@@ -133,6 +139,10 @@ public final class Main extends JavaPlugin {
 			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
 			getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
 			loadDefaults();
+			if (Config.isDynamicPricing() && !setupDynamicPricing()) {
+				getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
+				Config.setDynamicPricing(false);
+			}
 
 		} else {
 			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
@@ -221,12 +231,26 @@ public final class Main extends JavaPlugin {
 
 		RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
 
-		if (rsp == null) {
+		if (rsp == null || rsp.getProvider() == null) {
 			return false;
 		}
 
 		ECONOMY = rsp.getProvider();
 
+		return true;
+	}
+	
+	/**
+	 * Find the dynamic price provider if present
+	 */
+	private boolean setupDynamicPricing() {
+		RegisteredServiceProvider<DynamicPriceProvider> rsp = getServer().getServicesManager().getRegistration(DynamicPriceProvider.class);
+		
+		if (rsp == null || rsp.getProvider() == null) {
+			return false;
+		}
+		DYNAMICPRICING = rsp.getProvider();
+		
 		return true;
 	}
 
@@ -269,6 +293,12 @@ public final class Main extends JavaPlugin {
 		Config.setCurrency(getMainConfig().getString("currency"));
 		Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
+		Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
+				Objects.requireNonNull(getMainConfig().getString("menu-title"))));
+		Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
+				Objects.requireNonNull(getMainConfig().getString("shop-title"))));
+		Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
+				Objects.requireNonNull(getMainConfig().getString("sell-title"))));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("qty-title"))));
 		Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&',
@@ -287,11 +317,11 @@ public final class Main extends JavaPlugin {
 		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
+		Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
 		Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));
 	}
 
 	private void loadPRICETABLE() {
-		Item item;
 
 		for (String shop : Main.getINSTANCE().getCustomConfig().getKeys(false)) {
 
@@ -300,7 +330,7 @@ public final class Main extends JavaPlugin {
 			assert config != null;
 			for (String str : config.getKeys(false)) {
 
-				item = new Item();
+				Item item = new Item();
 
 				ConfigurationSection section = config.getConfigurationSection(str);
 
@@ -314,19 +344,9 @@ public final class Main extends JavaPlugin {
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
 
-				if (item.getSellPrice() != null && (!(item.getSellPrice() instanceof Boolean))) {
+				item.setUseDynamicPricing(section.getBoolean("use-dynamic-price", true));
 
-					Double sellPrice = item.getSellPrice() instanceof Integer
-							? ((Integer) item.getSellPrice()).doubleValue()
-							: ((Double) item.getSellPrice());
-
-					if (item.isMobSpawner()) {
-						PRICETABLE.put(item.getMaterial().toUpperCase() + ":" + item.getMobType().toLowerCase(),
-								new Price(sellPrice));
-					} else {
-						PRICETABLE.put(item.getMaterial().toUpperCase(), new Price(sellPrice));
-					}
-				}
+				ITEMTABLE.put(item.getItemString(), item);
 			}
 		}
 	}
@@ -364,7 +384,7 @@ public final class Main extends JavaPlugin {
 	public void reload(Player player, Boolean ignoreCreator) {
 		createFiles();
 		shops.clear();
-		PRICETABLE.clear();
+		ITEMTABLE.clear();
 		BUY_COMMANDS.clear();
 		SELL_COMMANDS.clear();
 		loadedShops.clear();
@@ -404,10 +424,10 @@ public final class Main extends JavaPlugin {
 			str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
 		}
 		if (item.hasBuyPrice()) {
-			str = str.replace("{BUY_PRICE}", item.getBuyPrice().toString());
+			str = str.replace("{BUY_PRICE}", Double.toString(item.calculateBuyPrice(1)));
 		}
 		if (item.hasSellPrice()) {
-			str = str.replace("{SELL_PRICE}", item.getSellPrice().toString());
+			str = str.replace("{SELL_PRICE}", Double.toString(item.calculateSellPrice(1)));
 		}
 		str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
 		str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());

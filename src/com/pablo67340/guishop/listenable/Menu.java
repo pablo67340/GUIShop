@@ -41,7 +41,7 @@ public final class Menu {
 	 */
 
 	public Menu() {
-		this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "Menu");
+		this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), Config.getMenuTitle());
 	}
 
 	public void itemWarmup() {

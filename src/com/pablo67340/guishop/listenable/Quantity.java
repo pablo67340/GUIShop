@@ -110,7 +110,7 @@ class Quantity {
 
 			if (item.hasShopName()) {
 				itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
-			} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
+			} else if (Item.isSpawnerItem(itemStack)) {
 				String mobName = item.getMobType();
 				mobName = mobName.toLowerCase();
 				mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
@@ -250,7 +250,7 @@ class Quantity {
 			assert itemMeta != null;
 			itemMeta.setDisplayName(
 					ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(item.getBuyName(), player, item)));
-		} else if (itemStack.getType() == XMaterial.SPAWNER.parseMaterial()) {
+		} else if (Item.isSpawnerItem(itemStack)) {
 			String mobName = item.getMobType();
 			mobName = mobName.toLowerCase();
 			mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");

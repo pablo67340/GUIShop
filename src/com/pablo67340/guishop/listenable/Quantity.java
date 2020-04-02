@@ -203,7 +203,7 @@ class Quantity {
 			return;
 		}
 
-		ItemStack itemStack = new ItemStack(e.getCurrentItem().getType());
+		ItemStack itemStack = e.getCurrentItem().clone();
 		
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
@@ -231,8 +231,6 @@ class Quantity {
 				}
 			}
 		}
-		
-		itemStack.setAmount(e.getCurrentItem().getAmount());
 
 		List<String> lore = new ArrayList<>();
 
@@ -272,7 +270,7 @@ class Quantity {
 
 		// if the item is not a shift click
 
-		int amount = e.getCurrentItem().getAmount();
+		int amount = itemStack.getAmount();
 
 		Runnable dynamicPricingUpdate = null;
 

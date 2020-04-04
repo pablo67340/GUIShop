@@ -6,6 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
+import com.pablo67340.guishop.util.Config;
 
 /**
  * Officially supported API for interacting with GuiShop. <br>
@@ -66,6 +67,74 @@ public class GuiShopAPI {
 	public static boolean canBeBought(ItemStack item) {
 		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
 		return shopItem != null && shopItem.hasBuyPrice();
+	}
+	
+	/**
+	 * Gets the buy price for an item with specified quantity. <br>
+	 * If the item does not exist or does not have a buy price, <code>-1</code> is returned.
+	 * 
+	 * @param item the itemstack
+	 * @param quantity the quantity which would be purchased
+	 * @return the buy price or minus 1 if not set
+	 */
+	public static double getBuyPrice(ItemStack item, int quantity) {
+		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+		return (shopItem != null && shopItem.hasBuyPrice()) ? shopItem.calculateBuyPrice(quantity) : -1;
+	}
+	
+	/**
+	 * Gets the sell price for an item with specified quantity. <br>
+	 * If the item does not exist or does not have a sell price, <code>-1</code> is returned.
+	 * 
+	 * @param item the itemstack
+	 * @param quantity the quantity which would be sold
+	 * @return the sell price or minus 1 if not set
+	 */
+	public static double getSellPrice(ItemStack item, int quantity) {
+		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+		return (shopItem != null && shopItem.hasSellPrice()) ? shopItem.calculateSellPrice(quantity) : -1;
+	}
+	
+	/**
+	 * Indicates to GUIShop that the item has been purchased with the specified quantity. <br>
+	 * If dynamic pricing is enabled, GUIShop will then inform the dynamic pricing provider
+	 * that the purchase has occurred. (If disabled, nothing happens) <br>
+	 * <br>
+	 * Note that even if you are not using dynamic pricing, calling this method is recommended
+	 * because it automatically ensures compatibility with dynamic pricing.
+	 * 
+	 * @param item the itemstack
+	 * @param quantity the quantity which was purchased
+	 */
+	public static void indicateBoughtItems(ItemStack item, int quantity) {
+		String itemString = Item.getItemStringForItemStack(item);
+		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+		if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+				&& shopItem.hasSellPrice()) {
+			Main.getDYNAMICPRICING().buyItem(itemString, quantity);
+		}
+	}
+	
+	/**
+	 * Indicates to GUIShop that the item has been sold with the specified quantity. <br>
+	 * If dynamic pricing is enabled, GUIShop will then inform the dynamic pricing provider
+	 * that the purchase has occurred. (If disabled, nothing happens) <br>
+	 * <br>
+	 * Note that even if you are not using dynamic pricing, calling this method is recommended
+	 * because it automatically ensures compatibility with dynamic pricing.
+	 * 
+	 * @param item the itemstack
+	 * @param quantity the quantity which was purchased
+	 */
+	public static void indicateSoldItems(ItemStack item, int quantity) {
+		String itemString = Item.getItemStringForItemStack(item);
+		Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+		if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+				&& shopItem.hasSellPrice()) {
+			Main.getDYNAMICPRICING().sellItem(itemString, quantity);
+		}
 	}
 	
 }

@@ -70,14 +70,11 @@ public final class Menu {
 
 		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
 
+			GuiItem gItem = buildMenuItem(shopDef.getItemID(), shopDef);
 			if (shopDef.getItemType() == ItemType.SHOP) {
-				if (player.hasPermission("guishop.shop." + shopDef.getShop()) || player.isOp()
-						|| player.hasPermission("guishop.shop.*")) {
-					page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
-				}
-			} else {
-				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
+				gItem.setVisible((player.hasPermission("guishop.shop." + shopDef.getShop()) || player.hasPermission("guishop.shop.*")));
 			}
+			page.addItem(gItem);
 		}
 
 		GUI.addPane(page);

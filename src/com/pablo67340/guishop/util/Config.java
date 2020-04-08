@@ -27,8 +27,9 @@ public final class Config {
 	@Getter
 	@Setter
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
-			sellCommand, menuTitle, shopTitle, sellTitle, sold, taken, sound, full, currency, noPermission, qtyTitle, currencySuffix,
-			backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore, sellLore, freeLore;
+			sellCommand, menuTitle, shopTitle, sellTitle, sold, taken, sound, full, currency, noPermission, qtyTitle,
+			currencySuffix, backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore, sellLore, freeLore,
+			forwardPageButtonName, backwardPageButtonName;
 
 	/**
 	 * Number of rows for the {@link Menu} GUI.

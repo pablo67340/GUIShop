@@ -302,13 +302,30 @@ public class Shop {
 		this.currentPane = pane;
 
 	}
+	
+	/**
+	 * Creates a named itemstack from a material and name.
+	 * 
+	 * @param material the material
+	 * @param name the name with colour codes already applied
+	 * @return a named item
+	 */
+	private ItemStack makeNamedItem(Material material, String name) {
+		ItemStack is = new ItemStack(material);
+		if (!name.isEmpty()) {
+			ItemMeta meta = is.getItemMeta();
+			meta.setDisplayName(name);
+			is.setItemMeta(meta);
+		}
+		return is;
+	}
 
 	private void applyButtons(ShopPane page) {
 		if (page.getINSTANCE().getItemsMap().containsKey(44)) {
-			page.setItem(new GuiItem(new ItemStack(Material.ARROW)), 51);
+			page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getBackwardPageButtonName())), 51);
 		}
 		if (pageC > 0) {
-			page.setItem(new GuiItem(new ItemStack(Material.ARROW)), 47);
+			page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getForwardPageButtonName())), 47);
 		}
 		if (!Config.isEscapeOnly()) {
 

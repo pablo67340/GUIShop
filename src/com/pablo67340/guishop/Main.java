@@ -316,6 +316,10 @@ public final class Main extends JavaPlugin {
 				Objects.requireNonNull(getMainConfig().getString("cannot-buy"))));
 		Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
+		Config.setForwardPageButtonName(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("forward-page-button-name", "")));
+		Config.setBackwardPageButtonName(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("backward-page-button-name", "")));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
 		Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
 		Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));

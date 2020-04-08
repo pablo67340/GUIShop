@@ -159,6 +159,10 @@ cannot-buy: "&cCannot Purchase"
 
 cannot-sell: "&cCannot Sell"
 
+forward-page-button-name: "&rNext page"
+
+backward-page-button-name: "&rLast page"
+
 DisabledWorlds:
     -'Test'
 

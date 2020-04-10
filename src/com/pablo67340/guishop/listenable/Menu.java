@@ -66,11 +66,12 @@ public final class Menu {
 
 		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
 
-			GuiItem gItem = buildMenuItem(shopDef.getItemID(), shopDef);
-			if (shopDef.getItemType() == ItemType.SHOP) {
-				gItem.setVisible((player.hasPermission("guishop.shop." + shopDef.getShop()) || player.hasPermission("guishop.shop.*")));
+			if (shopDef.getItemType() != ItemType.SHOP || player.hasPermission("guishop.shop." + shopDef.getShop())
+					|| player.hasPermission("guishop.shop.*")) {
+				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
+			} else {
+				page.addBlankItem();
 			}
-			page.addItem(gItem);
 		}
 
 		GUI.addPane(page);

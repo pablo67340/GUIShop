@@ -26,6 +26,7 @@ public class ShopPane extends Pane {
 	@Getter
 	private Map<Integer, ItemStack> dummies;
 	public static ShopPane INSTANCE;
+	private int increment;
 
 	public ShopPane(int length, int height) {
 		super(length, height);
@@ -34,8 +35,12 @@ public class ShopPane extends Pane {
 		INSTANCE = this;
 	}
 
+	public void addBlankItem() {
+		increment++;
+	}
+
 	public void addItem(GuiItem item) {
-		items.put(items.size(), item);
+		items.put(items.size() + increment, item);
 	}
 
 	public void setItem(GuiItem item, Integer slot) {

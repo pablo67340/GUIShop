@@ -17,8 +17,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 
 public final class Menu {
@@ -30,8 +28,6 @@ public final class Menu {
 	private Gui GUI;
 
 	private Boolean hasClicked = false;
-
-	public static final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
 
 	/**
 	 * A {@link Map} that will store our {@link Shop}s when the server first starts.

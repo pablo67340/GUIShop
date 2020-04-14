@@ -6,7 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -301,10 +301,17 @@ class Quantity {
 					+ Config.getCurrencySuffix());
 
 			if (item.isMobSpawner()) {
-				NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
-				tag.setString("GUIShopSpawner", item.getMobType());
 
-				itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+				EntityType type = item.parseMobSpawnerType();
+				if (type == null) {
+					Main.log("Invalid EntityType in shops.yml: " + item.getMobType());
+
+				} else {
+					NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
+					tag.setString("GUIShopSpawner", type.name());
+
+					itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+				}
 			}
 			
 			if (dynamicPricingUpdate != null) {

@@ -108,7 +108,6 @@ public final class PlayerListener implements Listener {
 	/**
 	 * Custom MobSpawner placement method.
 	 */
-	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
 		if (Item.isSpawnerItem(event.getItemInHand())) {
@@ -122,13 +121,18 @@ public final class PlayerListener implements Listener {
 					String mobId = cmp.getString("GUIShopSpawner");
 					Block block = event.getBlockPlaced();
 					CreatureSpawner cs = (CreatureSpawner) block.getState();
-					
-					EntityType type = EntityType.fromName(mobId);
-					if (type != null) {
-						cs.setSpawnedType(type);
+
+					/*
+					 * Although valueOf is almost always safe here because
+					 * we used EntityType.name() when setting the NBT tag,
+					 * it's possible the user might change server versions,
+					 * in which case the EntityType enum may have changed.
+					 */
+					try {
+						cs.setSpawnedType(EntityType.valueOf(mobId));
 						cs.update();
-					} else {
-						Main.log("Invalid EntityType in shops.yml: " + mobId);
+					} catch (IllegalArgumentException veryRareException) {
+						Main.log("Detected outdated mob spawner ID: " + mobId + " placed by " + event.getPlayer());
 					}
 				}
 			}, 1L);

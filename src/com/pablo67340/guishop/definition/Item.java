@@ -3,6 +3,7 @@ package com.pablo67340.guishop.definition;
 import java.util.List;
 
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
@@ -399,6 +400,28 @@ public final class Item {
 		setItemType(ItemType.BLANK);
 		setEnchantments(null);
 		// null indicates failure
+		return null;
+	}
+
+	/**
+	 * Parses the mob type of this item if it is a spawner item. <br>
+	 * Remember to check {@link #isMobSpawner()}
+	 * 
+	 * @return the entity type, or <code>null</code> if invalid
+	 */
+	public EntityType parseMobSpawnerType() {
+		@SuppressWarnings("deprecation")
+		EntityType type = EntityType.fromName(getMobType());
+		if (type != null) {
+			return type;
+		}
+
+		Main.debugLog("Failed to find entity type using EntityType#fromName");
+		try {
+			return EntityType.valueOf(getMobType());
+		} catch (IllegalArgumentException ignored) {}
+
+		Main.debugLog("Failed to find entity type using EntityType#valueOf");
 		return null;
 	}
 

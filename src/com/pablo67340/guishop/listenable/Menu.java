@@ -41,20 +41,16 @@ public final class Menu {
 	}
 
 	public void itemWarmup() {
-		Thread t1 = new Thread(() -> {
-			Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
-			long startTime = System.currentTimeMillis();
-			for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
-				if (shopDef.getItemType() == ItemType.SHOP) {
-					new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
-							.loadItems();
-				}
+		Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
+		long startTime = System.currentTimeMillis();
+		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
+			if (shopDef.getItemType() == ItemType.SHOP) {
+				new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
+						.loadItems();
 			}
-			long estimatedTime = System.currentTimeMillis() - startTime;
-			Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
-		});
-		t1.start();
-
+		}
+		long estimatedTime = System.currentTimeMillis() - startTime;
+		Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
 	}
 
 	/**

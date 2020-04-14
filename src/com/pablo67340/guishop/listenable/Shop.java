@@ -439,7 +439,10 @@ public class Shop {
 		if (!Main.getCREATOR().contains(player.getName())) {
 			Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
-			if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
+			if (item == null) {
+				return;
+
+			} else if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
 				new Quantity(item, this, player).loadInventory().open();
 			} else if (item.getItemType() == ItemType.COMMAND) {
 

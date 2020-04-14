@@ -128,7 +128,7 @@ public final class PlayerListener implements Listener {
 						cs.setSpawnedType(type);
 						cs.update();
 					} else {
-						Main.log("Invalid EntityType in shops.yml" + mobId);
+						Main.log("Invalid EntityType in shops.yml: " + mobId);
 					}
 				}
 			}, 1L);

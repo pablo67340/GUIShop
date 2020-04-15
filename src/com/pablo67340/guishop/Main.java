@@ -341,9 +341,9 @@ public final class Main extends JavaPlugin {
 				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
 				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
 
-				item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
+				item.setBuyPrice(section.get("buy-price"));
 
-				item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
+				item.setSellPrice(section.get("sell-price"));
 
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);

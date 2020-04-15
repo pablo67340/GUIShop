@@ -93,98 +93,64 @@ public final class Item {
 	@Setter
 	private String[] enchantments;
 
-	public Boolean hasShopName() {
-		return (shopName != null ? shopName.equalsIgnoreCase("") ? false : true : false);
+	public boolean hasShopName() {
+		return (shopName != null) && !shopName.isEmpty();
 	}
 
-	public Boolean hasBuyName() {
+	public boolean hasBuyName() {
 		return buyName != null;
 	}
 
-	public Boolean hasShopLore() {
-		if (shopLore == null) {
-			return false;
-		}
-		if (shopLore.size() == 0) {
-			return false;
-		}
-		return true;
+	public boolean hasShopLore() {
+		return (shopLore != null) && !shopLore.isEmpty();
 	}
 
-	public Boolean hasBuyLore() {
-		if (buyLore == null) {
-			return false;
-		}
-		if (buyLore.size() == 0) {
-			return false;
-		}
-		return true;
+	public boolean hasBuyLore() {
+		return (buyLore != null) && !buyLore.isEmpty();
 	}
 
-	public Boolean hasEnchantments() {
-		if (enchantments == null) {
-			return false;
-		}
-		if (enchantments[0].equalsIgnoreCase("")) {
-			return false;
-		}
-		return true;
+	public boolean hasEnchantments() {
+		return (enchantments != null) && (enchantments.length != 0) && !enchantments[0].isEmpty();
 	}
 
 	public boolean hasCommands() {
-		if (commands == null) {
-			return false;
-		}
-		if (commands.size() == 0) {
-			return false;
-		}
-		return true;
+		return (commands != null) && !commands.isEmpty();
 	}
 
-	public Boolean isMobSpawner() {
+	public boolean isMobSpawner() {
 		return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
 	}
 
-	public Boolean hasSellPrice() {
-		if (sellPrice == null) {
-			return false;
-		}
-
-		if (sellPrice instanceof Boolean) {
-			if (((Boolean) sellPrice) == false) {
-				return false;
-			}
-		}
-
-		if (sellPrice instanceof Double) {
-			if (((Double) sellPrice) == 0.0) {
-				return false;
-			}
-		}
-		return true;
+	/**
+	 * Checks whether the item has a defined AND nonzero sell price. <br>
+	 * For the sell price to be defined it must be an integer or double.
+	 * 
+	 * @return true if the sell price is valid, false otherwise
+	 */
+	public boolean hasSellPrice() {
+		// instanceof does the null-check for us
+		return (sellPrice instanceof Double && ((Double) sellPrice) != 0D)
+				|| (sellPrice instanceof Integer && ((Integer) sellPrice) != 0);
 	}
 
-	public Boolean hasBuyPrice() {
-		if (buyPrice == null) {
-			return false;
-		}
-
-		if (buyPrice instanceof Boolean) {
-			if (((Boolean) buyPrice) == false) {
-				return false;
-			}
-		}
-		return true;
+	/**
+	 * Checks whether the item has a defined buy price. <br>
+	 * For the buy price to be defined it must be an integer or double.
+	 * 
+	 * @return true if the buy price is valid, false otherwise
+	 */
+	public boolean hasBuyPrice() {
+		// instanceof does the null-check for us
+		return (buyPrice instanceof Double) || (buyPrice instanceof Integer);
 	}
-	
-	public Boolean hasMobType() {
-		if (mobType == null) {
-			return false;
-		}
-		if (mobType.equalsIgnoreCase("")) {
-			return false;
-		}
-		return true;
+
+	/**
+	 * Checks whether the mob type is defined
+	 * 
+	 * @return true if defined, false otherwise
+	 */
+	public boolean hasMobType() {
+		return (mobType != null) && !mobType.isEmpty();
 	}
 
 	/**

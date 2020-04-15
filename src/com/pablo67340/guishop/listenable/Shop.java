@@ -159,9 +159,9 @@ public class Shop {
 						}
 					}
 
-					item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
+					item.setBuyPrice(section.get("buy-price"));
 
-					item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
+					item.setSellPrice(section.get("sell-price"));
 
 					item.setItemType(
 							section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
@@ -581,19 +581,12 @@ public class Shop {
 
 				Object buyPrice = getBuyPrice(itemStack);
 				Main.debugLog("had buyPrice comp: " + buyPrice);
-				if (buyPrice instanceof Boolean) {
-					item.setBuyPrice((Boolean) buyPrice);
-				} else {
-					item.setBuyPrice((Double) buyPrice);
-				}
+				item.setBuyPrice(buyPrice);
 			}
 			if (comp.hasKey("sellPrice")) {
+
 				Object sellPrice = getSellPrice(itemStack);
-				if (sellPrice instanceof Boolean) {
-					item.setSellPrice((Boolean) sellPrice);
-				} else {
-					item.setSellPrice((Double) sellPrice);
-				}
+				item.setSellPrice(sellPrice);
 			}
 
 			if (im.hasDisplayName()) {
@@ -722,7 +715,9 @@ public class Shop {
 	}
 
 	/**
-	 * Gets the buyPrice of the item using NBT
+	 * Gets the buyPrice of the item using NBT,
+	 * or <code>null</code> if not defined
+	 * 
 	 */
 	private Object getBuyPrice(ItemStack item) {
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -730,14 +725,14 @@ public class Shop {
 		if (comp.hasKey("buyPrice")) {
 			Double vl = comp.getDouble("buyPrice");
 			return vl;
-		} else {
-			return false;
 		}
-
+		return null;
 	}
 
 	/**
-	 * Gets the sellPrice of an item using NBT
+	 * Gets the sellPrice of an item using NBT,
+	 * or <code>null</code> if not defined
+	 * 
 	 */
 	private Object getSellPrice(ItemStack item) {
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -745,9 +740,8 @@ public class Shop {
 		if (comp.hasKey("sellPrice")) {
 			Double vl = comp.getDouble("sellPrice");
 			return vl;
-		} else {
-			return false;
 		}
+		return null;
 	}
 
 }

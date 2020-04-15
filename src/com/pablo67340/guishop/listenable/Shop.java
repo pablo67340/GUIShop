@@ -442,7 +442,12 @@ public class Shop {
 			if (item == null) {
 				return;
 
-			} else if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
+			} else if (!item.hasBuyPrice()) {
+				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+				return;
+			}
+
+			if (item.getItemType() == ItemType.SHOP) {
 				new Quantity(item, this, player).loadInventory().open();
 			} else if (item.getItemType() == ItemType.COMMAND) {
 
@@ -473,8 +478,6 @@ public class Shop {
 					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay
 							+ Config.getNotEnoughPost());
 				}
-			} else {
-				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
 			}
 		} else {
 			// When players remove an item from the shop

@@ -376,6 +376,9 @@ public class Shop {
 		if (e.getClickedInventory() == null) {
 			return;
 		}
+		ItemStack CurrentItem = e.getCurrentItem(); //Vital to not cause the null click error when clicking on an empty slot
+		if (CurrentItem == null){
+			return;
 
 		// Forward Button
 		Main.debugLog("Clicked: " + e.getSlot());

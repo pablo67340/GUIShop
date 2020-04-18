@@ -26,7 +26,7 @@ public class GuishopCommand implements CommandExecutor {
 
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
-                if (player.hasPermission("guishop.admin")) {
+                if (player.hasPermission("guishop.admin") || player.isOp()) {
                     Main.getCREATOR().add(player.getName());
                     Main.debugLog("Added player to creator mode");
                     PlayerListener.INSTANCE.openShop(player);

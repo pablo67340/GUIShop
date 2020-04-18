@@ -25,7 +25,7 @@ public class BuyCommand extends BukkitCommand {
         Player player = (Player) commandSender;
 
         if (args.length == 0) {
-            if (player.hasPermission("guishop.use")) {
+            if (player.hasPermission("guishop.use") || player.isOp()) {
                 PlayerListener.INSTANCE.openShop(player);
             } else {
                 player.sendMessage(Config.getNoPermission());
@@ -36,7 +36,7 @@ public class BuyCommand extends BukkitCommand {
                 ShopDef shopDef = Main.getINSTANCE().getShops().get(args[0].toLowerCase());
 
 				if (player.hasPermission("guishop.shop." + shopDef.getShop())
-						|| player.hasPermission("guishop.shop.*")) {
+						|| player.hasPermission("guishop.shop.*") || player.isOp()) {
                     new Menu().openShop(player, shopDef);
                 } else {
                     player.sendMessage(Config.getNoPermission());

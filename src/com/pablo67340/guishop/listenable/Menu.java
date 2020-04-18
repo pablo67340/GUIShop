@@ -63,7 +63,7 @@ public final class Menu {
 		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
 
 			if (shopDef.getItemType() != ItemType.SHOP || player.hasPermission("guishop.shop." + shopDef.getShop())
-					|| player.hasPermission("guishop.shop.*")) {
+					|| player.hasPermission("guishop.shop.*") || player.isOp()) {
 				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
 			} else {
 				page.addBlankItem();

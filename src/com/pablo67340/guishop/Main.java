@@ -128,24 +128,19 @@ public final class Main extends JavaPlugin {
 		INSTANCE = this;
 		shops = new LinkedHashMap<>();
 		createFiles();
-		if (Bukkit.getServer().getPluginManager().isPluginEnabled("Vault")) {
 
-			if (!setupEconomy()) {
-				getLogger().log(Level.INFO, "Vault could not detect an economy plugin!");
-				getServer().getPluginManager().disablePlugin(this);
-				return;
-			}
+		if (!setupEconomy()) {
+			getLogger().log(Level.INFO, "Vault could not detect an economy plugin!");
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
 
-			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-			getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
-			loadDefaults();
-			if (Config.isDynamicPricing() && !setupDynamicPricing()) {
-				getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
-				Config.setDynamicPricing(false);
-			}
-
-		} else {
-			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
+		getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+		getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
+		loadDefaults();
+		if (Config.isDynamicPricing() && !setupDynamicPricing()) {
+			getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
+			Config.setDynamicPricing(false);
 		}
 
 		loadShopDefs();

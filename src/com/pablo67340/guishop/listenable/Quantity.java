@@ -204,7 +204,12 @@ class Quantity {
 		}
 
 		ItemStack itemStack = e.getCurrentItem().clone();
-		
+
+		// remove IF's IF-uuid NBT tag
+		NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+		comp.remove("IF-uuid");
+		itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
 			// If the item has enchantments

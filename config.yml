@@ -30,6 +30,10 @@ buy-commands:
 sell-commands:
     - 'sell'
 
+## Register the commands
+## if set to false, you must do '/guishopuser buy' instead of '/buy'
+register-commands: true
+
 ############ Language settings ###############
 
 #No permission message

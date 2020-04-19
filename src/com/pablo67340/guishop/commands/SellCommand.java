@@ -1,7 +1,6 @@
 package com.pablo67340.guishop.commands;
 
-import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.Main;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
@@ -19,13 +18,10 @@ public class SellCommand extends BukkitCommand {
 
     @Override
     public boolean execute(@NotNull CommandSender commandSender, @NotNull String label, @NotNull String[] args) {
-        Player player = (Player) commandSender;
 
-        if (player.hasPermission("guishop.sell") || player.isOp()) {
-            new Sell().open(player);
-        } else {
-            player.sendMessage(Config.getNoPermission());
-        }
+    	Player player = (Player) commandSender;
+
+        Main.getINSTANCE().getUserCommands().sellCommand(player);
 
         return true;
     }

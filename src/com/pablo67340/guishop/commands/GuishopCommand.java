@@ -2,8 +2,6 @@ package com.pablo67340.guishop.commands;
 
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.ShopDef;
-import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.ItemUtil;
@@ -11,26 +9,57 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-
 public class GuishopCommand implements CommandExecutor {
 
+	/**
+	 * Gets the permission corresponding to a subcommand of /guishop
+	 * 
+	 * @param subCommand the subcommand, null for the base command
+	 * @return the permission
+	 */
+	private String getRequiredPermission(String subCommand) {
+		if (subCommand == null) {
+			return "guishop.admin";
+		}
+		switch (subCommand.toLowerCase()) {
+		case "reload":
+			return "guishop.reload";
+		default:
+			return "guishop.admin";
+		}
+	}
+	
+	/**
+	 * Whether the command sender has the permission for a subcommand of /guishop
+	 * 
+	 * @param sender the command sender
+	 * @param subCommand the sub command, null for the base command
+	 * @return true if permitted, false otherwise
+	 */
+	private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
+		return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
+	}
+	
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        Player player = (Player) commandSender;
+
+    	if (!hasRequiredPermission(commandSender, (args.length > 0) ? args[0] : null)) {
+    		Main.sendMessage(commandSender, Config.getNoPermission());
+    		return true;
+    	}
+
+    	Player player = (Player) commandSender;
 
         if (args.length >= 1) {
             if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
-                if (player.hasPermission("guishop.admin") || player.isOp()) {
-                    Main.getCREATOR().add(player.getName());
-                    Main.debugLog("Added player to creator mode");
-                    PlayerListener.INSTANCE.openShop(player);
-                }
+
+            	Main.getCREATOR().add(player.getName());
+            	Main.debugLog("Added player to creator mode");
+            	PlayerListener.INSTANCE.openShop(player);
+
             } else if (args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("price")) {
                 Object result = null;
                 if (args[1].equalsIgnoreCase("false")) {
@@ -200,11 +229,8 @@ public class GuishopCommand implements CommandExecutor {
                     player.sendMessage("Please specify a type");
                 }
             } else if (args[0].equalsIgnoreCase("reload")) {
-                if (player.hasPermission("guishop.reload") || player.isOp()) {
-                    Main.getINSTANCE().reload(player, false);
-                } else {
-                    Main.sendMessage(player, "&cNo Permission!");
-                }
+                Main.getINSTANCE().reload(player, false);
+
             } else {
                 PlayerListener.INSTANCE.printUsage(player);
             }

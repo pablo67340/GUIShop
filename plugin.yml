@@ -23,3 +23,6 @@ commands:
     description: Base GUIShop command. Displays help.
     permission: guishop.use
     aliases: gs
+  guishopuser:
+    description: GUIShop alias for buy and sell commands.
+    permission: guishop.use

@@ -301,10 +301,10 @@ public final class Main extends JavaPlugin {
 		Config.setCurrency(getMainConfig().getString("currency"));
 		Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
-		Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("menu-title"))));
+		Config.setMenuTitle(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("menu-title", "Menu")));
 		Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("shop-title"))));
+				getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
 		Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("sell-title"))));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
@@ -347,6 +347,13 @@ public final class Main extends JavaPlugin {
 				ConfigurationSection section = config.getConfigurationSection(str);
 
 				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
+				if (item.isAnyPotion()) {
+					ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
+					if (potionSection != null) {
+						item.setAndParsePotionType(potionSection.getString("type"),
+								potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+					}
+				}
 				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
 
 				item.setBuyPrice(section.get("buy-price"));

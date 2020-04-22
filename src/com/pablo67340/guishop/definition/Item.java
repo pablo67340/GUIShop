@@ -5,6 +5,10 @@ import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
@@ -13,6 +17,7 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XMaterial;
+import com.pablo67340.guishop.util.XPotion;
 
 import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
@@ -92,6 +97,52 @@ public final class Item {
 	@Getter
 	@Setter
 	private String[] enchantments;
+	
+	/**
+	 * The preparsed potion type if this item is a potion
+	 * 
+	 */
+	@Getter
+	private PotionEffectType potionType;
+	
+	/**
+	 * The duration of the potion, or <code>-1</code> for vanilla default
+	 * 
+	 */
+	@Getter
+	private int potionDuration;
+	
+	/**
+	 * The amplifier of the potion, or <code>-1</code> for vanilla default
+	 * 
+	 */
+	@Getter
+	private int potionAmplifier;
+	
+	private static final String SPAWNER_MATERIAL = XMaterial.SPAWNER.parseMaterial().name();
+	
+	/**
+	 * Materials to which a potion type may be applied. <br>
+	 * This always has length 3, for normal potions, splash potions,
+	 * and lingering potions. <br>
+	 * <br>
+	 * None of the elements are null but the last can be empty.
+	 * 
+	 */
+	private static final String[] POTION_MATERIALS;
+	
+	static {
+		String potionName = XMaterial.POTION.parseMaterial().name();
+		String splashPotionName = XMaterial.SPLASH_POTION.parseMaterial().name();
+		
+		// lingering potion does not exist in all versions
+		String lingerPotionName = "";
+		Material lingerPotionMaterial = XMaterial.LINGERING_POTION.parseMaterial();
+		if (lingerPotionMaterial != null) {
+			lingerPotionName = lingerPotionMaterial.name();
+		}
+		POTION_MATERIALS = new String[] {potionName, splashPotionName, lingerPotionName};
+	}
 
 	public boolean hasShopName() {
 		return (shopName != null) && !shopName.isEmpty();
@@ -116,9 +167,81 @@ public final class Item {
 	public boolean hasCommands() {
 		return (commands != null) && !commands.isEmpty();
 	}
+	
+	/**
+	 * If this item has a potion effect. <br>
+	 * If is not a potion, this will always return <code>false</code>
+	 * 
+	 * @return true if the item has a potion effect, false otherwise
+	 */
+	public boolean hasPotionEffect() {
+		return potionType != null;
+	}
 
+	/**
+	 * Whether this item's material is a potion, splash potion, or
+	 * lingering potion
+	 * 
+	 * @return true if the material is some kind of potion, false otherwise
+	 */
+	public boolean isAnyPotion() {
+		return (POTION_MATERIALS[0].equalsIgnoreCase(material) || POTION_MATERIALS[1].equalsIgnoreCase(material)
+				|| POTION_MATERIALS[2].equalsIgnoreCase(material));
+	}
+
+	/**
+	 * Sets and parses the potion type of the item. <br>
+	 * Remember to call {@link #isAnyPotion()} first
+	 * 
+	 * @param type the potion type for the item from the shops.yml
+	 * @param duration the duration
+	 * @param amplifier the amplifier
+	 */
+	public void setAndParsePotionType(String type, int duration, int amplifier) {
+		if (type != null) {
+			XPotion xpotion = XPotion.matchXPotion(type).orElse(null);
+			if (xpotion != null) {
+				this.potionType = xpotion.parsePotionEffectType();
+				this.potionDuration = duration;
+				this.potionAmplifier = amplifier;
+			} else {
+				Main.log("Invalid potion type: " + type);
+			}
+		}
+	}
+	
+	/**
+	 * Mutates the potion meta, applying potion effects
+	 * 
+	 * @param potionMeta the potion meta
+	 */
+	public void applyPotionMeta(PotionMeta potionMeta) {
+		PotionEffectType type = getPotionType();
+		int duration = getPotionDuration();
+		int amplifier = getPotionAmplifier();
+		// duration of -1 and amplifier of -1 instructs us to use the vanilla default
+		if (duration == -1 || amplifier == -1) {
+			for (PotionType vanillaType : PotionType.values()) {
+				if (vanillaType.getEffectType() == type) {
+					potionMeta.setBasePotionData(new PotionData(vanillaType, false, false));
+					return;
+				}
+			}
+			Main.debugLog("No vanilla potion information found for " + type);
+		}
+		// multiply duration by 20 because our time is in seconds, and bukkit uses ticks
+		// subtract 1 from amplifier because 0 = level 1, 1 = level 2
+		// https://www.spigotmc.org/threads/give-a-player-a-custom-potion.395740/#post-3564257
+		potionMeta.addCustomEffect(type.createEffect(20 * duration, --amplifier), true);
+	}
+	
+	/**
+	 * Whether the item is a mob spawner
+	 * 
+	 * @return if the item
+	 */
 	public boolean isMobSpawner() {
-		return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
+		return material.equalsIgnoreCase(SPAWNER_MATERIAL);
 	}
 
 	/**
@@ -275,7 +398,7 @@ public final class Item {
 	 * @return whether the item is a mob spawner
 	 */
 	public static boolean isSpawnerItem(ItemStack item) {
-		return item.getType() == XMaterial.SPAWNER.parseMaterial();
+		return item.getType().name().equals(SPAWNER_MATERIAL);
 	}
 
 	/**

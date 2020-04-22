@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -117,8 +118,6 @@ class Quantity {
 				itemMeta.setDisplayName(mobName + " Spawner");
 			}
 
-			gItem.getItem().setItemMeta(itemMeta);
-
 			if (item.hasEnchantments()) {
 				if (item.getEnchantments().length > 1) {
 					for (String enc : item.getEnchantments()) {
@@ -130,6 +129,12 @@ class Quantity {
 					}
 				}
 			}
+
+			if (item.hasPotionEffect()) {
+				item.applyPotionMeta((PotionMeta) itemMeta);
+			}
+
+			gItem.getItem().setItemMeta(itemMeta);
 
 			page.setItem(gItem, x);
 			qty.put(x, multiplier);

@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -149,6 +150,13 @@ public class Shop {
 					item.setSlot((Integer.parseInt(str)));
 
 					item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
+					if (item.isAnyPotion()) {
+						ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
+						if (potionSection != null) {
+							item.setAndParsePotionType(potionSection.getString("type"),
+									potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+						}
+					}
 					item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
 					item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
 					item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : null));
@@ -243,8 +251,6 @@ public class Shop {
 					itemMeta.setDisplayName(mobName + " Spawner");
 				}
 
-				gItem.getItem().setItemMeta(itemMeta);
-
 				if (item.getEnchantments() != null) {
 					if (item.getEnchantments().length > 1) {
 						for (String enc : item.getEnchantments()) {
@@ -256,6 +262,12 @@ public class Shop {
 						}
 					}
 				}
+
+				if (item.hasPotionEffect()) {
+					item.applyPotionMeta((PotionMeta) itemMeta);
+				}
+
+				gItem.getItem().setItemMeta(itemMeta);
 
 			}
 

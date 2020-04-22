@@ -7,6 +7,7 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
@@ -179,14 +180,25 @@ public final class Item {
 	}
 
 	/**
+	 * If the specified material is a potion, either a normal potion,
+	 * splash potion, or lingering potion.
+	 * 
+	 * @param material the material
+	 * @return true if a potion, false otherwise
+	 */
+	private static boolean isPotionMaterial(String material) {
+		return (POTION_MATERIALS[0].equalsIgnoreCase(material) || POTION_MATERIALS[1].equalsIgnoreCase(material)
+				|| POTION_MATERIALS[2].equalsIgnoreCase(material));
+	}
+	
+	/**
 	 * Whether this item's material is a potion, splash potion, or
 	 * lingering potion
 	 * 
 	 * @return true if the material is some kind of potion, false otherwise
 	 */
 	public boolean isAnyPotion() {
-		return (POTION_MATERIALS[0].equalsIgnoreCase(material) || POTION_MATERIALS[1].equalsIgnoreCase(material)
-				|| POTION_MATERIALS[2].equalsIgnoreCase(material));
+		return isPotionMaterial(material);
 	}
 
 	/**
@@ -387,7 +399,12 @@ public final class Item {
 	 * @return the item string representation
 	 */
 	public String getItemString() {
-		return (isMobSpawner()) ? material.toUpperCase() + ":" + getMobType().toLowerCase() : material.toUpperCase();
+		if (isMobSpawner()) {
+			return material.toUpperCase() + ":spawner:" + getMobType().toLowerCase();
+		} else if (hasPotionEffect()) {
+			return material.toUpperCase() + ":potion:" + potionDuration + ":" + potionAmplifier;
+		}
+		return material.toUpperCase();
 	}
 	
 	/**
@@ -430,8 +447,27 @@ public final class Item {
 				mobType = "PIG";
 			}
 
-			return item.getType().toString().toUpperCase() + ":" + mobType.toString().toLowerCase();
+			return item.getType().toString().toUpperCase() + ":spawner:" + mobType.toString().toLowerCase();
 
+		} else if (isPotionMaterial(item.getType().name())) {
+
+			PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
+			if (potionMeta.hasCustomEffects()) {
+
+				List<PotionEffect> effects = potionMeta.getCustomEffects();
+				if (effects.size() == 1) {
+					PotionEffect effect = effects.get(0);
+					int duration = effect.getDuration() / 20;
+					int amplifier = effect.getAmplifier() + 1;
+					return item.getType().toString().toUpperCase() + ":potion:" + effect.getType() + ":"
+							+ duration + ":" + amplifier;
+				}
+			} else {
+				PotionData potionData = potionMeta.getBasePotionData();
+				if (!potionData.isExtended() && !potionData.isUpgraded()) {
+					return item.getType().toString().toUpperCase() + ":potion:-1:-1";
+				}
+			}
 		}
 		return item.getType().toString().toUpperCase();
 	}

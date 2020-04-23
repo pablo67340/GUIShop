@@ -46,7 +46,7 @@ public class GuishopCommand implements CommandExecutor {
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
-    	if (!hasRequiredPermission(commandSender, (args.length > 0) ? args[0] : null)) {
+    	if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
     		Main.sendMessage(commandSender, Config.getNoPermission());
     		return true;
     	}
@@ -78,21 +78,26 @@ public class GuishopCommand implements CommandExecutor {
                 ItemUtil.setPrice(result, player);
 
             } else if (args[0].equalsIgnoreCase("s") || args[0].equalsIgnoreCase("sell")) {
-                Object result = null;
-                if (args[1].equalsIgnoreCase("false")) {
-                    result = false;
-                } else {
-                    try {
-                        result = Double.parseDouble(args[1]);
-                    } catch (Exception ex) {
+
+            	if (args.length >= 2) {
+                    Object result = null;
+                    if (args[1].equalsIgnoreCase("false")) {
+                        result = false;
+                    } else {
                         try {
-                            result = Integer.parseInt(args[1]);
-                        } catch (Exception ex2) {
-                            player.sendMessage("Please use a valid value");
+                            result = Double.parseDouble(args[1]);
+                        } catch (Exception ex) {
+                            try {
+                                result = Integer.parseInt(args[1]);
+                            } catch (Exception ex2) {
+                                player.sendMessage("Please use a valid value");
+                            }
                         }
                     }
-                }
-                ItemUtil.setSell(result, player);
+                    ItemUtil.setSell(result, player);
+            	} else {
+            		player.sendMessage("Please specify a value.");
+            	}
 
             } else if (args[0].equalsIgnoreCase("sn") || args[0].equalsIgnoreCase("shopname")) {
                 if (args.length >= 2) {

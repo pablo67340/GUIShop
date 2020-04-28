@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.commands;
 
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.util.Config;
@@ -54,7 +55,25 @@ public class GuishopCommand implements CommandExecutor {
     	Player player = (Player) commandSender;
 
         if (args.length >= 1) {
-            if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
+        	if (args[0].equalsIgnoreCase("parsematerial")) {
+        		if (args.length >= 2) {
+        			Item tempItem = new Item();
+        			tempItem.setMaterial(args[1]);
+        			player.sendMessage(args[1] + " is " + ((tempItem.parseMaterial() == null) ? "NOT " : "") + "a valid material.");
+        		} else {
+        			player.sendMessage("Please specify a material.");
+        		}
+
+        	} else if (args[0].equalsIgnoreCase("parsemob")) {
+        		if (args.length >= 2) {
+        			Item tempItem = new Item();
+        			tempItem.setMobType(args[1]);
+        			player.sendMessage(args[1] + " is " + ((tempItem.parseMobSpawnerType() == null) ? "NOT " : "") + "a valid mob type.");
+        		} else {
+        			player.sendMessage("Please specify a mob.");
+        		}
+
+        	} else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
 
             	Main.getCREATOR().add(player.getName());
             	Main.debugLog("Added player to creator mode");

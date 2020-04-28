@@ -134,14 +134,14 @@ public final class Item {
 	
 	static {
 		String potionName = XMaterial.POTION.parseMaterial().name();
-		String splashPotionName = XMaterial.SPLASH_POTION.parseMaterial().name();
-		
-		// lingering potion does not exist in all versions
-		String lingerPotionName = "";
+
+		// splash potion is not separate on all versions
+		Material splashPotionMaterial = XMaterial.SPLASH_POTION.parseMaterial();
+		String splashPotionName = (splashPotionMaterial != null) ? splashPotionMaterial.name() : "";
+		// lingering potion does not exist on all versions
 		Material lingerPotionMaterial = XMaterial.LINGERING_POTION.parseMaterial();
-		if (lingerPotionMaterial != null) {
-			lingerPotionName = lingerPotionMaterial.name();
-		}
+		String lingerPotionName = (lingerPotionMaterial != null) ? lingerPotionMaterial.name() : "";
+
 		POTION_MATERIALS = new String[] {potionName, splashPotionName, lingerPotionName};
 	}
 
@@ -484,7 +484,8 @@ public final class Item {
 	public GuiItem parseMaterial() {
 
 		GuiItem gItem = null;
-		ItemStack itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
+		XMaterial xmaterial = XMaterial.matchXMaterial(getMaterial()).orElse(null);
+		ItemStack itemStack = (xmaterial != null) ? xmaterial.parseItem() : null;
 
 		if (itemStack != null) { // Change since 7.3.9: If underlying itemstack cannot be resolved (is null), fail immediately
 			try {

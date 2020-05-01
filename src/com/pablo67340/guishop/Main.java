@@ -9,6 +9,7 @@ import java.util.logging.Level;
 import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.commands.BuyCommand;
 import com.pablo67340.guishop.commands.GuishopCommand;
+import com.pablo67340.guishop.commands.GuishopUserCommand;
 import com.pablo67340.guishop.commands.SellCommand;
 import net.milkbowl.vault.economy.Economy;
 
@@ -16,6 +17,7 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandMap;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
@@ -128,27 +130,27 @@ public final class Main extends JavaPlugin {
 		INSTANCE = this;
 		shops = new LinkedHashMap<>();
 		createFiles();
-		if (Bukkit.getServer().getPluginManager().isPluginEnabled("Vault")) {
 
-			if (!setupEconomy()) {
-				getLogger().log(Level.INFO, "Vault could not detect an economy plugin!");
-				getServer().getPluginManager().disablePlugin(this);
-				return;
-			}
+		if (!setupEconomy()) {
+			getLogger().log(Level.INFO, "Vault could not detect an economy plugin!");
+			getServer().getPluginManager().disablePlugin(this);
+			return;
+		}
 
-			getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-			getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
-			loadDefaults();
-			if (Config.isDynamicPricing() && !setupDynamicPricing()) {
-				getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
-				Config.setDynamicPricing(false);
-			}
-
-		} else {
-			getLogger().log(Level.WARNING, "Vault is required to run this plugin!");
+		getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
+		getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
+		getServer().getPluginCommand("guishopuser").setExecutor(new GuishopUserCommand());
+		loadDefaults();
+		if (Config.isDynamicPricing() && !setupDynamicPricing()) {
+			getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
+			Config.setDynamicPricing(false);
 		}
 
 		loadShopDefs();
+
+		if (Config.isRegisterCommands()) {
+			registerCommands();
+		}
 	}
 
 	public void loadShopDefs() {
@@ -185,13 +187,14 @@ public final class Main extends JavaPlugin {
 
 		new Menu().itemWarmup();
 		loadPRICETABLE();
-		registerCommands();
 	}
 
 	/**
-	 * Register the GUIShop commands with the bukkit server
+	 * Register the GUIShop commands with the bukkit server. <br>
+	 * Accesses the command map via reflection
+	 * 
 	 */
-	public void registerCommands() {
+	private void registerCommands() {
 		getLogger().info("Registering commands " + StringUtils.join(Main.BUY_COMMANDS, "|") + " and " + StringUtils.join(Main.SELL_COMMANDS, "|"));
 
 		try {
@@ -219,6 +222,10 @@ public final class Main extends JavaPlugin {
 		} catch (IllegalAccessException | NoSuchFieldException e) {
 			e.printStackTrace();
 		}
+	}
+
+	public GuishopUserCommand getUserCommands() {
+		return (GuishopUserCommand) getServer().getPluginCommand("guishopuser").getExecutor();
 	}
 
 	/**
@@ -260,6 +267,7 @@ public final class Main extends JavaPlugin {
 	public void loadDefaults() {
 		BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
 		SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
+		Config.setRegisterCommands(getMainConfig().getBoolean("register-commands", true));
 		Config.setPrefix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("prefix"))));
 		Config.setSignsOnly(getMainConfig().getBoolean("signs-only"));
@@ -293,10 +301,10 @@ public final class Main extends JavaPlugin {
 		Config.setCurrency(getMainConfig().getString("currency"));
 		Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
-		Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("menu-title"))));
+		Config.setMenuTitle(
+				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("menu-title", "Menu")));
 		Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("shop-title"))));
+				getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
 		Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("sell-title"))));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
@@ -339,11 +347,18 @@ public final class Main extends JavaPlugin {
 				ConfigurationSection section = config.getConfigurationSection(str);
 
 				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
+				if (item.isAnyPotion()) {
+					ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
+					if (potionSection != null) {
+						item.setAndParsePotionType(potionSection.getString("type"),
+								potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+					}
+				}
 				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
 
-				item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
+				item.setBuyPrice(section.get("buy-price"));
 
-				item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
+				item.setSellPrice(section.get("sell-price"));
 
 				item.setItemType(
 						section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
@@ -452,11 +467,11 @@ public final class Main extends JavaPlugin {
 	/**
 	 * Sends a message using '{@literal &}' colour codes instead of '§' codes.
 	 * 
-	 * @param player the recipient
+	 * @param commandSender the recipient
 	 * @param message the message, which uses {@literal &} colour codes
 	 */
-	public static void sendMessage(Player player, String message) {
-		player.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+	public static void sendMessage(CommandSender commandSender, String message) {
+		commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
 	}
 
 }

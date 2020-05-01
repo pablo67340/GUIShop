@@ -6,7 +6,7 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -15,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -117,8 +118,6 @@ class Quantity {
 				itemMeta.setDisplayName(mobName + " Spawner");
 			}
 
-			gItem.getItem().setItemMeta(itemMeta);
-
 			if (item.hasEnchantments()) {
 				if (item.getEnchantments().length > 1) {
 					for (String enc : item.getEnchantments()) {
@@ -130,6 +129,12 @@ class Quantity {
 					}
 				}
 			}
+
+			if (item.hasPotionEffect()) {
+				item.applyPotionMeta((PotionMeta) itemMeta);
+			}
+
+			gItem.getItem().setItemMeta(itemMeta);
 
 			page.setItem(gItem, x);
 			qty.put(x, multiplier);
@@ -204,7 +209,12 @@ class Quantity {
 		}
 
 		ItemStack itemStack = e.getCurrentItem().clone();
-		
+
+		// remove IF's IF-uuid NBT tag
+		NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+		comp.remove("IF-uuid");
+		itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+
 		// If the item is not a mob spawner
 		if (!item.isMobSpawner()) {
 			// If the item has enchantments
@@ -301,10 +311,17 @@ class Quantity {
 					+ Config.getCurrencySuffix());
 
 			if (item.isMobSpawner()) {
-				NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
-				tag.setString("GUIShopSpawner", item.getMobType());
 
-				itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+				EntityType type = item.parseMobSpawnerType();
+				if (type == null) {
+					Main.log("Invalid EntityType in shops.yml: " + item.getMobType());
+
+				} else {
+					NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
+					tag.setString("GUIShopSpawner", type.name());
+
+					itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+				}
 			}
 			
 			if (dynamicPricingUpdate != null) {

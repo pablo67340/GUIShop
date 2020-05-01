@@ -17,8 +17,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.logging.Level;
 
 public final class Menu {
@@ -31,8 +29,6 @@ public final class Menu {
 
 	private Boolean hasClicked = false;
 
-	public static final BlockingQueue<Runnable> queue = new LinkedBlockingQueue<Runnable>();
-
 	/**
 	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
 	 *
@@ -41,24 +37,20 @@ public final class Menu {
 	 */
 
 	public Menu() {
-		this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), Config.getMenuTitle());
+		this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "" + Config.getMenuTitle());
 	}
 
 	public void itemWarmup() {
-		Thread t1 = new Thread(() -> {
-			Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
-			long startTime = System.currentTimeMillis();
-			for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
-				if (shopDef.getItemType() == ItemType.SHOP) {
-					new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
-							.loadItems();
-				}
+		Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
+		long startTime = System.currentTimeMillis();
+		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
+			if (shopDef.getItemType() == ItemType.SHOP) {
+				new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
+						.loadItems();
 			}
-			long estimatedTime = System.currentTimeMillis() - startTime;
-			Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
-		});
-		t1.start();
-
+		}
+		long estimatedTime = System.currentTimeMillis() - startTime;
+		Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
 	}
 
 	/**
@@ -70,11 +62,12 @@ public final class Menu {
 
 		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
 
-			GuiItem gItem = buildMenuItem(shopDef.getItemID(), shopDef);
-			if (shopDef.getItemType() == ItemType.SHOP) {
-				gItem.setVisible((player.hasPermission("guishop.shop." + shopDef.getShop()) || player.hasPermission("guishop.shop.*")));
+			if (shopDef.getItemType() != ItemType.SHOP || player.hasPermission("guishop.shop." + shopDef.getShop())
+					|| player.hasPermission("guishop.shop.*") || player.isOp()) {
+				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
+			} else {
+				page.addBlankItem();
 			}
-			page.addItem(gItem);
 		}
 
 		GUI.addPane(page);

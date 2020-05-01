@@ -3,7 +3,13 @@ package com.pablo67340.guishop.definition;
 import java.util.List;
 
 import org.bukkit.Material;
+import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionType;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
@@ -12,6 +18,7 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.XMaterial;
+import com.pablo67340.guishop.util.XPotion;
 
 import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
@@ -91,99 +98,194 @@ public final class Item {
 	@Getter
 	@Setter
 	private String[] enchantments;
+	
+	/**
+	 * The preparsed potion type if this item is a potion
+	 * 
+	 */
+	@Getter
+	private PotionEffectType potionType;
+	
+	/**
+	 * The duration of the potion, or <code>-1</code> for vanilla default
+	 * 
+	 */
+	@Getter
+	private int potionDuration;
+	
+	/**
+	 * The amplifier of the potion, or <code>-1</code> for vanilla default
+	 * 
+	 */
+	@Getter
+	private int potionAmplifier;
+	
+	private static final String SPAWNER_MATERIAL = XMaterial.SPAWNER.parseMaterial().name();
+	
+	/**
+	 * Materials to which a potion type may be applied. <br>
+	 * This always has length 3, for normal potions, splash potions,
+	 * and lingering potions. <br>
+	 * <br>
+	 * None of the elements are null but the last can be empty.
+	 * 
+	 */
+	private static final String[] POTION_MATERIALS;
+	
+	static {
+		String potionName = XMaterial.POTION.parseMaterial().name();
 
-	public Boolean hasShopName() {
-		return (shopName != null ? shopName.equalsIgnoreCase("") ? false : true : false);
+		// splash potion is not separate on all versions
+		Material splashPotionMaterial = XMaterial.SPLASH_POTION.parseMaterial();
+		String splashPotionName = (splashPotionMaterial != null) ? splashPotionMaterial.name() : "";
+		// lingering potion does not exist on all versions
+		Material lingerPotionMaterial = XMaterial.LINGERING_POTION.parseMaterial();
+		String lingerPotionName = (lingerPotionMaterial != null) ? lingerPotionMaterial.name() : "";
+
+		POTION_MATERIALS = new String[] {potionName, splashPotionName, lingerPotionName};
 	}
 
-	public Boolean hasBuyName() {
+	public boolean hasShopName() {
+		return (shopName != null) && !shopName.isEmpty();
+	}
+
+	public boolean hasBuyName() {
 		return buyName != null;
 	}
 
-	public Boolean hasShopLore() {
-		if (shopLore == null) {
-			return false;
-		}
-		if (shopLore.size() == 0) {
-			return false;
-		}
-		return true;
+	public boolean hasShopLore() {
+		return (shopLore != null) && !shopLore.isEmpty();
 	}
 
-	public Boolean hasBuyLore() {
-		if (buyLore == null) {
-			return false;
-		}
-		if (buyLore.size() == 0) {
-			return false;
-		}
-		return true;
+	public boolean hasBuyLore() {
+		return (buyLore != null) && !buyLore.isEmpty();
 	}
 
-	public Boolean hasEnchantments() {
-		if (enchantments == null) {
-			return false;
-		}
-		if (enchantments[0].equalsIgnoreCase("")) {
-			return false;
-		}
-		return true;
+	public boolean hasEnchantments() {
+		return (enchantments != null) && (enchantments.length != 0) && !enchantments[0].isEmpty();
 	}
 
 	public boolean hasCommands() {
-		if (commands == null) {
-			return false;
-		}
-		if (commands.size() == 0) {
-			return false;
-		}
-		return true;
-	}
-
-	public Boolean isMobSpawner() {
-		return material.equalsIgnoreCase("SPAWNER") || material.equalsIgnoreCase("MOB_SPAWNER");
-	}
-
-	public Boolean hasSellPrice() {
-		if (sellPrice == null) {
-			return false;
-		}
-
-		if (sellPrice instanceof Boolean) {
-			if (((Boolean) sellPrice) == false) {
-				return false;
-			}
-		}
-
-		if (sellPrice instanceof Double) {
-			if (((Double) sellPrice) == 0.0) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	public Boolean hasBuyPrice() {
-		if (buyPrice == null) {
-			return false;
-		}
-
-		if (buyPrice instanceof Boolean) {
-			if (((Boolean) buyPrice) == false) {
-				return false;
-			}
-		}
-		return true;
+		return (commands != null) && !commands.isEmpty();
 	}
 	
-	public Boolean hasMobType() {
-		if (mobType == null) {
-			return false;
+	/**
+	 * If this item has a potion effect. <br>
+	 * If is not a potion, this will always return <code>false</code>
+	 * 
+	 * @return true if the item has a potion effect, false otherwise
+	 */
+	public boolean hasPotionEffect() {
+		return potionType != null;
+	}
+
+	/**
+	 * If the specified material is a potion, either a normal potion,
+	 * splash potion, or lingering potion.
+	 * 
+	 * @param material the material
+	 * @return true if a potion, false otherwise
+	 */
+	private static boolean isPotionMaterial(String material) {
+		return (POTION_MATERIALS[0].equalsIgnoreCase(material) || POTION_MATERIALS[1].equalsIgnoreCase(material)
+				|| POTION_MATERIALS[2].equalsIgnoreCase(material));
+	}
+	
+	/**
+	 * Whether this item's material is a potion, splash potion, or
+	 * lingering potion
+	 * 
+	 * @return true if the material is some kind of potion, false otherwise
+	 */
+	public boolean isAnyPotion() {
+		return isPotionMaterial(material);
+	}
+
+	/**
+	 * Sets and parses the potion type of the item. <br>
+	 * Remember to call {@link #isAnyPotion()} first
+	 * 
+	 * @param type the potion type for the item from the shops.yml
+	 * @param duration the duration
+	 * @param amplifier the amplifier
+	 */
+	public void setAndParsePotionType(String type, int duration, int amplifier) {
+		if (type != null) {
+			XPotion xpotion = XPotion.matchXPotion(type).orElse(null);
+			if (xpotion != null) {
+				this.potionType = xpotion.parsePotionEffectType();
+				this.potionDuration = duration;
+				this.potionAmplifier = amplifier;
+			} else {
+				Main.log("Invalid potion type: " + type);
+			}
 		}
-		if (mobType.equalsIgnoreCase("")) {
-			return false;
+	}
+	
+	/**
+	 * Mutates the potion meta, applying potion effects
+	 * 
+	 * @param potionMeta the potion meta
+	 */
+	public void applyPotionMeta(PotionMeta potionMeta) {
+		PotionEffectType type = getPotionType();
+		int duration = getPotionDuration();
+		int amplifier = getPotionAmplifier();
+		// duration of -1 and amplifier of -1 instructs us to use the vanilla default
+		if (duration == -1 || amplifier == -1) {
+			for (PotionType vanillaType : PotionType.values()) {
+				if (vanillaType.getEffectType() == type) {
+					potionMeta.setBasePotionData(new PotionData(vanillaType, false, false));
+					return;
+				}
+			}
+			Main.debugLog("No vanilla potion information found for " + type);
 		}
-		return true;
+		// multiply duration by 20 because our time is in seconds, and bukkit uses ticks
+		// subtract 1 from amplifier because 0 = level 1, 1 = level 2
+		// https://www.spigotmc.org/threads/give-a-player-a-custom-potion.395740/#post-3564257
+		potionMeta.addCustomEffect(type.createEffect(20 * duration, --amplifier), true);
+	}
+	
+	/**
+	 * Whether the item is a mob spawner
+	 * 
+	 * @return if the item
+	 */
+	public boolean isMobSpawner() {
+		return material.equalsIgnoreCase(SPAWNER_MATERIAL);
+	}
+
+	/**
+	 * Checks whether the item has a defined AND nonzero sell price. <br>
+	 * For the sell price to be defined it must be an integer or double.
+	 * 
+	 * @return true if the sell price is valid, false otherwise
+	 */
+	public boolean hasSellPrice() {
+		// instanceof does the null-check for us
+		return (sellPrice instanceof Double && ((Double) sellPrice) != 0D)
+				|| (sellPrice instanceof Integer && ((Integer) sellPrice) != 0);
+	}
+
+	/**
+	 * Checks whether the item has a defined buy price. <br>
+	 * For the buy price to be defined it must be an integer or double.
+	 * 
+	 * @return true if the buy price is valid, false otherwise
+	 */
+	public boolean hasBuyPrice() {
+		// instanceof does the null-check for us
+		return (buyPrice instanceof Double) || (buyPrice instanceof Integer);
+	}
+
+	/**
+	 * Checks whether the mob type is defined
+	 * 
+	 * @return true if defined, false otherwise
+	 */
+	public boolean hasMobType() {
+		return (mobType != null) && !mobType.isEmpty();
 	}
 
 	/**
@@ -297,7 +399,12 @@ public final class Item {
 	 * @return the item string representation
 	 */
 	public String getItemString() {
-		return (isMobSpawner()) ? material.toUpperCase() + ":" + getMobType().toLowerCase() : material.toUpperCase();
+		if (isMobSpawner()) {
+			return material.toUpperCase() + ":spawner:" + getMobType().toLowerCase();
+		} else if (hasPotionEffect()) {
+			return material.toUpperCase() + ":potion:" + potionDuration + ":" + potionAmplifier;
+		}
+		return material.toUpperCase();
 	}
 	
 	/**
@@ -308,7 +415,7 @@ public final class Item {
 	 * @return whether the item is a mob spawner
 	 */
 	public static boolean isSpawnerItem(ItemStack item) {
-		return item.getType() == XMaterial.SPAWNER.parseMaterial();
+		return item.getType().name().equals(SPAWNER_MATERIAL);
 	}
 
 	/**
@@ -340,8 +447,27 @@ public final class Item {
 				mobType = "PIG";
 			}
 
-			return item.getType().toString().toUpperCase() + ":" + mobType.toString().toLowerCase();
+			return item.getType().toString().toUpperCase() + ":spawner:" + mobType.toString().toLowerCase();
 
+		} else if (isPotionMaterial(item.getType().name())) {
+
+			PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
+			if (potionMeta.hasCustomEffects()) {
+
+				List<PotionEffect> effects = potionMeta.getCustomEffects();
+				if (effects.size() == 1) {
+					PotionEffect effect = effects.get(0);
+					int duration = effect.getDuration() / 20;
+					int amplifier = effect.getAmplifier() + 1;
+					return item.getType().toString().toUpperCase() + ":potion:" + effect.getType() + ":"
+							+ duration + ":" + amplifier;
+				}
+			} else {
+				PotionData potionData = potionMeta.getBasePotionData();
+				if (!potionData.isExtended() && !potionData.isUpgraded()) {
+					return item.getType().toString().toUpperCase() + ":potion:-1:-1";
+				}
+			}
 		}
 		return item.getType().toString().toUpperCase();
 	}
@@ -358,7 +484,8 @@ public final class Item {
 	public GuiItem parseMaterial() {
 
 		GuiItem gItem = null;
-		ItemStack itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
+		XMaterial xmaterial = XMaterial.matchXMaterial(getMaterial()).orElse(null);
+		ItemStack itemStack = (xmaterial != null) ? xmaterial.parseItem() : null;
 
 		if (itemStack != null) { // Change since 7.3.9: If underlying itemstack cannot be resolved (is null), fail immediately
 			try {
@@ -399,6 +526,28 @@ public final class Item {
 		setItemType(ItemType.BLANK);
 		setEnchantments(null);
 		// null indicates failure
+		return null;
+	}
+
+	/**
+	 * Parses the mob type of this item if it is a spawner item. <br>
+	 * Remember to check {@link #isMobSpawner()}
+	 * 
+	 * @return the entity type, or <code>null</code> if invalid
+	 */
+	public EntityType parseMobSpawnerType() {
+		@SuppressWarnings("deprecation")
+		EntityType type = EntityType.fromName(getMobType());
+		if (type != null) {
+			return type;
+		}
+
+		Main.debugLog("Failed to find entity type using EntityType#fromName");
+		try {
+			return EntityType.valueOf(getMobType());
+		} catch (IllegalArgumentException ignored) {}
+
+		Main.debugLog("Failed to find entity type using EntityType#valueOf");
 		return null;
 	}
 

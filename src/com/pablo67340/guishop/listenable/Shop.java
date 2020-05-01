@@ -13,6 +13,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -149,6 +150,13 @@ public class Shop {
 					item.setSlot((Integer.parseInt(str)));
 
 					item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
+					if (item.isAnyPotion()) {
+						ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
+						if (potionSection != null) {
+							item.setAndParsePotionType(potionSection.getString("type"),
+									potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+						}
+					}
 					item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
 					item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
 					item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : null));
@@ -159,9 +167,9 @@ public class Shop {
 						}
 					}
 
-					item.setBuyPrice((section.contains("buy-price") ? section.get("buy-price") : false));
+					item.setBuyPrice(section.get("buy-price"));
 
-					item.setSellPrice((section.contains("sell-price") ? section.get("sell-price") : false));
+					item.setSellPrice(section.get("sell-price"));
 
 					item.setItemType(
 							section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
@@ -243,8 +251,6 @@ public class Shop {
 					itemMeta.setDisplayName(mobName + " Spawner");
 				}
 
-				gItem.getItem().setItemMeta(itemMeta);
-
 				if (item.getEnchantments() != null) {
 					if (item.getEnchantments().length > 1) {
 						for (String enc : item.getEnchantments()) {
@@ -256,6 +262,12 @@ public class Shop {
 						}
 					}
 				}
+
+				if (item.hasPotionEffect()) {
+					item.applyPotionMeta((PotionMeta) itemMeta);
+				}
+
+				gItem.getItem().setItemMeta(itemMeta);
 
 			}
 
@@ -439,7 +451,15 @@ public class Shop {
 		if (!Main.getCREATOR().contains(player.getName())) {
 			Item item = getItems().get((currentPane.getPage() * 45) + e.getSlot());
 
-			if (item.getItemType() == ItemType.SHOP && item.hasBuyPrice()) {
+			if (item == null) {
+				return;
+
+			} else if (!item.hasBuyPrice()) {
+				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+				return;
+			}
+
+			if (item.getItemType() == ItemType.SHOP) {
 				new Quantity(item, this, player).loadInventory().open();
 			} else if (item.getItemType() == ItemType.COMMAND) {
 
@@ -470,8 +490,6 @@ public class Shop {
 					player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay
 							+ Config.getNotEnoughPost());
 				}
-			} else {
-				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
 			}
 		} else {
 			// When players remove an item from the shop
@@ -575,19 +593,12 @@ public class Shop {
 
 				Object buyPrice = getBuyPrice(itemStack);
 				Main.debugLog("had buyPrice comp: " + buyPrice);
-				if (buyPrice instanceof Boolean) {
-					item.setBuyPrice((Boolean) buyPrice);
-				} else {
-					item.setBuyPrice((Double) buyPrice);
-				}
+				item.setBuyPrice(buyPrice);
 			}
 			if (comp.hasKey("sellPrice")) {
+
 				Object sellPrice = getSellPrice(itemStack);
-				if (sellPrice instanceof Boolean) {
-					item.setSellPrice((Boolean) sellPrice);
-				} else {
-					item.setSellPrice((Double) sellPrice);
-				}
+				item.setSellPrice(sellPrice);
 			}
 
 			if (im.hasDisplayName()) {
@@ -716,7 +727,9 @@ public class Shop {
 	}
 
 	/**
-	 * Gets the buyPrice of the item using NBT
+	 * Gets the buyPrice of the item using NBT,
+	 * or <code>null</code> if not defined
+	 * 
 	 */
 	private Object getBuyPrice(ItemStack item) {
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -724,14 +737,14 @@ public class Shop {
 		if (comp.hasKey("buyPrice")) {
 			Double vl = comp.getDouble("buyPrice");
 			return vl;
-		} else {
-			return false;
 		}
-
+		return null;
 	}
 
 	/**
-	 * Gets the sellPrice of an item using NBT
+	 * Gets the sellPrice of an item using NBT,
+	 * or <code>null</code> if not defined
+	 * 
 	 */
 	private Object getSellPrice(ItemStack item) {
 		NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -739,9 +752,8 @@ public class Shop {
 		if (comp.hasKey("sellPrice")) {
 			Double vl = comp.getDouble("sellPrice");
 			return vl;
-		} else {
-			return false;
 		}
+		return null;
 	}
 
 }

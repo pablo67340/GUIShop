@@ -1,9 +1,8 @@
 package com.pablo67340.guishop.commands;
 
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.ShopDef;
-import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.ItemUtil;
@@ -11,26 +10,75 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
-import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.lang.reflect.Array;
-import java.util.ArrayList;
-
 public class GuishopCommand implements CommandExecutor {
 
+	/**
+	 * Gets the permission corresponding to a subcommand of /guishop
+	 * 
+	 * @param subCommand the subcommand, null for the base command
+	 * @return the permission
+	 */
+	private String getRequiredPermission(String subCommand) {
+		if (subCommand == null) {
+			return "guishop.admin";
+		}
+		switch (subCommand.toLowerCase()) {
+		case "reload":
+			return "guishop.reload";
+		default:
+			return "guishop.admin";
+		}
+	}
+	
+	/**
+	 * Whether the command sender has the permission for a subcommand of /guishop
+	 * 
+	 * @param sender the command sender
+	 * @param subCommand the sub command, null for the base command
+	 * @return true if permitted, false otherwise
+	 */
+	private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
+		return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
+	}
+	
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
-        Player player = (Player) commandSender;
+
+    	if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
+    		Main.sendMessage(commandSender, Config.getNoPermission());
+    		return true;
+    	}
+
+    	Player player = (Player) commandSender;
 
         if (args.length >= 1) {
-            if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
-                if (player.hasPermission("guishop.admin")) {
-                    Main.getCREATOR().add(player.getName());
-                    Main.debugLog("Added player to creator mode");
-                    PlayerListener.INSTANCE.openShop(player);
-                }
+        	if (args[0].equalsIgnoreCase("parsematerial")) {
+        		if (args.length >= 2) {
+        			Item tempItem = new Item();
+        			tempItem.setMaterial(args[1]);
+        			player.sendMessage(args[1] + " is " + ((tempItem.parseMaterial() == null) ? "NOT " : "") + "a valid material.");
+        		} else {
+        			player.sendMessage("Please specify a material.");
+        		}
+
+        	} else if (args[0].equalsIgnoreCase("parsemob")) {
+        		if (args.length >= 2) {
+        			Item tempItem = new Item();
+        			tempItem.setMobType(args[1]);
+        			player.sendMessage(args[1] + " is " + ((tempItem.parseMobSpawnerType() == null) ? "NOT " : "") + "a valid mob type.");
+        		} else {
+        			player.sendMessage("Please specify a mob.");
+        		}
+
+        	} else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
+
+            	Main.getCREATOR().add(player.getName());
+            	Main.debugLog("Added player to creator mode");
+            	PlayerListener.INSTANCE.openShop(player);
+
             } else if (args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("price")) {
                 Object result = null;
                 if (args[1].equalsIgnoreCase("false")) {
@@ -49,21 +97,26 @@ public class GuishopCommand implements CommandExecutor {
                 ItemUtil.setPrice(result, player);
 
             } else if (args[0].equalsIgnoreCase("s") || args[0].equalsIgnoreCase("sell")) {
-                Object result = null;
-                if (args[1].equalsIgnoreCase("false")) {
-                    result = false;
-                } else {
-                    try {
-                        result = Double.parseDouble(args[1]);
-                    } catch (Exception ex) {
+
+            	if (args.length >= 2) {
+                    Object result = null;
+                    if (args[1].equalsIgnoreCase("false")) {
+                        result = false;
+                    } else {
                         try {
-                            result = Integer.parseInt(args[1]);
-                        } catch (Exception ex2) {
-                            player.sendMessage("Please use a valid value");
+                            result = Double.parseDouble(args[1]);
+                        } catch (Exception ex) {
+                            try {
+                                result = Integer.parseInt(args[1]);
+                            } catch (Exception ex2) {
+                                player.sendMessage("Please use a valid value");
+                            }
                         }
                     }
-                }
-                ItemUtil.setSell(result, player);
+                    ItemUtil.setSell(result, player);
+            	} else {
+            		player.sendMessage("Please specify a value.");
+            	}
 
             } else if (args[0].equalsIgnoreCase("sn") || args[0].equalsIgnoreCase("shopname")) {
                 if (args.length >= 2) {
@@ -200,11 +253,8 @@ public class GuishopCommand implements CommandExecutor {
                     player.sendMessage("Please specify a type");
                 }
             } else if (args[0].equalsIgnoreCase("reload")) {
-                if (player.hasPermission("guishop.reload") || player.isOp()) {
-                    Main.getINSTANCE().reload(player, false);
-                } else {
-                    Main.sendMessage(player, "&cNo Permission!");
-                }
+                Main.getINSTANCE().reload(player, false);
+
             } else {
                 PlayerListener.INSTANCE.printUsage(player);
             }

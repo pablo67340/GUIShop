@@ -366,7 +366,7 @@ public final class Item {
 			if (buyPriceAsDouble != 0) {
 
 				return Config.getBuyLore().replace("{amount}",
-						Config.getCurrency() + calculateBuyPrice(quantity) + Config.getCurrencySuffix());
+						Config.getCurrency() + Main.economyFormat(calculateBuyPrice(quantity)) + Config.getCurrencySuffix());
 			}
 			return Config.getFreeLore();
 		}
@@ -386,7 +386,7 @@ public final class Item {
 	public String getSellLore(int quantity) {
 		if (hasSellPrice()) {
 			return Config.getSellLore().replace("{amount}",
-					Config.getCurrency() + calculateSellPrice(quantity) + Config.getCurrencySuffix());
+					Config.getCurrency() + Main.economyFormat(calculateSellPrice(quantity)) + Config.getCurrencySuffix());
 		}
 		return Config.getCannotSell();
 	}

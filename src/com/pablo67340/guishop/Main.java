@@ -426,6 +426,21 @@ public final class Main extends JavaPlugin {
 			e.printStackTrace();
 		}
 	}
+	
+	/**
+	 * Formats money using the economy plugin's significant digits. <br>
+	 * <i>Does not add currency prefixes or suffixes. </i> <br>
+	 * <br>
+	 * Example: 2.4193 -> 2.42 <br>
+	 * Prevents scientific notation being displayed on items.
+	 * 
+	 * @param value what to format
+	 * @return the formatted result
+	 */
+	public static String economyFormat(double value) {
+		int digits = ECONOMY.fractionalDigits();
+		return (digits == -1) ? Double.toString(value) : String.format("%." + digits + "f", value);
+	}
 
 	public static String placeholderIfy(String input, Player player, Item item) {
 		String str = input;

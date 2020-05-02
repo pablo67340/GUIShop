@@ -1,7 +1,5 @@
 package com.pablo67340.guishop.listenable;
 
-import org.bukkit.ChatColor;
-
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -22,7 +20,7 @@ public final class Sell {
 	 * Open the {@link Sell} GUI.
 	 */
 	public void open(Player player) {
-		GUI = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getSellTitle()));
+		GUI = new Gui(Main.getINSTANCE(), 6, Config.getSellTitle());
 		GUI.setOnClose(this::onSellClose);
 		StaticPane pane = new StaticPane(0, 0, 9, 6);
 		GUI.addPane(pane);

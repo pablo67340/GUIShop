@@ -460,7 +460,11 @@ public class Shop {
 			}
 
 			if (item.getItemType() == ItemType.SHOP) {
-				new Quantity(item, this, player).loadInventory().open();
+				if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+					new AltSell(item).open(player);
+				} else {
+					new Quantity(item, this, player).loadInventory().open();
+				}
 			} else if (item.getItemType() == ItemType.COMMAND) {
 
 				double priceToPay;

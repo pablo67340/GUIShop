@@ -5,6 +5,7 @@ import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
@@ -549,6 +550,21 @@ public final class Item {
 
 		Main.debugLog("Failed to find entity type using EntityType#valueOf");
 		return null;
+	}
+	
+	/**
+	 * Renames a GuiItem
+	 * 
+	 * @param gItem the gui item
+	 * @param name the new name
+	 * @return an updated gui item
+	 */
+	public static GuiItem renameGuiItem(GuiItem gItem, String name) {
+		ItemStack item = gItem.getItem().clone();
+		ItemMeta itemMeta = item.getItemMeta();
+		itemMeta.setDisplayName(name);
+		item.setItemMeta(itemMeta);
+		return new GuiItem(item);
 	}
 
 }

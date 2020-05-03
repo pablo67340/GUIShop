@@ -77,7 +77,16 @@ public final class Sell {
 		if (couldntSell) {
 			player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", countSell + ""));
 		}
-
+		roundAndGiveMoney(player, moneyToGive);
+	}
+	
+	/**
+	 * Rounds the amount and deposits it on behalf of the player.
+	 * 
+	 * @param player the player
+	 * @param moneyToGive the amount to give
+	 */
+	public static void roundAndGiveMoney(Player player, double moneyToGive) {
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
 		if (moneyToGiveRounded > 0) {

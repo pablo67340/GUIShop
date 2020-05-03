@@ -45,6 +45,9 @@ disabled-world: '&cYou cannot use the shop from this world!'
 #Use the escape key to close the shop instead of the back button.
 escape-only: true
 
+#Rightclick an item in the shop to open an alternate sell GUI
+alternate-sell-enable: false
+
 #The message for the amount you lose, E.G Cost, Or Price
 cost: '&7Price'
 
@@ -151,6 +154,9 @@ sell-title: "Menu &f> &rSell"
 #The title of the quantity inventory.
 qty-title: "&4Select Amount"
 
+#The title of the alternate sell GUI, if enabled
+alt-sell-title: "Menu &f> &rSell"
+
 access-to: "&aAccess to Commands:"
 
 buy-lore: "&fBuy: &c{amount}"
@@ -166,6 +172,24 @@ cannot-sell: "&cCannot Sell"
 forward-page-button-name: "&rNext page"
 
 backward-page-button-name: "&rLast page"
+
+#Used in the alternate sell GUI
+alt-sell-indicator-material: 'GOLD_INGOT'
+
+alt-sell-add-material: 'GREEN_STAINED_GLASS_PANE'
+alt-sell-remove-material: 'RED_STAINED_GLASS_PANE'
+
+alt-sell-quantity-1: 1
+alt-sell-quantity-2: 10
+alt-sell-quantity-3: 64
+
+alt-sell-confirm-material: 'EMERALD_BLOCK'
+alt-sell-cancel-material: 'REDSTONE_BLOCK'
+
+alt-sell-confirm-name: '&a&lConfirm'
+alt-sell-cancel-name: '&c&lCancel'
+
+alt-sell-not-enough: '&cYou do not have {amount} such items to sell.'
 
 DisabledWorlds:
     -'Test'

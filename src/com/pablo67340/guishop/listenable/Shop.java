@@ -455,7 +455,12 @@ public class Shop {
 				return;
 
 			} else if (!item.hasBuyPrice()) {
-				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+
+				if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+					new AltSell(item).open(player);
+				} else {
+					player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+				}
 				return;
 			}
 

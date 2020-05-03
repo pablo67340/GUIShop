@@ -105,7 +105,8 @@ public class AltSell {
 		if (result.isEmpty()) {
 
 			Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
-			if (Config.isDynamicPricing()) {
+			// buy price must be defined for dynamic pricing to work
+			if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
 				Main.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
 			}
 		} else {

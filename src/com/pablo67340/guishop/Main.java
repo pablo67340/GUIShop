@@ -431,6 +431,9 @@ public final class Main extends JavaPlugin {
 		reloadCustomConfig();
 		loadDefaults();
 		loadShopDefs();
+		if (Config.isRegisterCommands()) {
+			registerCommands();
+		}
 		sendMessage(player, "&aGUIShop Reloaded");
 
 	}

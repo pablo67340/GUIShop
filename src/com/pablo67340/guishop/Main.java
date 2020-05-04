@@ -302,12 +302,12 @@ public final class Main extends JavaPlugin {
 		Config.setCurrency(getMainConfig().getString("currency"));
 		Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
-		Config.setMenuTitle(
-				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("menu-title", "Menu")));
+		Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
+				getMainConfig().getString("menu-title", "Menu")));
 		Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
 				getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
 		Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("sell-title"))));
+				getMainConfig().getString("sell-title", "Menu &f> &rSell")));
 		Config.setAltSellTitle(ChatColor.translateAlternateColorCodes('&',
 				getMainConfig().getString("alt-sell-title", "Menu &f> &rSell")));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',

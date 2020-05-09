@@ -15,7 +15,6 @@ import org.bukkit.inventory.ItemStack;
 
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -88,8 +87,8 @@ class Quantity {
 
 			ItemStack itemStack = gItem.getItem();
 
-			gItem.getItem().setAmount(multiplier);
-			ItemMeta itemMeta = gItem.getItem().getItemMeta();
+			itemStack.setAmount(multiplier);
+			ItemMeta itemMeta = itemStack.getItemMeta();
 			List<String> lore = new ArrayList<>();
 
 			lore.add(item.getBuyLore(multiplier));
@@ -123,18 +122,18 @@ class Quantity {
 					for (String enc : item.getEnchantments()) {
 						String enchantment = StringUtils.substringBefore(enc, ":");
 						String level = StringUtils.substringAfter(enc, ":");
-						gItem.getItem().addUnsafeEnchantment(
+						itemStack.addUnsafeEnchantment(
 								XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
 								Integer.parseInt(level));
 					}
 				}
 			}
 
-			if (item.hasPotionEffect()) {
-				item.applyPotionMeta((PotionMeta) itemMeta);
-			}
+			itemStack.setItemMeta(itemMeta);
 
-			gItem.getItem().setItemMeta(itemMeta);
+			if (item.hasPotion()) {
+				item.getPotion().apply(itemStack);
+			}
 
 			page.setItem(gItem, x);
 			qty.put(x, multiplier);

@@ -359,18 +359,22 @@ Brewing:
     type: SHOP
     id: POTION
     buy-price: 10.0
-    shop-name: '&fVanilla strength potion'
+    shop-name: '&fPotion of prolonged strength'
     potion-info:
       type: 'STRENGTH'
+      splash: false
+      extended: true
+      amplifier: 1
   '10':
     type: SHOP
     id: POTION
     buy-price: 10.0
-    shop-name: '&fPoison IV for 30 seconds'
+    shop-name: '&fSplash potion of Poison II'
     potion-info:
       type: 'POISON'
-      duration: 30
-      amplifier: 4
+      splash: true
+      extended: false
+      amplifier: 2
 Gear:
   '0':
     type: SHOP

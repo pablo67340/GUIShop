@@ -367,8 +367,9 @@ public final class Main extends JavaPlugin {
 				if (item.isAnyPotion()) {
 					ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
 					if (potionSection != null) {
-						item.setAndParsePotionType(potionSection.getString("type"),
-								potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+						item.parsePotionType(potionSection.getString("type"),
+								potionSection.getBoolean("splash", false),
+								potionSection.getBoolean("extended", false), potionSection.getInt("amplifier", -1));
 					}
 				}
 				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));

@@ -15,7 +15,8 @@ public final class Config {
 	 */
 	@Getter
 	@Setter
-	private static boolean registerCommands, signsOnly, escapeOnly, soundEnabled, enableCreator, dynamicPricing, debugMode;
+	private static boolean registerCommands, signsOnly, escapeOnly, alternateSellEnabled, soundEnabled, enableCreator,
+			dynamicPricing, debugMode;
 	
 	@Getter
 	private static List<String> disabledQty = new ArrayList<>();
@@ -27,9 +28,19 @@ public final class Config {
 	@Getter
 	@Setter
 	private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
-			sellCommand, menuTitle, shopTitle, sellTitle, sold, taken, sound, full, currency, noPermission, qtyTitle,
-			currencySuffix, backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore, sellLore, freeLore,
-			forwardPageButtonName, backwardPageButtonName;
+			sellCommand, menuTitle, shopTitle, sellTitle, altSellTitle, sold, taken, sound, full, currency,
+			noPermission, qtyTitle, currencySuffix, backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore,
+			sellLore, freeLore, forwardPageButtonName, backwardPageButtonName, altSellAddMaterial,
+			altSellRemoveMaterial, altSellIndicatorMaterial, altSellConfirmMaterial, altSellCancelMaterial,
+			altSellConfirmName, altSellCancelName, altSellNotEnough;
+	
+	/**
+	 * Integers from the config
+	 * 
+	 */
+	@Getter
+	@Setter
+	private static int altSellQuantity1, altSellQuantity2, altSellQuantity3;
 
 	/**
 	 * Number of rows for the {@link Menu} GUI.

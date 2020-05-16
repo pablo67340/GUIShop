@@ -1,7 +1,5 @@
 package com.pablo67340.guishop.listenable;
 
-import org.bukkit.ChatColor;
-
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -22,7 +20,7 @@ public final class Sell {
 	 * Open the {@link Sell} GUI.
 	 */
 	public void open(Player player) {
-		GUI = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getSellTitle()));
+		GUI = new Gui(Main.getINSTANCE(), 6, Config.getSellTitle());
 		GUI.setOnClose(this::onSellClose);
 		StaticPane pane = new StaticPane(0, 0, 9, 6);
 		GUI.addPane(pane);
@@ -79,7 +77,16 @@ public final class Sell {
 		if (couldntSell) {
 			player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", countSell + ""));
 		}
-
+		roundAndGiveMoney(player, moneyToGive);
+	}
+	
+	/**
+	 * Rounds the amount and deposits it on behalf of the player.
+	 * 
+	 * @param player the player
+	 * @param moneyToGive the amount to give
+	 */
+	public static void roundAndGiveMoney(Player player, double moneyToGive) {
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
 		if (moneyToGiveRounded > 0) {

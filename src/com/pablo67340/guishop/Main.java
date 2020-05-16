@@ -288,6 +288,7 @@ public final class Main extends JavaPlugin {
 		Config.setCantSell(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("cant-sell"))));
 		Config.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
+		Config.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
 		Config.setSound(getMainConfig().getString("purchase-sound"));
 		Config.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
 		Config.setEnableCreator(getMainConfig().getBoolean("ingame-config"));
@@ -301,12 +302,14 @@ public final class Main extends JavaPlugin {
 		Config.setCurrency(getMainConfig().getString("currency"));
 		Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
-		Config.setMenuTitle(
-				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("menu-title", "Menu")));
+		Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
+				getMainConfig().getString("menu-title", "Menu")));
 		Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
 				getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
 		Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
-				Objects.requireNonNull(getMainConfig().getString("sell-title"))));
+				getMainConfig().getString("sell-title", "Menu &f> &rSell")));
+		Config.setAltSellTitle(ChatColor.translateAlternateColorCodes('&',
+				getMainConfig().getString("alt-sell-title", "Menu &f> &rSell")));
 		Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("qty-title"))));
 		Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&',
@@ -328,6 +331,20 @@ public final class Main extends JavaPlugin {
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("forward-page-button-name", "")));
 		Config.setBackwardPageButtonName(
 				ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("backward-page-button-name", "")));
+		Config.setAltSellIndicatorMaterial(getMainConfig().getString("alt-sell-indicator-material", "EMERALD"));
+		Config.setAltSellAddMaterial(getMainConfig().getString("alt-sell-add-material", "GREEN_STAINED_GLASS_PANE"));
+		Config.setAltSellRemoveMaterial(getMainConfig().getString("alt-sell-remove-material", "RED_STAINED_GLASS_PANE"));
+		Config.setAltSellQuantity1(getMainConfig().getInt("alt-sell-quantity-1", 1));
+		Config.setAltSellQuantity2(getMainConfig().getInt("alt-sell-quantity-2", 10));
+		Config.setAltSellQuantity3(getMainConfig().getInt("alt-sell-quantity-3", 64));
+		Config.setAltSellConfirmMaterial(getMainConfig().getString("alt-sell-confirm-material", "EMERALD_BLOCK"));
+		Config.setAltSellCancelMaterial(getMainConfig().getString("alt-sell-cancel-material", "REDSTONE_BLOCK"));
+		Config.setAltSellConfirmName(ChatColor.translateAlternateColorCodes('&',
+				getMainConfig().getString("alt-sell-confirm-name", "&a&lConfirm")));
+		Config.setAltSellCancelName(ChatColor.translateAlternateColorCodes('&',
+				getMainConfig().getString("alt-sell-cancel-name", "&c&lCancel")));
+		Config.setAltSellNotEnough(ChatColor.translateAlternateColorCodes('&',
+				getMainConfig().getString("alt-sell-not-enough", "&cYou do not have enough items to sell.")));
 		Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
 		Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
 		Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));
@@ -350,8 +367,9 @@ public final class Main extends JavaPlugin {
 				if (item.isAnyPotion()) {
 					ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
 					if (potionSection != null) {
-						item.setAndParsePotionType(potionSection.getString("type"),
-								potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+						item.parsePotionType(potionSection.getString("type"),
+								potionSection.getBoolean("splash", false),
+								potionSection.getBoolean("extended", false), potionSection.getInt("amplifier", -1));
 					}
 				}
 				item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
@@ -414,6 +432,9 @@ public final class Main extends JavaPlugin {
 		reloadCustomConfig();
 		loadDefaults();
 		loadShopDefs();
+		if (Config.isRegisterCommands()) {
+			registerCommands();
+		}
 		sendMessage(player, "&aGUIShop Reloaded");
 
 	}
@@ -425,6 +446,21 @@ public final class Main extends JavaPlugin {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
+	}
+	
+	/**
+	 * Formats money using the economy plugin's significant digits. <br>
+	 * <i>Does not add currency prefixes or suffixes. </i> <br>
+	 * <br>
+	 * Example: 2.4193 -> 2.42 <br>
+	 * Prevents scientific notation being displayed on items.
+	 * 
+	 * @param value what to format
+	 * @return the formatted result
+	 */
+	public static String economyFormat(double value) {
+		int digits = ECONOMY.fractionalDigits();
+		return (digits == -1) ? Double.toString(value) : String.format("%." + digits + "f", value);
 	}
 
 	public static String placeholderIfy(String input, Player player, Item item) {

@@ -13,7 +13,6 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -153,8 +152,9 @@ public class Shop {
 					if (item.isAnyPotion()) {
 						ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
 						if (potionSection != null) {
-							item.setAndParsePotionType(potionSection.getString("type"),
-									potionSection.getInt("duration", -1), potionSection.getInt("amplifier", -1));
+							item.parsePotionType(potionSection.getString("type"),
+									potionSection.getBoolean("splash", false),
+									potionSection.getBoolean("extended", false), potionSection.getInt("amplifier", -1));
 						}
 					}
 					item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
@@ -197,6 +197,7 @@ public class Shop {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	private void loadShop() {
 		Integer index = 0;
 		ShopPane page = new ShopPane(9, 6);
@@ -218,7 +219,8 @@ public class Shop {
 			// Null items as there is a item type switch in the lines above.
 			if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 
-				ItemMeta itemMeta = gItem.getItem().getItemMeta();
+				ItemStack itemStack = gItem.getItem();
+				ItemMeta itemMeta = itemStack.getItemMeta();
 
 				List<String> lore = new ArrayList<>();
 
@@ -256,18 +258,18 @@ public class Shop {
 						for (String enc : item.getEnchantments()) {
 							String enchantment = StringUtils.substringBefore(enc, ":");
 							String level = StringUtils.substringAfter(enc, ":");
-							gItem.getItem().addUnsafeEnchantment(
+							itemStack.addUnsafeEnchantment(
 									XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
 									Integer.parseInt(level));
 						}
 					}
 				}
 
-				if (item.hasPotionEffect()) {
-					item.applyPotionMeta((PotionMeta) itemMeta);
-				}
+				itemStack.setItemMeta(itemMeta);
 
-				gItem.getItem().setItemMeta(itemMeta);
+				if (item.hasPotion()) {
+					item.getPotion().apply(itemStack);
+				}
 
 			}
 
@@ -455,12 +457,21 @@ public class Shop {
 				return;
 
 			} else if (!item.hasBuyPrice()) {
-				player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+
+				if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+					new AltSell(item).open(player);
+				} else {
+					player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+				}
 				return;
 			}
 
 			if (item.getItemType() == ItemType.SHOP) {
-				new Quantity(item, this, player).loadInventory().open();
+				if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+					new AltSell(item).open(player);
+				} else {
+					new Quantity(item, this, player).loadInventory().open();
+				}
 			} else if (item.getItemType() == ItemType.COMMAND) {
 
 				double priceToPay;

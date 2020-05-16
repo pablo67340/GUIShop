@@ -5,9 +5,8 @@ import java.util.List;
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionEffect;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 
@@ -100,25 +99,11 @@ public final class Item {
 	private String[] enchantments;
 	
 	/**
-	 * The preparsed potion type if this item is a potion
+	 * The preparsed potion if this item is a potion
 	 * 
 	 */
 	@Getter
-	private PotionEffectType potionType;
-	
-	/**
-	 * The duration of the potion, or <code>-1</code> for vanilla default
-	 * 
-	 */
-	@Getter
-	private int potionDuration;
-	
-	/**
-	 * The amplifier of the potion, or <code>-1</code> for vanilla default
-	 * 
-	 */
-	@Getter
-	private int potionAmplifier;
+	private Potion potion;
 	
 	private static final String SPAWNER_MATERIAL = XMaterial.SPAWNER.parseMaterial().name();
 	
@@ -170,13 +155,13 @@ public final class Item {
 	}
 	
 	/**
-	 * If this item has a potion effect. <br>
+	 * If this item has a potion. <br>
 	 * If is not a potion, this will always return <code>false</code>
 	 * 
-	 * @return true if the item has a potion effect, false otherwise
+	 * @return true if the item has a potion, false otherwise
 	 */
-	public boolean hasPotionEffect() {
-		return potionType != null;
+	public boolean hasPotion() {
+		return potion != null;
 	}
 
 	/**
@@ -206,45 +191,34 @@ public final class Item {
 	 * Remember to call {@link #isAnyPotion()} first
 	 * 
 	 * @param type the potion type for the item from the shops.yml
-	 * @param duration the duration
-	 * @param amplifier the amplifier
+	 * @param splash whether the potion is a splash potion
+	 * @param extended whether the potion has extended duration
+	 * @param level the tier/amplifier of the potion
 	 */
-	public void setAndParsePotionType(String type, int duration, int amplifier) {
+	@SuppressWarnings("deprecation")
+	public void parsePotionType(String type, boolean splash, boolean extended, int level) {
 		if (type != null) {
 			XPotion xpotion = XPotion.matchXPotion(type).orElse(null);
 			if (xpotion != null) {
-				this.potionType = xpotion.parsePotionEffectType();
-				this.potionDuration = duration;
-				this.potionAmplifier = amplifier;
-			} else {
-				Main.log("Invalid potion type: " + type);
-			}
-		}
-	}
-	
-	/**
-	 * Mutates the potion meta, applying potion effects
-	 * 
-	 * @param potionMeta the potion meta
-	 */
-	public void applyPotionMeta(PotionMeta potionMeta) {
-		PotionEffectType type = getPotionType();
-		int duration = getPotionDuration();
-		int amplifier = getPotionAmplifier();
-		// duration of -1 and amplifier of -1 instructs us to use the vanilla default
-		if (duration == -1 || amplifier == -1) {
-			for (PotionType vanillaType : PotionType.values()) {
-				if (vanillaType.getEffectType() == type) {
-					potionMeta.setBasePotionData(new PotionData(vanillaType, false, false));
-					return;
+				PotionEffectType effectType = xpotion.parsePotionEffectType();
+				if (effectType != null) {
+					for (PotionType vanillaType : PotionType.values()) {
+						if (vanillaType.getEffectType() != null && vanillaType.getEffectType().equals(effectType)) {
+							potion = new Potion(vanillaType);
+							potion.setSplash(splash);
+							if (!vanillaType.isInstant()) {
+								potion.setHasExtendedDuration(extended);
+							}
+							if (level > 0 && level <= vanillaType.getMaxLevel()) {
+								potion.setLevel(level);
+							}
+							return;
+						}
+					}
 				}
 			}
-			Main.debugLog("No vanilla potion information found for " + type);
+			Main.log("Invalid potion info: {type=" + type + ",splash=" + splash + ",extended=" + extended + ",level=" + level + "}");
 		}
-		// multiply duration by 20 because our time is in seconds, and bukkit uses ticks
-		// subtract 1 from amplifier because 0 = level 1, 1 = level 2
-		// https://www.spigotmc.org/threads/give-a-player-a-custom-potion.395740/#post-3564257
-		potionMeta.addCustomEffect(type.createEffect(20 * duration, --amplifier), true);
 	}
 	
 	/**
@@ -366,7 +340,7 @@ public final class Item {
 			if (buyPriceAsDouble != 0) {
 
 				return Config.getBuyLore().replace("{amount}",
-						Config.getCurrency() + calculateBuyPrice(quantity) + Config.getCurrencySuffix());
+						Config.getCurrency() + Main.economyFormat(calculateBuyPrice(quantity)) + Config.getCurrencySuffix());
 			}
 			return Config.getFreeLore();
 		}
@@ -386,7 +360,7 @@ public final class Item {
 	public String getSellLore(int quantity) {
 		if (hasSellPrice()) {
 			return Config.getSellLore().replace("{amount}",
-					Config.getCurrency() + calculateSellPrice(quantity) + Config.getCurrencySuffix());
+					Config.getCurrency() + Main.economyFormat(calculateSellPrice(quantity)) + Config.getCurrencySuffix());
 		}
 		return Config.getCannotSell();
 	}
@@ -401,8 +375,6 @@ public final class Item {
 	public String getItemString() {
 		if (isMobSpawner()) {
 			return material.toUpperCase() + ":spawner:" + getMobType().toLowerCase();
-		} else if (hasPotionEffect()) {
-			return material.toUpperCase() + ":potion:" + potionDuration + ":" + potionAmplifier;
 		}
 		return material.toUpperCase();
 	}
@@ -449,25 +421,6 @@ public final class Item {
 
 			return item.getType().toString().toUpperCase() + ":spawner:" + mobType.toString().toLowerCase();
 
-		} else if (isPotionMaterial(item.getType().name())) {
-
-			PotionMeta potionMeta = (PotionMeta) item.getItemMeta();
-			if (potionMeta.hasCustomEffects()) {
-
-				List<PotionEffect> effects = potionMeta.getCustomEffects();
-				if (effects.size() == 1) {
-					PotionEffect effect = effects.get(0);
-					int duration = effect.getDuration() / 20;
-					int amplifier = effect.getAmplifier() + 1;
-					return item.getType().toString().toUpperCase() + ":potion:" + effect.getType() + ":"
-							+ duration + ":" + amplifier;
-				}
-			} else {
-				PotionData potionData = potionMeta.getBasePotionData();
-				if (!potionData.isExtended() && !potionData.isUpgraded()) {
-					return item.getType().toString().toUpperCase() + ":potion:-1:-1";
-				}
-			}
 		}
 		return item.getType().toString().toUpperCase();
 	}
@@ -549,6 +502,21 @@ public final class Item {
 
 		Main.debugLog("Failed to find entity type using EntityType#valueOf");
 		return null;
+	}
+	
+	/**
+	 * Renames a GuiItem
+	 * 
+	 * @param gItem the gui item
+	 * @param name the new name
+	 * @return an updated gui item
+	 */
+	public static GuiItem renameGuiItem(GuiItem gItem, String name) {
+		ItemStack item = gItem.getItem().clone();
+		ItemMeta itemMeta = item.getItemMeta();
+		itemMeta.setDisplayName(name);
+		item.setItemMeta(itemMeta);
+		return new GuiItem(item);
 	}
 
 }

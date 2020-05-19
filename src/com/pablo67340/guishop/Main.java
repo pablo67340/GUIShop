@@ -355,6 +355,10 @@ public final class Main extends JavaPlugin {
 		for (String shop : Main.getINSTANCE().getCustomConfig().getKeys(false)) {
 
 			ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
+			if (config == null) {
+				log("Check the section for shop " + shop + " in the shops.yml. It was not found.");
+				continue;
+			}
 
 			assert config != null;
 			for (String str : config.getKeys(false)) {
@@ -362,6 +366,10 @@ public final class Main extends JavaPlugin {
 				Item item = new Item();
 
 				ConfigurationSection section = config.getConfigurationSection(str);
+				if (section == null) {
+					log("Check the config section for item " + str + " in shop " + shop + " the shops.yml. It is not a valid section.");
+					continue;
+				}
 
 				item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
 				if (item.isAnyPotion()) {

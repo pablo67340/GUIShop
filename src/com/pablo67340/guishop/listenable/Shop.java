@@ -139,12 +139,19 @@ public class Shop {
 
 			ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
 
-			if (config != null) {
+			if (config == null) {
+				Main.log("Check the section for shop " + shop + " in the shops.yml. It was not found.");
+
+			} else {
 				for (String str : config.getKeys(false)) {
 
 					Item item = new Item();
 
 					ConfigurationSection section = config.getConfigurationSection(str);
+					if (section == null) {
+						Main.log("Check the config section for item " + str + " in shop " + shop + " in the shops.yml. It is not a valid section.");
+						continue;
+					}
 
 					item.setSlot((Integer.parseInt(str)));
 

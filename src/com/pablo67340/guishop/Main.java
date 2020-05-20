@@ -7,6 +7,9 @@ import java.util.*;
 import java.util.logging.Level;
 
 import com.pablo67340.guishop.api.DynamicPriceProvider;
+import com.pablo67340.guishop.autosellstuff.ChestLocation;
+import com.pablo67340.guishop.autosellstuff.SellChest;
+import com.pablo67340.guishop.autosellstuff.SellWand;
 import com.pablo67340.guishop.commands.BuyCommand;
 import com.pablo67340.guishop.commands.GuishopCommand;
 import com.pablo67340.guishop.commands.GuishopUserCommand;
@@ -46,7 +49,8 @@ public final class Main extends JavaPlugin {
 	 * The overridden config file objects.
 	 */
 	@Getter
-	private File configf, specialf;
+	private File configf, specialf, sellChestF;
+	@Getter public File econLogFile, autoSellerLogFile;
 
 	/**
 	 * The loaded shops read from the config.
@@ -125,6 +129,9 @@ public final class Main extends JavaPlugin {
 	 */
 	private SellCommand sellCommand = null;
 
+	private SellChest chest;
+	private SellWand wand;
+
 	@Override
 	public void onEnable() {
 		INSTANCE = this;
@@ -151,6 +158,9 @@ public final class Main extends JavaPlugin {
 		if (Config.isRegisterCommands()) {
 			registerCommands();
 		}
+
+		chest = new SellChest(this);
+		wand = new SellWand(this);
 	}
 
 	public void loadShopDefs() {
@@ -403,6 +413,31 @@ public final class Main extends JavaPlugin {
 
 		configf = new File(getDataFolder(), "config.yml");
 		specialf = new File(getDataFolder(), "shops.yml");
+		sellChestF = new File(getDataFolder(), "sellchest.json");
+		econLogFile = new File(getDataFolder(), "economy.log");
+		autoSellerLogFile = new File(getDataFolder(), "autoSellEcon.log");
+
+		if(!econLogFile.exists()) {
+			econLogFile.getParentFile().mkdir();
+			econLogFile.getParentFile().mkdirs();
+			try {
+				econLogFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			saveResource("economy.log", false);
+		}
+
+		if(!autoSellerLogFile.exists()) {
+			autoSellerLogFile.getParentFile().mkdir();
+			autoSellerLogFile.getParentFile().mkdirs();
+			try {
+				autoSellerLogFile.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			saveResource("autoSellEcon.log", false);
+		}
 
 		if (!configf.exists()) {
 			configf.getParentFile().mkdirs();
@@ -412,6 +447,23 @@ public final class Main extends JavaPlugin {
 		if (!specialf.exists()) {
 			specialf.getParentFile().mkdirs();
 			saveResource("shops.yml", false);
+		}
+
+		if (!sellChestF.exists()) {
+			sellChestF.getParentFile().mkdirs();
+			try {
+				sellChestF.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			try {
+				ChestLocation.getMapper().writeValue(getSellChestF(), new ArrayList<ChestLocation>());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+
+			saveResource("sellchest.json", false);
 		}
 
 		mainConfig = new YamlConfiguration();

@@ -60,6 +60,9 @@
               <include>com.pablo67340.GUIShop</include>
               <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
               <include>space.arim:legacyitemconstructor</include>
+              <include>com.fasterxml.jackson.core:jackson-databind</include>
+              <include>com.fasterxml.jackson.core:jackson-core</include>
+              <include>com.fasterxml.jackson.core:jackson-annotations</include>
             </includes>
           </artifactSet>
         </configuration>
@@ -76,8 +79,8 @@
       <url>https://dl.cloudsmith.io/public/anand-beh/arim-repo/maven/</url>
     </repository>
     <repository>
-      <id>vault-repo</id>
-      <url>http://nexus.hc.to/content/repositories/pub_releases</url>
+      <id>jitpack.io</id>
+      <url>https://jitpack.io</url>
     </repository>
   </repositories>
   <dependencies>
@@ -134,9 +137,9 @@
       </exclusions>
     </dependency>
     <dependency>
-      <groupId>net.milkbowl.vault</groupId>
+      <groupId>com.github.MilkBowl</groupId>
       <artifactId>VaultAPI</artifactId>
-      <version>1.6</version>
+      <version>1.7</version>
       <scope>provided</scope>
     </dependency>
     <dependency>
@@ -150,6 +153,13 @@
       <artifactId>jsr305</artifactId>
       <version>3.0.2</version>
       <scope>compile</scope>
+    </dependency>
+    <dependency>
+      <groupId>me.angeschossen</groupId>
+      <artifactId>upgradeablehoppers</artifactId>
+      <version>1.2.3.6</version>
+      <scope>system</scope>
+      <systemPath>C:\Users\robotics\Documents\GitHub\GUIShop/lib/UpgradeableHoppers-1.2.3.6.jar</systemPath>
     </dependency>
   </dependencies>
   <distributionManagement>
@@ -165,8 +175,8 @@
     </snapshotRepository>
   </distributionManagement>
   <properties>
-    <mainClass>${project.groupId}.${project.artifactId}</mainClass>
     <api.version>1.6</api.version>
+    <mainClass>${project.groupId}.${project.artifactId}</mainClass>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
   </properties>
 </project>

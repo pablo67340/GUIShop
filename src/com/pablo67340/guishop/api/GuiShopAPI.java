@@ -1,5 +1,7 @@
 package com.pablo67340.guishop.api;
 
+import java.util.List;
+
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -24,7 +26,7 @@ public class GuiShopAPI {
 	 * <br>
 	 * The items' total sale price is summed and the reward is given to the player.
 	 * If an item cannot be sold, the items are added back to the player's inventory. <br>
-	 * Use check {@link #canBeSold(ItemStack} to check if an item cannot be sold.
+	 * Use check {@link #canBeSold(ItemStack)} to check if an item cannot be sold.
 	 * No items are <i>removed</i> from the players' inventory; the caller is trusted with such. <br>
 	 * <br>
 	 * This may be useful if, for example, you want to make an
@@ -35,7 +37,8 @@ public class GuiShopAPI {
 	 * @param items the items which are sold
 	 */
 	public static void sellItems(Player player, ItemStack...items) {
-		Sell.sellItems(player, items);
+		List<ItemStack> unsold = Sell.sellItems(player, items);
+		player.getInventory().addItem(unsold.toArray(new ItemStack[0]));
 	}
 	
 	/**

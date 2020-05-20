@@ -95,6 +95,28 @@
 			<artifactId>jsr305</artifactId>
 			<version>3.0.2</version>
 		</dependency>
+		<dependency>
+			<groupId>me.angeschossen</groupId>
+			<artifactId>upgradeablehoppers</artifactId>
+			<version>1.2.3.6</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/lib/UpgradeableHoppers-1.2.3.6.jar</systemPath>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>2.11.0</version>
+		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-annotations</artifactId>
+			<version>2.11.0</version>
+		</dependency>
 	</dependencies>
 	<build>
 		<defaultGoal>clean install</defaultGoal>
@@ -130,6 +152,9 @@
 							<include>com.pablo67340.GUIShop</include>
 							<include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
 							<include>space.arim:legacyitemconstructor</include>
+							<include>com.fasterxml.jackson.core:jackson-databind</include>
+							<include>com.fasterxml.jackson.core:jackson-core</include>
+							<include>com.fasterxml.jackson.core:jackson-annotations</include>
 						</includes>
 					</artifactSet>
 				</configuration>

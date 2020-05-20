@@ -218,7 +218,7 @@ public class Shop {
 			GuiItem gItem = item.parseMaterial();
 
 			if (gItem == null) {
-				Main.debugLog("Item " + item.getMaterial() + " could not be resolved");
+				Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
 				continue;
 			}
 
@@ -228,6 +228,11 @@ public class Shop {
 
 				ItemStack itemStack = gItem.getItem();
 				ItemMeta itemMeta = itemStack.getItemMeta();
+
+				if (itemMeta == null) {
+					Main.debugLog("Item + " + item.getMaterial() + " could not be resolved (null meta)");
+					continue;
+				}
 
 				List<String> lore = new ArrayList<>();
 

@@ -227,7 +227,11 @@ public final class Item {
 	 * @return if the item
 	 */
 	public boolean isMobSpawner() {
-		return material.equalsIgnoreCase(SPAWNER_MATERIAL);
+		if (material.equalsIgnoreCase(SPAWNER_MATERIAL)) {
+			return true;
+		}
+		XMaterial spawnerXMaterial = XMaterial.SPAWNER;
+		return material.equalsIgnoreCase(spawnerXMaterial.name()) || spawnerXMaterial.anyMatchLegacy(material);
 	}
 
 	/**

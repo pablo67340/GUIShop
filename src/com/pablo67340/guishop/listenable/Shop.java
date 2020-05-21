@@ -139,12 +139,19 @@ public class Shop {
 
 			ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
 
-			if (config != null) {
+			if (config == null) {
+				Main.log("Check the section for shop " + shop + " in the shops.yml. It was not found.");
+
+			} else {
 				for (String str : config.getKeys(false)) {
 
 					Item item = new Item();
 
 					ConfigurationSection section = config.getConfigurationSection(str);
+					if (section == null) {
+						Main.log("Check the config section for item " + str + " in shop " + shop + " in the shops.yml. It is not a valid section.");
+						continue;
+					}
 
 					item.setSlot((Integer.parseInt(str)));
 
@@ -211,7 +218,7 @@ public class Shop {
 			GuiItem gItem = item.parseMaterial();
 
 			if (gItem == null) {
-				Main.debugLog("Item " + item.getMaterial() + " could not be resolved");
+				Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
 				continue;
 			}
 
@@ -221,6 +228,11 @@ public class Shop {
 
 				ItemStack itemStack = gItem.getItem();
 				ItemMeta itemMeta = itemStack.getItemMeta();
+
+				if (itemMeta == null) {
+					Main.debugLog("Item + " + item.getMaterial() + " could not be resolved (null meta)");
+					continue;
+				}
 
 				List<String> lore = new ArrayList<>();
 

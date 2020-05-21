@@ -316,9 +316,11 @@ class Quantity {
 					Main.log("Invalid EntityType in shops.yml: " + item.getMobType());
 
 				} else {
-					NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
-					tag.setString("GUIShopSpawner", type.name());
+					String entityValue = type.name();
+					Main.debugLog("Attaching " + entityValue + " to purchased spawner");
 
+					NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
+					tag.setString("GUIShopSpawner", entityValue);
 					itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
 				}
 			}

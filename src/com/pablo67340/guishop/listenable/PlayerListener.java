@@ -110,18 +110,20 @@ public final class PlayerListener implements Listener {
 	 */
 	@EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
 	public void onBlockPlace(BlockPlaceEvent event) {
-		if (Item.isSpawnerItem(event.getItemInHand())) {
+		ItemStack item = event.getItemInHand();
+		if (Item.isSpawnerItem(item)) {
 
-			BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-			scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
-				ItemStack item = event.getItemInHand();
-				NBTTagCompound cmp = ItemNBTUtil.getTag(item);
-				if (cmp.hasKey("GUIShopSpawner")) {
+			NBTTagCompound cmp = ItemNBTUtil.getTag(item);
+			if (cmp.hasKey("GUIShopSpawner")) {
+
+				BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+				scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
 
 					String mobId = cmp.getString("GUIShopSpawner");
 					Block block = event.getBlockPlaced();
 					CreatureSpawner cs = (CreatureSpawner) block.getState();
 
+					Main.debugLog("Applying mob type " + mobId);
 					/*
 					 * Although valueOf is almost always safe here because
 					 * we used EntityType.name() when setting the NBT tag,
@@ -134,9 +136,9 @@ public final class PlayerListener implements Listener {
 					} catch (IllegalArgumentException veryRareException) {
 						Main.log("Detected outdated mob spawner ID: " + mobId + " placed by " + event.getPlayer());
 					}
-				}
-			}, 1L);
 
+				}, 1L);
+			}
 		}
 	}
 

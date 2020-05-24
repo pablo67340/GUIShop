@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -69,7 +70,9 @@ public final class Sell {
 		GUI.getInventory().clear();
 	}
 
-//	public static List<ItemStack> sellItems(Player player, ItemStack[] toSell)
+	public static List<ItemStack> sellItems(Player player, ItemStack[] items) {
+		return sellItems(player, items, null, true);
+	}
 
 	/**
 	 * Sells the specified items on the behalf of a player. Returns a list of item stacks
@@ -78,7 +81,7 @@ public final class Sell {
 	 * @param player the player
 	 * @param items the items
 	 */
-	public static List<ItemStack> sellItems(Player player, ItemStack[] items) {
+	public static List<ItemStack> sellItems(Player player, ItemStack[] items, OfflinePlayer offlinePlayer, boolean tellPlayer) {
 		double moneyToGive = 0;
 		boolean couldntSell = false;
 		int cantSellCount = 0;
@@ -94,10 +97,11 @@ public final class Sell {
 			moneyToGive += sellPrice;
 		}
 
-		if (couldntSell) {
+		if (couldntSell && tellPlayer) {
 			player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", cantSellCount + ""));
 		}
-		roundAndGiveMoney(player, moneyToGive);
+		System.out.println("giving " + moneyToGive + " to " + offlinePlayer);
+		roundAndGiveMoney(player, moneyToGive, offlinePlayer, tellPlayer);
 
 		return couldntSellItems;
 	}
@@ -137,13 +141,17 @@ public final class Sell {
 	 * @param player the player
 	 * @param moneyToGive the amount to give
 	 */
-	public static void roundAndGiveMoney(Player player, double moneyToGive) {
+	public static void roundAndGiveMoney(Player player, double moneyToGive, OfflinePlayer offlinePlayer, boolean printToPlayer) {
 		Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
 
 		if (moneyToGiveRounded > 0) {
-			Main.getECONOMY().depositPlayer(player, moneyToGiveRounded);
+			if(offlinePlayer != null) {
+				Main.getECONOMY().depositPlayer(offlinePlayer, moneyToGiveRounded);
+			} else {
+				Main.getECONOMY().depositPlayer(player, moneyToGiveRounded);
+			}
 
-			player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
+			if(printToPlayer) player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
 		}
 	}
 

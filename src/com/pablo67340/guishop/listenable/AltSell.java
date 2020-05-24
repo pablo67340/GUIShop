@@ -104,7 +104,7 @@ public class AltSell {
 		Map<Integer, ItemStack> result = player.getInventory().removeItem(itemStack);
 		if (result.isEmpty()) {
 
-			Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
+			Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount), null, true);
 			// buy price must be defined for dynamic pricing to work
 			if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
 				Main.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);

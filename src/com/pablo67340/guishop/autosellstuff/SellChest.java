@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import java.util.Objects;
-import java.util.Set;
 import java.util.UUID;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -23,6 +21,9 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.World;
+import org.bukkit.block.Block;
+import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -37,10 +38,11 @@ import org.bukkit.event.inventory.InventoryMoveItemEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.permissions.PermissionAttachmentInfo;
 import org.jetbrains.annotations.NotNull;
 
 public class SellChest implements Listener, CommandExecutor, TabCompleter {
+
+    public static final SimpleDateFormat format = new SimpleDateFormat("MM-dd hh:mm:ss");
 
     List<ChestLocation> chestLocations = new ArrayList<>();
     Main plugin;
@@ -50,13 +52,13 @@ public class SellChest implements Listener, CommandExecutor, TabCompleter {
         this.plugin = main;
         logger = plugin.getLogger();
         main.getServer().getPluginManager().registerEvents(this, main);
-        Objects.requireNonNull(main.getCommand("sellchest")).setExecutor(this);
-        Objects.requireNonNull(main.getCommand("sellchest")).setTabCompleter(this);
-
-        load();
+        main.getCommand("sellchest").setExecutor(this);
+        main.getCommand("sellchest").setTabCompleter(this);
+        initialize();
+        System.out.println("Loaded sellchest");
     }
 
-    public void load() {
+    public void initialize() {
         chestLocations.clear();
         File file = plugin.getSellChestF();
         TypeReference<List<ChestLocation>> typeRef
@@ -68,6 +70,8 @@ public class SellChest implements Listener, CommandExecutor, TabCompleter {
             logger.warning("Could not load sell chest config!");
             e.printStackTrace();
         }
+
+        Bukkit.getScheduler().runTaskTimer(plugin, this::checkAndSellEverything, 1L, 40L);
     }
 
     public void save() {
@@ -134,10 +138,8 @@ public class SellChest implements Listener, CommandExecutor, TabCompleter {
         }
     }
 
-    public static SimpleDateFormat format = new SimpleDateFormat("MM-dd hh:mm:ss");
-
     @EventHandler(priority = EventPriority.NORMAL)
-    public void transfer(InventoryMoveItemEvent e) {
+    public void onTransfer(InventoryMoveItemEvent e) {
         if (!e.getDestination().getType().equals(InventoryType.CHEST)) {
             return;
         }
@@ -156,9 +158,9 @@ public class SellChest implements Listener, CommandExecutor, TabCompleter {
         OfflinePlayer owner = Bukkit.getOfflinePlayer(ownerUUID);
 
         log("[" + format.format(new Date()) + "] [" + owner.getName() + "] [SellChest] selling " + e.getItem() + "!");
-        Set<PermissionAttachmentInfo> perms = null;
-        if (owner.getPlayer() != null) perms = owner.getPlayer().getEffectivePermissions();
-        List<ItemStack> unsellable = Sell.sellItems(owner.getPlayer(), new ItemStack[]{e.getItem()});
+
+        List<ItemStack> unsellable = Sell.sellItems(null,
+                new ItemStack[]{e.getItem()}, owner, false);
 
         unsellable.remove(e.getItem());
 
@@ -173,6 +175,45 @@ public class SellChest implements Listener, CommandExecutor, TabCompleter {
                 }, 1);
 
         save();
+    }
+
+    public void checkAndSellEverything() {
+        for (ChestLocation c : chestLocations) {
+            World world = Bukkit.getWorld(c.worldName);
+            if (world == null) {
+                return;
+            }
+            Block b = world.getBlockAt((int) c.x, (int) c.y, (int) c.z);
+            if (b.getType() != Material.CHEST) {
+                return;
+            }
+            Chest chest = (Chest) b.getState();
+            ItemStack[] contents = chest.getInventory().getContents();
+            if (contents.length < 1) return;
+
+            List<ItemStack> ret = new ArrayList<>();
+            for (ItemStack i : contents) {
+                if (i != null) ret.add(i);
+            }
+
+            OfflinePlayer p = Bukkit.getOfflinePlayer(c.getOwner());
+            System.out.println("Selling " + ret);
+            log("[" + format.format(new Date()) + "] [" + p.getName() + "] [SellChest] selling " + ret + "!");
+
+            List<ItemStack> unsellable = Sell.sellItems(null, contents,
+                    p, false);
+
+            Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin,
+                    () -> {
+                        // so if we sold the stuff, remove it from the chest
+                        // then add back the stuff we couldn't
+                        chest.getInventory().clear();
+                        for (ItemStack i : unsellable) {
+                            chest.getInventory().addItem(i);
+                        }
+                    }, 1);
+
+        }
     }
 
     public static BufferedWriter econLogWriter;

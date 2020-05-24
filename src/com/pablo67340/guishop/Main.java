@@ -417,6 +417,18 @@ public final class Main extends JavaPlugin {
 		econLogFile = new File(getDataFolder(), "economy.log");
 		autoSellerLogFile = new File(getDataFolder(), "autoSellEcon.log");
 
+		if(!sellChestF.exists()) {
+			sellChestF.getParentFile().mkdir();
+			sellChestF.getParentFile().mkdirs();
+			try {
+				sellChestF.createNewFile();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			saveResource("sellchest.json", false);
+		}
+
+
 		if(!econLogFile.exists()) {
 			econLogFile.getParentFile().mkdir();
 			econLogFile.getParentFile().mkdirs();
@@ -463,7 +475,6 @@ public final class Main extends JavaPlugin {
 				e.printStackTrace();
 			}
 
-			saveResource("sellchest.json", false);
 		}
 
 		mainConfig = new YamlConfiguration();
@@ -495,8 +506,10 @@ public final class Main extends JavaPlugin {
 		if (Config.isRegisterCommands()) {
 			registerCommands();
 		}
-		sendMessage(player, "&aGUIShop Reloaded");
 
+		if(chest != null) chest.initialize();
+
+		sendMessage(player, "&aGUIShop Reloaded");
 	}
 
 	public void reloadCustomConfig() {

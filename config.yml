@@ -30,9 +30,17 @@ buy-commands:
 sell-commands:
     - 'sell'
 
-## Register the commands
-## if set to false, you must do '/guishopuser buy' instead of '/buy'
-register-commands: true
+## Command registration options
+##
+## If 'INTERCEPT', the commands will be intercepted and executed.
+##     Will not conflict with other plugins' commands, but does not support tab completion.
+##
+## If 'REGISTER', the commands will be registered with the server and will be formally recognised.
+##     Tab completion supported. Possibility of conflicts with plugins with the same commands.
+##
+## If 'NONE', neither of the above will happen. Intended for users who wish to use the commands.yml.
+##     Of course, the /guishopuser commands will still work.
+commands-mode: 'REGISTER'
 
 ############ Language settings ###############
 

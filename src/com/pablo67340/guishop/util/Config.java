@@ -3,6 +3,7 @@ package com.pablo67340.guishop.util;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.pablo67340.guishop.definition.CommandsMode;
 import com.pablo67340.guishop.listenable.Menu;
 
 import lombok.Getter;
@@ -15,8 +16,16 @@ public final class Config {
 	 */
 	@Getter
 	@Setter
-	private static boolean registerCommands, signsOnly, escapeOnly, alternateSellEnabled, soundEnabled, enableCreator,
+	private static boolean signsOnly, escapeOnly, alternateSellEnabled, soundEnabled, enableCreator,
 			dynamicPricing, debugMode;
+	
+	/**
+	 * The commands mode, determines whether to intercept commands, register them, or neither
+	 * 
+	 */
+	@Getter
+	@Setter
+	private static CommandsMode commandsMode;
 	
 	@Getter
 	private static List<String> disabledQty = new ArrayList<>();

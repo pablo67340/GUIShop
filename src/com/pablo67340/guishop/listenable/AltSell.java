@@ -50,13 +50,18 @@ public class AltSell {
 	}
 	
 	public void open(Player player) {
+		if (!player.hasPermission("guishop.sell")) {
+			player.sendMessage(Config.getNoPermission());
+			return;
+		}
 		GuiItem gItem = subjectItem.parseMaterial();
 		GuiItem gIndicator = indicatorItem.parseMaterial();
 		GuiItem gAddItem = addItem.parseMaterial();
 		GuiItem gRemoveItem = removeItem.parseMaterial();
 		GuiItem gConfirmItem = confirmItem.parseMaterial();
 		GuiItem gCancelItem = cancelItem.parseMaterial();
-		if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null && gCancelItem != null) {
+		if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null
+				&& gCancelItem != null) {
 			GuiItem[] addRemoveItems = new GuiItem[6];
 			ItemStack addItem = gAddItem.getItem();
 			addRemoveItems[0] = setQuantityAndGet(addItem.clone(), Config.getAltSellQuantity1());

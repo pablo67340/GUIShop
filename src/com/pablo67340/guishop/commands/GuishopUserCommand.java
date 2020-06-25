@@ -17,7 +17,7 @@ public class GuishopUserCommand implements CommandExecutor {
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (!(sender instanceof Player)) {
-			sender.sendMessage("&cPlayers only.");
+			Main.sendMessage(sender, "&cPlayers only.");
 			return true;
 		}
 		Player player = (Player) sender;

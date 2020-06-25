@@ -8,6 +8,7 @@ import java.util.logging.Level;
 
 import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.commands.BuyCommand;
+import com.pablo67340.guishop.commands.CommandsInterceptor;
 import com.pablo67340.guishop.commands.GuishopCommand;
 import com.pablo67340.guishop.commands.GuishopUserCommand;
 import com.pablo67340.guishop.commands.SellCommand;
@@ -29,6 +30,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
+import com.pablo67340.guishop.definition.CommandsMode;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -148,8 +150,15 @@ public final class Main extends JavaPlugin {
 
 		loadShopDefs();
 
-		if (Config.isRegisterCommands()) {
-			registerCommands();
+		switch (Config.getCommandsMode()) {
+		case INTERCEPT:
+			CommandsInterceptor.register();
+			break;
+		case REGISTER:
+			registerCommands(false);
+			break;
+		default:
+			break;
 		}
 	}
 
@@ -190,12 +199,17 @@ public final class Main extends JavaPlugin {
 	}
 
 	/**
-	 * Register the GUIShop commands with the bukkit server. <br>
+	 * Register/unregister the GUIShop commands with the bukkit server. <br>
 	 * Accesses the command map via reflection
 	 * 
+	 * @param onlyUnregister if true, new commands will not be registered, only, existing ones will be unregistered
 	 */
-	private void registerCommands() {
-		getLogger().info("Registering commands " + StringUtils.join(Main.BUY_COMMANDS, "|") + " and " + StringUtils.join(Main.SELL_COMMANDS, "|"));
+	private void registerCommands(boolean onlyUnregister) {
+		if (onlyUnregister && buyCommand == null && sellCommand == null) {
+			// Nothing is registered, no need to do anything
+			return;
+		}
+		getLogger().info("Registering/unregistering commands " + StringUtils.join(Main.BUY_COMMANDS, "|") + " and " + StringUtils.join(Main.SELL_COMMANDS, "|"));
 
 		try {
 			final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -212,6 +226,9 @@ public final class Main extends JavaPlugin {
 				sellCommand.unregister(commandMap);
 			}
 
+			if (onlyUnregister) {
+				return;
+			}
 			// Register new commands
 			buyCommand = new BuyCommand(new ArrayList<>(Main.BUY_COMMANDS));
 			commandMap.register(buyCommand.getName(), buyCommand);
@@ -267,7 +284,7 @@ public final class Main extends JavaPlugin {
 	public void loadDefaults() {
 		BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
 		SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
-		Config.setRegisterCommands(getMainConfig().getBoolean("register-commands", true));
+		Config.setCommandsMode(CommandsMode.parseFromConfig(getMainConfig().getString("commands-mode")));
 		Config.setPrefix(ChatColor.translateAlternateColorCodes('&',
 				Objects.requireNonNull(getMainConfig().getString("prefix"))));
 		Config.setSignsOnly(getMainConfig().getBoolean("signs-only"));
@@ -440,8 +457,19 @@ public final class Main extends JavaPlugin {
 		reloadCustomConfig();
 		loadDefaults();
 		loadShopDefs();
-		if (Config.isRegisterCommands()) {
-			registerCommands();
+
+		// If the CommandsMode is REGISTER, register/re-register the commands
+		// Otherwise, unregister the commands
+		CommandsMode cmdsMode = Config.getCommandsMode();
+		registerCommands(cmdsMode != CommandsMode.REGISTER);
+
+		// Intercept commands using the listener, if configured
+		if (cmdsMode == CommandsMode.INTERCEPT) {
+			CommandsInterceptor.register();
+
+		} else {
+			// Unregisters previous command listener
+			CommandsInterceptor.unregister();
 		}
 		sendMessage(player, "&aGUIShop Reloaded");
 

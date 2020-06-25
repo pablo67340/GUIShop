@@ -16,6 +16,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.MatLib;
+import com.pablo67340.guishop.util.MatLib.MatLibEntry;
 import com.pablo67340.guishop.util.XMaterial;
 import com.pablo67340.guishop.util.XPotion;
 
@@ -441,42 +442,72 @@ public final class Item {
 	public GuiItem parseMaterial() {
 
 		GuiItem gItem = null;
+
+		/*
+		 * First attempt
+		 * Use XMaterial
+		 */
 		XMaterial xmaterial = XMaterial.matchXMaterial(getMaterial()).orElse(null);
 		ItemStack itemStack = (xmaterial != null) ? xmaterial.parseItem() : null;
 
-		if (itemStack != null) { // Change since 7.3.9: If underlying itemstack cannot be resolved (is null), fail immediately
+		if (itemStack != null && itemStack.getItemMeta() != null) { // If underlying itemstack cannot be resolved (is null or null meta), fail immediately
 			try {
 				gItem = new GuiItem(itemStack);
 				return gItem; // if itemStack is nonnull and no exception thrown, attempt has succeeded
-			} catch (Exception ex2) {}
+			} catch (Exception ex2) {
+				if (Config.isDebugMode()) {
+					ex2.printStackTrace();
+				}
+			}
 		}
 
-		if (getMaterial().endsWith("_ON")) { // Change since 7.3.9: Only use OFF fix if _ON is detected
+		Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting workarounds...");
+		/*
+		 * Second attempt
+		 * "OFF"/"ON" fix
+		 */
+		if (getMaterial().endsWith("_ON")) { // Only use OFF fix if _ON is detected
 
-			Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting OFF Fix...");
 
 			try {
 				// remove the "_ON" and add "_OFF"
 				itemStack = new ItemStack(Material.valueOf(getMaterial().substring(0, getMaterial().length() - 2) + "OFF"));
 				gItem = new GuiItem(itemStack);
 				return gItem; // if no exception thrown, attempt has succeeded
-			} catch (Exception ex3) {}
+			} catch (Exception ex3) {
+				if (Config.isDebugMode()) {
+					ex3.printStackTrace();
+				}
+			}
 
 			Main.debugLog("OFF Fix for: " + getMaterial() + " Failed. Attempting ItemID Lookup...");
 		}
 
+		/*
+		 * Third attempt
+		 * Using MatLib
+		 */
 		// Final Stand, lets try to find this user's item
-		try {
-			String itemID = MatLib.getMAP().get(getMaterial());
-			String[] idParts = itemID.split(":");
-			int id = Integer.parseInt(idParts[0]);
-			short data = Short.parseShort(idParts[1]);
+		MatLibEntry itemInfo = MatLib.getMAP().get(getMaterial());
+		if (itemInfo != null) {
 
-			itemStack = LegacyItemConstructor.invoke(id, 1, data); // can never be null
+			int id = itemInfo.getId();
+			short data = itemInfo.getData();
 
-			gItem = new GuiItem(itemStack);
-			return gItem;
-		} catch (Exception ex4) {}
+			try {
+
+				itemStack = LegacyItemConstructor.invoke(id, 1, data); // can never be null
+
+				gItem = new GuiItem(itemStack);
+				return gItem;
+			} catch (Exception ex4) {
+				if (Config.isDebugMode()) {
+					ex4.printStackTrace();
+				}
+			} catch (NoSuchMethodError nsme) {
+				// For servers missing the legacy constructor https://pastebin.com/GDy2ih9s
+			}
+		}
 
 		Main.debugLog("ItemID Fix for: " + getMaterial() + " Failed. Falling back to air.");
 

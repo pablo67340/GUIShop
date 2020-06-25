@@ -457,13 +457,13 @@ public final class Item {
 			} catch (Exception ex2) {}
 		}
 
+		Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting workarounds...");
 		/*
 		 * Second attempt
 		 * "OFF"/"ON" fix
 		 */
 		if (getMaterial().endsWith("_ON")) { // Only use OFF fix if _ON is detected
 
-			Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting OFF Fix...");
 
 			try {
 				// remove the "_ON" and add "_OFF"

@@ -454,7 +454,11 @@ public final class Item {
 			try {
 				gItem = new GuiItem(itemStack);
 				return gItem; // if itemStack is nonnull and no exception thrown, attempt has succeeded
-			} catch (Exception ex2) {}
+			} catch (Exception ex2) {
+				if (Config.isDebugMode()) {
+					ex2.printStackTrace();
+				}
+			}
 		}
 
 		Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting workarounds...");
@@ -470,7 +474,11 @@ public final class Item {
 				itemStack = new ItemStack(Material.valueOf(getMaterial().substring(0, getMaterial().length() - 2) + "OFF"));
 				gItem = new GuiItem(itemStack);
 				return gItem; // if no exception thrown, attempt has succeeded
-			} catch (Exception ex3) {}
+			} catch (Exception ex3) {
+				if (Config.isDebugMode()) {
+					ex3.printStackTrace();
+				}
+			}
 
 			Main.debugLog("OFF Fix for: " + getMaterial() + " Failed. Attempting ItemID Lookup...");
 		}
@@ -492,7 +500,10 @@ public final class Item {
 
 				gItem = new GuiItem(itemStack);
 				return gItem;
-			} catch (Exception ignored) {
+			} catch (Exception ex4) {
+				if (Config.isDebugMode()) {
+					ex4.printStackTrace();
+				}
 			} catch (NoSuchMethodError nsme) {
 				// For servers missing the legacy constructor https://pastebin.com/GDy2ih9s
 			}

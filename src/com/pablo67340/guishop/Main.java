@@ -140,8 +140,8 @@ public final class Main extends JavaPlugin {
 		}
 
 		getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-		getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
-		getServer().getPluginCommand("guishopuser").setExecutor(new GuishopUserCommand());
+		getCommand("guishop").setExecutor(new GuishopCommand());
+		getCommand("guishopuser").setExecutor(new GuishopUserCommand());
 		loadDefaults();
 		if (Config.isDynamicPricing() && !setupDynamicPricing()) {
 			getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
@@ -242,7 +242,7 @@ public final class Main extends JavaPlugin {
 	}
 
 	public GuishopUserCommand getUserCommands() {
-		return (GuishopUserCommand) getServer().getPluginCommand("guishopuser").getExecutor();
+		return (GuishopUserCommand) getCommand("guishopuser").getExecutor();
 	}
 
 	/**

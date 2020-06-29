@@ -506,6 +506,9 @@ public class Shop {
 						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
 								Main.placeholderIfy(str, player, item));
 					});
+					player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
+							+ Config.getCurrencySuffix());
+
 					if (dynamicPricingUpdate != null) {
 						dynamicPricingUpdate.run();
 					}

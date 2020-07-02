@@ -28,7 +28,7 @@ public enum CommandsMode {
 			// Fallback to legacy option register-commands
 			return (Main.getINSTANCE().getMainConfig().getBoolean("register-commands", true)) ? REGISTER : NONE;
 		}
-		switch (cmdsModeStr.toLowerCase()) {
+		switch (cmdsModeStr.toUpperCase()) {
 		case "INTERCEPT":
 			return INTERCEPT;
 		case "REGISTER":

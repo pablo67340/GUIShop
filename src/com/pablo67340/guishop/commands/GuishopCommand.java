@@ -15,69 +15,70 @@ import org.jetbrains.annotations.NotNull;
 
 public class GuishopCommand implements CommandExecutor {
 
-	/**
-	 * Gets the permission corresponding to a subcommand of /guishop
-	 * 
-	 * @param subCommand the subcommand, null for the base command
-	 * @return the permission
-	 */
-	private String getRequiredPermission(String subCommand) {
-		if (subCommand == null) {
-			return "guishop.admin";
-		}
-		switch (subCommand.toLowerCase()) {
-		case "reload":
-			return "guishop.reload";
-		default:
-			return "guishop.admin";
-		}
-	}
-	
-	/**
-	 * Whether the command sender has the permission for a subcommand of /guishop
-	 * 
-	 * @param sender the command sender
-	 * @param subCommand the sub command, null for the base command
-	 * @return true if permitted, false otherwise
-	 */
-	private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
-		return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
-	}
-	
+    /**
+     * Gets the permission corresponding to a subcommand of /guishop
+     *
+     * @param subCommand the subcommand, null for the base command
+     * @return the permission
+     */
+    private String getRequiredPermission(String subCommand) {
+        if (subCommand == null) {
+            return "guishop.admin";
+        }
+        switch (subCommand.toLowerCase()) {
+            case "reload":
+                return "guishop.reload";
+            default:
+                return "guishop.admin";
+        }
+    }
+
+    /**
+     * Whether the command sender has the permission for a subcommand of
+     * /guishop
+     *
+     * @param sender the command sender
+     * @param subCommand the sub command, null for the base command
+     * @return true if permitted, false otherwise
+     */
+    private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
+        return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
+    }
+
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
-    	if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
-    		Main.sendMessage(commandSender, Config.getNoPermission());
-    		return true;
-    	}
+        if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
+            Main.sendMessage(commandSender, Config.getNoPermission());
+            return true;
+        }
 
-    	Player player = (Player) commandSender;
+        Player player = (Player) commandSender;
 
         if (args.length >= 1) {
-        	if (args[0].equalsIgnoreCase("parsematerial")) {
-        		if (args.length >= 2) {
-        			Item tempItem = new Item();
-        			tempItem.setMaterial(args[1]);
-        			player.sendMessage(args[1] + " is " + ((tempItem.parseMaterial() == null) ? "NOT " : "") + "a valid material.");
-        		} else {
-        			player.sendMessage("Please specify a material.");
-        		}
+            if (args[0].equalsIgnoreCase("parsematerial")) {
+                if (args.length >= 2) {
+                    Item tempItem = new Item();
+                    tempItem.setMaterial(args[1]);
+                    player.sendMessage(args[1] + " is " + ((tempItem.parseMaterial() == null) ? "NOT " : "") + "a valid material.");
+                } else {
+                    player.sendMessage("Please specify a material.");
+                }
 
-        	} else if (args[0].equalsIgnoreCase("parsemob")) {
-        		if (args.length >= 2) {
-        			Item tempItem = new Item();
-        			tempItem.setMobType(args[1]);
-        			player.sendMessage(args[1] + " is " + ((tempItem.parseMobSpawnerType() == null) ? "NOT " : "") + "a valid mob type.");
-        		} else {
-        			player.sendMessage("Please specify a mob.");
-        		}
+            } else if (args[0].equalsIgnoreCase("parsemob")) {
+                if (args.length >= 2) {
+                    Item tempItem = new Item();
+                    tempItem.setMobType(args[1]);
+                    player.sendMessage(args[1] + " is " + ((tempItem.parseMobSpawnerType() == null) ? "NOT " : "") + "a valid mob type.");
+                } else {
+                    player.sendMessage("Please specify a mob.");
+                }
 
-        	} else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
+            } else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
 
-            	Main.getCREATOR().add(player.getName());
-            	Main.debugLog("Added player to creator mode");
-            	PlayerListener.INSTANCE.openShop(player);
+                Main.getCREATOR().add(player.getName());
+                Main.debugLog("Added player to creator mode");
+                PlayerListener.INSTANCE.openShop(player);
 
             } else if (args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("price")) {
                 Object result = null;
@@ -86,10 +87,10 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     try {
                         result = Double.parseDouble(args[1]);
-                    } catch (Exception ex) {
+                    } catch (NumberFormatException ex) {
                         try {
                             result = Integer.parseInt(args[1]);
-                        } catch (Exception ex2) {
+                        } catch (NumberFormatException ex2) {
                             player.sendMessage("Please use a valid value");
                         }
                     }
@@ -98,25 +99,25 @@ public class GuishopCommand implements CommandExecutor {
 
             } else if (args[0].equalsIgnoreCase("s") || args[0].equalsIgnoreCase("sell")) {
 
-            	if (args.length >= 2) {
+                if (args.length >= 2) {
                     Object result = null;
                     if (args[1].equalsIgnoreCase("false")) {
                         result = false;
                     } else {
                         try {
                             result = Double.parseDouble(args[1]);
-                        } catch (Exception ex) {
+                        } catch (NumberFormatException ex) {
                             try {
                                 result = Integer.parseInt(args[1]);
-                            } catch (Exception ex2) {
+                            } catch (NumberFormatException ex2) {
                                 player.sendMessage("Please use a valid value");
                             }
                         }
                     }
                     ItemUtil.setSell(result, player);
-            	} else {
-            		player.sendMessage("Please specify a value.");
-            	}
+                } else {
+                    player.sendMessage("Please specify a value.");
+                }
 
             } else if (args[0].equalsIgnoreCase("sn") || args[0].equalsIgnoreCase("shopname")) {
                 if (args.length >= 2) {

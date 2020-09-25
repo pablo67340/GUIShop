@@ -11,7 +11,7 @@ public class ShopDef {
 
     @Getter
     public List<String> lore;
-    
+
     @Getter
     public ItemType itemType;
 
@@ -23,6 +23,5 @@ public class ShopDef {
         this.itemType = itemType;
         this.itemID = itemID;
     }
-
 
 }

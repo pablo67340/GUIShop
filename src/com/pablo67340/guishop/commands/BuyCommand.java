@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 
 public class BuyCommand extends BukkitCommand {
+
     public BuyCommand(ArrayList<String> aliases) {
         super(aliases.remove(0));
         this.description = "Opens the shops menu.";

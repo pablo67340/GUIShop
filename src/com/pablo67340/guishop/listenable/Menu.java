@@ -21,172 +21,173 @@ import java.util.logging.Level;
 
 public final class Menu {
 
-	/**
-	 * The GUI that is projected onto the screen when a {@link Player} opens the
-	 * {@link Menu}.
-	 */
-	private Gui GUI;
+    /**
+     * The GUI that is projected onto the screen when a {@link Player} opens the
+     * {@link Menu}.
+     */
+    private final Gui GUI;
 
-	private Boolean hasClicked = false;
+    private Boolean hasClicked = false;
 
-	/**
-	 * A {@link Map} that will store our {@link Shop}s when the server first starts.
-	 *
-	 * @key The index on the {@link Menu} that this shop is located at.
-	 * @value The shop.
-	 */
+    /**
+     * A {@link Map} that will store our {@link Shop}s when the server first
+     * starts.
+     *
+     * @key The index on the {@link Menu} that this shop is located at.
+     * @value The shop.
+     */
+    public Menu() {
+        this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "" + Config.getMenuTitle());
+    }
 
-	public Menu() {
-		this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "" + Config.getMenuTitle());
-	}
+    public void itemWarmup() {
+        Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
+        long startTime = System.currentTimeMillis();
+        Main.getINSTANCE().getShops().values().stream().filter(shopDef -> (shopDef.getItemType() == ItemType.SHOP)).forEachOrdered(shopDef -> {
+            new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
+                    .loadItems();
+        });
+        long estimatedTime = System.currentTimeMillis() - startTime;
+        Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: {0}ms", estimatedTime);
+    }
 
-	public void itemWarmup() {
-		Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
-		long startTime = System.currentTimeMillis();
-		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
-			if (shopDef.getItemType() == ItemType.SHOP) {
-				new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
-						.loadItems();
-			}
-		}
-		long estimatedTime = System.currentTimeMillis() - startTime;
-		Main.getINSTANCE().getLogger().log(Level.INFO, "Item warming completed in: " + estimatedTime + "ms");
-	}
+    /**
+     * Preloads the configs into their corresponding objects.
+     *
+     * @param player - The player warming up the GUI
+     */
+    public void preLoad(Player player) {
 
-	/**
-	 * Preloads the configs into their corresponding objects.
-	 */
-	public void preLoad(Player player) {
+        ShopPane page = new ShopPane(9, 1);
 
-		ShopPane page = new ShopPane(9, 1);
+        Main.getINSTANCE().getShops().values().forEach(shopDef -> {
+            if (shopDef.getItemType() != ItemType.SHOP || player.hasPermission("guishop.shop." + shopDef.getShop())
+                    || player.hasPermission("guishop.shop.*") || player.isOp()) {
+                page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
+            } else {
+                page.addBlankItem();
+            }
+        });
 
-		for (ShopDef shopDef : Main.getINSTANCE().getShops().values()) {
+        GUI.addPane(page);
 
-			if (shopDef.getItemType() != ItemType.SHOP || player.hasPermission("guishop.shop." + shopDef.getShop())
-					|| player.hasPermission("guishop.shop.*") || player.isOp()) {
-				page.addItem(buildMenuItem(shopDef.getItemID(), shopDef));
-			} else {
-				page.addBlankItem();
-			}
-		}
+    }
 
-		GUI.addPane(page);
+    public GuiItem buildMenuItem(String itemID, ShopDef shopDef) {
 
-	}
+        ItemStack itemStack = XMaterial.matchXMaterial(itemID).get().parseItem();
 
-	public GuiItem buildMenuItem(String itemID, ShopDef shopDef) {
+        if (shopDef.getItemType() != ItemType.BLANK) {
+            setName(itemStack, shopDef.getName(), shopDef.getLore(), shopDef);
+        }
+        return new GuiItem(itemStack);
+    }
 
-		ItemStack itemStack = XMaterial.matchXMaterial(itemID).get().parseItem();
+    /**
+     * Opens the GUI in this {@link Menu}.
+     *
+     * @param player - The player the GUI will display to
+     */
+    public void open(Player player) {
 
-		if (shopDef.getItemType() != ItemType.BLANK) {
-			setName(itemStack, shopDef.getName(), shopDef.getLore(), shopDef);
-		}
-		return new GuiItem(itemStack);
-	}
+        if (!player.hasPermission("guishop.use") && !player.isOp()) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("no-permission"))));
+            return;
+        }
 
-	/**
-	 * Opens the GUI in this {@link Menu}.
-	 */
-	public void open(Player player) {
+        if (Main.getINSTANCE().getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
+                    Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("disabled-world"))));
+            return;
+        }
 
-		if (!player.hasPermission("guishop.use") && !player.isOp()) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-					Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("no-permission"))));
-			return;
-		}
+        preLoad(player);
 
-		if (Main.getINSTANCE().getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
-			player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-					Objects.requireNonNull(Main.getINSTANCE().getMainConfig().getString("disabled-world"))));
-			return;
-		}
+        GUI.setOnTopClick(this::onShopClick);
+        GUI.setOnBottomClick(event -> {
+            event.setCancelled(true);
+        });
+        if (Main.getCREATOR().contains(player.getName())) {
+            GUI.setOnClose(event -> onClose(event));
+        }
+        GUI.show(player);
 
-		preLoad(player);
+    }
 
-		GUI.setOnTopClick(this::onShopClick);
-		GUI.setOnBottomClick(event -> {
-			event.setCancelled(true);
-		});
-		if (Main.getCREATOR().contains(player.getName())) {
-			GUI.setOnClose(event -> onClose(event));
-		}
-		GUI.show(player);
+    /**
+     * Sets the item's display name.
+     */
+    private ItemStack setName(ItemStack item, String name, List<String> lore, ShopDef shopDef) {
+        ItemMeta IM = item.getItemMeta();
 
-	}
+        if (name != null) {
+            assert IM != null;
+            IM.setDisplayName(name);
+        }
 
-	/**
-	 * Sets the item's display name.
-	 */
-	private ItemStack setName(ItemStack item, String name, List<String> lore, ShopDef shopDef) {
-		ItemMeta IM = item.getItemMeta();
+        if (lore != null && !lore.isEmpty() && shopDef.getItemType() == ItemType.SHOP) {
+            assert IM != null;
+            IM.setLore(lore);
+        }
 
-		if (name != null) {
-			assert IM != null;
-			IM.setDisplayName(name);
-		}
+        item.setItemMeta(IM);
 
-		if (lore != null && !lore.isEmpty() && shopDef.getItemType() == ItemType.SHOP) {
-			assert IM != null;
-			IM.setLore(lore);
-		}
+        return item;
 
-		item.setItemMeta(IM);
+    }
 
-		return item;
+    /**
+     * Handle global inventory click events, check if inventory is for GUIShop,
+     * if so, run logic.
+     */
+    private void onShopClick(InventoryClickEvent e) {
+        Player player = (Player) e.getWhoClicked();
+        e.setCancelled(true);
 
-	}
+        if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
+            return;
+        }
 
-	/**
-	 * Handle global inventory click events, check if inventory is for GUIShop, if
-	 * so, run logic.
-	 */
-	private void onShopClick(InventoryClickEvent e) {
-		Player player = (Player) e.getWhoClicked();
-		e.setCancelled(true);
+        hasClicked = true;
 
-		if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
-			return;
-		}
+        ShopDef shopDef = new ArrayList<>(Main.getINSTANCE().getShops().values()).get(e.getSlot());
 
-		hasClicked = true;
+        if (shopDef.getItemType() == ItemType.SHOP) {
+            openShop(player, shopDef);
+        }
 
-		ShopDef shopDef = new ArrayList<>(Main.getINSTANCE().getShops().values()).get(e.getSlot());
+    }
 
-		if (shopDef.getItemType() == ItemType.SHOP) {
-			openShop(player, shopDef);
-		}
+    public Shop openShop(Player player, ShopDef shopDef) {
 
-	}
-
-	public Shop openShop(Player player, ShopDef shopDef) {
-
-		if (shopDef.getItemType() == ItemType.SHOP) {
-			/*
+        if (shopDef.getItemType() == ItemType.SHOP) {
+            /*
 			 * The currently open shop associated with this Menu instance.
-			 */
-			Shop openShop;
-			if (!Main.getINSTANCE().getLoadedShops().containsKey(shopDef.getName())) {
-				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
-						this);
-			} else {
-				openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
-						this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
-			}
+             */
+            Shop openShop;
+            if (!Main.getINSTANCE().getLoadedShops().containsKey(shopDef.getName())) {
+                openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+                        this);
+            } else {
+                openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+                        this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
+            }
 
-			openShop.loadItems();
-			openShop.open(player);
-			return Main.getINSTANCE().getOpenShopInstances().put(player.getUniqueId(), openShop);
-		}
-		return null;
-	}
+            openShop.loadItems();
+            openShop.open(player);
+            return Main.getINSTANCE().getOpenShopInstances().put(player.getUniqueId(), openShop);
+        }
+        return null;
+    }
 
-	private void onClose(InventoryCloseEvent e) {
-		if (!hasClicked) {
-			Player p = (Player) e.getPlayer();
-			if (Main.getCREATOR().contains(p.getName())) {
-				Main.getCREATOR().remove(p.getName());
-			}
-		}
-	}
+    private void onClose(InventoryCloseEvent e) {
+        if (!hasClicked) {
+            Player p = (Player) e.getPlayer();
+            if (Main.getCREATOR().contains(p.getName())) {
+                Main.getCREATOR().remove(p.getName());
+            }
+        }
+    }
 
 }

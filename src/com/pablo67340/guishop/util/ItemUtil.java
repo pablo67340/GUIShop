@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.util;
 
+import com.cryptomorin.xseries.XMaterial;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,10 +36,10 @@ public final class ItemUtil {
         if (im.getLore() != null) {
 
             im.getLore().forEach((str) -> {
-                if (!str.contains(ChatColor.stripColor(Config.getBuyLore().replace("{amount}", "")))) {
+                if (!str.contains(ChatColor.stripColor(ConfigUtil.getBuyLore().replace("{amount}", "")))) {
                     lore.add(str);
                 } else {
-                    lore.add(Config.getBuyLore().replace("{amount}", price + ""));
+                    lore.add(ConfigUtil.getBuyLore().replace("{amount}", price + ""));
                 }
             });
         }
@@ -56,7 +57,7 @@ public final class ItemUtil {
             comp.remove("buyPrice");
         } else {
             player.sendMessage(
-                    Config.getPrefix() + " Pleas enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
+                    ConfigUtil.getPrefix() + " Pleas enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
         }
 
         item = ItemNBTUtil.setNBTTag(comp, item);
@@ -67,7 +68,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Price set: " + price);
+        player.sendMessage(ConfigUtil.getPrefix() + " Price set: " + price);
     }
 
     /**
@@ -92,7 +93,7 @@ public final class ItemUtil {
             lore.addAll(im.getLore());
         }
 
-        lore.add(Config.getSellLore().replace("{amount}", price + ""));
+        lore.add(ConfigUtil.getSellLore().replace("{amount}", price + ""));
 
         im.setLore(lore);
         item.setItemMeta(im);
@@ -107,7 +108,7 @@ public final class ItemUtil {
             comp.remove("sellPrice");
         } else {
             player.sendMessage(
-                    Config.getPrefix() + " Pleas enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
+                    ConfigUtil.getPrefix() + " Pleas enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
         }
 
         item = ItemNBTUtil.setNBTTag(comp, item);
@@ -118,7 +119,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Sell set: " + price);
+        player.sendMessage(ConfigUtil.getPrefix() + " Sell set: " + price);
     }
 
     /**
@@ -149,7 +150,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Name set: " + name);
+        player.sendMessage(ConfigUtil.getPrefix() + " Name set: " + name);
     }
 
     /**
@@ -179,7 +180,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Buy-Name set: " + name);
+        player.sendMessage(ConfigUtil.getPrefix() + " Buy-Name set: " + name);
     }
 
     /**
@@ -207,7 +208,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Enchantments set: " + enchantments.trim());
+        player.sendMessage(ConfigUtil.getPrefix() + " Enchantments set: " + enchantments.trim());
     }
 
     /**
@@ -243,10 +244,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Lore:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Added line to lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Lore:");
         lore.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -284,10 +285,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Edited line in lore: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Lore:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Edited line in lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Lore:");
         lore.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -326,10 +327,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Deleted line to lore: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Lore:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Deleted line to lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Lore:");
         lore.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -365,10 +366,10 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        player.sendMessage(Config.getPrefix() + " Added line to lore: " + addedLine);
-        player.sendMessage(Config.getPrefix() + " Current Lore:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Added line to lore: " + addedLine);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Lore:");
         for (String str : lines) {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         }
     }
 
@@ -411,10 +412,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Added line to lore: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Lore:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Added line to lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Lore:");
         lines2.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -455,10 +456,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Removed line to lore: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Lore:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Removed line to lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Lore:");
         lines2.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -487,7 +488,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Set Item Type: " + type);
+        player.sendMessage(ConfigUtil.getPrefix() + " Set Item Type: " + type);
     }
 
     /**
@@ -520,10 +521,10 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        player.sendMessage(Config.getPrefix() + " Added Command to item: " + addedLine);
-        player.sendMessage(Config.getPrefix() + " Current Commands:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Added Command to item: " + addedLine);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Commands:");
         for (String str : lines) {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         }
     }
 
@@ -565,10 +566,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Added command to item: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Commands:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Added command to item: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Commands:");
         lines2.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -607,10 +608,10 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Removed command from item: " + line);
-        player.sendMessage(Config.getPrefix() + " Current Commands:");
+        player.sendMessage(ConfigUtil.getPrefix() + " Removed command from item: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Current Commands:");
         lines2.forEach(str -> {
-            player.sendMessage(Config.getPrefix() + " - " + str);
+            player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
         });
     }
 
@@ -639,7 +640,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(Config.getPrefix() + " Set Item Mob Type: " + type);
+        player.sendMessage(ConfigUtil.getPrefix() + " Set Item Mob Type: " + type);
     }
 
 }

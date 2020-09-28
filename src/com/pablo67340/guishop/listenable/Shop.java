@@ -1,5 +1,7 @@
 package com.pablo67340.guishop.listenable;
 
+import com.cryptomorin.xseries.XEnchantment;
+import com.cryptomorin.xseries.XMaterial;
 import java.util.*;
 import java.util.logging.Level;
 
@@ -25,9 +27,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.XEnchantment;
-import com.pablo67340.guishop.util.XMaterial;
+import com.pablo67340.guishop.util.ConfigUtil;
 import java.io.IOException;
 
 import lombok.Getter;
@@ -212,7 +212,7 @@ public class Shop {
         ShopPane page = new ShopPane(9, 6);
 
         this.GUI = new Gui(Main.getINSTANCE(), 6,
-                ChatColor.translateAlternateColorCodes('&', Config.getShopTitle().replace("{shopname}", getName())));
+                ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", getName())));
         PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
 
         for (Item item : items.values()) {
@@ -244,8 +244,7 @@ public class Shop {
 
                 if (item.hasShopLore()) {
                     item.getShopLore().forEach(str -> {
-                        if (!itemLore.contains(str) && !itemLore.contains(
-                                Config.getBuyLore().replace("{AMOUNT}", Double.toString(item.calculateBuyPrice(1))))) {
+                        if (!itemLore.contains(str) && !itemLore.contains(ConfigUtil.getBuyLore().replace("{AMOUNT}", Double.toString(item.calculateBuyPrice(1))))) {
                             itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
                         }
                     });
@@ -348,20 +347,20 @@ public class Shop {
 
     private void applyButtons(ShopPane page) {
         if (page.getINSTANCE().getItemsMap().containsKey(44)) {
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getBackwardPageButtonName())), 51);
+            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getBackwardPageButtonName())), 51);
         }
         if (pageC > 0) {
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getForwardPageButtonName())), 47);
+            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getForwardPageButtonName())), 47);
         }
-        if (!Config.isEscapeOnly()) {
+        if (!ConfigUtil.isEscapeOnly()) {
 
             ItemStack backButtonItem = new ItemStack(
-                    Objects.requireNonNull(XMaterial.matchXMaterial(Config.getBackButtonItem()).get().parseMaterial()));
+                    Objects.requireNonNull(XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseMaterial()));
 
             ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
             assert backButtonMeta != null;
-            backButtonMeta.setDisplayName(Config.getBackButtonText());
+            backButtonMeta.setDisplayName(ConfigUtil.getBackButtonText());
 
             backButtonItem.setItemMeta(backButtonMeta);
 
@@ -453,7 +452,7 @@ public class Shop {
             }
             return;
             // Back Button
-        } else if (e.getSlot() == 53 && !Config.isEscapeOnly()) {
+        } else if (e.getSlot() == 53 && !ConfigUtil.isEscapeOnly()) {
             if (menuInstance != null && !Main.getCREATOR().contains(player.getName())) {
                 menuInstance.open(player);
             }
@@ -472,16 +471,16 @@ public class Shop {
 
             } else if (!item.hasBuyPrice()) {
 
-                if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+                if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
                     new AltSell(item).open(player);
                 } else {
-                    player.sendMessage(Config.getPrefix() + " " + Config.getCannotBuy());
+                    player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getCannotBuy());
                 }
                 return;
             }
 
             if (item.getItemType() == ItemType.SHOP) {
-                if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+                if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
                     new AltSell(item).open(player);
                 } else {
                     new Quantity(item, this, player).loadInventory().open();
@@ -493,7 +492,7 @@ public class Shop {
                 Runnable dynamicPricingUpdate = null;
 
                 // sell price must be defined and nonzero for dynamic pricing to work
-                if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+                if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
                     String itemString = item.getItemString();
                     dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, 1);
@@ -512,8 +511,8 @@ public class Shop {
                         dynamicPricingUpdate.run();
                     }
                 } else {
-                    player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay
-                            + Config.getNotEnoughPost());
+                    player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getNotEnoughPre() + priceToPay
+                            + ConfigUtil.getNotEnoughPost());
                 }
             }
         } else {
@@ -581,7 +580,7 @@ public class Shop {
     private void onClose(InventoryCloseEvent e) {
         Player player = (Player) e.getPlayer();
         if (!Main.CREATOR.contains(player.getName())) {
-            if (Config.isEscapeOnly() && !hasClicked) {
+            if (ConfigUtil.isEscapeOnly() && !hasClicked) {
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
                 scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> menuInstance.open(player), 1L);
 
@@ -646,11 +645,11 @@ public class Shop {
                 List<String> itemLore = im.getLore();
                 List<String> cleaned = new ArrayList<>();
                 itemLore.stream().filter(str -> (!(ChatColor.stripColor(str)
-                        .contains(ChatColor.stripColor(Config.getBuyLore().replace("{amount}", ""))))
+                        .contains(ChatColor.stripColor(ConfigUtil.getBuyLore().replace("{amount}", ""))))
                         && !(ChatColor.stripColor(str)
-                                .contains(ChatColor.stripColor(Config.getSellLore().replace("{amount}", ""))))
-                        && !(ChatColor.stripColor(str).contains(ChatColor.stripColor(Config.getCannotBuy())))
-                        && !(ChatColor.stripColor(str).contains(ChatColor.stripColor(Config.getCannotSell()))))).forEachOrdered(str -> {
+                                .contains(ChatColor.stripColor(ConfigUtil.getSellLore().replace("{amount}", ""))))
+                        && !(ChatColor.stripColor(str).contains(ChatColor.stripColor(ConfigUtil.getCannotBuy())))
+                        && !(ChatColor.stripColor(str).contains(ChatColor.stripColor(ConfigUtil.getCannotSell()))))).forEachOrdered(str -> {
                     cleaned.add(str);
                 });
                 item.setShopLore(cleaned);

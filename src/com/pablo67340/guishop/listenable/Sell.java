@@ -10,7 +10,7 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 
 public final class Sell {
 
@@ -22,7 +22,7 @@ public final class Sell {
      * @param player - The player the GUI will display to
      */
     public void open(Player player) {
-        GUI = new Gui(Main.getINSTANCE(), 6, Config.getSellTitle());
+        GUI = new Gui(Main.getINSTANCE(), 6, ConfigUtil.getSellTitle());
         GUI.setOnClose(this::onSellClose);
         StaticPane pane = new StaticPane(0, 0, 9, 6);
         GUI.addPane(pane);
@@ -68,7 +68,7 @@ public final class Sell {
             int quantity = item.getAmount();
 
             // buy price must be defined for dynamic pricing to work
-            if (Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
+            if (ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
                 moneyToGive += Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
                         shopItem.getBuyPriceAsDouble(), shopItem.getSellPriceAsDouble());
                 Main.getDYNAMICPRICING().sellItem(itemString, quantity);
@@ -79,7 +79,7 @@ public final class Sell {
         }
 
         if (couldntSell) {
-            player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", countSell + ""));
+            player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getCantSell().replace("{count}", countSell + ""));
         }
         roundAndGiveMoney(player, moneyToGive);
     }
@@ -96,7 +96,7 @@ public final class Sell {
         if (moneyToGiveRounded > 0) {
             Main.getECONOMY().depositPlayer(player, moneyToGiveRounded);
 
-            player.sendMessage(Config.getSold() + moneyToGiveRounded + Config.getAdded());
+            player.sendMessage(ConfigUtil.getSold() + moneyToGiveRounded + ConfigUtil.getAdded());
         }
     }
 

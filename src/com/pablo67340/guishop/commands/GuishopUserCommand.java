@@ -10,7 +10,7 @@ import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 
 public class GuishopUserCommand implements CommandExecutor {
 
@@ -59,7 +59,7 @@ public class GuishopUserCommand implements CommandExecutor {
                         || player.hasPermission("guishop.shop.*") || player.isOp()) {
                     new Menu().openShop(player, shopDef);
                 } else {
-                    player.sendMessage(Config.getNoPermission());
+                    player.sendMessage(ConfigUtil.getNoPermission());
                 }
 
             } else {
@@ -67,7 +67,7 @@ public class GuishopUserCommand implements CommandExecutor {
             }
 
         } else {
-            player.sendMessage(Config.getNoPermission());
+            player.sendMessage(ConfigUtil.getNoPermission());
         }
     }
 
@@ -81,7 +81,7 @@ public class GuishopUserCommand implements CommandExecutor {
         if (player.hasPermission("guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
-            player.sendMessage(Config.getNoPermission());
+            player.sendMessage(ConfigUtil.getNoPermission());
         }
     }
 

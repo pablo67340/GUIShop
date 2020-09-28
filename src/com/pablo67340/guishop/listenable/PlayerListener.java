@@ -21,7 +21,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 
 public final class PlayerListener implements Listener {
 
@@ -94,7 +94,7 @@ public final class PlayerListener implements Listener {
                         menu.open(player);
                     } else {
                         e.setCancelled(true);
-                        player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
+                        player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getNoPermission());
                     }
 
                 }

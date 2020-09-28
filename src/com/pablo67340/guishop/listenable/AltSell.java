@@ -14,7 +14,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.AltSellPane;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 
 public class AltSell {
 
@@ -31,17 +31,17 @@ public class AltSell {
 
     public AltSell(Item subjectItem) {
         this.subjectItem = subjectItem;
-        gui = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellTitle()));
+        gui = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', ConfigUtil.getAltSellTitle()));
         indicatorItem = new Item();
-        indicatorItem.setMaterial(Config.getAltSellIndicatorMaterial());
+        indicatorItem.setMaterial(ConfigUtil.getAltSellIndicatorMaterial());
         addItem = new Item();
-        addItem.setMaterial(Config.getAltSellAddMaterial());
+        addItem.setMaterial(ConfigUtil.getAltSellAddMaterial());
         removeItem = new Item();
-        removeItem.setMaterial(Config.getAltSellRemoveMaterial());
+        removeItem.setMaterial(ConfigUtil.getAltSellRemoveMaterial());
         confirmItem = new Item();
-        confirmItem.setMaterial(Config.getAltSellConfirmMaterial());
+        confirmItem.setMaterial(ConfigUtil.getAltSellConfirmMaterial());
         cancelItem = new Item();
-        cancelItem.setMaterial(Config.getAltSellCancelMaterial());
+        cancelItem.setMaterial(ConfigUtil.getAltSellCancelMaterial());
     }
 
     private GuiItem setQuantityAndGet(ItemStack item, int quantity) {
@@ -51,7 +51,7 @@ public class AltSell {
 
     public void open(Player player) {
         if (!player.hasPermission("guishop.sell")) {
-            player.sendMessage(Config.getNoPermission());
+            player.sendMessage(ConfigUtil.getNoPermission());
             return;
         }
         GuiItem gItem = subjectItem.parseMaterial();
@@ -64,15 +64,15 @@ public class AltSell {
                 && gCancelItem != null) {
             GuiItem[] addRemoveItems = new GuiItem[6];
             ItemStack addItemstack = gAddItem.getItem();
-            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity1());
-            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity2());
-            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity3());
+            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity1());
+            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity2());
+            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity3());
             ItemStack removeItemstack = gRemoveItem.getItem();
-            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellQuantity1());
-            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellQuantity2());
-            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellQuantity3());
+            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity1());
+            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity2());
+            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity3());
             pane = new AltSellPane(gItem, addRemoveItems, gIndicator,
-                    Item.renameGuiItem(gConfirmItem, Config.getAltSellConfirmName()), Item.renameGuiItem(gCancelItem, Config.getAltSellCancelName()));
+                    Item.renameGuiItem(gConfirmItem, ConfigUtil.getAltSellConfirmName()), Item.renameGuiItem(gCancelItem, ConfigUtil.getAltSellCancelName()));
             pane.setSubjectQuantity(1);
             pane.setIndicatorName(subjectItem.getSellLore(1));
             gui.addPane(pane);
@@ -111,7 +111,7 @@ public class AltSell {
 
             Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
             // buy price must be defined for dynamic pricing to work
-            if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
+            if (subjectItem.hasBuyPrice() && ConfigUtil.isDynamicPricing()) {
                 Main.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
             }
         } else {
@@ -120,7 +120,7 @@ public class AltSell {
             if (addBack.getAmount() > 0) {
                 player.getInventory().addItem(addBack);
             }
-            player.sendMessage(Config.getAltSellNotEnough().replace("{amount}", Integer.toString(amount)));
+            player.sendMessage(ConfigUtil.getAltSellNotEnough().replace("{amount}", Integer.toString(amount)));
         }
     }
 

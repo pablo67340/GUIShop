@@ -1,5 +1,6 @@
 package com.pablo67340.guishop;
 
+import com.cryptomorin.xseries.XMaterial;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -35,9 +36,8 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.MatLib;
-import com.pablo67340.guishop.util.XMaterial;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -143,14 +143,14 @@ public final class Main extends JavaPlugin {
         getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new GuishopUserCommand());
         loadDefaults();
-        if (Config.isDynamicPricing() && !setupDynamicPricing()) {
+        if (ConfigUtil.isDynamicPricing() && !setupDynamicPricing()) {
             getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
-            Config.setDynamicPricing(false);
+            ConfigUtil.setDynamicPricing(false);
         }
 
         loadShopDefs();
 
-        switch (Config.getCommandsMode()) {
+        switch (ConfigUtil.getCommandsMode()) {
             case INTERCEPT:
                 CommandsInterceptor.register();
                 break;
@@ -279,87 +279,87 @@ public final class Main extends JavaPlugin {
     public void loadDefaults() {
         BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
         SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
-        Config.setCommandsMode(CommandsMode.parseFromConfig(getMainConfig().getString("commands-mode")));
-        Config.setPrefix(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setCommandsMode(CommandsMode.parseFromConfig(getMainConfig().getString("commands-mode")));
+        ConfigUtil.setPrefix(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("prefix"))));
-        Config.setSignsOnly(getMainConfig().getBoolean("signs-only"));
-        Config.setSignTitle(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setSignsOnly(getMainConfig().getBoolean("signs-only"));
+        ConfigUtil.setSignTitle(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("sign-title"))));
-        Config.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("not-enough-pre"))));
-        Config.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("not-enough-post"))));
-        Config.setPurchased(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setPurchased(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("purchased"))));
-        Config.setTaken(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setTaken(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("taken"))));
-        Config.setSold(
+        ConfigUtil.setSold(
                 ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getMainConfig().getString("sold"))));
-        Config.setAdded(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setAdded(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("added"))));
-        Config.setCantSell(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setCantSell(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cant-sell"))));
-        Config.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
-        Config.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
-        Config.setSound(getMainConfig().getString("purchase-sound"));
-        Config.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
-        Config.setEnableCreator(getMainConfig().getBoolean("ingame-config"));
-        Config.setCantBuy(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
+        ConfigUtil.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
+        ConfigUtil.setSound(getMainConfig().getString("purchase-sound"));
+        ConfigUtil.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
+        ConfigUtil.setEnableCreator(getMainConfig().getBoolean("ingame-config"));
+        ConfigUtil.setCantBuy(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cant-buy"))));
-        Config.setMenuRows(getMainConfig().getInt("menu-rows"));
-        Config.setFull(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setMenuRows(getMainConfig().getInt("menu-rows"));
+        ConfigUtil.setFull(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("full-inventory"))));
-        Config.setNoPermission(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setNoPermission(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("no-permission"))));
-        Config.setCurrency(getMainConfig().getString("currency"));
-        Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setCurrency(getMainConfig().getString("currency"));
+        ConfigUtil.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
-        Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("menu-title", "Menu")));
-        Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setShopTitle(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
-        Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setSellTitle(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("sell-title", "Menu &f> &rSell")));
-        Config.setAltSellTitle(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setAltSellTitle(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("alt-sell-title", "Menu &f> &rSell")));
-        Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("qty-title"))));
-        Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setBackButtonItem(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("back-button-item"))));
-        Config.setBackButtonText(
+        ConfigUtil.setBackButtonText(
                 ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getMainConfig().getString("back"))));
-        Config.setBuyLore(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setBuyLore(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("buy-lore"))));
-        Config.setSellLore(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setSellLore(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("sell-lore"))));
-        Config.setFreeLore(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setFreeLore(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("free-lore"))));
 
-        Config.setCannotBuy(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setCannotBuy(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cannot-buy"))));
-        Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setCannotSell(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
-        Config.setForwardPageButtonName(
+        ConfigUtil.setForwardPageButtonName(
                 ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("forward-page-button-name", "")));
-        Config.setBackwardPageButtonName(
+        ConfigUtil.setBackwardPageButtonName(
                 ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("backward-page-button-name", "")));
-        Config.setAltSellIndicatorMaterial(getMainConfig().getString("alt-sell-indicator-material", "EMERALD"));
-        Config.setAltSellAddMaterial(getMainConfig().getString("alt-sell-add-material", "GREEN_STAINED_GLASS_PANE"));
-        Config.setAltSellRemoveMaterial(getMainConfig().getString("alt-sell-remove-material", "RED_STAINED_GLASS_PANE"));
-        Config.setAltSellQuantity1(getMainConfig().getInt("alt-sell-quantity-1", 1));
-        Config.setAltSellQuantity2(getMainConfig().getInt("alt-sell-quantity-2", 10));
-        Config.setAltSellQuantity3(getMainConfig().getInt("alt-sell-quantity-3", 64));
-        Config.setAltSellConfirmMaterial(getMainConfig().getString("alt-sell-confirm-material", "EMERALD_BLOCK"));
-        Config.setAltSellCancelMaterial(getMainConfig().getString("alt-sell-cancel-material", "REDSTONE_BLOCK"));
-        Config.setAltSellConfirmName(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setAltSellIndicatorMaterial(getMainConfig().getString("alt-sell-indicator-material", "EMERALD"));
+        ConfigUtil.setAltSellAddMaterial(getMainConfig().getString("alt-sell-add-material", "GREEN_STAINED_GLASS_PANE"));
+        ConfigUtil.setAltSellRemoveMaterial(getMainConfig().getString("alt-sell-remove-material", "RED_STAINED_GLASS_PANE"));
+        ConfigUtil.setAltSellQuantity1(getMainConfig().getInt("alt-sell-quantity-1", 1));
+        ConfigUtil.setAltSellQuantity2(getMainConfig().getInt("alt-sell-quantity-2", 10));
+        ConfigUtil.setAltSellQuantity3(getMainConfig().getInt("alt-sell-quantity-3", 64));
+        ConfigUtil.setAltSellConfirmMaterial(getMainConfig().getString("alt-sell-confirm-material", "EMERALD_BLOCK"));
+        ConfigUtil.setAltSellCancelMaterial(getMainConfig().getString("alt-sell-cancel-material", "REDSTONE_BLOCK"));
+        ConfigUtil.setAltSellConfirmName(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("alt-sell-confirm-name", "&a&lConfirm")));
-        Config.setAltSellCancelName(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setAltSellCancelName(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("alt-sell-cancel-name", "&c&lCancel")));
-        Config.setAltSellNotEnough(ChatColor.translateAlternateColorCodes('&',
+        ConfigUtil.setAltSellNotEnough(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("alt-sell-not-enough", "&cYou do not have enough items to sell.")));
-        Config.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
-        Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
-        Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));
+        ConfigUtil.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
+        ConfigUtil.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
+        ConfigUtil.setDebugMode(getMainConfig().getBoolean("debug-mode"));
     }
 
     private void loadPRICETABLE() {
@@ -455,7 +455,7 @@ public final class Main extends JavaPlugin {
 
         // If the CommandsMode is REGISTER, register/re-register the commands
         // Otherwise, unregister the commands
-        CommandsMode cmdsMode = Config.getCommandsMode();
+        CommandsMode cmdsMode = ConfigUtil.getCommandsMode();
         registerCommands(cmdsMode != CommandsMode.REGISTER);
 
         // Intercept commands using the listener, if configured
@@ -515,8 +515,8 @@ public final class Main extends JavaPlugin {
         if (item.hasSellPrice()) {
             str = str.replace("{SELL_PRICE}", Double.toString(item.calculateSellPrice(1)));
         }
-        str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
-        str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
+        str = str.replace("{CURRENCY_SYMBOL}", ConfigUtil.getCurrency());
+        str = str.replace("{CURRENCY_SUFFIX}", ConfigUtil.getCurrencySuffix());
 
         return str;
     }
@@ -526,7 +526,7 @@ public final class Main extends JavaPlugin {
     }
 
     public static void debugLog(String input) {
-        if (Config.isDebugMode()) {
+        if (ConfigUtil.isDebugMode()) {
             Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP][DEBUG]: {0}", input);
         }
     }

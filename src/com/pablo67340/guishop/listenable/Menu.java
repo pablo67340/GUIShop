@@ -1,13 +1,13 @@
 package com.pablo67340.guishop.listenable;
 
+import com.cryptomorin.xseries.XMaterial;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.definition.ShopPane;
-import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.XMaterial;
+import com.pablo67340.guishop.util.ConfigUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -37,7 +37,7 @@ public final class Menu {
      * @value The shop.
      */
     public Menu() {
-        this.GUI = new Gui(Main.getINSTANCE(), Config.getMenuRows(), "" + Config.getMenuTitle());
+        this.GUI = new Gui(Main.getINSTANCE(), ConfigUtil.getMenuRows(), "" + ConfigUtil.getMenuTitle());
     }
 
     public void itemWarmup() {

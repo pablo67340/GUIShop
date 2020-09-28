@@ -1,5 +1,8 @@
 package com.pablo67340.guishop.listenable;
 
+import com.cryptomorin.xseries.XEnchantment;
+import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSound;
 import java.util.*;
 
 import org.apache.commons.lang.StringUtils;
@@ -24,10 +27,8 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.util.Config;
-import com.pablo67340.guishop.util.XEnchantment;
-import com.pablo67340.guishop.util.XMaterial;
-import com.pablo67340.guishop.util.XSound;
+import com.pablo67340.guishop.util.ConfigUtil;
+
 
 import lombok.Getter;
 
@@ -78,7 +79,7 @@ class Quantity {
      * Preloads the inventory to display items.
      */
     public Quantity loadInventory() {
-        GUI = new Gui(Main.getINSTANCE(), 6, Config.getQtyTitle());
+        GUI = new Gui(Main.getINSTANCE(), 6, ConfigUtil.getQtyTitle());
         int multiplier = 1;
         ShopPane page = new ShopPane(9, 6);
         for (int x = 19; x <= 25; x++) {
@@ -102,7 +103,7 @@ class Quantity {
 
             String type = itemStack.getType().toString();
 
-            boolean isInList = Config.getDisabledQty().stream().anyMatch(t -> spellCheck(type, t));
+            boolean isInList = ConfigUtil.getDisabledQty().stream().anyMatch(t -> spellCheck(type, t));
 
             if (isInList && x >= 20) {
                 break;
@@ -140,9 +141,9 @@ class Quantity {
             multiplier *= 2;
         }
 
-        if (!Config.isEscapeOnly()) {
+        if (!ConfigUtil.isEscapeOnly()) {
 
-            ItemStack backButtonItem = XMaterial.matchXMaterial(Config.getBackButtonItem()).get().parseItem();
+            ItemStack backButtonItem = XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseItem();
 
             ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -170,7 +171,7 @@ class Quantity {
      */
     private void onQuantityClick(InventoryClickEvent e) {
         e.setCancelled(true);
-        if (!Config.isEscapeOnly()) {
+        if (!ConfigUtil.isEscapeOnly()) {
             if (e.getSlot() == 53) {
                 currentShop.open(player);
                 return;
@@ -186,12 +187,12 @@ class Quantity {
         }
 
         if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage(Config.getFull());
+            player.sendMessage(ConfigUtil.getFull());
             return;
         }
 
         if (!item.hasBuyPrice()) {
-            player.sendMessage(Config.getCantBuy());
+            player.sendMessage(ConfigUtil.getCantBuy());
             return;
         }
 
@@ -200,8 +201,8 @@ class Quantity {
 
         // If the quantity is 0
         if (quantity == 0) {
-            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.calculateBuyPrice(1)
-                    + Config.getNotEnoughPost());
+            player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getNotEnoughPre() + item.calculateBuyPrice(1)
+                    + ConfigUtil.getNotEnoughPost());
             player.setItemOnCursor(new ItemStack(Material.AIR));
             return;
         }
@@ -281,7 +282,7 @@ class Quantity {
         Runnable dynamicPricingUpdate = null;
 
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+        if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
             String itemString = item.getItemString();
             dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, amount);
@@ -297,13 +298,13 @@ class Quantity {
         if (Main.getECONOMY().withdrawPlayer(player, priceToPay).transactionSuccess()) {
             // If the player has the sound enabled, play
             // it!
-            if (Config.isSoundEnabled()) {
+            if (ConfigUtil.isSoundEnabled()) {
 
-                player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
+                player.playSound(player.getLocation(), XSound.matchXSound(ConfigUtil.getSound()).get().parseSound(), 1, 1);
 
             }
-            player.sendMessage(Config.getPrefix() + Config.getPurchased() + priceToPay + Config.getTaken()
-                    + Config.getCurrencySuffix());
+            player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getPurchased() + priceToPay + ConfigUtil.getTaken()
+                    + ConfigUtil.getCurrencySuffix());
 
             if (item.isMobSpawner()) {
 
@@ -328,7 +329,7 @@ class Quantity {
             player.getInventory().addItem(itemStack);
 
         } else {
-            player.sendMessage(Config.getPrefix() + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
+            player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getNotEnoughPre() + priceToPay + ConfigUtil.getNotEnoughPost());
         }
 
     }
@@ -337,7 +338,7 @@ class Quantity {
      * The inventory closeEvent handling for the Menu.
      */
     private void onClose(InventoryCloseEvent e) {
-        if (Config.isEscapeOnly()) {
+        if (ConfigUtil.isEscapeOnly()) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
 

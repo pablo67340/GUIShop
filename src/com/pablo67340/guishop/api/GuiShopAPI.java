@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 
 /**
  * Officially supported API for interacting with GuiShop. <br>
@@ -119,7 +119,7 @@ public class GuiShopAPI {
         String itemString = Item.getItemStringForItemStack(item);
         Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
 
-        if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+        if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
             Main.getDYNAMICPRICING().buyItem(itemString, quantity);
         }
@@ -143,7 +143,7 @@ public class GuiShopAPI {
         String itemString = Item.getItemStringForItemStack(item);
         Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
 
-        if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+        if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
             Main.getDYNAMICPRICING().sellItem(itemString, quantity);
         }

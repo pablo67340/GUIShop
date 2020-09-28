@@ -1,5 +1,7 @@
 package com.pablo67340.guishop.definition;
 
+import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XPotion;
 import java.util.List;
 
 import org.bukkit.Material;
@@ -14,11 +16,10 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.MatLib;
 import com.pablo67340.guishop.util.MatLib.MatLibEntry;
-import com.pablo67340.guishop.util.XMaterial;
-import com.pablo67340.guishop.util.XPotion;
+import java.util.Optional;
 
 import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
@@ -228,11 +229,8 @@ public final class Item {
      * @return if the item
      */
     public boolean isMobSpawner() {
-        if (material.equalsIgnoreCase(SPAWNER_MATERIAL)) {
-            return true;
-        }
-        XMaterial spawnerXMaterial = XMaterial.SPAWNER;
-        return material.equalsIgnoreCase(spawnerXMaterial.name()) || spawnerXMaterial.anyMatchLegacy(material);
+        Optional<XMaterial> mat = XMaterial.matchXMaterial(material);
+        return mat.orElse(null) == XMaterial.SPAWNER;
     }
 
     /**
@@ -299,7 +297,7 @@ public final class Item {
      */
     public double calculateBuyPrice(int quantity) {
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (Config.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
+        if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
 
             return Main.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDouble(),
                     getSellPriceAsDouble());
@@ -320,7 +318,7 @@ public final class Item {
      */
     public double calculateSellPrice(int quantity) {
         // buy price must be defined for dynamic pricing to work
-        if (Config.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
+        if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
 
             return Main.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDouble(),
                     getSellPriceAsDouble());
@@ -346,12 +344,12 @@ public final class Item {
             double buyPriceAsDouble = getBuyPriceAsDouble();
             if (buyPriceAsDouble != 0) {
 
-                return Config.getBuyLore().replace("{amount}",
-                        Config.getCurrency() + Main.economyFormat(calculateBuyPrice(quantity)) + Config.getCurrencySuffix());
+                return ConfigUtil.getBuyLore().replace("{amount}",
+                        ConfigUtil.getCurrency() + Main.economyFormat(calculateBuyPrice(quantity)) + ConfigUtil.getCurrencySuffix());
             }
-            return Config.getFreeLore();
+            return ConfigUtil.getFreeLore();
         }
-        return Config.getCannotBuy();
+        return ConfigUtil.getCannotBuy();
     }
 
     /**
@@ -366,10 +364,10 @@ public final class Item {
      */
     public String getSellLore(int quantity) {
         if (hasSellPrice()) {
-            return Config.getSellLore().replace("{amount}",
-                    Config.getCurrency() + Main.economyFormat(calculateSellPrice(quantity)) + Config.getCurrencySuffix());
+            return ConfigUtil.getSellLore().replace("{amount}",
+                    ConfigUtil.getCurrency() + Main.economyFormat(calculateSellPrice(quantity)) + ConfigUtil.getCurrencySuffix());
         }
-        return Config.getCannotSell();
+        return ConfigUtil.getCannotSell();
     }
 
     /**
@@ -449,7 +447,7 @@ public final class Item {
         /*
 	* First attempt
 	* Use XMaterial
-        */
+         */
         XMaterial xmaterial = XMaterial.matchXMaterial(getMaterial()).orElse(null);
         ItemStack itemStack = (xmaterial != null) ? xmaterial.parseItem() : null;
 
@@ -458,8 +456,8 @@ public final class Item {
                 gItem = new GuiItem(itemStack);
                 return gItem; // if itemStack is nonnull and no exception thrown, attempt has succeeded
             } catch (Exception ex2) {
-                if (Config.isDebugMode()) {
-                    Main.debugLog("Error parsing material: "+ex2.getMessage());
+                if (ConfigUtil.isDebugMode()) {
+                    Main.debugLog("Error parsing material: " + ex2.getMessage());
                 }
             }
         }
@@ -468,7 +466,7 @@ public final class Item {
         /*
 	* Second attempt
 	* "OFF"/"ON" fix
-        */
+         */
         if (getMaterial().endsWith("_ON")) { // Only use OFF fix if _ON is detected
 
             try {
@@ -477,8 +475,8 @@ public final class Item {
                 gItem = new GuiItem(itemStack);
                 return gItem; // if no exception thrown, attempt has succeeded
             } catch (Exception ex3) {
-                if (Config.isDebugMode()) {
-                    Main.debugLog("Error parsing item attempt 3: "+ex3.getMessage());
+                if (ConfigUtil.isDebugMode()) {
+                    Main.debugLog("Error parsing item attempt 3: " + ex3.getMessage());
                 }
             }
 
@@ -488,7 +486,7 @@ public final class Item {
         /*
 	* Third attempt
 	* Using MatLib
-        */
+         */
         // Final Stand, lets try to find this user's item
         MatLibEntry itemInfo = MatLib.getMAP().get(getMaterial());
         if (itemInfo != null) {
@@ -503,8 +501,8 @@ public final class Item {
                 gItem = new GuiItem(itemStack);
                 return gItem;
             } catch (Exception ex4) {
-                if (Config.isDebugMode()) {
-                    Main.debugLog("Error parsing item attemp 4: "+ex4.getMessage());
+                if (ConfigUtil.isDebugMode()) {
+                    Main.debugLog("Error parsing item attemp 4: " + ex4.getMessage());
                 }
             } catch (NoSuchMethodError nsme) {
                 // For servers missing the legacy constructor https://pastebin.com/GDy2ih9s

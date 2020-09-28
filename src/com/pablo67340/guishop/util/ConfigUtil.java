@@ -9,7 +9,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import lombok.Getter;
 import lombok.Setter;
 
-public final class Config {
+public final class ConfigUtil {
 
     /**
      * True/False if GUIShop should use signs only.

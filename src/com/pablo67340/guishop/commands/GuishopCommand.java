@@ -4,7 +4,7 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.listenable.PlayerListener;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.ItemUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
@@ -49,7 +49,7 @@ public class GuishopCommand implements CommandExecutor {
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
         if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
-            Main.sendMessage(commandSender, Config.getNoPermission());
+            Main.sendMessage(commandSender, ConfigUtil.getNoPermission());
             return true;
         }
 

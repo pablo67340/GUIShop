@@ -206,7 +206,6 @@ public class Shop {
 
     }
 
-    @SuppressWarnings("deprecation")
     private void loadShop() {
         Integer index = 0;
         ShopPane page = new ShopPane(9, 6);
@@ -221,6 +220,9 @@ public class Shop {
 
             if (gItem == null) {
                 Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
+                gItem = new GuiItem(new ItemStack(Material.AIR));
+                indexCheck(index, pane, item, page, gItem);
+                index += 1;
                 continue;
             }
 
@@ -233,6 +235,9 @@ public class Shop {
 
                 if (itemMeta == null) {
                     Main.debugLog("Item + " + item.getMaterial() + " could not be resolved (null meta)");
+                    gItem = new GuiItem(new ItemStack(Material.AIR));
+                    indexCheck(index, pane, item, page, gItem);
+                    index += 1;
                     continue;
                 }
 
@@ -285,47 +290,52 @@ public class Shop {
             }
 
             // Create Page
-            if (index == items.size() || ((index) - lastIndex) == 44) {
-                if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
-                    page.setItem(gItem, item.getSlot());
-                }
-
-                if (items.size() > 45) {
-                    applyButtons(page);
-                }
-                lastIndex = index;
-                pane.addPane(pageC, page);
-                pageC += 1;
-                page = new ShopPane(9, 6);
-            } else {
-                if (pageC == 0) {
-                    if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
-                        page.setItem(gItem, item.getSlot());
-                    } else {
-                        page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
-                    }
-                } else {
-
-                    if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
-                        page.setItem(gItem, item.getSlot() - lastIndex - 1);
-                    } else {
-                        page.setDummy(item.getSlot() - lastIndex - 1, new ItemStack(Material.AIR));
-                    }
-                }
-            }
-
-            if (index + 1 == items.size()) {
-                pane.addPane(pageC, page);
-                applyButtons(page);
-                GUI.addPane(pane);
-                Main.getINSTANCE().getLoadedShops().put(name, items);
-            }
+            indexCheck(index, pane, item, page, gItem);
             index += 1;
 
         }
 
         this.currentPane = pane;
 
+    }
+
+    // Helper method to re-calculate the current item parsing index if an item has failed.
+    private void indexCheck(Integer index, PaginatedPane pane, Item item, ShopPane page, GuiItem gItem) {
+        if (index == items.size() || ((index) - lastIndex) == 44) {
+            if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
+                page.setItem(gItem, item.getSlot());
+            }
+
+            if (items.size() > 45) {
+                applyButtons(page);
+            }
+            lastIndex = index;
+            pane.addPane(pageC, page);
+            pageC += 1;
+            page = new ShopPane(9, 6);
+        } else {
+            if (pageC == 0) {
+                if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
+                    page.setItem(gItem, item.getSlot());
+                } else {
+                    page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
+                }
+            } else {
+
+                if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
+                    page.setItem(gItem, item.getSlot() - lastIndex - 1);
+                } else {
+                    page.setDummy(item.getSlot() - lastIndex - 1, new ItemStack(Material.AIR));
+                }
+            }
+        }
+
+        if (index + 1 == items.size()) {
+            pane.addPane(pageC, page);
+            applyButtons(page);
+            GUI.addPane(pane);
+            Main.getINSTANCE().getLoadedShops().put(name, items);
+        }
     }
 
     /**

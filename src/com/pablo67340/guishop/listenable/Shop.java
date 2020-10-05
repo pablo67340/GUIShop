@@ -138,6 +138,8 @@ public class Shop {
         if (items == null) {
 
             items = new HashMap<>();
+            int pageC = 0;
+            int index = 0;
 
             ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
 
@@ -154,8 +156,17 @@ public class Shop {
                         Main.log("Check the config section for item " + str + " in shop " + shop + " in the shops.yml. It is not a valid section.");
                         continue;
                     }
+                    int slot = Integer.parseInt(str);
 
-                    item.setSlot((Integer.parseInt(str)));
+                    if (Integer.parseInt(str) == 45) {
+                        pageC += 1;
+                    }
+
+                    if (pageC > 0) {
+                        slot = Integer.parseInt(str) - (44 * pageC);
+                    }
+
+                    item.setSlot(slot);
 
                     item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
                     if (item.isAnyPotion()) {
@@ -194,13 +205,15 @@ public class Shop {
 
                     Main.getINSTANCE().getITEMTABLE().put(item.getItemString(), item);
                     if (section.getBoolean("show-in-gui", true)) {
-                        items.put(item.getSlot(), item);
+                        items.put(index, item);
                     }
 
+                    index++;
                 }
                 loadShop();
             }
         } else {
+            System.out.println("Items were not null");
             loadShop();
         }
 
@@ -217,6 +230,8 @@ public class Shop {
         for (Item item : items.values()) {
 
             GuiItem gItem = item.parseMaterial();
+
+            Main.debugLog("Loaded item with material: " + gItem.getItem().getType().toString());
 
             if (gItem == null) {
                 Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
@@ -292,7 +307,6 @@ public class Shop {
             // Create Page
             indexCheck(index, pane, item, page, gItem);
             index += 1;
-
         }
 
         this.currentPane = pane;
@@ -301,7 +315,8 @@ public class Shop {
 
     // Helper method to re-calculate the current item parsing index if an item has failed.
     private void indexCheck(Integer index, PaginatedPane pane, Item item, ShopPane page, GuiItem gItem) {
-        if (index == items.size() || ((index) - lastIndex) == 44) {
+        Main.debugLog("Item Index - lastIndex: " + ((index) - lastIndex) + " index was: " + index + " Items Size: " + items.size());
+        if (index + 1 == items.size() || ((index) - lastIndex) == 44) {
             if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
                 page.setItem(gItem, item.getSlot());
             }
@@ -311,7 +326,9 @@ public class Shop {
             }
             lastIndex = index;
             pane.addPane(pageC, page);
+            Main.debugLog("Saved Page: " + pageC + " Pages: " + pane.getPages());
             pageC += 1;
+            Main.debugLog("Creating Page: " + pageC );
             page = new ShopPane(9, 6);
         } else {
             if (pageC == 0) {
@@ -323,9 +340,10 @@ public class Shop {
             } else {
 
                 if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
-                    page.setItem(gItem, item.getSlot() - lastIndex - 1);
+                    Main.debugLog("Adding item: "+gItem.getItem().getType()+" to slot "+item.getSlot()+" on page: "+pageC);
+                    page.setItem(gItem, item.getSlot());
                 } else {
-                    page.setDummy(item.getSlot() - lastIndex - 1, new ItemStack(Material.AIR));
+                    page.setDummy(item.getSlot(), new ItemStack(Material.AIR));
                 }
             }
         }
@@ -431,10 +449,14 @@ public class Shop {
 
                     saveItems(player);
                 }
-                ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-                currentPane.setPage(currentPane.getPage() + 1);
 
+                Main.debugLog("Setting page "+currentPane.getPage()+" to not visible");
+                ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
+                Main.debugLog("Setting page to: "+(currentPane.getPage() + 1));
+                currentPane.setPage(currentPane.getPage() + 1);
+                
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
+                Main.debugLog("Setting Page: "+currentPane.getPage()+" to visible.");
                 GUI.update();
             }
             return;

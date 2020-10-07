@@ -522,12 +522,12 @@ public final class Main extends JavaPlugin {
     }
 
     public static void log(String input) {
-        Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP]: {0}", input);
+        Main.getINSTANCE().getLogger().log(Level.WARNING, ": {0}", input);
     }
 
     public static void debugLog(String input) {
         if (ConfigUtil.isDebugMode()) {
-            Main.getINSTANCE().getLogger().log(Level.WARNING, "[GUISHOP][DEBUG]: {0}", input);
+            Main.getINSTANCE().getLogger().log(Level.WARNING, "[DEBUG]: {0}", input);
         }
     }
 

@@ -49,10 +49,10 @@
             <id>maven-central</id>
             <url>https://repo1.maven.org/maven2/</url>
         </repository>
-        <repository>
-            <id>arim-repo</id>
-            <url>https://dl.cloudsmith.io/public/anand-beh/arim-repo/maven/</url>
-        </repository>
+		<repository>
+			<id>arim-mvn-lgpl3</id>
+			<url>https://mvn-repo.arim.space/lesser-gpl3/</url>
+		</repository>
         <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
@@ -96,7 +96,7 @@
         <dependency>
             <groupId>space.arim</groupId>
             <artifactId>legacyitemconstructor</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
+            <version>0.1.2-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>

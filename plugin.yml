@@ -7,16 +7,16 @@ depend: [Vault]
 api-version: 1.13
 permissions:
     guishop.use:
-        default: false
+        default: op
         description: Grants access to GUIShop
     guishop.shop.*:
-        default: false
+        default: op
         description: Grants access to specific items in shop
     guishop.reload:
-        default: false
+        default: op
         description: Grants access to reload shops
     guishop.creator:
-        default: false
+        default: op
         description: Grants access to GUIShop Creator
 commands:
   guishop:

@@ -173,7 +173,8 @@ public class Shop {
                     int slot = Integer.parseInt(str);
 
                     // If the index is 46 OR 46 times the page you're on plus 1 meaning end of page 2 and beyond.
-                    if (Integer.parseInt(str) == 46 * (pageC + 1)) {
+                    // Current index will contain the current keys PLUS broken ones. Must be added back into 45. 
+                    if (Integer.parseInt(str) == (45+brokenNumbers) * (pageC + 1)) {
                         pageC += 1;
                     }
 

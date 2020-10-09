@@ -42,12 +42,14 @@ public class GuishopCommand implements CommandExecutor {
      * @return true if permitted, false otherwise
      */
     private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
+        Main.debugLog("Sender is op: "+sender.isOp());
         return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
+        Main.debugLog("Checking if sender is op");
         if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
             Main.sendMessage(commandSender, ConfigUtil.getNoPermission());
             return true;

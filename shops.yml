@@ -33,8 +33,6 @@
 # buy-lore ~ OPT ~ Custom lore to display on purchased item.              #
 # commands ~ Required only if type is COMMAND ~ List of commands to run.  #
 # #########################################################################
-
-
 Raiding:
   '0':
     type: COMMAND
@@ -554,287 +552,290 @@ Spawners:
     shop-name: Cave Spider Spawner
     mobType: 'CAVE_SPIDER'
 Blocks:
-  '0':
-    type: SHOP
-    id: STONE_BRICKS
-    buy-price: 100.0
-  '1':
-    type: SHOP
-    id: MOSSY_STONE_BRICKS
-    buy-price: 110.0
-  '2':
-    type: SHOP
-    id: CRACKED_STONE_BRICKS
-    buy-price: 120.0
-  '3':
-    type: SHOP
-    id: CHISELED_STONE_BRICKS
-    buy-price: 130.0
-  '4':
-    type: SHOP
-    id: STONE
-    buy-price: 140.0
-  '5':
-    type: SHOP
-    id: COBBLESTONE
-    buy-price: 150.0
-  '6':
-    type: SHOP
-    id: MOSSY_COBBLESTONE
-    buy-price: 160.0
-  '7':
-    type: SHOP
-    id: MYCELIUM
-    buy-price: 170.0
-  '8':
-    type: SHOP
-    id: GRASS
-    buy-price: 180.0
-  '9':
-    type: SHOP
-    id: DIRT
-    buy-price: 190.0
-  '10':
-    type: SHOP
-    id: OAK_LOG
-    buy-price: 200.0
-  '11':
-    type: SHOP
-    id: SPRUCE_LOG
-    buy-price: 210.0
-  '12':
-    type: SHOP
-    id: BIRCH_LOG
-    buy-price: 220.0
-  '13':
-    type: SHOP
-    id: JUNGLE_LOG
-    buy-price: 230.0
-  '14':
-    type: SHOP
-    id: ACACIA_LOG
-    buy-price: 240.0
-  '15':
-    type: SHOP
-    id: DARK_OAK_LOG
-    buy-price: 250.0
-  '16':
-    type: SHOP
-    id: SPONGE
-    buy-price: 260.0
-  '17':
-    type: SHOP
-    id: BRICKS
-    buy-price: 270.0
-  '18':
-    type: SHOP
-    id: BIRCH_WOOD
-    buy-price: 280.0
-  '19':
-    type: SHOP
-    id: JUNGLE_WOOD
-    buy-price: 290.0
-  '20':
-    type: SHOP
-    id: ACACIA_WOOD
-    buy-price: 300.0
-  '21':
-    type: SHOP
-    id: DARK_OAK_WOOD
-    buy-price: 310.0
-  '22':
-    type: SHOP
-    id: WHITE_WOOL
-    buy-price: 320.0
-  '23':
-    type: SHOP
-    id: CLAY
-    buy-price: 330.0
-  '24':
-    type: SHOP
-    id: LIGHT_BLUE_TERRACOTTA
-    buy-price: 340.0
-  '25':
-    type: SHOP
-    id: OBSIDIAN
-    buy-price: 350.0
-  '26':
-    type: SHOP
-    id: SANDSTONE
-    buy-price: 360.0
-  '27':
-    type: SHOP
-    id: SAND
-    buy-price: 370.0
-  '28':
-    type: SHOP
-    id: RED_SAND
-    buy-price: 380.0
-  '29':
-    type: SHOP
-    id: GLASS
-    buy-price: 390.0
-  '30':
-    type: SHOP
-    id: GRAVEL
-    buy-price: 101.0
-  '31':
-    type: SHOP
-    id: QUARTZ_BLOCK
-    buy-price: 102.0
-  '32':
-    type: SHOP
-    id: CHISELED_QUARTZ_BLOCK
-    buy-price: 103.0
-  '33':
-    type: SHOP
-    id: QUARTZ_PILLAR
-    buy-price: 104.0
-  '34':
-    type: SHOP
-    id: NETHER_BRICK
-    buy-price: 105.0
-  '35':
-    type: SHOP
-    id: NETHERRACK
-    buy-price: 106.0
-  '36':
-    type: SHOP
-    id: SOUL_SAND
-    buy-price: 107.0
-  '37':
-    type: SHOP
-    id: GLOWSTONE
-    buy-price: 108.0
-  '38':
-    type: SHOP
-    id: ENCHANTING_TABLE
-    buy-price: 100.0
-  '39':
-    type: SHOP
-    id: BOOKSHELF
-    buy-price: 109.0
-  '40':
-    type: SHOP
-    id: SNOW_BLOCK
-    buy-price: 110.0
-  '41':
-    type: SHOP
-    id: ICE
-    buy-price: 111.0
-  '42':
-    type: SHOP
-    id: PACKED_ICE
-    buy-price: 112.0
-  '43':
-    type: SHOP
-    id: END_STONE
-    buy-price: 113.0
-  '44':
-    type: SHOP
-    id: BEACON
-    buy-price: 114.0
-  '45':
-    type: SHOP
-    id: WHITE_WOOL
-    buy-price: 115.0
-  '46':
-    type: SHOP
-    id: ORANGE_WOOL
-    buy-price: 116.0
-  '47':
-    type: SHOP
-    id: MAGENTA_WOOL
-    buy-price: 117.0
-  '48':
-    type: SHOP
-    id: LIGHT_BLUE_WOOL
-    buy-price: 118.0
-  '49':
-    type: SHOP
-    id: YELLOW_WOOL
-    buy-price: 119.0
-  '50':
-    type: SHOP
-    id: LIME_WOOL
-    buy-price: 120.0
-  '51':
-    type: SHOP
-    id: PINK_WOOL
-    buy-price: 121.0
-  '52':
-    type: SHOP
-    id: GRAY_WOOL
-    buy-price: 122.0
-  '53':
-    type: SHOP
-    id: LIGHT_GRAY_WOOL
-    buy-price: 123.0
-  '54':
-    type: SHOP
-    id: CYAN_WOOL
-    buy-price: 124.0
-  '55':
-    type: SHOP
-    id: PURPLE_WOOL
-    buy-price: 125.0
-  '56':
-    type: SHOP
-    id: BLUE_WOOL
-    buy-price: 126.0
-  '57':
-    type: SHOP
-    id: BROWN_WOOL
-    buy-price: 127.0
-  '58':
-    type: SHOP
-    id: GREEN_WOOL
-    buy-price: 128.0
-  '59':
-    type: SHOP
-    id: RED_WOOL
-    buy-price: 129.0
-  '60':
-    type: SHOP
-    id: WHITE_STAINED_GLASS
-    buy-price: 131.0
-  '61':
-    type: SHOP
-    id: ORANGE_STAINED_GLASS
-    buy-price: 132.0
-  '62':
-    type: SHOP
-    id: MAGENTA_STAINED_GLASS
-    buy-price: 133.0
-  '63':
-    type: SHOP
-    id: LIGHT_BLUE_STAINED_GLASS
-    buy-price: 134.0
-  '64':
-    type: SHOP
-    id: YELLOW_STAINED_GLASS
-    buy-price: 135.0
-  '65':
-    type: SHOP
-    id: LIME_STAINED_GLASS
-    buy-price: 136.0
-  '66':
-    type: SHOP
-    id: PINK_STAINED_GLASS
-    buy-price: 137.0
-  '67':
-    type: SHOP
-    id: GRAY_STAINED_GLASS
-    buy-price: 138.0
-  '68':
-    type: SHOP
-    id: LIGHT_GRAY_STAINED_GLASS
-    buy-price: 139.0
-  '69':
-    type: SHOP
-    id: CYAN_STAINED_GLASS
-    buy-price: 140.0
-  '70':
-    type: SHOP
-    id: PURPLE_STAINED_GLASS
-    buy-price: 141.0
+    Pages:
+        Page0:
+            '0':
+              type: SHOP
+              id: STONE_BRICKS
+              buy-price: 100.0
+            '1':
+              type: SHOP
+              id: MOSSY_STONE_BRICKS
+              buy-price: 110.0
+            '2':
+              type: SHOP
+              id: CRACKED_STONE_BRICKS
+              buy-price: 120.0
+            '3':
+              type: SHOP
+              id: CHISELED_STONE_BRICKS
+              buy-price: 130.0
+            '4':
+              type: SHOP
+              id: STONE
+              buy-price: 140.0
+            '5':
+              type: SHOP
+              id: COBBLESTONE
+              buy-price: 150.0
+            '6':
+              type: SHOP
+              id: MOSSY_COBBLESTONE
+              buy-price: 160.0
+            '7':
+              type: SHOP
+              id: MYCELIUM
+              buy-price: 170.0
+            '8':
+              type: SHOP
+              id: GRASS
+              buy-price: 180.0
+            '9':
+              type: SHOP
+              id: DIRT
+              buy-price: 190.0
+            '10':
+              type: SHOP
+              id: OAK_LOG
+              buy-price: 200.0
+            '11':
+              type: SHOP
+              id: SPRUCE_LOG
+              buy-price: 210.0
+            '12':
+              type: SHOP
+              id: BIRCH_LOG
+              buy-price: 220.0
+            '13':
+              type: SHOP
+              id: JUNGLE_LOG
+              buy-price: 230.0
+            '14':
+              type: SHOP
+              id: ACACIA_LOG
+              buy-price: 240.0
+            '15':
+              type: SHOP
+              id: DARK_OAK_LOG
+              buy-price: 250.0
+            '16':
+              type: SHOP
+              id: SPONGE
+              buy-price: 260.0
+            '17':
+              type: SHOP
+              id: BRICKS
+              buy-price: 270.0
+            '18':
+              type: SHOP
+              id: BIRCH_WOOD
+              buy-price: 280.0
+            '19':
+              type: SHOP
+              id: JUNGLE_WOOD
+              buy-price: 290.0
+            '20':
+              type: SHOP
+              id: ACACIA_WOOD
+              buy-price: 300.0
+            '21':
+              type: SHOP
+              id: DARK_OAK_WOOD
+              buy-price: 310.0
+            '22':
+              type: SHOP
+              id: WHITE_WOOL
+              buy-price: 320.0
+            '23':
+              type: SHOP
+              id: CLAY
+              buy-price: 330.0
+            '24':
+              type: SHOP
+              id: LIGHT_BLUE_TERRACOTTA
+              buy-price: 340.0
+            '25':
+              type: SHOP
+              id: OBSIDIAN
+              buy-price: 350.0
+            '26':
+              type: SHOP
+              id: SANDSTONE
+              buy-price: 360.0
+            '27':
+              type: SHOP
+              id: SAND
+              buy-price: 370.0
+            '28':
+              type: SHOP
+              id: RED_SAND
+              buy-price: 380.0
+            '29':
+              type: SHOP
+              id: GLASS
+              buy-price: 390.0
+            '30':
+              type: SHOP
+              id: GRAVEL
+              buy-price: 101.0
+            '31':
+              type: SHOP
+              id: QUARTZ_BLOCK
+              buy-price: 102.0
+            '32':
+              type: SHOP
+              id: CHISELED_QUARTZ_BLOCK
+              buy-price: 103.0
+            '33':
+              type: SHOP
+              id: QUARTZ_PILLAR
+              buy-price: 104.0
+            '34':
+              type: SHOP
+              id: NETHER_BRICK
+              buy-price: 105.0
+            '35':
+              type: SHOP
+              id: NETHERRACK
+              buy-price: 106.0
+            '36':
+              type: SHOP
+              id: SOUL_SAND
+              buy-price: 107.0
+            '37':
+              type: SHOP
+              id: GLOWSTONE
+              buy-price: 108.0
+            '38':
+              type: SHOP
+              id: ENCHANTING_TABLE
+              buy-price: 100.0
+            '39':
+              type: SHOP
+              id: BOOKSHELF
+              buy-price: 109.0
+            '40':
+              type: SHOP
+              id: SNOW_BLOCK
+              buy-price: 110.0
+            '41':
+              type: SHOP
+              id: ICE
+              buy-price: 111.0
+            '42':
+              type: SHOP
+              id: PACKED_ICE
+              buy-price: 112.0
+            '43':
+              type: SHOP
+              id: END_STONE
+              buy-price: 113.0
+            '44':
+              type: SHOP
+              id: BEACON
+              buy-price: 114.0
+        PAGE1:      
+            '0':
+              type: SHOP
+              id: WHITE_WOOL
+              buy-price: 115.0
+            '1':
+              type: SHOP
+              id: ORANGE_WOOL
+              buy-price: 116.0
+            '2':
+              type: SHOP
+              id: MAGENTA_WOOL
+              buy-price: 117.0
+            '3':
+              type: SHOP
+              id: LIGHT_BLUE_WOOL
+              buy-price: 118.0
+            '4':
+              type: SHOP
+              id: YELLOW_WOOL
+              buy-price: 119.0
+            '5':
+              type: SHOP
+              id: LIME_WOOL
+              buy-price: 120.0
+            '6':
+              type: SHOP
+              id: PINK_WOOL
+              buy-price: 121.0
+            '7':
+              type: SHOP
+              id: GRAY_WOOL
+              buy-price: 122.0
+            '8':
+              type: SHOP
+              id: LIGHT_GRAY_WOOL
+              buy-price: 123.0
+            '9':
+              type: SHOP
+              id: CYAN_WOOL
+              buy-price: 124.0
+            '10':
+              type: SHOP
+              id: PURPLE_WOOL
+              buy-price: 125.0
+            '11':
+              type: SHOP
+              id: BLUE_WOOL
+              buy-price: 126.0
+            '12':
+              type: SHOP
+              id: BROWN_WOOL
+              buy-price: 127.0
+            '13':
+              type: SHOP
+              id: GREEN_WOOL
+              buy-price: 128.0
+            '14':
+              type: SHOP
+              id: RED_WOOL
+              buy-price: 129.0
+            '15':
+              type: SHOP
+              id: WHITE_STAINED_GLASS
+              buy-price: 131.0
+            '16':
+              type: SHOP
+              id: ORANGE_STAINED_GLASS
+              buy-price: 132.0
+            '17':
+              type: SHOP
+              id: MAGENTA_STAINED_GLASS
+              buy-price: 133.0
+            '18':
+              type: SHOP
+              id: LIGHT_BLUE_STAINED_GLASS
+              buy-price: 134.0
+            '19':
+              type: SHOP
+              id: YELLOW_STAINED_GLASS
+              buy-price: 135.0
+            '20':
+              type: SHOP
+              id: LIME_STAINED_GLASS
+              buy-price: 136.0
+            '21':
+              type: SHOP
+              id: PINK_STAINED_GLASS
+              buy-price: 137.0
+            '22':
+              type: SHOP
+              id: GRAY_STAINED_GLASS
+              buy-price: 138.0
+            '23':
+              type: SHOP
+              id: LIGHT_GRAY_STAINED_GLASS
+              buy-price: 139.0
+            '24':
+              type: SHOP
+              id: CYAN_STAINED_GLASS
+              buy-price: 140.0
+            '25':
+              type: SHOP
+              id: PURPLE_STAINED_GLASS
+              buy-price: 141.0

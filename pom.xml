@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>8.2</version>
+    <version>8.3</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -237,13 +237,6 @@
                                 <configuration>
                                     <artifactItems>
                                         <artifactItem>
-                                            <groupId>${project.groupId}</groupId>
-                                            <artifactId>${project.artifactId}</artifactId>
-                                            <version>${project.version}</version>
-                                            <type>${project.packaging}</type>
-                                            <overWrite>true</overWrite>
-                                        </artifactItem>
-                                        <artifactItem>
                                             <groupId>net.milkbowl.vault</groupId>
                                             <artifactId>Vault</artifactId>
                                             <version>1.7.3</version>
@@ -262,10 +255,11 @@
                     <plugin>
                         <groupId>de.garrus.maven</groupId>
                         <artifactId>minecraft-server-plugin</artifactId>
-                        <version>1.0.1</version>
+                        <version>1.0.2</version>
                         <configuration>
-                            <serverVersion>1.15.2</serverVersion>
+                            <serverVersion>1.16.3</serverVersion>
                             <createEula>true</createEula>
+                            <gui>true</gui>
                         </configuration>
                     </plugin>
                 </plugins>

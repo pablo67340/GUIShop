@@ -32,6 +32,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.definition.CommandsMode;
+import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -95,7 +96,7 @@ public final class Main extends JavaPlugin {
     public static final Set<String> SELL_COMMANDS = new HashSet<>();
 
     @Getter
-    public Map<String, Map<Integer, Item>> loadedShops = new HashMap<>();
+    public Map<String, ShopItem> loadedShops = new HashMap<>();
 
     @Getter
     private final Map<String, Item> ITEMTABLE = new HashMap<>();

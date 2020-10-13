@@ -96,7 +96,7 @@ public final class Main extends JavaPlugin {
     public static final Set<String> SELL_COMMANDS = new HashSet<>();
 
     @Getter
-    public Map<String, ShopItem> loadedShops = new HashMap<>();
+    public Map<String, Object> loadedShops = new HashMap<>();
 
     @Getter
     private final Map<String, Item> ITEMTABLE = new HashMap<>();
@@ -110,10 +110,6 @@ public final class Main extends JavaPlugin {
 
     @Getter
     private final MatLib matLib = new MatLib();
-
-    @Getter
-    @Setter
-    private Boolean creatorRefresh = false;
 
     @Getter
     private final Map<UUID, Shop> openShopInstances = new HashMap<>();
@@ -189,7 +185,6 @@ public final class Main extends JavaPlugin {
         });
 
         new Menu().itemWarmup();
-        loadPRICETABLE();
     }
 
     /**
@@ -363,52 +358,6 @@ public final class Main extends JavaPlugin {
         ConfigUtil.setDebugMode(getMainConfig().getBoolean("debug-mode"));
     }
 
-    private void loadPRICETABLE() {
-
-        for (String shop : Main.getINSTANCE().getCustomConfig().getKeys(false)) {
-
-            ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop);
-            if (config == null) {
-                log("Check the section for shop " + shop + " in the shops.yml. It was not found.");
-                continue;
-            }
-
-            assert config != null;
-            for (String str : config.getKeys(false)) {
-
-                Item item = new Item();
-
-                ConfigurationSection section = config.getConfigurationSection(str);
-                if (section == null) {
-                    log("Check the config section for item " + str + " in shop " + shop + " the shops.yml. It is not a valid section.");
-                    continue;
-                }
-
-                item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
-                if (item.isAnyPotion()) {
-                    ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
-                    if (potionSection != null) {
-                        item.parsePotionType(potionSection.getString("type"),
-                                potionSection.getBoolean("splash", false),
-                                potionSection.getBoolean("extended", false), potionSection.getInt("amplifier", -1));
-                    }
-                }
-                item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : "PIG"));
-
-                item.setBuyPrice(section.get("buy-price"));
-
-                item.setSellPrice(section.get("sell-price"));
-
-                item.setItemType(
-                        section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
-
-                item.setUseDynamicPricing(section.getBoolean("use-dynamic-price", true));
-
-                ITEMTABLE.put(item.getItemString(), item);
-            }
-        }
-    }
-
     /**
      * Force create all YML files.
      */
@@ -440,6 +389,7 @@ public final class Main extends JavaPlugin {
     }
 
     public void reload(Player player, Boolean ignoreCreator) {
+        Main.debugLog("GUIShop Reloaded");
         createFiles();
         shops.clear();
         ITEMTABLE.clear();

@@ -56,6 +56,10 @@ public final class Sell {
             }
 
             String itemString = Item.getItemStringForItemStack(item);
+            
+            Main.debugLog("checking if: "+itemString+" is in item table");
+            
+            Main.debugLog(Main.getINSTANCE().getITEMTABLE().toString());
 
             Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
             if (shopItem == null || !shopItem.hasSellPrice()) {

@@ -31,7 +31,6 @@ import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.definition.ShopPage;
 import com.pablo67340.guishop.util.ConfigUtil;
 import java.io.IOException;
-import java.util.Map.Entry;
 
 import lombok.Getter;
 
@@ -78,6 +77,8 @@ public class Shop {
 
     private final List<Integer> blacklistedSlots = new ArrayList<>(Arrays.asList(53, 52, 50, 49, 48, 46, 45));
 
+    private Player player;
+
     /**
      * The constructor for a {@link Shop}.
      *
@@ -85,12 +86,13 @@ public class Shop {
      * @param description The description of the shop.
      * @param lore The lore of the shop.
      */
-    Shop(String shop, String name, String description, List<String> lore, Menu menuInstance) {
+    Shop(Player player, String shop, String name, String description, List<String> lore, Menu menuInstance) {
         this.name = name;
         this.shop = shop;
         this.description = description;
         this.lore = lore;
         this.menuInstance = menuInstance;
+        this.player = player;
     }
 
     /**
@@ -101,12 +103,13 @@ public class Shop {
      * @param description The description of the shop.
      * @param lore The lore of the shop.
      */
-    public Shop(String shop, String name, String description, List<String> lore) {
+    public Shop(Player player, String shop, String name, String description, List<String> lore) {
         this.name = name;
         this.shop = shop;
         this.description = description;
         this.lore = lore;
         this.menuInstance = null;
+        this.player = player;
     }
 
     /**
@@ -116,13 +119,14 @@ public class Shop {
      * @param description The description of the shop.
      * @param lore The lore of the shop.
      */
-    Shop(String shop, String name, String description, List<String> lore, Menu menuInstance, ShopItem shopItem) {
+    Shop(Player player, String shop, String name, String description, List<String> lore, Menu menuInstance, ShopItem shopItem) {
         this.name = name;
         this.shop = shop;
         this.description = description;
         this.lore = lore;
         this.menuInstance = menuInstance;
         this.shopItem = shopItem;
+        this.player = player;
     }
 
     /**
@@ -131,7 +135,7 @@ public class Shop {
     public void loadItems() {
         if (!Main.getINSTANCE().getLoadedShops().containsKey(shop)) {
             shopItem = new ShopItem();
-            ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop+".pages");
+            ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop + ".pages");
             Main.debugLog("Loading items for shop: " + shop);
 
             if (config == null) {
@@ -139,7 +143,7 @@ public class Shop {
             } else {
                 config.getKeys(false).stream().map(str -> {
                     ShopPage page = new ShopPage();
-                    ConfigurationSection shopItems = config.getConfigurationSection(str+".items");
+                    ConfigurationSection shopItems = config.getConfigurationSection(str + ".items");
                     Main.debugLog("Reading Page: " + str);
                     shopItems.getKeys(false).stream().map(key -> {
                         Item item = new Item();
@@ -175,25 +179,21 @@ public class Shop {
                                 (section.contains("buy-lore") ? section.getStringList("buy-lore") : new ArrayList<>()));
                         item.setCommands(
                                 (section.contains("commands") ? section.getStringList("commands") : new ArrayList<>()));
-                        return item;
-                    }).map(item -> {
                         Main.getINSTANCE().getITEMTABLE().put(item.getItemString(), item);
+                        Main.debugLog("Added " + item.getItemString() + " to table");
                         return item;
                     }).forEachOrdered(item -> {
-                        String mapSlot = Integer.toString(page.getItems().values().size());
-                        page.getItems().put(mapSlot, item);
+                        page.getItems().put(Integer.toString(item.getSlot()), item);
                     });
                     return page;
                 }).forEachOrdered(page -> {
-                    String pageTitle = "Page"+(shopItem.getPages().size());
-                    Main.debugLog("Added page to: "+pageTitle);
-                    shopItem.getPages().put(pageTitle, page);
+                    shopItem.getPages().put("Page" + Integer.toString(shopItem.getPages().size()), page);
                 });
 
                 Main.getINSTANCE().getLoadedShops().put(shop, shopItem);
             }
         } else {
-            shopItem = Main.getINSTANCE().getLoadedShops().get(shop);
+            shopItem = (ShopItem) Main.getINSTANCE().getLoadedShops().get(shop);
             loadShop();
         }
     }
@@ -202,14 +202,13 @@ public class Shop {
         this.GUI = new Gui(Main.getINSTANCE(), 6,
                 ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", getName())));
         PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
-        int pageIndex = 0;
-        for (ShopPage page : shopItem.getPages().values()) {
+        Collection<ShopPage> shopPages = shopItem.getPages().values();
+        for (ShopPage page : shopPages) {
             shopPage = new ShopPane(9, 6);
-            Collection<Item> shopPages = page.getItems().values();
-            for (Item item : shopPages) {
-                GuiItem gItem = item.parseMaterial();
+            for (Item item : page.getItems().values()) {
+                ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()));
                 Main.debugLog("Adding item to slot: " + item.getSlot());
-                if (gItem == null) {
+                if (itemStack == null) {
                     Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
                     shopPage.addBlankItem();
                     continue;
@@ -219,13 +218,25 @@ public class Shop {
                 // Null items as there is a item type switch in the lines above.
                 if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 
-                    ItemStack itemStack = gItem.getItem();
                     ItemMeta itemMeta = itemStack.getItemMeta();
+                    
 
                     if (itemMeta == null) {
                         Main.debugLog("Item + " + item.getMaterial() + " could not be resolved (null meta)");
                         shopPage.addBlankItem();
                         continue;
+                    }
+                    if (player != null) {
+                        if (Main.getCREATOR().contains(player.getName())) {
+                            NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                            if (item.hasBuyPrice()) {
+                                comp.setDouble("buyPrice", item.getBuyPriceAsDouble());
+                            }
+                            if (item.hasSellPrice()) {
+                                comp.setDouble("sellPrice", item.getSellPriceAsDouble());
+                            }
+                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+                        }
                     }
 
                     List<String> itemLore = new ArrayList<>();
@@ -278,13 +289,15 @@ public class Shop {
 
                 // Create Page
                 Main.debugLog("Setting item to slot: " + item.getSlot());
+                GuiItem gItem = new GuiItem(itemStack);
                 shopPage.setItem(gItem, item.getSlot());
 
             }
 
-            applyButtons(shopPage, pageIndex, shopItem.getPages().size());
+            applyButtons(shopPage, pageIndex, shopPages.size());
             pane.addPane(pageIndex, shopPage);
             pageIndex += 1;
+
         }
 
         GUI.addPane(pane);
@@ -370,6 +383,10 @@ public class Shop {
             return;
         }
 
+        if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
+            return;
+        }
+
         // Forward Button
         Main.debugLog("Clicked: " + e.getSlot());
         if (e.getSlot() == 51) {
@@ -434,7 +451,7 @@ public class Shop {
          */
         Main.debugLog("Creator Status:" + Main.getCREATOR().contains(player.getName()));
         if (!Main.getCREATOR().contains(player.getName())) {
-            Item item = shopItem.getPages().get("Page"+currentPane.getPage()).getItems().get(e.getSlot());
+            Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(e.getSlot()));
 
             if (item == null) {
                 return;
@@ -537,11 +554,11 @@ public class Shop {
 
     private void deleteShopItem(Integer slot) {
         Main.debugLog("Deleting Item: " + slot);
-        Main.getINSTANCE().setCreatorRefresh(true);
         Item dedItem = new Item();
         dedItem.setMaterial("DED");
         dedItem.setSlot(slot);
-        shopItem.getPages().get("Page"+currentPane.getPage()).getItems().put(Integer.toString(slot), dedItem);
+        shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(slot), dedItem);
+        Main.getINSTANCE().getLoadedShops().put(shop, shopItem);
     }
 
     /**
@@ -565,15 +582,13 @@ public class Shop {
 
     public void editShopItem(ItemStack itemStack, int slot) {
         Item item = new Item();
-        Integer mult = (44 * currentPane.getPage());
-        Integer configSlot = slot + mult;
-        Main.getINSTANCE().setCreatorRefresh(true);
+
         if (itemStack != null) {
             NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
             ItemMeta im = itemStack.getItemMeta();
             item.setItemType(ItemType.SHOP);
             item.setMaterial(itemStack.getType().toString());
-            item.setSlot(configSlot);
+            item.setSlot(slot);
             if (comp.hasKey("buyPrice")) {
 
                 Object buyPrice = getBuyPrice(itemStack);
@@ -631,11 +646,13 @@ public class Shop {
                 item.setBuyLore(Arrays.asList(parsedLore));
             }
         }
-        shopItem.getPages().get("Page"+currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
+        shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
 
-        Main.debugLog("Player Edited Item: " + item.getMaterial() + " slot: " + configSlot);
+        Main.debugLog("Player Edited Item: " + item.getMaterial() + " slot: " + slot);
 
     }
+
+    Integer pageIndex = 0;
 
     /**
      * Save the items for current shop instance
@@ -644,14 +661,65 @@ public class Shop {
      */
     public void saveItems(Player player) {
 
-        Main.debugLog("Saving Shop: " + shop);
+        Main.debugLog("Getting Section for: " + shop);
 
-        for (Entry<String, ShopPage> page : shopItem.getPages().entrySet()){
-            for (Entry<String, Item> items : page.getValue().getItems().entrySet()){
-                Main.getINSTANCE().getCustomConfig().set(shop+".pages."+page.getKey()+".items."+items.getKey(), items.getValue());
-            }
-        }
+        ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop) != null
+                ? Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop)
+                : Main.getINSTANCE().getCustomConfig().createSection(shop);
 
+        Main.debugLog("Config: " + config);
+        pageIndex = 0;
+        Main.getINSTANCE().getLoadedShops().put(shop, shopItem);
+        shopItem.getPages().values().forEach(page -> {
+            String pageNumber = "Page" + pageIndex;
+            page.getItems().values().forEach(item -> {
+
+                if (!item.getMaterial().equalsIgnoreCase("DED")) {
+                    config.set("pages." + pageNumber + ".items." + item.getSlot() + "", null);
+                    ConfigurationSection section = config.createSection("pages." + pageNumber + ".items." + item.getSlot() + "");
+                    section.set("type", item.getItemType().toString());
+                    section.set("id", item.getMaterial());
+                    if (item.hasBuyPrice()) {
+                        section.set("buy-price", item.getBuyPrice());
+                    }
+                    if (item.hasSellPrice()) {
+                        section.set("sell-price", item.getSellPrice());
+                    }
+                    if (item.hasShopLore()) {
+                        section.set("shop-lore", item.getShopLore());
+                    }
+                    if (item.hasShopName()) {
+                        section.set("shop-name", item.getShopName());
+                    }
+                    if (item.hasBuyName()) {
+                        section.set("buy-name", item.getBuyName());
+                    }
+                    if (item.hasEnchantments()) {
+                        String parsed = "";
+                        for (String str : item.getEnchantments()) {
+                            parsed += str + " ";
+                        }
+                        section.set("enchantments", parsed.trim());
+                    }
+                    if (item.hasShopLore()) {
+                        section.set("shop-lore", item.getShopLore());
+                    }
+                    if (item.hasBuyLore()) {
+                        section.set("buy-lore", item.getBuyLore());
+                    }
+                    if (item.hasCommands()) {
+                        section.set("commands", item.getCommands());
+                    }
+                    if (item.hasMobType()) {
+                        section.set("mobType", item.getMobType());
+                    }
+                } else {
+                    Main.debugLog("Item was ded: " + item.getSlot());
+                    config.set("pages." + pageNumber + ".items." + item.getSlot() + "", null);
+                }
+            });
+            pageIndex += 1;
+        });
         try {
             Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());
         } catch (IOException ex) {

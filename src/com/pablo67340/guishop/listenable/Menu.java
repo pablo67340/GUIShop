@@ -6,6 +6,7 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
+import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.ConfigUtil;
 import org.bukkit.ChatColor;
@@ -44,7 +45,7 @@ public final class Menu {
         Main.getINSTANCE().getLogger().log(Level.INFO, "Warming Items...");
         long startTime = System.currentTimeMillis();
         Main.getINSTANCE().getShops().values().stream().filter(shopDef -> (shopDef.getItemType() == ItemType.SHOP)).forEachOrdered(shopDef -> {
-            new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
+            new Shop(null, shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(), this)
                     .loadItems();
         });
         long estimatedTime = System.currentTimeMillis() - startTime;
@@ -167,11 +168,11 @@ public final class Menu {
              */
             Shop openShop;
             if (!Main.getINSTANCE().getLoadedShops().containsKey(shopDef.getName())) {
-                openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+                openShop = new Shop(player, shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
                         this);
             } else {
-                openShop = new Shop(shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
-                        this, Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
+                openShop = new Shop(player, shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+                        this, (ShopItem)Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
             }
 
             openShop.loadItems();

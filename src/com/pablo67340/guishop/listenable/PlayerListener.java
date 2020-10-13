@@ -33,11 +33,6 @@ public final class PlayerListener implements Listener {
     public static final PlayerListener INSTANCE = new PlayerListener();
 
     public void openShop(Player player) {
-        if (Main.getINSTANCE().getCreatorRefresh()) {
-            Main.sendMessage(player, "&aGUIShop config was recently edited in creator mode. Reloading before opening...");
-            Main.getINSTANCE().reload(player, true);
-            Main.getINSTANCE().setCreatorRefresh(false);
-        }
         Menu menu = new Menu();
         menu.open(player);
     }

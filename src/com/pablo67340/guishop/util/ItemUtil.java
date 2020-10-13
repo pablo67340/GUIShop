@@ -12,6 +12,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import com.pablo67340.guishop.Main;
 
 public final class ItemUtil {
 
@@ -90,7 +91,14 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
         if (im.getLore() != null) {
-            lore.addAll(im.getLore());
+            for (String str : im.getLore()){
+                if (!(price instanceof Boolean)){
+                    Main.debugLog("Checking if "+str+" is "+ConfigUtil.getCannotSell());
+                    if (!str.equalsIgnoreCase(ConfigUtil.getCannotSell())){
+                        lore.add(str);
+                    }
+                }
+            }
         }
 
         lore.add(ConfigUtil.getSellLore().replace("{amount}", price + ""));
@@ -108,7 +116,7 @@ public final class ItemUtil {
             comp.remove("sellPrice");
         } else {
             player.sendMessage(
-                    ConfigUtil.getPrefix() + " Pleas enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
+                    ConfigUtil.getPrefix() + " Please enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
         }
 
         item = ItemNBTUtil.setNBTTag(comp, item);

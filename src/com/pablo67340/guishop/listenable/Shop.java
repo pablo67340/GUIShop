@@ -77,7 +77,7 @@ public class Shop {
 
     private final List<Integer> blacklistedSlots = new ArrayList<>(Arrays.asList(53, 52, 50, 49, 48, 46, 45));
 
-    private Player player;
+    private final Player player;
 
     /**
      * The constructor for a {@link Shop}.
@@ -92,40 +92,6 @@ public class Shop {
         this.description = description;
         this.lore = lore;
         this.menuInstance = menuInstance;
-        this.player = player;
-    }
-
-    /**
-     * The constructor for a {@link Shop}.
-     *
-     * @param shop The Shop ID.
-     * @param name The name of the shop.
-     * @param description The description of the shop.
-     * @param lore The lore of the shop.
-     */
-    public Shop(Player player, String shop, String name, String description, List<String> lore) {
-        this.name = name;
-        this.shop = shop;
-        this.description = description;
-        this.lore = lore;
-        this.menuInstance = null;
-        this.player = player;
-    }
-
-    /**
-     * The constructor for a {@link Shop}.
-     *
-     * @param name The name of the shop.
-     * @param description The description of the shop.
-     * @param lore The lore of the shop.
-     */
-    Shop(Player player, String shop, String name, String description, List<String> lore, Menu menuInstance, ShopItem shopItem) {
-        this.name = name;
-        this.shop = shop;
-        this.description = description;
-        this.lore = lore;
-        this.menuInstance = menuInstance;
-        this.shopItem = shopItem;
         this.player = player;
     }
 
@@ -180,17 +146,18 @@ public class Shop {
                         item.setCommands(
                                 (section.contains("commands") ? section.getStringList("commands") : new ArrayList<>()));
                         Main.getINSTANCE().getITEMTABLE().put(item.getItemString(), item);
-                        Main.debugLog("Added " + item.getItemString() + " to table");
                         return item;
                     }).forEachOrdered(item -> {
                         page.getItems().put(Integer.toString(item.getSlot()), item);
                     });
                     return page;
                 }).forEachOrdered(page -> {
+                    Main.debugLog("Adding page: " + "Page" + Integer.toString(shopItem.getPages().size()) + " to pages.");
                     shopItem.getPages().put("Page" + Integer.toString(shopItem.getPages().size()), page);
                 });
-
+                Main.debugLog("Shop items added to loaded shops");
                 Main.getINSTANCE().getLoadedShops().put(shop, shopItem);
+                loadShop();
             }
         } else {
             shopItem = (ShopItem) Main.getINSTANCE().getLoadedShops().get(shop);
@@ -219,24 +186,11 @@ public class Shop {
                 if (item.getItemType() == ItemType.SHOP || item.getItemType() == ItemType.COMMAND) {
 
                     ItemMeta itemMeta = itemStack.getItemMeta();
-                    
 
                     if (itemMeta == null) {
                         Main.debugLog("Item + " + item.getMaterial() + " could not be resolved (null meta)");
                         shopPage.addBlankItem();
                         continue;
-                    }
-                    if (player != null) {
-                        if (Main.getCREATOR().contains(player.getName())) {
-                            NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                            if (item.hasBuyPrice()) {
-                                comp.setDouble("buyPrice", item.getBuyPriceAsDouble());
-                            }
-                            if (item.hasSellPrice()) {
-                                comp.setDouble("sellPrice", item.getSellPriceAsDouble());
-                            }
-                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
-                        }
                     }
 
                     List<String> itemLore = new ArrayList<>();
@@ -245,12 +199,78 @@ public class Shop {
 
                     itemLore.add(item.getSellLore(1));
 
-                    if (item.hasShopLore()) {
-                        item.getShopLore().forEach(str -> {
-                            if (!itemLore.contains(str) && !itemLore.contains(ConfigUtil.getBuyLore().replace("{AMOUNT}", Double.toString(item.calculateBuyPrice(1))))) {
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                    if (player != null) {
+                        if (!Main.getCREATOR().contains(player.getName())) {
+                            if (item.hasShopName()) {
+                                assert itemMeta != null;
+                                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
+                            } else if (item.isMobSpawner()) {
+                                String mobName = item.getMobType();
+                                mobName = mobName.toLowerCase();
+                                mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+                                assert itemMeta != null;
+                                itemMeta.setDisplayName(mobName + " Spawner");
                             }
-                        });
+                            if (item.hasEnchantments()) {
+                                for (String str : item.getEnchantments()) {
+                                    String enchant = StringUtils.substringBefore(str, ":");
+                                    String level = StringUtils.substringAfter(str, ":");
+                                    itemLore.add(enchant + " " + level);
+                                }
+                            }
+                            if (item.hasShopLore()) {
+                                item.getShopLore().forEach(str -> {
+                                    if (!itemLore.contains(str) && !itemLore.contains(ConfigUtil.getBuyLore().replace("{AMOUNT}", Double.toString(item.calculateBuyPrice(1))))) {
+                                        itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                                    }
+                                });
+                            }
+                        } else {
+                            itemLore.add(" ");
+                            itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fItem Type: &r" + item.getItemType().toString()));
+                            if (item.hasShopName()) {
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Name: &r" + item.getShopName()));
+                            }
+                            if (item.hasBuyName()) {
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Name: &r" + item.getBuyName()));
+                            }
+                            if (item.hasBuyLore()) {
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
+                                for (String str : item.getBuyLore()) {
+                                    itemLore.add(str);
+                                }
+                            }
+                            if (item.hasShopLore()) {
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
+                                for (String str : item.getShopLore()) {
+                                    itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                                }
+                            }
+                            if (item.hasCommands()) {
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fCommands: "));
+                                for (String str : item.getCommands()) {
+                                    if (str.length() > 20) {
+                                        String s = ChatColor.translateAlternateColorCodes('&', "/" + str);
+                                        s = s.substring(0, Math.min(s.length(), 20));
+                                        itemLore.add(s + "...");
+                                    } else {
+                                        itemLore.add("/"+str);
+                                    }
+                                }
+                            }
+                            if (item.hasEnchantments()) {
+                                String enchantments = "";
+                                for (String str : item.getEnchantments()) {
+                                    enchantments += str + " ";
+                                }
+                                itemLore.add("Enchantments: " + enchantments.trim());
+                            }
+                        }
                     }
 
                     if (!itemLore.isEmpty()) {
@@ -258,28 +278,84 @@ public class Shop {
                         itemMeta.setLore(itemLore);
                     }
 
-                    if (item.hasShopName()) {
-                        assert itemMeta != null;
-                        itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
-                    } else if (item.isMobSpawner()) {
-                        String mobName = item.getMobType();
-                        mobName = mobName.toLowerCase();
-                        mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
-                        assert itemMeta != null;
-                        itemMeta.setDisplayName(mobName + " Spawner");
-                    }
+                    itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                    itemStack.setItemMeta(itemMeta);
 
-                    if (item.getEnchantments() != null) {
-                        if (item.getEnchantments().length > 1) {
-                            for (String enc : item.getEnchantments()) {
-                                String enchantment = StringUtils.substringBefore(enc, ":");
-                                String level = StringUtils.substringAfter(enc, ":");
-                                itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
+                    if (player != null) {
+                        if (Main.getCREATOR().contains(player.getName())) {
+                            NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                            Main.debugLog("USER IN CREATOR.Setting item Buy Price");
+                            if (item.hasBuyPrice()) {
+                                comp.setDouble("buyPrice", item.getBuyPriceAsDouble());
                             }
+                            if (item.hasSellPrice()) {
+                                comp.setDouble("sellPrice", item.getSellPriceAsDouble());
+                            }
+                            if (item.hasBuyName()) {
+                                comp.setString("buyName", item.getBuyName());
+                            }
+                            if (item.hasShopName()) {
+                                comp.setString("shopName", item.getShopName());
+                            }
+                            if (item.hasEnchantments()) {
+                                String enchantments = "";
+                                for (String str : item.getEnchantments()) {
+                                    enchantments += str + ",";
+                                }
+                                comp.setString("enchantments", enchantments);
+                            }
+                            if (item.hasShopLore()) {
+                                String lor = "";
+                                int index = 0;
+                                for (String str : item.getShopLore()) {
+                                    if (index != (item.getShopLore().size() - 1)) {
+                                        lor += str + "::";
+                                    } else {
+                                        lor += str;
+                                    }
+                                    index += 1;
+                                }
+                                comp.setString("shopLoreLines", lor);
+                            }
+                            if (item.hasBuyLore()) {
+                                String lor = "";
+                                int index = 0;
+                                for (String str : item.getBuyLore()) {
+                                    if (index != (item.getBuyLore().size() - 1)) {
+                                        lor += str + "::";
+                                    } else {
+                                        lor += str;
+                                    }
+                                    index += 1;
+                                }
+                                comp.setString("loreLines", lor);
+                            }
+                            if (item.hasCommands()) {
+                                String lor = "";
+                                int index = 0;
+                                for (String str : item.getCommands()) {
+                                    if (index != (item.getCommands().size() - 1)) {
+                                        lor += str + "::";
+                                    } else {
+                                        lor += str;
+                                    }
+                                    index += 1;
+                                }
+                                comp.setString("commands", lor);
+                            }
+                            comp.setString("itemType", item.getItemType().toString());
+                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
                         }
                     }
 
-                    itemStack.setItemMeta(itemMeta);
+                    if (item.hasEnchantments()) {
+                        for (String enc : item.getEnchantments()) {
+                            String enchantment = StringUtils.substringBefore(enc, ":");
+                            String level = StringUtils.substringAfter(enc, ":");
+                            itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
+                        }
+
+                    }
 
                     if (item.hasPotion()) {
                         item.getPotion().apply(itemStack);
@@ -372,7 +448,6 @@ public class Shop {
             e.setCancelled(true);
             return;
         }
-        Player player = (Player) e.getWhoClicked();
         Main.debugLog("Click");
         if (!Main.getCREATOR().contains(player.getName())) {
             e.setCancelled(true);
@@ -565,7 +640,6 @@ public class Shop {
      * The inventory closeEvent handling for the Menu.
      */
     private void onClose(InventoryCloseEvent e) {
-        Player player = (Player) e.getPlayer();
         if (!Main.CREATOR.contains(player.getName())) {
             if (ConfigUtil.isEscapeOnly() && !hasClicked) {
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
@@ -585,12 +659,12 @@ public class Shop {
 
         if (itemStack != null) {
             NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+            Main.debugLog(comp.toString());
             ItemMeta im = itemStack.getItemMeta();
             item.setItemType(ItemType.SHOP);
             item.setMaterial(itemStack.getType().toString());
             item.setSlot(slot);
             if (comp.hasKey("buyPrice")) {
-
                 Object buyPrice = getBuyPrice(itemStack);
                 Main.debugLog("had buyPrice comp: " + buyPrice);
                 item.setBuyPrice(buyPrice);
@@ -601,8 +675,8 @@ public class Shop {
                 item.setSellPrice(sellPrice);
             }
 
-            if (im.hasDisplayName()) {
-                item.setShopName(im.getDisplayName());
+            if (comp.hasKey("shopName")) {
+                item.setShopName(comp.getString("shopName"));
             }
 
             if (comp.hasKey("buyName")) {
@@ -626,24 +700,17 @@ public class Shop {
                 item.setMobType(comp.getString("mobType"));
             }
 
-            if (im.hasLore()) {
-                List<String> itemLore = im.getLore();
-                List<String> cleaned = new ArrayList<>();
-                itemLore.stream().filter(str -> (!(ChatColor.stripColor(str)
-                        .contains(ChatColor.stripColor(ConfigUtil.getBuyLore().replace("{amount}", ""))))
-                        && !(ChatColor.stripColor(str)
-                                .contains(ChatColor.stripColor(ConfigUtil.getSellLore().replace("{amount}", ""))))
-                        && !(ChatColor.stripColor(str).contains(ChatColor.stripColor(ConfigUtil.getCannotBuy())))
-                        && !(ChatColor.stripColor(str).contains(ChatColor.stripColor(ConfigUtil.getCannotSell()))))).forEachOrdered(str -> {
-                    cleaned.add(str);
-                });
-                item.setShopLore(cleaned);
-            }
-
             if (comp.hasKey("loreLines")) {
                 String line = comp.getString("loreLines");
                 String[] parsedLore = line.split("::");
                 item.setBuyLore(Arrays.asList(parsedLore));
+            }
+
+            if (comp.hasKey("shopLoreLines")) {
+                String line = comp.getString("shopLoreLines");
+                Main.debugLog("Item had Shop Lore " + line);
+                String[] parsedLore = line.split("::");
+                item.setShopLore(Arrays.asList(parsedLore));
             }
         }
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
@@ -720,6 +787,8 @@ public class Shop {
             });
             pageIndex += 1;
         });
+        // Set to re-cache the object since the config was changed
+        Main.getINSTANCE().getLoadedShops().remove(shop);
         try {
             Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());
         } catch (IOException ex) {

@@ -127,7 +127,16 @@ public class GuishopCommand implements CommandExecutor {
                     for (int x = 1; x <= args.length - 1; x++) {
                         line += args[x] + " ";
                     }
-                    ItemUtil.setShopName(line, player);
+                    if (args.length == 2){
+                        Boolean hasValue;
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")){
+                            hasValue = Boolean.valueOf(args[1]);
+                            ItemUtil.setShopName(hasValue, player);
+                        }
+                    }else{
+                        ItemUtil.setShopName(line, player);
+                    }
+                    
                 } else {
                     player.sendMessage("Please specify a custom sell-name.");
                 }
@@ -137,17 +146,33 @@ public class GuishopCommand implements CommandExecutor {
                     for (int x = 1; x <= args.length - 1; x++) {
                         line += args[x] + " ";
                     }
-                    ItemUtil.setBuyName(line, player);
+                    if (args.length == 2){
+                        Boolean hasValue;
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")){
+                            hasValue = Boolean.valueOf(args[1]);
+                            ItemUtil.setBuyName(hasValue, player);
+                        }
+                    }else{
+                        ItemUtil.setBuyName(line, player);
+                    }
                 } else {
                     player.sendMessage("Please specify a custom buy-name.");
                 }
-            } else if (args[0].equalsIgnoreCase("e") || args[0].equalsIgnoreCase("enchant")) {
+            } else if (args[0].equalsIgnoreCase("en") || args[0].equalsIgnoreCase("enchant")) {
                 if (args.length >= 2) {
                     String enchantments = "";
                     for (int x = 1; x <= args.length - 1; x++) {
                         enchantments += args[x] + " ";
                     }
-                    ItemUtil.setEnchantments(enchantments.trim(), player);
+                    if (args.length == 2){
+                        Boolean hasValue;
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")){
+                            hasValue = Boolean.valueOf(args[1]);
+                            ItemUtil.setEnchantments(hasValue, player);
+                        }
+                    }else{
+                        ItemUtil.setEnchantments(enchantments, player);
+                    }
                 } else {
                     player.sendMessage("Please specify enchantments. E.G 'dura:1 sharp:2'");
                 }

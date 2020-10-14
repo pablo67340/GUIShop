@@ -6,7 +6,6 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
-import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.ConfigUtil;
 import org.bukkit.ChatColor;
@@ -166,18 +165,13 @@ public final class Menu {
             /*
 			 * The currently open shop associated with this Menu instance.
              */
-            Shop openShop;
-            if (!Main.getINSTANCE().getLoadedShops().containsKey(shopDef.getName())) {
-                openShop = new Shop(player, shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
+            Shop openShop = new Shop(player, shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
                         this);
-            } else {
-                openShop = new Shop(player, shopDef.getShop(), shopDef.getName(), shopDef.getDescription(), shopDef.getLore(),
-                        this, (ShopItem)Main.getINSTANCE().getLoadedShops().get(shopDef.getName()));
-            }
+           
 
             openShop.loadItems();
             openShop.open(player);
-            return Main.getINSTANCE().getOpenShopInstances().put(player.getUniqueId(), openShop);
+            return openShop;
         }
         return null;
     }

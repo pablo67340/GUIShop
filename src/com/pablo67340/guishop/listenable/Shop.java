@@ -232,6 +232,10 @@ public class Shop {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Name: &r" + item.getShopName()));
                             }
+                            if (item.hasMobType()){
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fMob Type: &r" + item.getMobType()));
+                            }
                             if (item.hasBuyName()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Name: &r" + item.getBuyName()));
@@ -296,6 +300,9 @@ public class Shop {
                             }
                             if (item.hasShopName()) {
                                 comp.setString("shopName", item.getShopName());
+                            }
+                            if (item.hasMobType()){
+                                comp.setString("mobType", item.getMobType());
                             }
                             if (item.hasEnchantments()) {
                                 String enchantments = "";

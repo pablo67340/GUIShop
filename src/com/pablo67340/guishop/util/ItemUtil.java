@@ -170,7 +170,7 @@ public final class ItemUtil {
                     lore.remove(index);
                     hasReplaced = true;
                 } else {
-                    lore.set(index, "Shop Name: " + name);
+                    lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fShop Name: &r" + name));
                     hasReplaced = true;
                 }
 
@@ -178,7 +178,7 @@ public final class ItemUtil {
             index += 1;
         }
         if (!hasReplaced) {
-            lore.add("Shop Name: " + name);
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Name: &r" + name));
         }
         im.setLore(lore);
 
@@ -236,7 +236,7 @@ public final class ItemUtil {
                     lore.remove(index);
                     hasReplaced = true;
                 } else {
-                    lore.set(index, "Buy Name: " + name);
+                    lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fBuy Name: &r" + name));
                     hasReplaced = true;
                 }
 
@@ -244,7 +244,7 @@ public final class ItemUtil {
             index += 1;
         }
         if (!hasReplaced) {
-            lore.add("Buy Name: " + name);
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Name: &r" + name));
         }
         im.setLore(lore);
 
@@ -296,7 +296,7 @@ public final class ItemUtil {
                     lore.remove(index);
                     hasReplaced = true;
                 } else {
-                    lore.set(index, "Enchantments: " + enchantments);
+                    lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fEnchantments: &r" + enchantments));
                     hasReplaced = true;
                 }
 
@@ -304,7 +304,7 @@ public final class ItemUtil {
             index += 1;
         }
         if (!hasReplaced) {
-            lore.add("Enchantments: " + enchantments);
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&fEnchantments: &r" + enchantments));
         }
         im.setLore(lore);
 
@@ -361,13 +361,49 @@ public final class ItemUtil {
         }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
-        String addedLine = line;
-
+        
+        
+        
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
         if (comp.hasKey("shopLoreLines")) {
             line = comp.getString("shopLoreLines") + "::" + line;
         }
         String[] lines = line.split("::");
+
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        for (String str : tempLore) {
+            if (str.contains("Shop Lore:")) {
+                lore.remove(index - 1);
+                lore.remove(index - 1);
+                for (int i = 0; i < lines.length - 1; i++) {
+                    lore.remove(index - 1);
+                }
+
+            }
+            index += 1;
+        }
+
+        lore.add(" ");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
+        for (String str : lines) {
+            if (str.length() > 20) {
+                String s = ChatColor.translateAlternateColorCodes('&', str);
+                s = s.substring(0, Math.min(s.length(), 20));
+                lore.add(s + "...");
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', str));
+            }
+        }
+
+        im.setLore(lore);
+        item.setItemMeta(im);
+
+        comp = ItemNBTUtil.getTag(item);
+
         comp.setString("shopLoreLines", line);
         ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
 
@@ -377,7 +413,7 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Added line to Shop lore: " + addedLine);
+        player.sendMessage(ConfigUtil.getPrefix() + " Added line to Shop lore: " + line);
         player.sendMessage(ConfigUtil.getPrefix() + " Current Shop Lore:");
         for (String str : lines) {
             player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
@@ -401,15 +437,51 @@ public final class ItemUtil {
         }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
-
+        
+        String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
-        String[] lines = null;
         if (comp.hasKey("shopLoreLines")) {
-            lines = comp.getString("shopLoreLines").split("::");
+            preParsedLine = comp.getString("shopLoreLines");
+        }
+        String[] lines = preParsedLine.split("::");
+
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        for (String str : tempLore) {
+            if (str.contains("Shop Lore:")) {
+                lore.remove(index - 1);
+                lore.remove(index - 1);
+                for (int i = 0; i < lines.length; i++) {
+                    lore.remove(index - 1);
+                }
+            }
+            index += 1;
         }
 
         List<String> lines2 = Arrays.asList(lines);
         lines2.set(slot, line);
+        String editedLine = lines2.get(slot);
+
+        lore.add(" ");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
+        for (String str : lines2) {
+            if (str.length() > 20) {
+                String s = ChatColor.translateAlternateColorCodes('&', str);
+                s = s.substring(0, Math.min(s.length(), 20));
+                lore.add(s + "...");
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', str));
+            }
+        }
+
+        im.setLore(lore);
+        item.setItemMeta(im);
+
+        comp = ItemNBTUtil.getTag(item);
+
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
@@ -423,7 +495,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Edited line in Shop Lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Edited line in Shop Lore: " + editedLine);
         player.sendMessage(ConfigUtil.getPrefix() + " Current ShopLore:");
         lines2.forEach(str -> {
             player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
@@ -445,15 +517,50 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
+         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
-        String[] lines = null;
         if (comp.hasKey("shopLoreLines")) {
-            lines = comp.getString("shopLoreLines").split("::");
+            preParsedLine = comp.getString("shopLoreLines");
+        }
+        String[] lines = preParsedLine.split("::");
+
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        for (String str : tempLore) {
+            if (str.contains("Shop Lore:")) {
+                lore.remove(index - 1);
+                lore.remove(index - 1);
+                for (int i = 0; i < lines.length; i++) {
+                    lore.remove(index - 1);
+                }
+            }
+            index += 1;
         }
 
-        List<String> lines2 = Arrays.asList(lines);
+        List<String> lines2 = new ArrayList<>(Arrays.asList(lines));
         String line = lines2.get(slot);
         lines2.remove(slot);
+
+
+        lore.add(" ");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
+        for (String str : lines2) {
+            if (str.length() > 20) {
+                String s = ChatColor.translateAlternateColorCodes('&', str);
+                s = s.substring(0, Math.min(s.length(), 20));
+                lore.add(s + "...");
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', str));
+            }
+        }
+
+        im.setLore(lore);
+        item.setItemMeta(im);
+
+        comp = ItemNBTUtil.getTag(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
@@ -490,13 +597,49 @@ public final class ItemUtil {
         }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
-        String addedLine = line;
-
+        
+                
+        
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
         if (comp.hasKey("loreLines")) {
             line = comp.getString("loreLines") + "::" + line;
         }
         String[] lines = line.split("::");
+
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        for (String str : tempLore) {
+            if (str.contains("Buy Lore:")) {
+                lore.remove(index - 1);
+                lore.remove(index - 1);
+                for (int i = 0; i < lines.length - 1; i++) {
+                    lore.remove(index - 1);
+                }
+
+            }
+            index += 1;
+        }
+
+        lore.add(" ");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
+        for (String str : lines) {
+            if (str.length() > 20) {
+                String s = ChatColor.translateAlternateColorCodes('&', str);
+                s = s.substring(0, Math.min(s.length(), 20));
+                lore.add(s + "...");
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', str));
+            }
+        }
+
+        im.setLore(lore);
+        item.setItemMeta(im);
+
+        comp = ItemNBTUtil.getTag(item);
+        
         comp.setString("loreLines", line);
         ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
 
@@ -506,7 +649,7 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Added line to Buy Lore: " + addedLine);
+        player.sendMessage(ConfigUtil.getPrefix() + " Added line to Buy Lore: " + line);
         player.sendMessage(ConfigUtil.getPrefix() + " Current Buy Lore:");
         for (String str : lines) {
             player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
@@ -530,15 +673,50 @@ public final class ItemUtil {
         }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
-
+        
+        String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
-        String[] lines = null;
         if (comp.hasKey("loreLines")) {
-            lines = comp.getString("loreLines").split("::");
+            preParsedLine = comp.getString("loreLines");
+        }
+        String[] lines = preParsedLine.split("::");
+
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        for (String str : tempLore) {
+            if (str.contains("Buy Lore:")) {
+                lore.remove(index - 1);
+                lore.remove(index - 1);
+                for (int i = 0; i < lines.length; i++) {
+                    lore.remove(index - 1);
+                }
+            }
+            index += 1;
         }
 
         List<String> lines2 = Arrays.asList(lines);
         lines2.set(slot, line);
+        String editedLine = lines2.get(slot);
+
+        lore.add(" ");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
+        for (String str : lines2) {
+            if (str.length() > 20) {
+                String s = ChatColor.translateAlternateColorCodes('&', str);
+                s = s.substring(0, Math.min(s.length(), 20));
+                lore.add(s + "...");
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', str));
+            }
+        }
+
+        im.setLore(lore);
+        item.setItemMeta(im);
+
+        comp = ItemNBTUtil.getTag(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
@@ -552,7 +730,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Added line to Buy Lore: " + line);
+        player.sendMessage(ConfigUtil.getPrefix() + " Added line to Buy Lore: " + editedLine);
         player.sendMessage(ConfigUtil.getPrefix() + " Current Buy Lore:");
         lines2.forEach(str -> {
             player.sendMessage(ConfigUtil.getPrefix() + " - " + str);
@@ -574,15 +752,50 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
+         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
-        String[] lines = null;
         if (comp.hasKey("loreLines")) {
-            lines = comp.getString("loreLines").split("::");
+            preParsedLine = comp.getString("loreLines");
+        }
+        String[] lines = preParsedLine.split("::");
+
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        for (String str : tempLore) {
+            if (str.contains("Buy Lore:")) {
+                lore.remove(index - 1);
+                lore.remove(index - 1);
+                for (int i = 0; i < lines.length; i++) {
+                    lore.remove(index - 1);
+                }
+            }
+            index += 1;
         }
 
-        List<String> lines2 = Arrays.asList(lines);
+        List<String> lines2 = new ArrayList<>(Arrays.asList(lines));
         String line = lines2.get(slot);
         lines2.remove(slot);
+
+
+        lore.add(" ");
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
+        for (String str : lines2) {
+            if (str.length() > 20) {
+                String s = ChatColor.translateAlternateColorCodes('&', str);
+                s = s.substring(0, Math.min(s.length(), 20));
+                lore.add(s + "...");
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&', str));
+            }
+        }
+
+        im.setLore(lore);
+        item.setItemMeta(im);
+
+        comp = ItemNBTUtil.getTag(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
@@ -677,7 +890,7 @@ public final class ItemUtil {
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
-            if (str.contains("Commands")) {
+            if (str.contains("Commands:")) {
                 lore.remove(index - 1);
                 lore.remove(index - 1);
                 for (int i = 0; i < lines.length - 1; i++) {
@@ -747,7 +960,7 @@ public final class ItemUtil {
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
-            if (str.contains("Commands")) {
+            if (str.contains("Commands:")) {
                 lore.remove(index - 1);
                 lore.remove(index - 1);
                 for (int i = 0; i < lines.length; i++) {
@@ -823,7 +1036,7 @@ public final class ItemUtil {
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
-            if (str.contains("Commands")) {
+            if (str.contains("Commands:")) {
                 lore.remove(index - 1);
                 lore.remove(index - 1);
                 for (int i = 0; i < lines.length; i++) {
@@ -888,6 +1101,25 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        ItemMeta im = item.getItemMeta();
+
+        List<String> lore = im.getLore();
+        List<String> tempLore = new ArrayList<>(lore);
+        int index = 0;
+        boolean hasReplaced = false;
+        for (String str : tempLore) {
+            if (str.contains("Mob Type: ")) {
+                lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fMob Type: &r" + type));
+                hasReplaced = true;
+            }
+            index += 1;
+        }
+        if (!hasReplaced) {
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&fMob Type: " + type));
+        }
+
+        item.setItemMeta(im);
 
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 

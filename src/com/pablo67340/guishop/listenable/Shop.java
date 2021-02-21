@@ -117,6 +117,7 @@ public class Shop {
                         ConfigurationSection section = shopItems.getConfigurationSection(key);
                         item.setSlot(Integer.parseInt(key));
                         item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
+                        item.setShop(shop);
                         if (item.isAnyPotion()) {
                             ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
                             if (potionSection != null) {

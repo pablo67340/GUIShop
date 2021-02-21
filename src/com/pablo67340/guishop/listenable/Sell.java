@@ -62,7 +62,7 @@ public final class Sell {
             Main.debugLog(Main.getINSTANCE().getITEMTABLE().toString());
 
             Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
-            if (shopItem == null || !shopItem.hasSellPrice()) {
+            if (shopItem == null || !shopItem.hasSellPrice() || !player.hasPermission("guishop.shop."+shopItem.getShop())) {
                 countSell += 1;
                 couldntSell = true;
                 player.getInventory().addItem(item);

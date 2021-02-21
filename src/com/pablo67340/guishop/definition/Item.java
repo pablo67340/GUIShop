@@ -33,7 +33,7 @@ public final class Item {
      */
     @Getter
     @Setter
-    private String shopName, buyName;
+    private String shopName, buyName, shop;
 
     @Getter
     @Setter

@@ -32,7 +32,6 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.definition.CommandsMode;
-import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -41,7 +40,6 @@ import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.MatLib;
 
 import lombok.Getter;
-import lombok.Setter;
 
 public final class Main extends JavaPlugin {
 

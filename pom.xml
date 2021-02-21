@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>8.4</version>
+    <version>8.5</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -78,7 +78,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.16.3-R0.1-SNAPSHOT</version>
+            <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!--Bukkit API -->
@@ -143,8 +143,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.8.1</version>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>                                
+                            <source>11</source>
+                            <target>11</target>                                
                         </configuration>
                     </plugin>
                     <plugin>
@@ -257,7 +257,7 @@
                         <artifactId>minecraft-server-plugin</artifactId>
                         <version>1.0.2</version>
                         <configuration>
-                            <serverVersion>1.16.3</serverVersion>
+                            <serverVersion>1.16.5</serverVersion>
                             <createEula>true</createEula>
                             <gui>true</gui>
                         </configuration>

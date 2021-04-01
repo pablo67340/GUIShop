@@ -174,7 +174,7 @@ public class Shop {
         for (ShopPage page : shopPages) {
             shopPage = new ShopPane(9, 6);
             for (Item item : page.getItems().values()) {
-                ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()));
+                ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
                 Main.debugLog("Adding item to slot: " + item.getSlot());
                 if (itemStack == null) {
                     Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");

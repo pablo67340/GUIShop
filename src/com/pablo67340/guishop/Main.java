@@ -20,7 +20,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.*;
 import org.bukkit.entity.Player;
@@ -29,9 +28,8 @@ import org.bukkit.plugin.*;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.definition.CommandsMode;
+import com.pablo67340.guishop.definition.MenuItem;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -40,6 +38,7 @@ import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.MatLib;
 
 import lombok.Getter;
+import lombok.Setter;
 
 public final class Main extends JavaPlugin {
 
@@ -47,19 +46,13 @@ public final class Main extends JavaPlugin {
      * The overridden config file objects.
      */
     @Getter
-    private File configf, specialf;
-
-    /**
-     * The loaded shops read from the config.
-     */
-    @Getter
-    private Map<String, ShopDef> shops;
+    private File configf, specialf, menuf, cachef;
 
     /**
      * The configs FileConfiguration object.
      */
     @Getter
-    private FileConfiguration mainConfig, customConfig;
+    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig;
 
     /**
      * An instance Vault's Economy.
@@ -95,6 +88,10 @@ public final class Main extends JavaPlugin {
 
     @Getter
     public Map<String, Object> loadedShops = new HashMap<>();
+    
+    @Getter
+    @Setter
+    MenuItem loadedMenu = null;
 
     @Getter
     private final Map<String, Item> ITEMTABLE = new HashMap<>();
@@ -125,7 +122,6 @@ public final class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         INSTANCE = this;
-        shops = new LinkedHashMap<>();
         createFiles();
 
         if (!setupEconomy()) {
@@ -143,8 +139,6 @@ public final class Main extends JavaPlugin {
             ConfigUtil.setDynamicPricing(false);
         }
 
-        loadShopDefs();
-
         switch (ConfigUtil.getCommandsMode()) {
             case INTERCEPT:
                 CommandsInterceptor.register();
@@ -155,34 +149,6 @@ public final class Main extends JavaPlugin {
             default:
                 break;
         }
-    }
-
-    public void loadShopDefs() {
-
-        ConfigurationSection menuItems = Main.getINSTANCE().getConfig().getConfigurationSection("menu-items");
-
-        menuItems.getKeys(false).forEach(key -> {
-            String name = menuItems.getString(key + ".Name") != null ? ChatColor.translateAlternateColorCodes('&',
-                    Objects.requireNonNull(menuItems.getString(key + ".Name"))) : " ";
-            String description = menuItems.getString(key + ".Desc") != null ? ChatColor.translateAlternateColorCodes(
-                    '&', Objects.requireNonNull(menuItems.getString(key + ".Desc"))) : " ";
-            ItemType itemType = menuItems.getString(key + ".Type") != null
-                    ? ItemType.valueOf(menuItems.getString(key + ".Type"))
-                    : ItemType.SHOP;
-            if (!(!menuItems.getBoolean(key + ".Enabled") && itemType == ItemType.SHOP)) {
-                String itemID = itemType != ItemType.BLANK ? menuItems.getString(key + ".Item") : "AIR";
-
-                List<String> lore = new ArrayList<>();
-
-                if (description.length() > 0) {
-                    lore.add(description);
-                }
-
-                shops.put(key.toLowerCase(), new ShopDef(key, name, description, lore, itemType, itemID));
-            }
-        });
-
-        new Menu().itemWarmup();
     }
 
     /**
@@ -300,7 +266,6 @@ public final class Main extends JavaPlugin {
         ConfigUtil.setEnableCreator(getMainConfig().getBoolean("ingame-config"));
         ConfigUtil.setCantBuy(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cant-buy"))));
-        ConfigUtil.setMenuRows(getMainConfig().getInt("menu-rows"));
         ConfigUtil.setFull(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("full-inventory"))));
         ConfigUtil.setNoPermission(ChatColor.translateAlternateColorCodes('&',
@@ -310,6 +275,8 @@ public final class Main extends JavaPlugin {
                 Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
         ConfigUtil.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("menu-title", "Menu")));
+        ConfigUtil.setMenuShopPageNumber(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("menu-shop-pagenumber", "&f> Page: &e{number}")));
         ConfigUtil.setShopTitle(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
         ConfigUtil.setSellTitle(ChatColor.translateAlternateColorCodes('&',
@@ -363,6 +330,8 @@ public final class Main extends JavaPlugin {
 
         configf = new File(getDataFolder(), "config.yml");
         specialf = new File(getDataFolder(), "shops.yml");
+        menuf = new File(getDataFolder(), "menu.yml");
+        cachef = new File(getDataFolder(), "cache.yml");
 
         if (!configf.exists()) {
             configf.getParentFile().mkdirs();
@@ -374,12 +343,26 @@ public final class Main extends JavaPlugin {
             saveResource("shops.yml", false);
         }
 
+        if (!menuf.exists()) {
+            menuf.getParentFile().mkdirs();
+            saveResource("menu.yml", false);
+        }
+        
+        if (!cachef.exists()) {
+            cachef.getParentFile().mkdirs();
+            saveResource("cache.yml", false);
+        }
+
         mainConfig = new YamlConfiguration();
-        customConfig = new YamlConfiguration();
+        shopConfig = new YamlConfiguration();
+        menuConfig = new YamlConfiguration();
+        cacheConfig = new YamlConfiguration();
 
         try {
             mainConfig.load(configf);
-            customConfig.load(specialf);
+            shopConfig.load(specialf);
+            menuConfig.load(menuf);
+            cacheConfig.load(cachef);
         } catch (InvalidConfigurationException | IOException e) {
             debugLog("Error creating configs: " + e.getMessage());
         }
@@ -389,7 +372,6 @@ public final class Main extends JavaPlugin {
     public void reload(Player player, Boolean ignoreCreator) {
         Main.debugLog("GUIShop Reloaded");
         createFiles();
-        shops.clear();
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
         SELL_COMMANDS.clear();
@@ -398,9 +380,10 @@ public final class Main extends JavaPlugin {
             CREATOR.clear();
         }
         reloadConfig();
-        reloadCustomConfig();
+        reloadShopConfig();
+        reloadMenuConfig();
+        reloadCacheConfig();
         loadDefaults();
-        loadShopDefs();
 
         // If the CommandsMode is REGISTER, register/re-register the commands
         // Otherwise, unregister the commands
@@ -419,9 +402,27 @@ public final class Main extends JavaPlugin {
 
     }
 
-    public void reloadCustomConfig() {
+    public void reloadShopConfig() {
         try {
-            customConfig.load(specialf);
+            shopConfig.load(specialf);
+        } catch (IOException | InvalidConfigurationException e) {
+            // TODO Auto-generated catch block
+            debugLog("Error loading custom config: " + e.getMessage());
+        }
+    }
+
+    public void reloadMenuConfig() {
+        try {
+            menuConfig.load(menuf);
+        } catch (IOException | InvalidConfigurationException e) {
+            // TODO Auto-generated catch block
+            debugLog("Error loading custom config: " + e.getMessage());
+        }
+    }
+    
+    public void reloadCacheConfig() {
+        try {
+            cacheConfig.load(cachef);
         } catch (IOException | InvalidConfigurationException e) {
             // TODO Auto-generated catch block
             debugLog("Error loading custom config: " + e.getMessage());

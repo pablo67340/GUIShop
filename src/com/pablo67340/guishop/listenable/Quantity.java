@@ -28,7 +28,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.ConfigUtil;
-
+import com.pablo67340.guishop.util.SkullCreator;
 
 import lombok.Getter;
 
@@ -131,6 +131,10 @@ class Quantity {
             }
 
             itemStack.setItemMeta(itemMeta);
+
+            if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
+                itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
+            }
 
             if (item.hasPotion()) {
                 item.getPotion().apply(itemStack);
@@ -324,6 +328,10 @@ class Quantity {
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
+            }
+
+            if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
+                itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
             }
 
             player.getInventory().addItem(itemStack);

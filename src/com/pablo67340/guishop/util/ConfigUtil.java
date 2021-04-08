@@ -42,7 +42,7 @@ public final class ConfigUtil {
             noPermission, qtyTitle, currencySuffix, backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore,
             sellLore, freeLore, forwardPageButtonName, backwardPageButtonName, altSellAddMaterial,
             altSellRemoveMaterial, altSellIndicatorMaterial, altSellConfirmMaterial, altSellCancelMaterial,
-            altSellConfirmName, altSellCancelName, altSellNotEnough;
+            altSellConfirmName, altSellCancelName, altSellNotEnough, menuShopPageNumber;
 
     /**
      * Integers from the config
@@ -51,13 +51,5 @@ public final class ConfigUtil {
     @Getter
     @Setter
     private static int altSellQuantity1, altSellQuantity2, altSellQuantity3;
-
-    /**
-     * Number of rows for the {@link Menu} GUI.
-     *
-     */
-    @Getter
-    @Setter
-    private static Integer menuRows;
 
 }

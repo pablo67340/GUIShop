@@ -30,9 +30,11 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.definition.ShopPage;
 import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.SkullCreator;
 import java.io.IOException;
 
 import lombok.Getter;
+import lombok.Setter;
 
 public class Shop {
 
@@ -40,25 +42,8 @@ public class Shop {
      * The name of this {@link Shop}.
      */
     @Getter
-    private final String name;
-
-    /**
-     * The shop name of this {@link Shop}.
-     */
-    @Getter
-    private final String shop;
-
-    /**
-     * The description of this {@link Shop}.
-     */
-    @Getter
-    private final String description;
-
-    /**
-     * The lore of this {@link Shop}.
-     */
-    @Getter
-    private final List<String> lore;
+    @Setter
+    private String shop, title;
 
     /**
      * The list of {@link Page}'s in this {@link Shop}.
@@ -79,6 +64,8 @@ public class Shop {
 
     private final Player player;
 
+    private Boolean shopMissing = false;
+
     /**
      * The constructor for a {@link Shop}.
      *
@@ -86,11 +73,8 @@ public class Shop {
      * @param description The description of the shop.
      * @param lore The lore of the shop.
      */
-    Shop(Player player, String shop, String name, String description, List<String> lore, Menu menuInstance) {
-        this.name = name;
+    Shop(Player player, String shop, Menu menuInstance) {
         this.shop = shop;
-        this.description = description;
-        this.lore = lore;
         this.menuInstance = menuInstance;
         this.player = player;
     }
@@ -99,13 +83,18 @@ public class Shop {
      * Load the specified shop
      */
     public void loadItems() {
+        if (shop.equalsIgnoreCase("NONE")) {
+            return;
+        }
         if (!Main.getINSTANCE().getLoadedShops().containsKey(shop)) {
+            this.setTitle(Main.getINSTANCE().getShopConfig().getString(shop + ".title"));
             shopItem = new ShopItem();
-            ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop + ".pages");
+            ConfigurationSection config = Main.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages");
             Main.debugLog("Loading items for shop: " + shop);
 
             if (config == null) {
                 Main.log("Check shops.yml for shop " + shop + ". It was not found.");
+                shopMissing = true;
             } else {
                 config.getKeys(false).stream().map(str -> {
                     ShopPage page = new ShopPage();
@@ -127,6 +116,7 @@ public class Shop {
                             }
                         }
                         item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
+                        item.setSkullUUID((section.contains("skull-uuid") ? (String) section.get("skull-uuid") : null));
                         item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
                         item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : null));
                         if (section.contains("enchantments")) {
@@ -162,19 +152,23 @@ public class Shop {
             }
         } else {
             shopItem = (ShopItem) Main.getINSTANCE().getLoadedShops().get(shop);
+            this.setTitle(Main.getINSTANCE().getShopConfig().getString(shop + ".title"));
             loadShop();
         }
     }
 
+    private ItemStack itemStack;
+
     private void loadShop() {
         this.GUI = new Gui(Main.getINSTANCE(), 6,
-                ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", getName())));
+                ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
         PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
         Collection<ShopPage> shopPages = shopItem.getPages().values();
         for (ShopPage page : shopPages) {
             shopPage = new ShopPane(9, 6);
             for (Item item : page.getItems().values()) {
-                ItemStack itemStack = new ItemStack(Material.getMaterial(item.getMaterial()));
+                itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
+
                 Main.debugLog("Adding item to slot: " + item.getSlot());
                 if (itemStack == null) {
                     Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
@@ -233,7 +227,7 @@ public class Shop {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Name: &r" + item.getShopName()));
                             }
-                            if (item.hasMobType()){
+                            if (item.hasMobType()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fMob Type: &r" + item.getMobType()));
                             }
@@ -244,29 +238,29 @@ public class Shop {
                             if (item.hasBuyLore()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
-                                for (String str : item.getBuyLore()) {
+                                item.getBuyLore().forEach(str -> {
                                     itemLore.add(str);
-                                }
+                                });
                             }
                             if (item.hasShopLore()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
-                                for (String str : item.getShopLore()) {
+                                item.getShopLore().forEach(str -> {
                                     itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
-                                }
+                                });
                             }
                             if (item.hasCommands()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fCommands: "));
-                                for (String str : item.getCommands()) {
+                                item.getCommands().forEach(str -> {
                                     if (str.length() > 20) {
                                         String s = ChatColor.translateAlternateColorCodes('&', "/" + str);
                                         s = s.substring(0, Math.min(s.length(), 20));
                                         itemLore.add(s + "...");
                                     } else {
-                                        itemLore.add("/"+str);
+                                        itemLore.add("/" + str);
                                     }
-                                }
+                                });
                             }
                             if (item.hasEnchantments()) {
                                 String enchantments = "";
@@ -302,7 +296,7 @@ public class Shop {
                             if (item.hasShopName()) {
                                 comp.setString("shopName", item.getShopName());
                             }
-                            if (item.hasMobType()){
+                            if (item.hasMobType()) {
                                 comp.setString("mobType", item.getMobType());
                             }
                             if (item.hasEnchantments()) {
@@ -362,17 +356,18 @@ public class Shop {
                             String level = StringUtils.substringAfter(enc, ":");
                             itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
                         }
-
                     }
 
                     if (item.hasPotion()) {
                         item.getPotion().apply(itemStack);
                     }
-
                 }
 
                 // Create Page
                 Main.debugLog("Setting item to slot: " + item.getSlot());
+                if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
+                    itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
+                }
                 GuiItem gItem = new GuiItem(itemStack);
                 shopPage.setItem(gItem, item.getSlot());
 
@@ -440,6 +435,9 @@ public class Shop {
      */
     public void open(Player input) {
         // currentPane.setPage(0);
+        if (this.isShopMissing() || shop.equalsIgnoreCase("NONE")) {
+            return;
+        }
         GUI.show(input);
         if (!Main.getCREATOR().contains(input.getName())) {
             GUI.setOnBottomClick(event -> {
@@ -474,7 +472,7 @@ public class Shop {
         Main.debugLog("Clicked: " + e.getSlot());
         if (e.getSlot() == 51) {
             hasClicked = true;
-            if (shopItem.getPages().size() > 0) {
+            if (shopItem.getPages().size() > 1 && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
                 if (Main.getCREATOR().contains(player.getName())) {
                     ItemStack[] shopItems = GUI.getInventory().getContents();
 
@@ -530,7 +528,7 @@ public class Shop {
         }
 
         /*
-		 * If the player has enough money to purchase the item, then allow them to.
+         * If the player has enough money to purchase the item, then allow them to.
          */
         Main.debugLog("Creator Status:" + Main.getCREATOR().contains(player.getName()));
         if (!Main.getCREATOR().contains(player.getName())) {
@@ -738,9 +736,9 @@ public class Shop {
 
         Main.debugLog("Getting Section for: " + shop);
 
-        ConfigurationSection config = Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop) != null
-                ? Main.getINSTANCE().getCustomConfig().getConfigurationSection(shop)
-                : Main.getINSTANCE().getCustomConfig().createSection(shop);
+        ConfigurationSection config = Main.getINSTANCE().getShopConfig().getConfigurationSection(shop) != null
+                ? Main.getINSTANCE().getShopConfig().getConfigurationSection(shop)
+                : Main.getINSTANCE().getShopConfig().createSection(shop);
 
         Main.debugLog("Config: " + config);
         pageIndex = 0;
@@ -798,7 +796,7 @@ public class Shop {
         // Set to re-cache the object since the config was changed
         Main.getINSTANCE().getLoadedShops().remove(shop);
         try {
-            Main.getINSTANCE().getCustomConfig().save(Main.getINSTANCE().getSpecialf());
+            Main.getINSTANCE().getShopConfig().save(Main.getINSTANCE().getSpecialf());
         } catch (IOException ex) {
             Main.getINSTANCE().getLogger().log(Level.WARNING, ex.getMessage());
         }
@@ -838,6 +836,10 @@ public class Shop {
             return vl;
         }
         return null;
+    }
+
+    public Boolean isShopMissing() {
+        return this.shopMissing == true;
     }
 
 }

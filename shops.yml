@@ -31,9 +31,11 @@
 # enchantments ~ OPT ~ Enchantments of an item. E.G 'DURA:1 SHARP:2'      #
 # shop-lore ~ OPT ~ Custom lore to display only on the shop item.         #
 # buy-lore ~ OPT ~ Custom lore to display on purchased item.              #
+# skull-uuid ~ OPT ~ Set the UUID of a skull skin.                        #
 # commands ~ Required only if type is COMMAND ~ List of commands to run.  #
 # #########################################################################
 Raiding:
+    title: '&4Raiding &bShop'
     pages:
         Page0:
             items:
@@ -131,6 +133,7 @@ Raiding:
                   id: REDSTONE_LAMP
                   buy-price: 100.0
 Ores:
+    title: '&4Ores &bShop'
     pages:
         Page0:
             items:
@@ -180,6 +183,7 @@ Ores:
                   buy-price: 8.0
                   sell-price: 1.0
 FarmingDrops:
+    title: '&4Farming &bShop'
     pages:
         Page0:
             items:
@@ -322,6 +326,7 @@ FarmingDrops:
                   id: GHAST_TEAR
                   buy-price: 100.0
 Brewing:
+    title: '&4Brewing &bShop'
     pages:
         Page0:
             items:
@@ -386,6 +391,7 @@ Brewing:
                     extended: false
                     amplifier: 2
 Gear:
+    title: '&4Gear &bShop'
     pages:
         Page0:
             items:
@@ -506,6 +512,7 @@ Gear:
                   id: SADDLE
                   buy-price: 100.0
 Spawners:
+    title: '&4Spawners &bShop'
     pages:
         Page0:
             items:
@@ -570,6 +577,7 @@ Spawners:
                   shop-name: Cave Spider Spawner
                   mobType: 'CAVE_SPIDER'
 Blocks:
+    title: '&4Blocks &bShop'
     pages:
         Page0:
             items:
@@ -859,3 +867,26 @@ Blocks:
                   type: SHOP
                   id: PURPLE_STAINED_GLASS
                   buy-price: 141.0
+Heads:
+    title: '&4Head &bShop'
+    pages:
+        Page0:
+            items:
+                '0':
+                  type: SHOP
+                  id: PLAYER_HEAD
+                  skull-uuid: '3711f92c-4212-4356-934d-fcc59083ca50'
+                  buy-price: 10000.0
+                  shop-name: Bryces Head
+                '1':
+                  type: SHOP
+                  id: PLAYER_HEAD
+                  skull-uuid: 'bb6bccb6-cd90-4844-9b1b-60722b1823ae'
+                  buy-price: 100000.0
+                  shop-name: Vajoners Head
+                '2':
+                  type: SHOP
+                  id: PLAYER_HEAD
+                  skull-uuid: 'ed5f12cd-6007-45d9-a4b9-940524ddaecf'
+                  buy-price: 10000.0
+                  shop-name: A248s Head

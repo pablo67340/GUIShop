@@ -33,7 +33,7 @@ public final class PlayerListener implements Listener {
     public static final PlayerListener INSTANCE = new PlayerListener();
 
     public void openShop(Player player) {
-        Menu menu = new Menu();
+        Menu menu = new Menu(player);
         menu.open(player);
     }
 
@@ -85,7 +85,7 @@ public final class PlayerListener implements Listener {
                     if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use")
                             || player.isOp()) {
                         e.setCancelled(true);
-                        Menu menu = new Menu();
+                        Menu menu = new Menu(player);
                         menu.open(player);
                     } else {
                         e.setCancelled(true);

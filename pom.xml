@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>8.5</version>
+    <version>9</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -73,8 +73,18 @@
             <id>pex-repo</id>
             <url>https://repo.glaremasters.me/repository/permissionsex/</url>
         </repository>
+        <repository>
+            <id>minecraft-repo</id>
+            <url>https://libraries.minecraft.net/</url>
+        </repository>
     </repositories>
     <dependencies>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>authlib</artifactId>
+            <version>1.5.21</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
@@ -134,6 +144,8 @@
                             <include>plugin.yml</include>
                             <include>config.yml</include>
                             <include>shops.yml</include>
+                            <include>menu.yml</include>
+                            <include>cache.yml</include>
                         </includes>
                     </resource>
                 </resources>
@@ -157,7 +169,8 @@
                                     <include>com.pablo67340.GUIShop</include>
                                     <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
-                                    <include>space.arim:legacyitemconstructor</include>
+                                    <include>space.arim:legacyitemconstructor:jar:</include>
+                                    <include>com.mojang:authlib:jar:</include>
                                 </includes>
                             </artifactSet>
                         </configuration>
@@ -187,6 +200,8 @@
                             <include>plugin.yml</include>
                             <include>config.yml</include>
                             <include>shops.yml</include>
+                            <include>menu.yml</include>
+                            <include>cache.yml</include>
                         </includes>
                     </resource>
                 </resources>

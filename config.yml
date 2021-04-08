@@ -132,9 +132,6 @@ signs-only: false
 
 signs-only-message: '&cYou can only access the shop by clicking a [&cGUIShop&f] sign!'
 
-#Menu row count
-menu-rows: 3
-
 #Enable sound on purchase
 enable-sound: true
 
@@ -150,8 +147,11 @@ dynamic-pricing: false
 #Enable DEBUG mode
 debug-mode: false
 
-#The overall shop menu title
-menu-title: "Menu"
+#The overall shop menu title.
+menu-title: "Menu {page-number}"
+
+#The text displayed where {page-number} appears.
+menu-shop-pagenumber: "&f> Page: &e{number}"
 
 #The title of a specific shop inventory
 shop-title: "Menu &f> &r{shopname}"
@@ -229,113 +229,6 @@ disabled-qty-items:
     - "HORSE_ARMOR"
     - "SADDLE"
     - "BARDING"
-
-##Menu Items
-Rows: 3
-
-menu-items:
-  Pane0:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane1:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane2:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane3:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane4:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane5:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane6:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane7:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  PaneCornerRight:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane8:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Raiding:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'TNT'
-    Desc: '&8(&cBlow them up!&8)'
-    Name: '&4Raiding'
-  Ores:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'EMERALD'
-    Desc: '&8(&fOres&8)'
-    Name: '&aOres'
-  FarmingDrops:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'WHEAT_SEEDS'
-    Desc: '&8(&fFarming&8)'
-    Name: '&eFarming/Drops'
-  Brewing:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'EXPERIENCE_BOTTLE'
-    Desc: '&8(&fBrewing&8)'
-    Name: '&2Brewing'
-  Gear:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'DIAMOND_HELMET'
-    Desc: '&8(&fGear&8)'
-    Name: '&bGear'
-  Spawners:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'SPAWNER'
-    Desc: '&8(&fSpawners&8)'
-    Name: '&6Spawners'
-  Blocks:
-    Type: 'SHOP'
-    Enabled: true
-    Item: 'STONE'
-    Desc: '&8(&fBlocks&8)'
-    Name: '&6Blocks'
-  Pane9:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  PaneCornerBottomLeft:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane10:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane11:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane12:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane13:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane14:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane15:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
-  Pane16:
-    Type: 'DUMMY'
-    Item: 'RED_STAINED_GLASS_PANE'
-  Pane17:
-    Type: 'DUMMY'
-    Item: 'BLUE_STAINED_GLASS_PANE'
 
  ################################
  ## Developed by pablo67340    ##

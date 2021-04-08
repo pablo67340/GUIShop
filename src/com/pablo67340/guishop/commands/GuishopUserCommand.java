@@ -6,7 +6,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.definition.ShopDef;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -51,20 +50,16 @@ public class GuishopUserCommand implements CommandExecutor {
             if (shop == null) {
                 PlayerListener.INSTANCE.openShop(player);
 
-            } else if (Main.getINSTANCE().getShops().containsKey(shop.toLowerCase())) {
+            } else{
 
-                ShopDef shopDef = Main.getINSTANCE().getShops().get(shop.toLowerCase());
-
-                if (player.hasPermission("guishop.shop." + shopDef.getShop())
+                if (player.hasPermission("guishop.shop." + shop.toLowerCase())
                         || player.hasPermission("guishop.shop.*") || player.isOp()) {
-                    new Menu().openShop(player, shopDef);
+                    new Menu(player).openShop(player, shop);
                 } else {
                     player.sendMessage(ConfigUtil.getNoPermission());
                 }
-
-            } else {
-                Main.sendMessage(player, "&cShop not found");
             }
+
 
         } else {
             player.sendMessage(ConfigUtil.getNoPermission());

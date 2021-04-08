@@ -33,7 +33,7 @@ public final class Item {
      */
     @Getter
     @Setter
-    private String shopName, buyName, shop;
+    private String shopName, buyName, shop, target_shop, name, skullUUID;
 
     @Getter
     @Setter
@@ -87,7 +87,7 @@ public final class Item {
 
     @Getter
     @Setter
-    private List<String> buyLore, shopLore;
+    private List<String> buyLore, shopLore, lore;
 
     @Getter
     @Setter
@@ -135,6 +135,10 @@ public final class Item {
     public boolean hasShopName() {
         return (shopName != null) && !shopName.isEmpty();
     }
+    
+    public boolean hasName() {
+        return (name != null) && !name.isEmpty();
+    }
 
     public boolean hasBuyName() {
         return buyName != null;
@@ -142,6 +146,10 @@ public final class Item {
 
     public boolean hasShopLore() {
         return (shopLore != null) && !shopLore.isEmpty();
+    }
+    
+    public boolean hasLore() {
+        return (lore != null) && !lore.isEmpty();
     }
 
     public boolean hasBuyLore() {
@@ -553,6 +561,11 @@ public final class Item {
         itemMeta.setDisplayName(name);
         item.setItemMeta(itemMeta);
         return new GuiItem(item);
+    }
+    
+    
+    public Boolean hasSkullUUID(){
+        return this.skullUUID != null;
     }
 
 }

@@ -36,9 +36,11 @@ import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.MatLib;
+import java.net.URL;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.io.FileUtils;
 
 public final class Main extends JavaPlugin {
 
@@ -47,6 +49,9 @@ public final class Main extends JavaPlugin {
      */
     @Getter
     private File configf, specialf, menuf, cachef;
+
+    @Getter
+    File dictionaryf;
 
     /**
      * The configs FileConfiguration object.
@@ -88,7 +93,7 @@ public final class Main extends JavaPlugin {
 
     @Getter
     public Map<String, Object> loadedShops = new HashMap<>();
-    
+
     @Getter
     @Setter
     MenuItem loadedMenu = null;
@@ -332,6 +337,7 @@ public final class Main extends JavaPlugin {
         specialf = new File(getDataFolder(), "shops.yml");
         menuf = new File(getDataFolder(), "menu.yml");
         cachef = new File(getDataFolder(), "cache.yml");
+        dictionaryf = new File(getDataFolder().getPath() + "/Dictionary");
 
         if (!configf.exists()) {
             configf.getParentFile().mkdirs();
@@ -347,10 +353,34 @@ public final class Main extends JavaPlugin {
             menuf.getParentFile().mkdirs();
             saveResource("menu.yml", false);
         }
-        
+
         if (!cachef.exists()) {
             cachef.getParentFile().mkdirs();
             saveResource("cache.yml", false);
+        }
+
+        if (!dictionaryf.exists()) {
+            dictionaryf.mkdirs();
+            URL potionInput = getClass().getClassLoader().getResource("potion-names.txt");
+            File potionDest = new File(dictionaryf.getPath() + "/potion-names.txt");
+
+            URL spawnerInput = getClass().getClassLoader().getResource("spawner-names.txt");
+            File spawnerDest = new File(dictionaryf.getPath() + "/spawner-names.txt");
+
+            URL materialsInput = getClass().getClassLoader().getResource("material-names.txt");
+            File materialsDest = new File(dictionaryf.getPath() + "/material-names.txt");
+
+            URL enchantmentInput = getClass().getClassLoader().getResource("enchantment-names.txt");
+            File enchantmentDest = new File(dictionaryf.getPath() + "/enchantment-names.txt");
+
+            try {
+                FileUtils.copyURLToFile(potionInput, potionDest);
+                FileUtils.copyURLToFile(spawnerInput, spawnerDest);
+                FileUtils.copyURLToFile(materialsInput, materialsDest);
+                FileUtils.copyURLToFile(enchantmentInput, enchantmentDest);
+            } catch (IOException ex) {
+                Main.debugLog("Error copying Dictionary files: " + ex.getMessage());
+            }
         }
 
         mainConfig = new YamlConfiguration();
@@ -419,7 +449,7 @@ public final class Main extends JavaPlugin {
             debugLog("Error loading custom config: " + e.getMessage());
         }
     }
-    
+
     public void reloadCacheConfig() {
         try {
             cacheConfig.load(cachef);

@@ -115,6 +115,7 @@ public class Shop {
                                         potionSection.getBoolean("extended", false), potionSection.getInt("amplifier", -1));
                             }
                         }
+                        item.setCustomModelData((section.contains("custom-model") ? (Integer) section.get("custom-model") : null));
                         item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
                         item.setSkullUUID((section.contains("skull-uuid") ? (String) section.get("skull-uuid") : null));
                         item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
@@ -278,6 +279,9 @@ public class Shop {
                     }
 
                     itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+                    if (item.hasCustomModelID()){
+                        itemMeta.setCustomModelData(item.getCustomModelData());
+                    }
                     itemStack.setItemMeta(itemMeta);
 
                     if (player != null) {
@@ -368,6 +372,7 @@ public class Shop {
                 if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
                     itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
                 }
+                
                 GuiItem gItem = new GuiItem(itemStack);
                 shopPage.setItem(gItem, item.getSlot());
 

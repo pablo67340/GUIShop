@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.pablo67340.guishop.definition.CommandsMode;
-import com.pablo67340.guishop.listenable.Menu;
 
 import lombok.Getter;
 import lombok.Setter;

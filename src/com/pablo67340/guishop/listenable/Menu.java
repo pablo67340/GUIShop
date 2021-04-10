@@ -87,6 +87,7 @@ public final class Menu {
                         item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
                         item.setTarget_shop((section.contains("target_shop") ? (String) section.get("target_shop") : "NONE"));
                         item.setSkullUUID((section.contains("skull-uuid") ? (String) section.get("skull-uuid") : null));
+                        item.setCustomModelData((section.contains("custom-model") ? (Integer) section.get("custom-model") : null));
                         if (item.isAnyPotion()) {
                             ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
                             if (potionSection != null) {
@@ -207,6 +208,10 @@ public final class Menu {
                     if (!itemLore.isEmpty()) {
                         assert itemMeta != null;
                         itemMeta.setLore(itemLore);
+                    }
+                    
+                    if (item.hasCustomModelID()){
+                        itemMeta.setCustomModelData(item.getCustomModelData());
                     }
 
                     itemStack.setItemMeta(itemMeta);

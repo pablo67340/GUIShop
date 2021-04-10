@@ -37,7 +37,7 @@ public final class Item {
 
     @Getter
     @Setter
-    private int slot;
+    private Integer slot, customModelData;
 
     @Getter
     @Setter
@@ -566,6 +566,10 @@ public final class Item {
     
     public Boolean hasSkullUUID(){
         return this.skullUUID != null;
+    }
+    
+    public Boolean hasCustomModelID(){
+        return this.customModelData != null;
     }
 
 }

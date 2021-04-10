@@ -303,12 +303,17 @@ Menu:
                   name: ' '
 
                 '21':
-                  id: DIRT
+                  id: POTION
+                  potion-info:
+                      type: HARM
+                      splash: false
+                      extended: false
+                      amplifier: 1
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
-                  name: '&4Raiding &bShop'
-                  target_shop: 'Raiding'
+                  name: '&4Potion &bShop'
+                  target_shop: 'Potions'
                 '22':
                   id: DIRT
                   lore:

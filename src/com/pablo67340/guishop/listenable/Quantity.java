@@ -129,6 +129,10 @@ class Quantity {
                     }
                 }
             }
+            
+            if (item.hasCustomModelID()){
+                itemMeta.setCustomModelData(item.getCustomModelData());
+            }
 
             itemStack.setItemMeta(itemMeta);
 
@@ -267,6 +271,10 @@ class Quantity {
             mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
             assert itemMeta != null;
             itemMeta.setDisplayName(mobName + " Spawner");
+        }
+        
+        if (item.hasCustomModelID()){
+            itemMeta.setCustomModelData(item.getCustomModelData());
         }
 
         itemStack.setItemMeta(itemMeta);

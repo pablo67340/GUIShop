@@ -33,7 +33,7 @@ public final class Item {
      */
     @Getter
     @Setter
-    private String shopName, buyName, shop, target_shop, name, skullUUID;
+    private String shopName, buyName, shop, target_shop, name, skullUUID, NBT;
 
     @Getter
     @Setter
@@ -76,7 +76,7 @@ public final class Item {
      */
     @Getter
     @Setter
-    private boolean useDynamicPricing;
+    private boolean useDynamicPricing, disableQty;
 
     /**
      * The slot of this {@link Item} when presented on the GUI.
@@ -87,7 +87,7 @@ public final class Item {
 
     @Getter
     @Setter
-    private List<String> buyLore, shopLore, lore;
+    private List<String> buyLore, shopLore, lore, itemFlags;
 
     @Getter
     @Setter
@@ -135,7 +135,7 @@ public final class Item {
     public boolean hasShopName() {
         return (shopName != null) && !shopName.isEmpty();
     }
-    
+
     public boolean hasName() {
         return (name != null) && !name.isEmpty();
     }
@@ -147,7 +147,7 @@ public final class Item {
     public boolean hasShopLore() {
         return (shopLore != null) && !shopLore.isEmpty();
     }
-    
+
     public boolean hasLore() {
         return (lore != null) && !lore.isEmpty();
     }
@@ -562,14 +562,21 @@ public final class Item {
         item.setItemMeta(itemMeta);
         return new GuiItem(item);
     }
-    
-    
-    public Boolean hasSkullUUID(){
+
+    public Boolean hasSkullUUID() {
         return this.skullUUID != null;
     }
-    
-    public Boolean hasCustomModelID(){
+
+    public Boolean hasCustomModelID() {
         return this.customModelData != null;
+    }
+
+    public Boolean hasItemFlags() {
+        return (itemFlags != null) && !itemFlags.isEmpty();
+    }
+
+    public Boolean hasNBT() {
+        return NBT != null;
     }
 
 }

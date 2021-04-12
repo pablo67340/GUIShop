@@ -27,9 +27,6 @@ public final class ConfigUtil {
     @Setter
     private static CommandsMode commandsMode;
 
-    @Getter
-    private static List<String> disabledQty = new ArrayList<>();
-
     /**
      * Common Language strings set in configuration.
      *

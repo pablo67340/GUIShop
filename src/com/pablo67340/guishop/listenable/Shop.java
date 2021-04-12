@@ -21,7 +21,9 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.INBTBase;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
@@ -32,9 +34,11 @@ import com.pablo67340.guishop.definition.ShopPage;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
 import java.io.IOException;
+import java.util.Map.Entry;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 
 public class Shop {
 
@@ -69,20 +73,28 @@ public class Shop {
     /**
      * The constructor for a {@link Shop}.
      *
-     * @param name The name of the shop.
-     * @param description The description of the shop.
-     * @param lore The lore of the shop.
+     * @param player Thep layer using the shop.
+     * @param shop The name of the shop.
+     * @param menuInstance The instance of the menu that opened this shop.
      */
-    Shop(Player player, String shop, Menu menuInstance) {
+    public Shop(Player player, String shop, Menu menuInstance) {
         this.shop = shop;
         this.menuInstance = menuInstance;
         this.player = player;
     }
 
+    public Shop(String shop) {
+        this.shop = shop;
+        this.menuInstance = null;
+        this.player = null;
+    }
+
     /**
      * Load the specified shop
+     *
+     * @param preLoad True/False if the GUI should load after items are loaded.
      */
-    public void loadItems() {
+    public void loadItems(Boolean preLoad) {
         if (shop.equalsIgnoreCase("NONE")) {
             return;
         }
@@ -117,9 +129,11 @@ public class Shop {
                         }
                         item.setCustomModelData((section.contains("custom-model") ? (Integer) section.get("custom-model") : null));
                         item.setMobType((section.contains("mobType") ? (String) section.get("mobType") : null));
+                        item.setDisableQty((section.contains("disable-qty") ? section.getBoolean("disable-qty") : false));
                         item.setSkullUUID((section.contains("skull-uuid") ? (String) section.get("skull-uuid") : null));
                         item.setShopName((section.contains("shop-name") ? (String) section.get("shop-name") : null));
                         item.setBuyName((section.contains("buy-name") ? (String) section.get("buy-name") : null));
+                        item.setNBT((section.contains("custom-nbt") ? (String) section.get("custom-nbt") : null));
                         if (section.contains("enchantments")) {
                             String enchantments = section.getString("enchantments");
                             if (!enchantments.equalsIgnoreCase(" ")) {
@@ -129,10 +143,13 @@ public class Shop {
                         item.setBuyPrice(section.get("buy-price"));
                         item.setSellPrice(section.get("sell-price"));
                         item.setItemType(
-                                section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.SHOP);
+                                section.contains("type") ? ItemType.valueOf((String) section.get("type")) : ItemType.DUMMY);
                         item.setUseDynamicPricing(section.getBoolean("use-dynamic-price", true));
                         item.setShopLore(
                                 (section.contains("shop-lore") ? section.getStringList("shop-lore") : new ArrayList<>()));
+
+                        item.setItemFlags(
+                                (section.contains("item-flags") ? section.getStringList("item-flags") : new ArrayList<>()));
                         item.setBuyLore(
                                 (section.contains("buy-lore") ? section.getStringList("buy-lore") : new ArrayList<>()));
                         item.setCommands(
@@ -149,12 +166,17 @@ public class Shop {
                 });
                 Main.debugLog("Shop items added to loaded shops");
                 Main.getINSTANCE().getLoadedShops().put(shop, shopItem);
-                loadShop();
+                if (!preLoad) {
+                    loadShop();
+                }
             }
         } else {
             shopItem = (ShopItem) Main.getINSTANCE().getLoadedShops().get(shop);
             this.setTitle(Main.getINSTANCE().getShopConfig().getString(shop + ".title"));
-            loadShop();
+            //Re-Check for preload here in case they have multiple item's leading to one shop.
+            if (!preLoad) {
+                loadShop();
+            }
         }
     }
 
@@ -206,13 +228,6 @@ public class Shop {
                                 mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
                                 assert itemMeta != null;
                                 itemMeta.setDisplayName(mobName + " Spawner");
-                            }
-                            if (item.hasEnchantments()) {
-                                for (String str : item.getEnchantments()) {
-                                    String enchant = StringUtils.substringBefore(str, ":");
-                                    String level = StringUtils.substringAfter(str, ":");
-                                    itemLore.add(enchant + " " + level);
-                                }
                             }
                             if (item.hasShopLore()) {
                                 item.getShopLore().forEach(str -> {
@@ -278,11 +293,47 @@ public class Shop {
                         itemMeta.setLore(itemLore);
                     }
 
-                    itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-                    if (item.hasCustomModelID()){
+                    if (item.hasItemFlags()) {
+                        itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
+                    }
+                    if (item.hasCustomModelID()) {
                         itemMeta.setCustomModelData(item.getCustomModelData());
                     }
-                    itemStack.setItemMeta(itemMeta);
+
+                    if (item.hasEnchantments()) {
+                        if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                            for (String enc : item.getEnchantments()) {
+                                String enchantment = StringUtils.substringBefore(enc, ":");
+                                String level = StringUtils.substringAfter(enc, ":");
+                                assert meta != null;
+                                meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                                itemStack.setItemMeta(meta);
+                            }
+                        } else {
+                            for (String enc : item.getEnchantments()) {
+                                String enchantment = StringUtils.substringBefore(enc, ":");
+                                String level = StringUtils.substringAfter(enc, ":");
+                                itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                                itemStack.setItemMeta(itemMeta);
+                            }
+                        }
+                    } else {
+                        itemStack.setItemMeta(itemMeta);
+                    }
+
+                    if (item.hasNBT()) {
+                        try {
+                            NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                            NBTTagCompound newComp = NbtParser.parse(item.getNBT());
+                            for (Entry<String, INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                                newComp.set(entry.getKey(), entry.getValue());
+                            }
+                            itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+                        } catch (NbtParser.NbtParseException ex) {
+                            Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
+                        }
+                    }
 
                     if (player != null) {
                         if (Main.getCREATOR().contains(player.getName())) {
@@ -354,17 +405,19 @@ public class Shop {
                         }
                     }
 
-                    if (item.hasEnchantments()) {
-                        for (String enc : item.getEnchantments()) {
-                            String enchantment = StringUtils.substringBefore(enc, ":");
-                            String level = StringUtils.substringAfter(enc, ":");
-                            itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
-                        }
-                    }
-
                     if (item.hasPotion()) {
+                        if (item.getPotion().isSplash()) {
+                            itemStack.setType(Material.SPLASH_POTION);
+                        }
                         item.getPotion().apply(itemStack);
                     }
+                } else if (item.getItemType() == ItemType.DUMMY) {
+                    ItemMeta itemMeta = itemStack.getItemMeta();
+                    if (item.hasShopName()) {
+                        assert itemMeta != null;
+                        itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getShopName()));
+                    }
+                    itemStack.setItemMeta(itemMeta);
                 }
 
                 // Create Page
@@ -372,7 +425,7 @@ public class Shop {
                 if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
                     itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
                 }
-                
+
                 GuiItem gItem = new GuiItem(itemStack);
                 shopPage.setItem(gItem, item.getSlot());
 
@@ -547,7 +600,11 @@ public class Shop {
                 if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
                     new AltSell(item).open(player);
                 } else {
-                    player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getCannotBuy());
+                    if (item.getItemType() == ItemType.DUMMY) {
+                        return;
+                    } else {
+                        player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getCannotBuy());
+                    }
                 }
                 return;
             }

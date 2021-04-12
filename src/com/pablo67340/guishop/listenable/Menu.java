@@ -60,11 +60,17 @@ public final class Menu {
     public Menu(Player player) {
         this.player = player;
     }
+    
+    public Menu(){
+        this.player = null;
+    }
 
     /**
      * Load the specified shop
+     *
+     * @param preLoad true/false if the items are preloading, or in production.
      */
-    public void loadItems() {
+    public void loadItems(Boolean preLoad) {
         pageIndex = 0;
         if (Main.getINSTANCE().getLoadedMenu() == null) {
             Main.debugLog("Loading Menu from Config.");
@@ -88,6 +94,8 @@ public final class Menu {
                         item.setTarget_shop((section.contains("target_shop") ? (String) section.get("target_shop") : "NONE"));
                         item.setSkullUUID((section.contains("skull-uuid") ? (String) section.get("skull-uuid") : null));
                         item.setCustomModelData((section.contains("custom-model") ? (Integer) section.get("custom-model") : null));
+                        item.setItemFlags(
+                                (section.contains("item-flags") ? section.getStringList("item-flags") : new ArrayList<>()));
                         if (item.isAnyPotion()) {
                             ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
                             if (potionSection != null) {
@@ -116,7 +124,9 @@ public final class Menu {
                 });
                 Main.debugLog("Loaded Menu Cached");
                 Main.getINSTANCE().setLoadedMenu(menuItem);
-                loadMenu();
+                if (!preLoad) {
+                    loadMenu();
+                }
             }
         } else {
             Main.debugLog("Loading Menu from Cache.");
@@ -181,7 +191,6 @@ public final class Menu {
                                 });
                             }
                         } else {
-                            itemMeta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
                             itemLore.add(" ");
                             itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fItem Type: &r" + item.getItemType().toString()));
                             if (item.hasName()) {
@@ -209,8 +218,12 @@ public final class Menu {
                         assert itemMeta != null;
                         itemMeta.setLore(itemLore);
                     }
-                    
-                    if (item.hasCustomModelID()){
+
+                    if (item.hasItemFlags()) {
+                        itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
+                    }
+
+                    if (item.hasCustomModelID()) {
                         itemMeta.setCustomModelData(item.getCustomModelData());
                     }
 
@@ -405,7 +418,7 @@ public final class Menu {
             return;
         }
 
-        loadItems();
+        loadItems(false);
 
         GUI.setOnTopClick(this::onShopClick);
         GUI.setOnBottomClick(event -> {
@@ -506,7 +519,7 @@ public final class Menu {
          */
         Shop openShop = new Shop(player, shop, this);
 
-        openShop.loadItems();
+        openShop.loadItems(false);
         openShop.open(player);
         return openShop;
 

@@ -29,7 +29,9 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.CommandsMode;
+import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.MenuItem;
+import com.pablo67340.guishop.definition.MenuPage;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -101,6 +103,7 @@ public final class Main extends JavaPlugin {
     @Getter
     private final Map<String, Item> ITEMTABLE = new HashMap<>();
 
+    // TODO: Make a HashMap. Key: Material, Value, List of SellProfiles/Items
     /**
      * A {@link Map} that will store our {@link Creator}s when the server first
      * starts.
@@ -154,6 +157,7 @@ public final class Main extends JavaPlugin {
             default:
                 break;
         }
+        warmup();
     }
 
     /**
@@ -323,7 +327,6 @@ public final class Main extends JavaPlugin {
                 getMainConfig().getString("alt-sell-cancel-name", "&c&lCancel")));
         ConfigUtil.setAltSellNotEnough(ChatColor.translateAlternateColorCodes('&',
                 getMainConfig().getString("alt-sell-not-enough", "&cYou do not have enough items to sell.")));
-        ConfigUtil.getDisabledQty().addAll(getMainConfig().getStringList("disabled-qty-items"));
         ConfigUtil.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
         ConfigUtil.setDebugMode(getMainConfig().getBoolean("debug-mode"));
     }
@@ -399,6 +402,20 @@ public final class Main extends JavaPlugin {
 
     }
 
+    public void warmup() {
+        long startTime = System.currentTimeMillis();
+        new Menu().loadItems(true);
+        for (MenuPage page : loadedMenu.getPages().values()) {
+            for (Item item : page.getItems().values()) {
+                if (!item.getTarget_shop().equalsIgnoreCase("NONE")) {
+                    new Shop(item.getTarget_shop()).loadItems(true);
+                }
+            }
+        }
+        long estimatedTime = System.currentTimeMillis() - startTime;
+        getLogger().log(Level.INFO, "Item warming completed in: {0}ms", estimatedTime);
+    }
+
     public void reload(Player player, Boolean ignoreCreator) {
         Main.debugLog("GUIShop Reloaded");
         createFiles();
@@ -414,6 +431,8 @@ public final class Main extends JavaPlugin {
         reloadMenuConfig();
         reloadCacheConfig();
         loadDefaults();
+        
+        warmup();
 
         // If the CommandsMode is REGISTER, register/re-register the commands
         // Otherwise, unregister the commands
@@ -502,12 +521,12 @@ public final class Main extends JavaPlugin {
     }
 
     public static void log(String input) {
-        Main.getINSTANCE().getLogger().log(Level.WARNING, ": {0}", input);
+        Main.getINSTANCE().getLogger().log(Level.INFO, ": {0}", input);
     }
 
     public static void debugLog(String input) {
         if (ConfigUtil.isDebugMode()) {
-            Main.getINSTANCE().getLogger().log(Level.WARNING, "[DEBUG]: {0}", input);
+            Main.getINSTANCE().getLogger().log(Level.INFO, "[DEBUG]: {0}", input);
         }
     }
 

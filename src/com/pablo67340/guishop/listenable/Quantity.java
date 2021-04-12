@@ -23,14 +23,18 @@ import org.bukkit.scheduler.BukkitScheduler;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.INBTBase;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
+import java.util.Map.Entry;
 
 import lombok.Getter;
+import org.bukkit.inventory.ItemFlag;
 
 class Quantity {
 
@@ -101,11 +105,7 @@ class Quantity {
             assert itemMeta != null;
             itemMeta.setLore(lore);
 
-            String type = itemStack.getType().toString();
-
-            boolean isInList = ConfigUtil.getDisabledQty().stream().anyMatch(t -> spellCheck(type, t));
-
-            if (isInList && x >= 20) {
+            if (item.isDisableQty() && x >= 20) {
                 break;
             }
 
@@ -118,29 +118,44 @@ class Quantity {
                 itemMeta.setDisplayName(mobName + " Spawner");
             }
 
-            if (item.hasEnchantments()) {
-                if (item.getEnchantments().length > 1) {
-                    for (String enc : item.getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
-                        itemStack.addUnsafeEnchantment(
-                                XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
-                                Integer.parseInt(level));
-                    }
-                }
-            }
-            
-            if (item.hasCustomModelID()){
+            if (item.hasCustomModelID()) {
                 itemMeta.setCustomModelData(item.getCustomModelData());
             }
 
-            itemStack.setItemMeta(itemMeta);
+            if (item.hasItemFlags()) {
+                itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
+            }
+
+            if (item.hasEnchantments()) {
+                if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                    EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                    for (String enc : item.getEnchantments()) {
+                        String enchantment = StringUtils.substringBefore(enc, ":");
+                        String level = StringUtils.substringAfter(enc, ":");
+                        assert meta != null;
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemStack.setItemMeta(meta);
+                    }
+                } else {
+                    for (String enc : item.getEnchantments()) {
+                        String enchantment = StringUtils.substringBefore(enc, ":");
+                        String level = StringUtils.substringAfter(enc, ":");
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemStack.setItemMeta(itemMeta);
+                    }
+                }
+            } else {
+                itemStack.setItemMeta(itemMeta);
+            }
 
             if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
                 itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
             }
 
             if (item.hasPotion()) {
+                if (item.getPotion().isSplash()) {
+                    itemStack.setType(Material.SPLASH_POTION);
+                }
                 item.getPotion().apply(itemStack);
             }
 
@@ -215,49 +230,22 @@ class Quantity {
             return;
         }
 
-        ItemStack itemStack = e.getCurrentItem().clone();
+        ItemStack itemStack;
 
-        // remove IF's IF-uuid NBT tag
-        NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-        comp.remove("IF-uuid");
-        itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
-
-        // If the item is not a mob spawner
-        if (!item.isMobSpawner()) {
-            // If the item has enchantments
-            if (item.hasEnchantments()) {
-                if (itemStack.getType() == Material.ENCHANTED_BOOK) {
-                    EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
-                    for (String enc : item.getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
-                        assert meta != null;
-                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
-                                Integer.parseInt(level), true);
-
-                    }
-                } else {
-                    for (String enc : item.getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
-                        itemStack.addUnsafeEnchantment(
-                                XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(),
-                                Integer.parseInt(level));
-                    }
-
-                }
-            }
+        if (item.hasPotion()) {
+            itemStack = e.getCurrentItem().clone();
+        } else {
+            itemStack = new ItemStack(e.getCurrentItem().getType(), quantity);
         }
 
-        List<String> lore = new ArrayList<>();
+        ItemMeta itemMeta = itemStack.getItemMeta();
 
+        List<String> lore = new ArrayList<>();
         if (item.hasBuyLore()) {
             item.getBuyLore().forEach(str -> {
                 lore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, item)));
             });
         }
-
-        ItemMeta itemMeta = itemStack.getItemMeta();
 
         itemMeta.setLore(lore);
 
@@ -272,12 +260,36 @@ class Quantity {
             assert itemMeta != null;
             itemMeta.setDisplayName(mobName + " Spawner");
         }
-        
-        if (item.hasCustomModelID()){
+
+        if (item.hasCustomModelID()) {
             itemMeta.setCustomModelData(item.getCustomModelData());
         }
 
-        itemStack.setItemMeta(itemMeta);
+        if (item.hasItemFlags()) {
+            itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
+        }
+
+        if (item.hasEnchantments()) {
+            if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                for (String enc : item.getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    String level = StringUtils.substringAfter(enc, ":");
+                    assert meta != null;
+                    meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                    itemStack.setItemMeta(meta);
+                }
+            } else {
+                for (String enc : item.getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    String level = StringUtils.substringAfter(enc, ":");
+                    itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                    itemStack.setItemMeta(itemMeta);
+                }
+            }
+        } else {
+            itemStack.setItemMeta(itemMeta);
+        }
 
         double priceToPay;
 
@@ -340,6 +352,23 @@ class Quantity {
 
             if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
                 itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
+            }
+
+            if (item.hasNBT()) {
+                NBTTagCompound test = ItemNBTUtil.getTag(player.getItemInHand());
+                String full = test.toNBT().toString();
+                System.out.println("Parsed: " + full);
+                try {
+                    NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                    NBTTagCompound newComp = NbtParser.parse(item.getNBT());
+                    for (Entry<String, INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                        newComp.set(entry.getKey(), entry.getValue());
+                    }
+                    itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+
+                } catch (NbtParser.NbtParseException ex) {
+                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+                }
             }
 
             player.getInventory().addItem(itemStack);

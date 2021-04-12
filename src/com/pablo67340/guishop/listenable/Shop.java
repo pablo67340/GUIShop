@@ -89,6 +89,12 @@ public class Shop {
         this.player = null;
     }
 
+    Shop(Shop shop) {
+        this.shop = shop.shop;
+        this.menuInstance = shop.menuInstance;
+        this.player = shop.player;
+    }
+
     /**
      * Load the specified shop
      *

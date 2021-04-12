@@ -56,15 +56,22 @@ class Quantity {
     /**
      * The instance of the {@link Shop} that spawned this Quantity.
      */
-    private final Shop currentShop;
+    private Shop currentShop;
 
     @Getter
     private final Player player;
+
+    /**
+     * In case DynamicPriceProvider will change the price.
+     */
+    private boolean invalidePrice, refreshingPrice;
 
     Quantity(Item item, Shop shop, Player input) {
         this.item = item;
         this.currentShop = shop;
         this.player = input;
+        invalidePrice = false;
+        refreshingPrice = false;
     }
 
     /**
@@ -196,6 +203,11 @@ class Quantity {
         e.setCancelled(true);
         if (!ConfigUtil.isEscapeOnly()) {
             if (e.getSlot() == 53) {
+                if(invalidePrice) {     // update the price in the parents shop inventory
+                    currentShop = new Shop(currentShop);
+                    currentShop.loadItems(false);
+                    invalidePrice = false;
+                }
                 currentShop.open(player);
                 return;
             }
@@ -316,6 +328,8 @@ class Quantity {
             priceToPay = item.getBuyPriceAsDouble() * amount;
         }
 
+        double originalPrice = priceToPay;
+
         priceToPay -= priceToReimburse;
 
         // Check if the transition was successful
@@ -348,6 +362,12 @@ class Quantity {
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
+                double newPrice = Main.getDYNAMICPRICING().calculateBuyPrice(item.getItemString(), amount, item.getBuyPriceAsDouble(), item.getSellPriceAsDouble());
+                if(newPrice != originalPrice) {
+                    refreshingPrice = true; // just to let onClose know that inventory is not closing yet
+                    invalidePrice = true;   // shop inventory will have to be reloaded as well
+                    loadInventory().open(); // reload inventory will new price on item
+                }
             }
 
             if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
@@ -383,9 +403,20 @@ class Quantity {
      * The inventory closeEvent handling for the Menu.
      */
     private void onClose(InventoryCloseEvent e) {
+        if(refreshingPrice) {   // inventory is just updating price, not closing yet
+            refreshingPrice = false;
+            return;
+        }
         if (ConfigUtil.isEscapeOnly()) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
+            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
+                if(invalidePrice) {     // update the price in the parents shop inventory
+                    currentShop = new Shop(currentShop);
+                    currentShop.loadItems(false);
+                    invalidePrice = false;
+                }
+                currentShop.open(player);
+            }, 1L);
 
         }
     }

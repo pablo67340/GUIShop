@@ -11,7 +11,7 @@
 # name ~ OPT ~ Custom name of item only inside the shop.                  #
 # enchantments ~ OPT ~ Enchantments of an item. E.G 'DURA:1 SHARP:2'      #
 # lore ~ OPT ~ Custom lore to display only on the shop item.              #
-# target_shop ~ OPT ~ Shop to open when clicking the item.                #
+# target-shop ~ OPT ~ Shop to open when clicking the item.                #
 # skull-uuid ~ OPT ~ Set the UUID of a skull skin.                        #
 # #########################################################################
 Menu:
@@ -60,12 +60,12 @@ Menu:
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
                 '13':
-                  id: EXPERIENCE_BOTTLE
+                  id: BREWING_STAND
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Brewing'
-                  target_shop: 'Brewing'
+                  target-shop: 'Brewing'
                 '14':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
@@ -93,21 +93,21 @@ Menu:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Raiding &bShop'
-                  target_shop: 'Raiding'
+                  target-shop: 'Raiding'
                 '22':
-                  id: STONE
+                  id: BEDROCK
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Blocks'
-                  target_shop: 'Blocks'
+                  target-shop: 'Blocks'
                 '23':
                   id: EMERALD
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
-                  name: '&4Ore &bShop'
-                  target_shop: 'Ores'
+                  name: '&4Ore/Ingot &bShop'
+                  target-shop: 'Ores'
                 '24':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
@@ -129,29 +129,29 @@ Menu:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Spawners'
-                  target_shop: 'Spawners'
+                  target-shop: 'Spawners'
                 '30':
                   id: ENCHANTED_BOOK
                   name: '&4Enchanted &bBooks'
-                  target_shop: 'EnchantedBooks'
+                  target-shop: 'EnchantedBooks'
                 '31':
                   id: WHEAT_SEEDS
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Farming/Drops'
-                  target_shop: 'Ores'
+                  target-shop: 'Farming'
                 '32':
                   id: GREEN_SHULKER_BOX
                   name: '&4ShulkerBox &bShop'
-                  target_shop: 'Shulker'
+                  target-shop: 'Shulker'
                 '33':
                   id: DIAMOND_HELMET
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Armor/Gear'
-                  target_shop: 'Gear'
+                  target-shop: 'Gear'
                 '34':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
@@ -260,7 +260,7 @@ Menu:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Head Shop'
-                  target_shop: 'Heads'
+                  target-shop: 'Heads'
                 '14':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
@@ -285,29 +285,29 @@ Menu:
                 '21':
                   id: POTION
                   potion-info:
-                      type: HARM
-                      splash: false
+                      type: INSTANT_DAMAGE
+                      splash: true
                       extended: false
-                      amplifier: 1
+                      upgraded: true
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Potion &bShop'
-                  target_shop: 'Potions'
+                  target-shop: 'Potions'
                 '22':
                   id: FIREWORK_ROCKET
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Fireworks'
-                  target_shop: 'Fireworks'
+                  target-shop: 'Fireworks'
                 '23':
                   id: CHEST
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
                   name: '&4Pre-Filled Chest &bShop'
-                  target_shop: 'Chests'
+                  target-shop: 'Chests'
                 '24':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
@@ -324,32 +324,32 @@ Menu:
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
                 '29':
-                  id: DIRT
+                  id: BOW
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
-                  name: '&4Spawners'
-                  target_shop: 'Spawners'
+                  name: '&4Bow & Arrow Shop'
+                  target-shop: 'Bow'
                 '30':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
                 '31':
-                  id: DIAMOND
+                  id: CREEPER_SPAWN_EGG
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
-                  name: '&4Blocks'
-                  target_shop: 'Blocks'
+                  name: '&4Egg Shop'
+                  target-shop: 'Eggs'
                 '32':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
                 '33':
-                  id: DIRT
+                  id: POPPY
                   lore:
                   - '&aLine 1'
                   - '&bLine 2'
-                  name: '&4Armor/Gear'
-                  target_shop: 'Gear'
+                  name: '&4Flower / Decor Shop'
+                  target-shop: 'Flowers'
                 '34':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '

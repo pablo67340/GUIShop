@@ -29,7 +29,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.CommandsMode;
-import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.MenuItem;
 import com.pablo67340.guishop.definition.MenuPage;
 import com.pablo67340.guishop.listenable.Menu;
@@ -37,12 +36,13 @@ import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
-import com.pablo67340.guishop.util.MatLib;
 import java.net.URL;
+import java.util.Map.Entry;
 
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.io.FileUtils;
+import org.bukkit.configuration.ConfigurationSection;
 
 public final class Main extends JavaPlugin {
 
@@ -50,7 +50,7 @@ public final class Main extends JavaPlugin {
      * The overridden config file objects.
      */
     @Getter
-    private File configf, specialf, menuf, cachef;
+    private File configf, shopf, menuf, cachef;
 
     @Getter
     File dictionaryf;
@@ -102,6 +102,9 @@ public final class Main extends JavaPlugin {
 
     @Getter
     private final Map<String, Item> ITEMTABLE = new HashMap<>();
+    
+    @Getter 
+    private final Map<String, String> cachedHeads = new HashMap<>();
 
     // TODO: Make a HashMap. Key: Material, Value, List of SellProfiles/Items
     /**
@@ -110,9 +113,6 @@ public final class Main extends JavaPlugin {
      */
     @Getter
     public static final List<String> CREATOR = new ArrayList<>();
-
-    @Getter
-    private final MatLib matLib = new MatLib();
 
     @Getter
     private final Map<UUID, Shop> openShopInstances = new HashMap<>();
@@ -157,6 +157,7 @@ public final class Main extends JavaPlugin {
             default:
                 break;
         }
+        loadCache();
         warmup();
     }
 
@@ -268,7 +269,8 @@ public final class Main extends JavaPlugin {
                 Objects.requireNonNull(getMainConfig().getString("added"))));
         ConfigUtil.setCantSell(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cant-sell"))));
-        ConfigUtil.setEscapeOnly(getMainConfig().getBoolean("escape-only"));
+        ConfigUtil.setDisableBackButton(getMainConfig().getBoolean("disable-back-button"));
+        ConfigUtil.setDisableEscapeBack(getMainConfig().getBoolean("disable-escape-back"));
         ConfigUtil.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
         ConfigUtil.setSound(getMainConfig().getString("purchase-sound"));
         ConfigUtil.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
@@ -329,6 +331,7 @@ public final class Main extends JavaPlugin {
                 getMainConfig().getString("alt-sell-not-enough", "&cYou do not have enough items to sell.")));
         ConfigUtil.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
         ConfigUtil.setDebugMode(getMainConfig().getBoolean("debug-mode"));
+        ConfigUtil.setDisabledWorlds(getMainConfig().getStringList("disabled-worlds"));
     }
 
     /**
@@ -337,7 +340,7 @@ public final class Main extends JavaPlugin {
     public void createFiles() {
 
         configf = new File(getDataFolder(), "config.yml");
-        specialf = new File(getDataFolder(), "shops.yml");
+        shopf = new File(getDataFolder(), "shops.yml");
         menuf = new File(getDataFolder(), "menu.yml");
         cachef = new File(getDataFolder(), "cache.yml");
         dictionaryf = new File(getDataFolder().getPath() + "/Dictionary");
@@ -347,8 +350,8 @@ public final class Main extends JavaPlugin {
             saveResource("config.yml", false);
         }
 
-        if (!specialf.exists()) {
-            specialf.getParentFile().mkdirs();
+        if (!shopf.exists()) {
+            shopf.getParentFile().mkdirs();
             saveResource("shops.yml", false);
         }
 
@@ -393,7 +396,7 @@ public final class Main extends JavaPlugin {
 
         try {
             mainConfig.load(configf);
-            shopConfig.load(specialf);
+            shopConfig.load(shopf);
             menuConfig.load(menuf);
             cacheConfig.load(cachef);
         } catch (InvalidConfigurationException | IOException e) {
@@ -407,8 +410,8 @@ public final class Main extends JavaPlugin {
         new Menu().loadItems(true);
         for (MenuPage page : loadedMenu.getPages().values()) {
             for (Item item : page.getItems().values()) {
-                if (!item.getTarget_shop().equalsIgnoreCase("NONE")) {
-                    new Shop(item.getTarget_shop()).loadItems(true);
+                if (item.getTargetShop() != null) {
+                    new Shop(item.getTargetShop()).loadItems(true);
                 }
             }
         }
@@ -432,7 +435,9 @@ public final class Main extends JavaPlugin {
         reloadCacheConfig();
         loadDefaults();
         
+        loadCache();
         warmup();
+        
 
         // If the CommandsMode is REGISTER, register/re-register the commands
         // Otherwise, unregister the commands
@@ -450,10 +455,19 @@ public final class Main extends JavaPlugin {
         sendMessage(player, "&aGUIShop Reloaded");
 
     }
+    
+    public void loadCache(){
+        log("Loading Cache...");
+        ConfigurationSection config = getCacheConfig().getConfigurationSection("player-heads");
+        for (Entry<String, Object> entry : config.getValues(false).entrySet()){
+            cachedHeads.put(entry.getKey(), (String)entry.getValue());
+        }
+        log("Cache loaded successfully!");
+    }
 
     public void reloadShopConfig() {
         try {
-            shopConfig.load(specialf);
+            shopConfig.load(shopf);
         } catch (IOException | InvalidConfigurationException e) {
             // TODO Auto-generated catch block
             debugLog("Error loading custom config: " + e.getMessage());

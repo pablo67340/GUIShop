@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9</version>
+    <version>9.0</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -104,11 +104,6 @@
             <version>0.5.12</version>
         </dependency>
         <dependency>
-            <groupId>space.arim</groupId>
-            <artifactId>legacyitemconstructor</artifactId>
-            <version>0.1.2-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <version>1.18.12</version>
@@ -178,7 +173,6 @@
                                     <include>com.pablo67340.GUIShop</include>
                                     <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
-                                    <include>space.arim:legacyitemconstructor:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                     <include>commons-io:commons-io:jar:</include>
                                 </includes>
@@ -239,7 +233,6 @@
                                     <include>com.pablo67340.GUIShop</include>
                                     <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
-                                    <include>space.arim:legacyitemconstructor</include>
                                     <include>com.mojang:authlib:jar:</include>
                                     <include>commons-io:commons-io:jar:</include>
                                 </includes>

@@ -29,12 +29,17 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
 import java.util.Map.Entry;
 
 import lombok.Getter;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 class Quantity {
 
@@ -88,9 +93,41 @@ class Quantity {
         ShopPane page = new ShopPane(9, 6);
         for (int x = 19; x <= 25; x++) {
 
-            GuiItem gItem = item.parseMaterial();
+            ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 
-            ItemStack itemStack = gItem.getItem();
+            if (item.hasPotion()) {
+                PotionInfo pi = item.getPotionInfo();
+                //System.out.println("Splash: "+pi.getSplash());
+                if (XMaterial.isNewVersion()) {
+
+                    if (pi.getSplash()) {
+                        itemStack = new ItemStack(Material.SPLASH_POTION);
+                    }
+                    PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+                    PotionData pd = null;
+                    try {
+                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                        pm.setBasePotionData(pd);
+                    } catch (IllegalArgumentException ex) {
+                        if (ex.getMessage().contains("upgradable")) {
+                            Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            pi.setUpgraded(false);
+                            pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                            pm.setBasePotionData(pd);
+                        } else if (ex.getMessage().contains("extended")) {
+                            Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            pi.setExtended(false);
+                            pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                            pm.setBasePotionData(pd);
+                        }
+                    }
+                    itemStack.setItemMeta(pm);
+                } else {
+                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                    potion.apply(itemStack);
+                }
+            }
 
             itemStack.setAmount(multiplier);
             ItemMeta itemMeta = itemStack.getItemMeta();
@@ -98,9 +135,11 @@ class Quantity {
 
             lore.add(item.getBuyLore(multiplier));
 
-            item.getShopLore().forEach(str -> {
-                lore.add(ChatColor.translateAlternateColorCodes('&', str));
-            });
+            if (item.hasShopLore()) {
+                item.getShopLore().forEach(str -> {
+                    lore.add(ChatColor.translateAlternateColorCodes('&', str));
+                });
+            }
 
             assert itemMeta != null;
             itemMeta.setLore(lore);
@@ -148,23 +187,33 @@ class Quantity {
                 itemStack.setItemMeta(itemMeta);
             }
 
-            if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
-                itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
+            if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && item.hasSkullUUID()) {
+                itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()));
             }
 
-            if (item.hasPotion()) {
-                if (item.getPotion().isSplash()) {
-                    itemStack.setType(Material.SPLASH_POTION);
+            if (item.hasNBT()) {
+                try {
+                    NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                    NBTTagCompound newComp = NbtParser.parse(item.getNBT());
+                    for (Entry<String, INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                        if (!newComp.hasKey(entry.getKey())) {
+                            newComp.set(entry.getKey(), entry.getValue());
+                        }
+                    }
+                    itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+
+                } catch (NbtParser.NbtParseException ex) {
+                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
                 }
-                item.getPotion().apply(itemStack);
             }
 
+            GuiItem gItem = new GuiItem(itemStack);
             page.setItem(gItem, x);
             qty.put(x, multiplier);
             multiplier *= 2;
         }
 
-        if (!ConfigUtil.isEscapeOnly()) {
+        if (!ConfigUtil.isDisableBackButton()) {
 
             ItemStack backButtonItem = XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseItem();
 
@@ -194,7 +243,7 @@ class Quantity {
      */
     private void onQuantityClick(InventoryClickEvent e) {
         e.setCancelled(true);
-        if (!ConfigUtil.isEscapeOnly()) {
+        if (!ConfigUtil.isDisableBackButton()) {
             if (e.getSlot() == 53) {
                 currentShop.open(player);
                 return;
@@ -214,13 +263,26 @@ class Quantity {
             return;
         }
 
+        buy(item, qty.get(e.getSlot()), e);
+
+    }
+
+    /**
+     * The inventory closeEvent handling for the Menu.
+     */
+    private void onClose(InventoryCloseEvent e) {
+        if (!ConfigUtil.isDisableEscapeBack()) {
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
+
+        }
+    }
+
+    public void buy(Item item, Integer quantity, InventoryClickEvent e) {
         if (!item.hasBuyPrice()) {
             player.sendMessage(ConfigUtil.getCantBuy());
             return;
         }
-
-        // Does the quantity work out?
-        int quantity = qty.get(e.getSlot());
 
         // If the quantity is 0
         if (quantity == 0) {
@@ -232,7 +294,7 @@ class Quantity {
 
         ItemStack itemStack;
 
-        if (item.hasPotion()) {
+        if (item.hasPotion() || item.hasSkullUUID()) {
             itemStack = e.getCurrentItem().clone();
         } else {
             itemStack = new ItemStack(e.getCurrentItem().getType(), quantity);
@@ -334,7 +396,7 @@ class Quantity {
 
                 EntityType type = item.parseMobSpawnerType();
                 if (type == null) {
-                    Main.log("Invalid EntityType in shops.yml: " + item.getMobType());
+                    Main.log("Invalid Mob Spawner Entity Type: " + item.getMobType() + " In Shop: " + currentShop.getShop());
 
                 } else {
                     String entityValue = type.name();
@@ -350,19 +412,15 @@ class Quantity {
                 dynamicPricingUpdate.run();
             }
 
-            if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
-                itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
-            }
-
+            // No need to check for invalid NBT here. If NBT is invalid, error is thrown from Shop.
             if (item.hasNBT()) {
-                NBTTagCompound test = ItemNBTUtil.getTag(player.getItemInHand());
-                String full = test.toNBT().toString();
-                System.out.println("Parsed: " + full);
                 try {
                     NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
                     NBTTagCompound newComp = NbtParser.parse(item.getNBT());
                     for (Entry<String, INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                        newComp.set(entry.getKey(), entry.getValue());
+                        if (!newComp.hasKey(entry.getKey())) {
+                            newComp.set(entry.getKey(), entry.getValue());
+                        }
                     }
                     itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
 
@@ -372,21 +430,8 @@ class Quantity {
             }
 
             player.getInventory().addItem(itemStack);
-
         } else {
             player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getNotEnoughPre() + priceToPay + ConfigUtil.getNotEnoughPost());
-        }
-
-    }
-
-    /**
-     * The inventory closeEvent handling for the Menu.
-     */
-    private void onClose(InventoryCloseEvent e) {
-        if (ConfigUtil.isEscapeOnly()) {
-            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
-
         }
     }
 }

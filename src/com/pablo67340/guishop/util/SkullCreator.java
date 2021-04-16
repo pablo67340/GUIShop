@@ -45,7 +45,7 @@ public class SkullCreator {
      * @param base64 The base64 string containing the texture.
      * @return The head with a custom texture.
      */
-    public static SkullMeta itemFromBase64(ItemStack item, String base64) {
+    public static ItemStack itemFromBase64(ItemStack item, String base64) {
         notNull(item, "item");
         notNull(base64, "base64");
 
@@ -56,7 +56,7 @@ public class SkullCreator {
         mutateItemMeta(meta, base64);
         item.setItemMeta(meta);
 
-        return meta;
+        return item;
     }
 
     private static void notNull(Object o, String name) {
@@ -100,7 +100,7 @@ public class SkullCreator {
     }
 
     public static String getBase64FromUUID(String uuid) {
-        String base64 = Main.getINSTANCE().getCacheConfig().getString("player-heads."+uuid);
+        String base64 = Main.getINSTANCE().getCachedHeads().get(uuid);
         if (base64 != null) {
             Main.debugLog("Loaded PlayerHead: " + uuid + " From Cache.");
             return base64;

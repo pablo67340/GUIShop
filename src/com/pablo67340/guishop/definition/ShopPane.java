@@ -14,8 +14,12 @@ import org.bukkit.inventory.PlayerInventory;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
+import com.pablo67340.guishop.Main;
 
 import lombok.Getter;
+import net.md_5.bungee.api.ChatColor;
+import org.bukkit.Material;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -38,12 +42,24 @@ public class ShopPane extends Pane {
         increment++;
     }
 
+    public void addBrokenItem(String reason, Integer slot) {
+        ItemStack item = new ItemStack(Material.BARRIER);
+        ItemMeta im = item.getItemMeta();
+        im.setDisplayName(ChatColor.translateAlternateColorCodes('&', reason));
+        item.setItemMeta(im);
+        items.put(slot, new GuiItem(item));
+    }
+
     public void addItem(GuiItem item) {
         items.put(items.size() + increment, item);
     }
 
     public void setItem(GuiItem item, Integer slot) {
-        items.put(slot, item);
+        if (slot > 53) {
+            Main.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is 53. Item Ignored. Please Delete this item from shops.yml!");
+        } else {
+            items.put(slot, item);
+        }
     }
 
     @Override

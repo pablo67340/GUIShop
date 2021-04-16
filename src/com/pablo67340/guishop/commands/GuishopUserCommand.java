@@ -10,6 +10,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.util.ConfigUtil;
+import net.md_5.bungee.api.ChatColor;
 
 public class GuishopUserCommand implements CommandExecutor {
 
@@ -22,15 +23,20 @@ public class GuishopUserCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (args.length >= 1) {
-            if (Main.BUY_COMMANDS.contains(args[0].toLowerCase())) {
+            if (ConfigUtil.getDisabledWorlds().contains(player.getWorld().getName())) {
+                if (Main.BUY_COMMANDS.contains(args[0].toLowerCase())) {
 
-                buyCommand(player, (args.length >= 2) ? args[1] : null);
-                return true;
+                    buyCommand(player, (args.length >= 2) ? args[1] : null);
+                    return true;
 
-            } else if (Main.SELL_COMMANDS.contains(args[0].toLowerCase())) {
+                } else if (Main.SELL_COMMANDS.contains(args[0].toLowerCase())) {
 
-                sellCommand(player);
-                return true;
+                    sellCommand(player);
+                    return true;
+                }
+            }else{
+                player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cShop cannot be used in this world"));
+                return false;
             }
         }
         Main.sendMessage(player, "&cUnknown command.");
@@ -50,7 +56,7 @@ public class GuishopUserCommand implements CommandExecutor {
             if (shop == null) {
                 PlayerListener.INSTANCE.openShop(player);
 
-            } else{
+            } else {
 
                 if (player.hasPermission("guishop.shop." + shop.toLowerCase())
                         || player.hasPermission("guishop.shop.*") || player.isOp()) {
@@ -59,7 +65,6 @@ public class GuishopUserCommand implements CommandExecutor {
                     player.sendMessage(ConfigUtil.getNoPermission());
                 }
             }
-
 
         } else {
             player.sendMessage(ConfigUtil.getNoPermission());

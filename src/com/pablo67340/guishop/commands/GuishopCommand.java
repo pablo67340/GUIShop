@@ -42,7 +42,7 @@ public class GuishopCommand implements CommandExecutor {
      * @return true if permitted, false otherwise
      */
     private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
-        Main.debugLog("Sender is op: "+sender.isOp());
+        Main.debugLog("Sender is op: " + sender.isOp());
         return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
     }
 
@@ -58,16 +58,7 @@ public class GuishopCommand implements CommandExecutor {
         Player player = (Player) commandSender;
 
         if (args.length >= 1) {
-            if (args[0].equalsIgnoreCase("parsematerial")) {
-                if (args.length >= 2) {
-                    Item tempItem = new Item();
-                    tempItem.setMaterial(args[1]);
-                    player.sendMessage(args[1] + " is " + ((tempItem.parseMaterial() == null) ? "NOT " : "") + "a valid material.");
-                } else {
-                    player.sendMessage("Please specify a material.");
-                }
-
-            } else if (args[0].equalsIgnoreCase("parsemob")) {
+            if (args[0].equalsIgnoreCase("parsemob")) {
                 if (args.length >= 2) {
                     Item tempItem = new Item();
                     tempItem.setMobType(args[1]);
@@ -127,18 +118,37 @@ public class GuishopCommand implements CommandExecutor {
                     for (int x = 1; x <= args.length - 1; x++) {
                         line += args[x] + " ";
                     }
-                    if (args.length == 2){
+                    if (args.length == 2) {
                         Boolean hasValue;
-                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")){
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
                             hasValue = Boolean.valueOf(args[1]);
                             ItemUtil.setShopName(hasValue, player);
                         }
-                    }else{
+                    } else {
                         ItemUtil.setShopName(line, player);
                     }
-                    
+
                 } else {
                     player.sendMessage("Please specify a custom sell-name.");
+                }
+            }else if (args[0].equalsIgnoreCase("n") || args[0].equalsIgnoreCase("name")) {
+                if (args.length >= 2) {
+                    String line = "";
+                    for (int x = 1; x <= args.length - 1; x++) {
+                        line += args[x] + " ";
+                    }
+                    if (args.length == 2) {
+                        Boolean hasValue;
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
+                            hasValue = Boolean.valueOf(args[1]);
+                            ItemUtil.setName(hasValue, player);
+                        }
+                    } else {
+                        ItemUtil.setName(line, player);
+                    }
+
+                } else {
+                    player.sendMessage("Please specify a custom name.");
                 }
             } else if (args[0].equalsIgnoreCase("bn") || args[0].equalsIgnoreCase("buyname")) {
                 if (args.length >= 2) {
@@ -146,13 +156,13 @@ public class GuishopCommand implements CommandExecutor {
                     for (int x = 1; x <= args.length - 1; x++) {
                         line += args[x] + " ";
                     }
-                    if (args.length == 2){
+                    if (args.length == 2) {
                         Boolean hasValue;
-                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")){
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
                             hasValue = Boolean.valueOf(args[1]);
                             ItemUtil.setBuyName(hasValue, player);
                         }
-                    }else{
+                    } else {
                         ItemUtil.setBuyName(line, player);
                     }
                 } else {
@@ -164,13 +174,13 @@ public class GuishopCommand implements CommandExecutor {
                     for (int x = 1; x <= args.length - 1; x++) {
                         enchantments += args[x] + " ";
                     }
-                    if (args.length == 2){
+                    if (args.length == 2) {
                         Boolean hasValue;
-                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")){
+                        if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
                             hasValue = Boolean.valueOf(args[1]);
                             ItemUtil.setEnchantments(hasValue, player);
                         }
-                    }else{
+                    } else {
                         ItemUtil.setEnchantments(enchantments, player);
                     }
                 } else {
@@ -279,6 +289,29 @@ public class GuishopCommand implements CommandExecutor {
                     ItemUtil.setMobType(args[1], player);
                 } else {
                     player.sendMessage("Please specify a type");
+                }
+            } else if (args[0].equalsIgnoreCase("ts") || args[0].equalsIgnoreCase("targetShop")) {
+                if (args.length == 2) {
+                    ItemUtil.setTargetShop(args[1], player);
+                } else {
+                    player.sendMessage("Please specify a Target Shhop");
+                }
+            } else if (args[0].equalsIgnoreCase("nb") || args[0].equalsIgnoreCase("nbt")) {
+                if (args.length >= 2) {
+                    String line = "";
+                    for (int x = 1; x <= args.length - 1; x++) {
+                        line += args[x] + " ";
+                    }
+
+                    if (args[1].equalsIgnoreCase("false")) {
+                        ItemUtil.setNBT(null, player);
+                    } else {
+
+                        ItemUtil.setNBT(line.trim(), player);
+                    }
+
+                } else {
+                    player.sendMessage("Please specify a custom NBT.");
                 }
             } else if (args[0].equalsIgnoreCase("reload")) {
                 Main.getINSTANCE().reload(player, false);

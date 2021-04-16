@@ -50,8 +50,11 @@ no-permission: '&cNo Permission!'
 #Disabled world message
 disabled-world: '&cYou cannot use the shop from this world!'
 
-#Use the escape key to close the shop instead of the back button.
-escape-only: true
+#Disables the Physical Back Button that appears in the shop inventory.
+disable-back-button: true
+
+#Disables the Escape to go Back functionality.
+disable-escape-back: false
 
 #Rightclick an item in the shop to open an alternate sell GUI
 alternate-sell-enable: false
@@ -199,7 +202,7 @@ alt-sell-cancel-name: '&c&lCancel'
 
 alt-sell-not-enough: '&cYou do not have {amount} such items to sell.'
 
-DisabledWorlds:
+disabled-worlds:
     -'Test'
 
  ################################

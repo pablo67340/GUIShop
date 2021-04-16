@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.listenable;
 
+import com.cryptomorin.xseries.XMaterial;
 import java.util.Map;
 
 import org.bukkit.ChatColor;
@@ -54,12 +55,12 @@ public class AltSell {
             player.sendMessage(ConfigUtil.getNoPermission());
             return;
         }
-        GuiItem gItem = subjectItem.parseMaterial();
-        GuiItem gIndicator = indicatorItem.parseMaterial();
-        GuiItem gAddItem = addItem.parseMaterial();
-        GuiItem gRemoveItem = removeItem.parseMaterial();
-        GuiItem gConfirmItem = confirmItem.parseMaterial();
-        GuiItem gCancelItem = cancelItem.parseMaterial();
+        GuiItem gItem = new GuiItem(XMaterial.matchXMaterial(subjectItem.getMaterial()).get().parseItem());
+        GuiItem gIndicator = new GuiItem(XMaterial.matchXMaterial(indicatorItem.getMaterial()).get().parseItem());
+        GuiItem gAddItem = new GuiItem(XMaterial.matchXMaterial(addItem.getMaterial()).get().parseItem());
+        GuiItem gRemoveItem = new GuiItem(XMaterial.matchXMaterial(removeItem.getMaterial()).get().parseItem());
+        GuiItem gConfirmItem = new GuiItem(XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem());
+        GuiItem gCancelItem = new GuiItem(XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem());
         if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null
                 && gCancelItem != null) {
             GuiItem[] addRemoveItems = new GuiItem[6];

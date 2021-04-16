@@ -1,39 +1,37 @@
 package com.pablo67340.guishop.definition;
 
 import com.cryptomorin.xseries.XMaterial;
-import com.cryptomorin.xseries.XPotion;
 import java.util.List;
 
 import org.bukkit.Material;
 import org.bukkit.entity.EntityType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.ConfigUtil;
-import com.pablo67340.guishop.util.MatLib;
-import com.pablo67340.guishop.util.MatLib.MatLibEntry;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
-
-import space.arim.legacyitemconstructor.LegacyItemConstructor;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
-public final class Item {
+public final class Item implements ConfigurationSerializable {
 
     /**
      * The name of this {@link Item} when presented on the GUI.
      */
     @Getter
     @Setter
-    private String shopName, buyName, shop, target_shop, name, skullUUID, NBT;
+    private String shopName, buyName, shop, targetShop, name, skullUUID, NBT;
 
     @Getter
     @Setter
@@ -76,14 +74,14 @@ public final class Item {
      */
     @Getter
     @Setter
-    private boolean useDynamicPricing, disableQty;
+    private boolean useDynamicPricing, disableQty, resolveFailed = false;
 
     /**
      * The slot of this {@link Item} when presented on the GUI.
      */
     @Getter
     @Setter
-    private ItemType itemType;
+    private ItemType itemType = ItemType.DUMMY;
 
     @Getter
     @Setter
@@ -100,12 +98,9 @@ public final class Item {
     @Setter
     private String[] enchantments;
 
-    /**
-     * The preparsed potion if this item is a potion
-     *
-     */
     @Getter
-    private Potion potion;
+    @Setter
+    private PotionInfo potionInfo;
 
     private static final String SPAWNER_MATERIAL = XMaterial.SPAWNER.parseMaterial().name();
 
@@ -144,6 +139,10 @@ public final class Item {
         return buyName != null;
     }
 
+    public boolean hasTargetShop() {
+        return targetShop != null;
+    }
+
     public boolean hasShopLore() {
         return (shopLore != null) && !shopLore.isEmpty();
     }
@@ -171,7 +170,7 @@ public final class Item {
      * @return true if the item has a potion, false otherwise
      */
     public boolean hasPotion() {
-        return potion != null;
+        return potionInfo != null;
     }
 
     /**
@@ -194,41 +193,6 @@ public final class Item {
      */
     public boolean isAnyPotion() {
         return isPotionMaterial(material);
-    }
-
-    /**
-     * Sets and parses the potion type of the item. <br>
-     * Remember to call {@link #isAnyPotion()} first
-     *
-     * @param type the potion type for the item from the shops.yml
-     * @param splash whether the potion is a splash potion
-     * @param extended whether the potion has extended duration
-     * @param level the tier/amplifier of the potion
-     */
-    @SuppressWarnings("deprecation")
-    public void parsePotionType(String type, boolean splash, boolean extended, int level) {
-        if (type != null) {
-            XPotion xpotion = XPotion.matchXPotion(type).orElse(null);
-            if (xpotion != null) {
-                PotionEffectType effectType = xpotion.parsePotionEffectType();
-                if (effectType != null) {
-                    for (PotionType vanillaType : PotionType.values()) {
-                        if (vanillaType.getEffectType() != null && vanillaType.getEffectType().equals(effectType)) {
-                            potion = new Potion(vanillaType);
-                            potion.setSplash(splash);
-                            if (!vanillaType.isInstant()) {
-                                potion.setHasExtendedDuration(extended);
-                            }
-                            if (level > 0 && level <= vanillaType.getMaxLevel()) {
-                                potion.setLevel(level);
-                            }
-                            return;
-                        }
-                    }
-                }
-            }
-            Main.log("Invalid potion info: {type=" + type + ",splash=" + splash + ",extended=" + extended + ",level=" + level + "}");
-        }
     }
 
     /**
@@ -439,93 +403,6 @@ public final class Item {
     }
 
     /**
-     * Parses the material of this Item. <br>
-     * If the material cannot be resolved, <code>null</code> should be returned.
-     * <br>
-     * <br>
-     * This operation is somewhat resource intensive. Consider running
-     * asynchronously. (Keep in mind thread safety of course)
-     *
-     * @return a gui item using the appropriate itemstack
-     */
-    public GuiItem parseMaterial() {
-
-        GuiItem gItem;
-
-        /*
-	* First attempt
-	* Use XMaterial
-         */
-        XMaterial xmaterial = XMaterial.matchXMaterial(getMaterial()).orElse(null);
-        ItemStack itemStack = (xmaterial != null) ? xmaterial.parseItem() : null;
-
-        if (itemStack != null && itemStack.getItemMeta() != null) { // If underlying itemstack cannot be resolved (is null or null meta), fail immediately
-            try {
-                gItem = new GuiItem(itemStack);
-                return gItem; // if itemStack is nonnull and no exception thrown, attempt has succeeded
-            } catch (Exception ex2) {
-                if (ConfigUtil.isDebugMode()) {
-                    Main.debugLog("Error parsing material: " + ex2.getMessage());
-                }
-            }
-        }
-
-        Main.debugLog("Failed to find item by Material: " + getMaterial() + ". Attempting workarounds...");
-        /*
-	* Second attempt
-	* "OFF"/"ON" fix
-         */
-        if (getMaterial().endsWith("_ON")) { // Only use OFF fix if _ON is detected
-
-            try {
-                // remove the "_ON" and add "_OFF"
-                itemStack = new ItemStack(Material.valueOf(getMaterial().substring(0, getMaterial().length() - 2) + "OFF"));
-                gItem = new GuiItem(itemStack);
-                return gItem; // if no exception thrown, attempt has succeeded
-            } catch (Exception ex3) {
-                if (ConfigUtil.isDebugMode()) {
-                    Main.debugLog("Error parsing item attempt 3: " + ex3.getMessage());
-                }
-            }
-
-            Main.debugLog("OFF Fix for: " + getMaterial() + " Failed. Attempting ItemID Lookup...");
-        }
-
-        /*
-	* Third attempt
-	* Using MatLib
-         */
-        // Final Stand, lets try to find this user's item
-        MatLibEntry itemInfo = MatLib.getMAP().get(getMaterial());
-        if (itemInfo != null) {
-
-            int id = itemInfo.getId();
-            short data = itemInfo.getData();
-
-            try {
-
-                itemStack = LegacyItemConstructor.invoke(id, 1, data); // can never be null
-
-                gItem = new GuiItem(itemStack);
-                return gItem;
-            } catch (Exception ex4) {
-                if (ConfigUtil.isDebugMode()) {
-                    Main.debugLog("Error parsing item attemp 4: " + ex4.getMessage());
-                }
-            } catch (NoSuchMethodError nsme) {
-                // For servers missing the legacy constructor https://pastebin.com/GDy2ih9s
-            }
-        }
-
-        Main.debugLog("ItemID Fix for: " + getMaterial() + " Failed. Falling back to air.");
-
-        setItemType(ItemType.BLANK);
-        setEnchantments(null);
-        // null indicates failure
-        return null;
-    }
-
-    /**
      * Parses the mob type of this item if it is a spawner item. <br>
      * Remember to check {@link #isMobSpawner()}
      *
@@ -577,6 +454,231 @@ public final class Item {
 
     public Boolean hasNBT() {
         return NBT != null;
+    }
+
+    public static Item parse(ItemStack itemStack, Integer slot) {
+        Item item = new Item();
+
+        if (itemStack != null) {
+            NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+            Main.debugLog(comp.toString());
+            item.setMaterial(itemStack.getType().toString());
+            item.setSlot(slot);
+            if (comp.hasKey("itemType")) {
+                item.setItemType(ItemType.valueOf(comp.getString("itemType")));
+            }
+            if (comp.hasKey("buyPrice")) {
+                Object buyPrice = getBuyPrice(itemStack);
+                Main.debugLog("had buyPrice comp: " + buyPrice);
+                item.setBuyPrice(buyPrice);
+            }
+            if (comp.hasKey("sellPrice")) {
+                Object sellPrice = getSellPrice(itemStack);
+                item.setSellPrice(sellPrice);
+            }
+
+            if (comp.hasKey("shopName")) {
+                item.setShopName(comp.getString("shopName"));
+            }
+            
+            if (comp.hasKey("targetShop")) {
+                item.setTargetShop(comp.getString("targetShop"));
+            }
+
+            if (comp.hasKey("buyName")) {
+                item.setBuyName(comp.getString("buyName"));
+            }
+            
+            if (comp.hasKey("name")) {
+                item.setName(comp.getString("name"));
+            }
+
+            if (comp.hasKey("enchantments")) {
+                item.setEnchantments(comp.getString("enchantments").split(" "));
+            }
+
+            if (comp.hasKey("commands")) {
+                item.setItemType(ItemType.COMMAND);
+                item.setCommands(Arrays.asList(comp.getString("commands").split("::")));
+            }
+
+            if (comp.hasKey("mobType")) {
+                item.setMobType(comp.getString("mobType"));
+            }
+
+            if (comp.hasKey("buyLoreLines")) {
+                String line = comp.getString("buyLoreLines");
+                String[] parsedLore = line.split("::");
+                item.setBuyLore(Arrays.asList(parsedLore));
+            }
+
+            if (comp.hasKey("shopLoreLines")) {
+                String line = comp.getString("shopLoreLines");
+                Main.debugLog("Item had Shop Lore " + line);
+                String[] parsedLore = line.split("::");
+                item.setShopLore(Arrays.asList(parsedLore));
+            }
+            
+            if (comp.hasKey("LoreLines")) {
+                String line = comp.getString("LoreLines");
+                Main.debugLog("Item had Lore " + line);
+                String[] parsedLore = line.split("::");
+                item.setLore(Arrays.asList(parsedLore));
+            }
+
+            if (comp.hasKey("customNBT")) {
+                item.setNBT(comp.getString("customNBT"));
+            }
+        }
+
+        return item;
+    }
+
+    /**
+     * Gets the buyPrice of an item using NBT, or <code>null</code> if not
+     * defined
+     *
+     * @param item ItemStack to get the BuyPrice on
+     * @return Buy Price either Double/Int
+     */
+    public static Object getBuyPrice(ItemStack item) {
+        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+
+        if (comp.hasKey("buyPrice")) {
+            Double vl = comp.getDouble("buyPrice");
+            return vl;
+        }
+        return null;
+    }
+
+    /**
+     * Gets the sellPrice of an item using NBT, or <code>null</code> if not
+     * defined
+     *
+     * @param item ItemStack to get the SellPrice of
+     * @return Sell Price either Double/Int
+     */
+    public static Object getSellPrice(ItemStack item) {
+        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+
+        if (comp.hasKey("sellPrice")) {
+            Double vl = comp.getDouble("sellPrice");
+            return vl;
+        }
+        return null;
+    }
+
+    public static Item deserialize(Map<String, Object> serialized, Integer slot) {
+        Item item = new Item();
+        item.setSlot(slot);
+        for (Entry<String, Object> entry : serialized.entrySet()) {
+            if (entry.getKey().equalsIgnoreCase("type")) {
+                item.setItemType(ItemType.valueOf((String) entry.getValue()));
+            } else if (entry.getKey().equalsIgnoreCase("id")) {
+                item.setMaterial((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("shop-name")) {
+                item.setShopName((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("name")) {
+                item.setName((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("buy-name")) {
+                item.setBuyName((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("shop-lore")) {
+                item.setShopLore((List<String>) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("buy-lore")) {
+                item.setBuyLore((List<String>) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("lore")) {
+                item.setLore((List<String>) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("buy-price")) {
+                if (entry.getValue() instanceof Double) {
+                    item.setBuyPrice((Double) entry.getValue());
+                } else if (entry.getValue() instanceof Integer) {
+                    item.setBuyPrice((Integer) entry.getValue());
+                }
+            } else if (entry.getKey().equalsIgnoreCase("sell-price")) {
+                if (entry.getValue() instanceof Double) {
+                    item.setSellPrice((Double) entry.getValue());
+                } else if (entry.getValue() instanceof Integer) {
+                    item.setSellPrice((Integer) entry.getValue());
+                }
+            } else if (entry.getKey().equalsIgnoreCase("commands")) {
+                item.setCommands((List<String>) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
+                item.setTargetShop((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
+                item.setEnchantments(((String) entry.getValue()).split(" "));
+            } else if (entry.getKey().equalsIgnoreCase("custom-nbt")) {
+                item.setNBT((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("mob-type")) {
+                item.setMobType((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("potion-info")) {
+                ConfigurationSection section = (ConfigurationSection) entry.getValue();
+                Map<String, Object> potionInfo = section.getValues(true);
+                item.setPotionInfo(new PotionInfo((String) potionInfo.get("type"), (Boolean) potionInfo.get("splash"), (Boolean) potionInfo.get("extended"), (Boolean) potionInfo.get("upgraded")));
+            }
+        }
+        return item;
+    }
+
+    @Override
+    public Map<String, Object> serialize() {
+        Map<String, Object> serialized = new HashMap<>();
+        if (itemType != ItemType.DUMMY) {
+            serialized.put("type", itemType.toString());
+        }
+        serialized.put("id", material);
+        if (hasShopName()) {
+            serialized.put("shop-name", shopName);
+        }
+        if (hasBuyName()) {
+            serialized.put("buy-name", buyName);
+        }
+        if (hasName()) {
+            serialized.put("name", name);
+        }
+        if (hasShopLore()) {
+            serialized.put("shop-lore", shopLore);
+        }
+        if (hasBuyLore()) {
+            serialized.put("buy-lore", buyLore);
+        }
+        if (hasLore()) {
+            serialized.put("lore", lore);
+        }
+        if (hasBuyPrice()) {
+            serialized.put("buy-price", buyPrice);
+        }
+        if (hasSellPrice()) {
+            serialized.put("sell-price", sellPrice);
+        }
+        if (hasCommands()) {
+            serialized.put("commands", commands);
+        }
+        if (hasTargetShop()) {
+            serialized.put("target-shop", targetShop);
+        }
+        if (hasEnchantments()) {
+            String parsed = "";
+            for (String str : enchantments) {
+                parsed += str + " ";
+            }
+            serialized.put("enchantments", parsed);
+        }
+        if (hasNBT()) {
+            serialized.put("custom-nbt", NBT);
+        }
+        if (hasMobType()) {
+            serialized.put("mob-type", mobType);
+        }
+        if (hasPotion()) {
+            Map<String, Object> pInfo = new HashMap<>();
+            pInfo.put("type", this.potionInfo.getType());
+            pInfo.put("splash", this.potionInfo.getSplash());
+            pInfo.put("extended", this.potionInfo.getExtended());
+            pInfo.put("upgraded", this.potionInfo.getUpgraded());
+            serialized.put("potion-info", pInfo);
+        }
+
+        return serialized;
     }
 
 }

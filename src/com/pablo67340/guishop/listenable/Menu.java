@@ -7,10 +7,12 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.MenuItem;
 import com.pablo67340.guishop.definition.MenuPage;
+import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
@@ -24,10 +26,18 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
-import java.util.logging.Level;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
+import org.bukkit.scheduler.BukkitScheduler;
 
 public final class Menu {
 
@@ -60,8 +70,8 @@ public final class Menu {
     public Menu(Player player) {
         this.player = player;
     }
-    
-    public Menu(){
+
+    public Menu() {
         this.player = null;
     }
 
@@ -86,33 +96,9 @@ public final class Menu {
                     ConfigurationSection shopItems = config.getConfigurationSection(str + ".items");
                     Main.debugLog("Reading Page: " + str);
                     shopItems.getKeys(false).stream().map(key -> {
-                        Item item = new Item();
                         Main.debugLog("Reading item: " + key + " in page " + str);
                         ConfigurationSection section = shopItems.getConfigurationSection(key);
-                        item.setSlot(Integer.parseInt(key));
-                        item.setMaterial((section.contains("id") ? (String) section.get("id") : "AIR"));
-                        item.setTarget_shop((section.contains("target_shop") ? (String) section.get("target_shop") : "NONE"));
-                        item.setSkullUUID((section.contains("skull-uuid") ? (String) section.get("skull-uuid") : null));
-                        item.setCustomModelData((section.contains("custom-model") ? (Integer) section.get("custom-model") : null));
-                        item.setItemFlags(
-                                (section.contains("item-flags") ? section.getStringList("item-flags") : new ArrayList<>()));
-                        if (item.isAnyPotion()) {
-                            ConfigurationSection potionSection = section.getConfigurationSection("potion-info");
-                            if (potionSection != null) {
-                                item.parsePotionType(potionSection.getString("type"),
-                                        potionSection.getBoolean("splash", false),
-                                        potionSection.getBoolean("extended", false), potionSection.getInt("amplifier", -1));
-                            }
-                        }
-                        item.setName((section.contains("name") ? (String) section.get("name") : null));
-                        if (section.contains("enchantments")) {
-                            String enchantments = section.getString("enchantments");
-                            if (!enchantments.equalsIgnoreCase(" ")) {
-                                item.setEnchantments(enchantments.split(" "));
-                            }
-                        }
-                        item.setLore(
-                                (section.contains("lore") ? section.getStringList("lore") : new ArrayList<>()));
+                        Item item = Item.deserialize(section.getValues(true), Integer.parseInt(key));
                         return item;
                     }).forEachOrdered(item -> {
                         page.getItems().put(Integer.toString(item.getSlot()), item);
@@ -155,16 +141,16 @@ public final class Menu {
                     ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
                     Main.debugLog("Adding item to slot: " + item.getSlot());
                     if (itemStack == null) {
-                        Main.debugLog("Item " + item.getMaterial() + " could not be resolved (invalid material)");
-                        menuPage.addBlankItem();
+                        Main.log("Item: " + item.getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
+                        menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
                         continue;
                     }
 
                     ItemMeta itemMeta = itemStack.getItemMeta();
 
                     if (itemMeta == null) {
-                        Main.debugLog("Item + " + item.getMaterial() + " could not be resolved (null meta)");
-                        menuPage.addBlankItem();
+                        Main.log("Item: " + item.getMaterial() + " could not be resolved (null meta).");
+                        menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
                         continue;
                     }
 
@@ -191,16 +177,42 @@ public final class Menu {
                                 });
                             }
                         } else {
-                            itemLore.add(" ");
-                            itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fItem Type: &r" + item.getItemType().toString()));
+                            NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                            if (item.hasName()) {
+                                comp.setString("name", item.getName());
+                            }
+                            if (item.hasTargetShop()) {
+                                comp.setString("targetShop", item.getTargetShop());
+                            }
+                            if (comp.hasKey("customNBT")) {
+                                item.setNBT(comp.getString("customNBT"));
+                            }
+                            if (item.hasLore()) {
+                                String lor = "";
+                                int index = 0;
+                                for (String str : item.getLore()) {
+                                    if (index != (item.getLore().size() - 1)) {
+                                        lor += str + "::";
+                                    } else {
+                                        lor += str;
+                                    }
+                                    index += 1;
+                                }
+                                comp.setString("LoreLines", lor);
+                            }
                             if (item.hasName()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fName: &r" + item.getName()));
                             }
+                            if (item.hasTargetShop()) {
+                                itemLore.add(" ");
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &r" + item.getTargetShop()));
+                            }
+
                             if (item.hasLore()) {
                                 itemLore.add(" ");
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fLore: &r"));
-                                item.getBuyLore().forEach(str -> {
+                                item.getLore().forEach(str -> {
                                     itemLore.add(str);
                                 });
                             }
@@ -211,6 +223,8 @@ public final class Menu {
                                 }
                                 itemLore.add("Enchantments: " + enchantments.trim());
                             }
+                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+                            itemMeta = itemStack.getItemMeta();
                         }
                     }
 
@@ -256,8 +270,6 @@ public final class Menu {
                                 }
                                 comp.setString("loreLines", lor);
                             }
-                            comp.setString("itemType", item.getItemType().toString());
-                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
                         }
                     }
 
@@ -270,13 +282,65 @@ public final class Menu {
                     }
 
                     if (item.hasPotion()) {
-                        item.getPotion().apply(itemStack);
+                        PotionInfo pi = item.getPotionInfo();
+                        if (XMaterial.isNewVersion()) {
+
+                            if (pi.getSplash()) {
+                                itemStack = new ItemStack(Material.SPLASH_POTION);
+                            }
+                            PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+                            PotionData pd = null;
+                            try {
+                                pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                                pm.setBasePotionData(pd);
+                            } catch (IllegalArgumentException ex) {
+                                if (ex.getMessage().contains("upgradable")) {
+                                    Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                                    pi.setUpgraded(false);
+                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                                    pm.setBasePotionData(pd);
+                                } else if (ex.getMessage().contains("extended")) {
+                                    Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                                    pi.setExtended(false);
+                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                                    pm.setBasePotionData(pd);
+                                }
+                            }
+                            itemStack.setItemMeta(pm);
+                        } else {
+                            Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                            potion.apply(itemStack);
+                        }
+                    }
+
+                    if (item.hasNBT()) {
+                        try {
+                            NBTWrappers.NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                            NBTWrappers.NBTTagCompound newComp = NbtParser.parse(item.getNBT());
+                            for (Map.Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                                if (!newComp.hasKey(entry.getKey())) {
+                                    newComp.set(entry.getKey(), entry.getValue());
+                                }
+                            }
+                            itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+                            if (itemStack == null) {
+                                Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
+                                menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
+                                continue;
+                            }
+
+                        } catch (NbtParser.NbtParseException ex) {
+                            Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
+                            menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
+                            continue;
+                        }
                     }
 
                     // Create Page
                     Main.debugLog("Setting item to slot: " + item.getSlot());
-                    if (itemStack.getType() == Material.PLAYER_HEAD && item.hasSkullUUID()) {
-                        itemStack.setItemMeta(SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID())));
+                    if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && item.hasSkullUUID()) {
+                        itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()));
                     }
                     GuiItem gItem = new GuiItem(itemStack);
                     menuPage.setItem(gItem, item.getSlot());
@@ -312,66 +376,6 @@ public final class Menu {
         return is;
     }
 
-    /**
-     * Save the items for current shop instance
-     *
-     * @param player - The player who is saving the items.
-     */
-    public void saveItems(Player player) {
-
-        Main.debugLog("Getting Section for Menu");
-
-        ConfigurationSection config = Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu") != null
-                ? Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu")
-                : Main.getINSTANCE().getMenuConfig().createSection("Menu");
-
-        Main.debugLog("Config: " + config);
-        pageIndex = 0;
-        Main.getINSTANCE().setLoadedMenu(menuItem);
-        menuItem.getPages().values().forEach(page -> {
-            String pageNumber = "Page" + pageIndex;
-            page.getItems().values().forEach(item -> {
-
-                if (!item.getMaterial().equalsIgnoreCase("DED")) {
-                    config.set("pages." + pageNumber + ".items." + item.getSlot() + "", null);
-                    ConfigurationSection section = config.createSection("pages." + pageNumber + ".items." + item.getSlot() + "");
-                    section.set("id", item.getMaterial());
-                    if (item.hasLore()) {
-                        section.set("lore", item.getLore());
-                    }
-                    if (item.hasShopName()) {
-                        section.set("name", item.getName());
-                    }
-                    if (item.hasEnchantments()) {
-                        String parsed = "";
-                        for (String str : item.getEnchantments()) {
-                            parsed += str + " ";
-                        }
-                        section.set("enchantments", parsed.trim());
-                    }
-
-                } else {
-                    Main.debugLog("Item was ded: " + item.getSlot());
-                    config.set("pages." + pageNumber + ".items." + item.getSlot() + "", null);
-                }
-            });
-            pageIndex += 1;
-        });
-        // Set to re-cache the object since the config was changed
-        Main.getINSTANCE().setLoadedMenu(null);
-        try {
-            Main.getINSTANCE().getMenuConfig().save(Main.getINSTANCE().getMenuf());
-        } catch (IOException ex) {
-            Main.getINSTANCE().getLogger().log(Level.WARNING, ex.getMessage());
-        }
-
-        if (!hasClicked) {
-            Main.debugLog("Removed from creator");
-            Main.getCREATOR().remove(player.getName());
-        }
-        Main.sendMessage(player, "&aMenu Saved!");
-    }
-
     private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
         if (pageIndex < (maxPages - 1)) {
             page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getForwardPageButtonName())), 51);
@@ -381,7 +385,7 @@ public final class Menu {
             Main.debugLog("Adding Back Button");
             page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getBackwardPageButtonName())), 47);
         }
-        if (!ConfigUtil.isEscapeOnly()) {
+        if (!ConfigUtil.isDisableBackButton()) {
 
             ItemStack backButtonItem = new ItemStack(
                     Objects.requireNonNull(XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseMaterial()));
@@ -421,10 +425,11 @@ public final class Menu {
         loadItems(false);
 
         GUI.setOnTopClick(this::onShopClick);
-        GUI.setOnBottomClick(event -> {
-            event.setCancelled(true);
-        });
-        if (Main.getCREATOR().contains(player.getName())) {
+        if (!Main.getCREATOR().contains(player.getName())) {
+            GUI.setOnBottomClick(event -> {
+                event.setCancelled(true);
+            });
+        } else {
             GUI.setOnClose(event -> onClose(event));
         }
         GUI.show(player);
@@ -437,10 +442,9 @@ public final class Menu {
      */
     private void onShopClick(InventoryClickEvent e) {
         Player pl = (Player) e.getWhoClicked();
-        e.setCancelled(true);
 
-        if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
-            return;
+        if (!Main.getCREATOR().contains(player.getName())) {
+            e.setCancelled(true);
         }
 
         hasClicked = true;
@@ -448,18 +452,6 @@ public final class Menu {
         if (e.getSlot() == Main.getINSTANCE().getMenuConfig().getInt("Menu.nextButtonSlot")) {
             hasClicked = true;
             if (hasMultiplePages() && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
-                if (Main.getCREATOR().contains(player.getName())) {
-                    ItemStack[] shopItems = GUI.getInventory().getContents();
-
-                    int slot = 0;
-                    for (ItemStack item : shopItems) {
-                        ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
-                                slot);
-                        slot += 1;
-                    }
-
-                    saveItems(player);
-                }
 
                 Main.debugLog("Setting page " + currentPane.getPage() + " to not visible");
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
@@ -478,17 +470,6 @@ public final class Menu {
             if (currentPane.getPage() != 0) {
                 hasClicked = true;
 
-                if (Main.getCREATOR().contains(player.getName())) {
-                    ItemStack[] shopItems = GUI.getInventory().getContents();
-
-                    int slot = 0;
-                    for (ItemStack item : shopItems) {
-                        ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setItem(new GuiItem(item),
-                                slot);
-                        slot += 1;
-                    }
-                    saveItems(player);
-                }
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
                 currentPane.setPage(currentPane.getPage() - 1);
 
@@ -501,10 +482,58 @@ public final class Menu {
                 GUI.update();
             }
             // Back Button
-        } else if (e.getSlot() == 53 && !ConfigUtil.isEscapeOnly()) {
+        } else if (e.getSlot() == 53 && !ConfigUtil.isDisableBackButton()) {
             player.closeInventory();
         } else {
-            openShop(pl, Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTarget_shop());
+            if (!Main.CREATOR.contains(player.getName())) {
+                openShop(pl, Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop());
+            } else if (e.isLeftClick() && !e.isShiftClick() && e.getCursor() == null) {
+                openShop(pl, Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop());
+            } else {
+                // When players remove an item from the shop
+                if (e.getClickedInventory().getType() != InventoryType.PLAYER) {
+
+                    // If an item was removed from the shop, this is null
+                    if (e.getAction() == InventoryAction.PICKUP_ALL || e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_ONE || e.getAction() == InventoryAction.PICKUP_SOME) {
+
+                        deleteMenuItem(e.getSlot());
+
+                    } else {
+
+                        // Run the scheduler after this event is complete. This will ensure the
+                        // possible new item is in the slot in time.
+                        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+                        scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
+                            ItemStack item = e.getInventory().getItem(e.getSlot());
+                            if (item != null) {
+                                Main.debugLog("new Item: " + item.getType());
+                                editMenuItem(item, e.getSlot());
+                            }
+                        }, 5L);
+                    }
+                } else {
+                    // When the player moves an item from their inventory to the shop via shift
+                    // click
+                    if (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT) {
+
+                        // Since shift clicking moves items to the first available slot, we can assume
+                        // the item
+                        // will end up in this slot.
+                        int slot = e.getInventory().firstEmpty();
+
+                        // Run the scheduler after this event is complete. This will ensure the
+                        // possible new item is in the slot in time.
+                        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+                        scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
+                            ItemStack item = e.getInventory().getItem(slot);
+                            if (item != null) {
+                                Main.debugLog("new Item: " + item.getType());
+                                editMenuItem(item, slot);
+                            }
+                        }, 5L);
+                    }
+                }
+            }
         }
 
     }
@@ -513,25 +542,53 @@ public final class Menu {
         return this.menuItem.getPages().size() > 1;
     }
 
-    public Shop openShop(Player player, String shop) {
+    public void openShop(Player player, String shop) {
         /*
          * The currently open shop associated with this Menu instance.
          */
-        Shop openShop = new Shop(player, shop, this);
-
-        openShop.loadItems(false);
-        openShop.open(player);
-        return openShop;
-
-    }
-
-    private void onClose(InventoryCloseEvent e) {
-        if (!hasClicked) {
-            Player p = (Player) e.getPlayer();
-            if (Main.getCREATOR().contains(p.getName())) {
-                Main.getCREATOR().remove(p.getName());
-            }
+        if (shop != null) {
+            Shop openShop = new Shop(player, shop, this);
+            openShop.loadItems(false);
+            openShop.open(player);
+        } else {
+            Main.log("Error: Target shop of clicked item not specified. Please add target-shop to specific item in menu.yml to fix this.");
         }
     }
 
+    private void deleteMenuItem(Integer slot) {
+        menuItem.getPages().get("Page" + currentPane.getPage()).getItems().remove(Integer.toString(slot));
+        ConfigurationSection config = Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu.pages.Page" + currentPane.getPage() + ".items") != null
+                ? Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu.pages.Page" + currentPane.getPage() + ".items")
+                : Main.getINSTANCE().getMenuConfig().createSection("Menu.pages.Page" + currentPane.getPage() + ".items");
+        config.set(slot.toString(), null);
+        try {
+            Main.getINSTANCE().getMenuConfig().save(Main.getINSTANCE().getMenuf());
+        } catch (IOException ex) {
+            Main.debugLog("Error saving Shops: " + ex.getMessage());
+        }
+    }
+
+    public void editMenuItem(ItemStack itemStack, Integer slot) {
+        Item item = Item.parse(itemStack, slot);
+        menuItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
+
+        ConfigurationSection config = Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu.pages.Page" + currentPane.getPage() + ".items") != null
+                ? Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu.pages.Page" + currentPane.getPage() + ".items")
+                : Main.getINSTANCE().getMenuConfig().createSection("Menu.pages.Page" + currentPane.getPage() + ".items");
+
+        config.set(slot.toString(), item.serialize());
+        Main.debugLog("Player Edited Item: " + item.getMaterial() + " slot: " + slot);
+        try {
+            Main.getINSTANCE().getMenuConfig().save(Main.getINSTANCE().getMenuf());
+        } catch (IOException ex) {
+            Main.debugLog("Error saving Shops: " + ex.getMessage());
+        }
+    }
+
+    private void onClose(InventoryCloseEvent e) {
+        Player p = (Player) e.getPlayer();
+        if (Main.getCREATOR().contains(p.getName())) {
+            Main.getCREATOR().remove(p.getName());
+        }
+    }
 }

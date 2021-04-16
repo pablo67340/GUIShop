@@ -1,9 +1,7 @@
 package com.pablo67340.guishop.util;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.pablo67340.guishop.definition.CommandsMode;
+import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -15,7 +13,7 @@ public final class ConfigUtil {
      */
     @Getter
     @Setter
-    private static boolean signsOnly, escapeOnly, alternateSellEnabled, soundEnabled, enableCreator,
+    private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled, enableCreator,
             dynamicPricing, debugMode;
 
     /**
@@ -47,5 +45,9 @@ public final class ConfigUtil {
     @Getter
     @Setter
     private static int altSellQuantity1, altSellQuantity2, altSellQuantity3;
+    
+    @Getter
+    @Setter
+    private static List<String> disabledWorlds;
 
 }

@@ -127,6 +127,9 @@ public class Shop {
                         Item item = Item.deserialize(section.getValues(true), Integer.parseInt(key));
                         return item;
                     }).forEachOrdered(item -> {
+                        if (!Main.getINSTANCE().getITEMTABLE().containsKey(item.getMaterial())){
+                            Main.getINSTANCE().getITEMTABLE().put(item.getMaterial(), item);
+                        }
                         page.getItems().put(Integer.toString(item.getSlot()), item);
                     });
                     return page;

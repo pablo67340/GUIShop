@@ -138,213 +138,215 @@ public final class Menu {
             for (MenuPage page : menuPages) {
                 menuPage = new ShopPane(9, 6);
                 for (Item item : page.getItems().values()) {
-                    ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
-                    Main.debugLog("Adding item to slot: " + item.getSlot());
-                    if (itemStack == null) {
-                        Main.log("Item: " + item.getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
-                        menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
-                        continue;
-                    }
-
-                    ItemMeta itemMeta = itemStack.getItemMeta();
-
-                    if (itemMeta == null) {
-                        Main.log("Item: " + item.getMaterial() + " could not be resolved (null meta).");
-                        menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
-                        continue;
-                    }
-
-                    List<String> itemLore = new ArrayList<>();
-
-                    if (player != null) {
-                        if (!Main.getCREATOR().contains(player.getName())) {
-                            if (item.hasName()) {
-                                assert itemMeta != null;
-                                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-                            }
-                            if (item.hasEnchantments()) {
-                                for (String str : item.getEnchantments()) {
-                                    String enchant = StringUtils.substringBefore(str, ":");
-                                    String level = StringUtils.substringAfter(str, ":");
-                                    itemLore.add(enchant + " " + level);
-                                }
-                            }
-                            if (item.hasLore()) {
-                                item.getLore().forEach(str -> {
-                                    if (!itemLore.contains(str)) {
-                                        itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
-                                    }
-                                });
-                            }
-                        } else {
-                            NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                            if (item.hasName()) {
-                                comp.setString("name", item.getName());
-                            }
-                            if (item.hasTargetShop()) {
-                                comp.setString("targetShop", item.getTargetShop());
-                            }
-                            if (comp.hasKey("customNBT")) {
-                                item.setNBT(comp.getString("customNBT"));
-                            }
-                            if (item.hasLore()) {
-                                String lor = "";
-                                int index = 0;
-                                for (String str : item.getLore()) {
-                                    if (index != (item.getLore().size() - 1)) {
-                                        lor += str + "::";
-                                    } else {
-                                        lor += str;
-                                    }
-                                    index += 1;
-                                }
-                                comp.setString("LoreLines", lor);
-                            }
-                            if (item.hasName()) {
-                                itemLore.add(" ");
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fName: &r" + item.getName()));
-                            }
-                            if (item.hasTargetShop()) {
-                                itemLore.add(" ");
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &r" + item.getTargetShop()));
-                            }
-
-                            if (item.hasLore()) {
-                                itemLore.add(" ");
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fLore: &r"));
-                                item.getLore().forEach(str -> {
-                                    itemLore.add(str);
-                                });
-                            }
-                            if (item.hasEnchantments()) {
-                                String enchantments = "";
-                                for (String str : item.getEnchantments()) {
-                                    enchantments += str + " ";
-                                }
-                                itemLore.add("Enchantments: " + enchantments.trim());
-                            }
-                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
-                            itemMeta = itemStack.getItemMeta();
+                    if (player.hasPermission("guishop.shop." + item.getTargetShop()) || player.isOp()) {
+                        ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
+                        Main.debugLog("Adding item to slot: " + item.getSlot());
+                        if (itemStack == null) {
+                            Main.log("Item: " + item.getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
+                            menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
+                            continue;
                         }
-                    }
 
-                    if (!itemLore.isEmpty()) {
-                        assert itemMeta != null;
-                        itemMeta.setLore(itemLore);
-                    }
+                        ItemMeta itemMeta = itemStack.getItemMeta();
 
-                    if (item.hasItemFlags()) {
-                        itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
-                    }
+                        if (itemMeta == null) {
+                            Main.log("Item: " + item.getMaterial() + " could not be resolved (null meta).");
+                            menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
+                            continue;
+                        }
 
-                    if (item.hasCustomModelID()) {
-                        itemMeta.setCustomModelData(item.getCustomModelData());
-                    }
+                        List<String> itemLore = new ArrayList<>();
 
-                    itemStack.setItemMeta(itemMeta);
-
-                    if (player != null) {
-                        if (Main.getCREATOR().contains(player.getName())) {
-                            NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                            Main.debugLog("USER IN CREATOR.Setting item Buy Price");
-                            if (item.hasName()) {
-                                comp.setString("itemName", item.getName());
-                            }
-                            if (item.hasEnchantments()) {
-                                String enchantments = "";
-                                for (String str : item.getEnchantments()) {
-                                    enchantments += str + ",";
+                        if (player != null) {
+                            if (!Main.getCREATOR().contains(player.getName())) {
+                                if (item.hasName()) {
+                                    assert itemMeta != null;
+                                    itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
                                 }
-                                comp.setString("enchantments", enchantments);
-                            }
-                            if (item.hasLore()) {
-                                String lor = "";
-                                int index = 0;
-                                for (String str : item.getLore()) {
-                                    if (index != (item.getLore().size() - 1)) {
-                                        lor += str + "::";
-                                    } else {
-                                        lor += str;
+                                if (item.hasEnchantments()) {
+                                    for (String str : item.getEnchantments()) {
+                                        String enchant = StringUtils.substringBefore(str, ":");
+                                        String level = StringUtils.substringAfter(str, ":");
+                                        itemLore.add(enchant + " " + level);
                                     }
-                                    index += 1;
                                 }
-                                comp.setString("loreLines", lor);
+                                if (item.hasLore()) {
+                                    item.getLore().forEach(str -> {
+                                        if (!itemLore.contains(str)) {
+                                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                                        }
+                                    });
+                                }
+                            } else {
+                                NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                                if (item.hasName()) {
+                                    comp.setString("name", item.getName());
+                                }
+                                if (item.hasTargetShop()) {
+                                    comp.setString("targetShop", item.getTargetShop());
+                                }
+                                if (comp.hasKey("customNBT")) {
+                                    item.setNBT(comp.getString("customNBT"));
+                                }
+                                if (item.hasLore()) {
+                                    String lor = "";
+                                    int index = 0;
+                                    for (String str : item.getLore()) {
+                                        if (index != (item.getLore().size() - 1)) {
+                                            lor += str + "::";
+                                        } else {
+                                            lor += str;
+                                        }
+                                        index += 1;
+                                    }
+                                    comp.setString("LoreLines", lor);
+                                }
+                                if (item.hasName()) {
+                                    itemLore.add(" ");
+                                    itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fName: &r" + item.getName()));
+                                }
+                                if (item.hasTargetShop()) {
+                                    itemLore.add(" ");
+                                    itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &r" + item.getTargetShop()));
+                                }
+
+                                if (item.hasLore()) {
+                                    itemLore.add(" ");
+                                    itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fLore: &r"));
+                                    item.getLore().forEach(str -> {
+                                        itemLore.add(str);
+                                    });
+                                }
+                                if (item.hasEnchantments()) {
+                                    String enchantments = "";
+                                    for (String str : item.getEnchantments()) {
+                                        enchantments += str + " ";
+                                    }
+                                    itemLore.add("Enchantments: " + enchantments.trim());
+                                }
+                                itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+                                itemMeta = itemStack.getItemMeta();
                             }
                         }
-                    }
 
-                    if (item.hasEnchantments()) {
-                        for (String enc : item.getEnchantments()) {
-                            String enchantment = StringUtils.substringBefore(enc, ":");
-                            String level = StringUtils.substringAfter(enc, ":");
-                            itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
+                        if (!itemLore.isEmpty()) {
+                            assert itemMeta != null;
+                            itemMeta.setLore(itemLore);
                         }
-                    }
 
-                    if (item.hasPotion()) {
-                        PotionInfo pi = item.getPotionInfo();
-                        if (XMaterial.isNewVersion()) {
+                        if (item.hasItemFlags()) {
+                            itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
+                        }
 
-                            if (pi.getSplash()) {
-                                itemStack = new ItemStack(Material.SPLASH_POTION);
+                        if (item.hasCustomModelID()) {
+                            itemMeta.setCustomModelData(item.getCustomModelData());
+                        }
+
+                        itemStack.setItemMeta(itemMeta);
+
+                        if (player != null) {
+                            if (Main.getCREATOR().contains(player.getName())) {
+                                NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                                Main.debugLog("USER IN CREATOR.Setting item Buy Price");
+                                if (item.hasName()) {
+                                    comp.setString("itemName", item.getName());
+                                }
+                                if (item.hasEnchantments()) {
+                                    String enchantments = "";
+                                    for (String str : item.getEnchantments()) {
+                                        enchantments += str + ",";
+                                    }
+                                    comp.setString("enchantments", enchantments);
+                                }
+                                if (item.hasLore()) {
+                                    String lor = "";
+                                    int index = 0;
+                                    for (String str : item.getLore()) {
+                                        if (index != (item.getLore().size() - 1)) {
+                                            lor += str + "::";
+                                        } else {
+                                            lor += str;
+                                        }
+                                        index += 1;
+                                    }
+                                    comp.setString("loreLines", lor);
+                                }
                             }
-                            PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+                        }
 
-                            PotionData pd = null;
+                        if (item.hasEnchantments()) {
+                            for (String enc : item.getEnchantments()) {
+                                String enchantment = StringUtils.substringBefore(enc, ":");
+                                String level = StringUtils.substringAfter(enc, ":");
+                                itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
+                            }
+                        }
+
+                        if (item.hasPotion()) {
+                            PotionInfo pi = item.getPotionInfo();
+                            if (XMaterial.isNewVersion()) {
+
+                                if (pi.getSplash()) {
+                                    itemStack = new ItemStack(Material.SPLASH_POTION);
+                                }
+                                PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+                                PotionData pd = null;
+                                try {
+                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                                    pm.setBasePotionData(pd);
+                                } catch (IllegalArgumentException ex) {
+                                    if (ex.getMessage().contains("upgradable")) {
+                                        Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                                        pi.setUpgraded(false);
+                                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                                        pm.setBasePotionData(pd);
+                                    } else if (ex.getMessage().contains("extended")) {
+                                        Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                                        pi.setExtended(false);
+                                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                                        pm.setBasePotionData(pd);
+                                    }
+                                }
+                                itemStack.setItemMeta(pm);
+                            } else {
+                                Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                                potion.apply(itemStack);
+                            }
+                        }
+
+                        if (item.hasNBT()) {
                             try {
-                                pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                                pm.setBasePotionData(pd);
-                            } catch (IllegalArgumentException ex) {
-                                if (ex.getMessage().contains("upgradable")) {
-                                    Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                                    pi.setUpgraded(false);
-                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                                    pm.setBasePotionData(pd);
-                                } else if (ex.getMessage().contains("extended")) {
-                                    Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                                    pi.setExtended(false);
-                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                                    pm.setBasePotionData(pd);
+                                NBTWrappers.NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                                NBTWrappers.NBTTagCompound newComp = NbtParser.parse(item.getNBT());
+                                for (Map.Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                                    if (!newComp.hasKey(entry.getKey())) {
+                                        newComp.set(entry.getKey(), entry.getValue());
+                                    }
                                 }
-                            }
-                            itemStack.setItemMeta(pm);
-                        } else {
-                            Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
-                            potion.apply(itemStack);
-                        }
-                    }
+                                itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+                                if (itemStack == null) {
+                                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
+                                    menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
+                                    continue;
+                                }
 
-                    if (item.hasNBT()) {
-                        try {
-                            NBTWrappers.NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
-                            NBTWrappers.NBTTagCompound newComp = NbtParser.parse(item.getNBT());
-                            for (Map.Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                                if (!newComp.hasKey(entry.getKey())) {
-                                    newComp.set(entry.getKey(), entry.getValue());
-                                }
-                            }
-                            itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
-                            if (itemStack == null) {
+                            } catch (NbtParser.NbtParseException ex) {
                                 Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
                                 menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
                                 continue;
                             }
-
-                        } catch (NbtParser.NbtParseException ex) {
-                            Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
-                            menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
-                            continue;
                         }
-                    }
 
-                    // Create Page
-                    Main.debugLog("Setting item to slot: " + item.getSlot());
-                    if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && item.hasSkullUUID()) {
-                        itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()));
-                    }
-                    GuiItem gItem = new GuiItem(itemStack);
-                    menuPage.setItem(gItem, item.getSlot());
+                        // Create Page
+                        Main.debugLog("Setting item to slot: " + item.getSlot());
+                        if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && item.hasSkullUUID()) {
+                            itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()));
+                        }
+                        GuiItem gItem = new GuiItem(itemStack);
+                        menuPage.setItem(gItem, item.getSlot());
 
+                    }
                 }
 
                 applyButtons(menuPage, pageIndex, menuPages.size());

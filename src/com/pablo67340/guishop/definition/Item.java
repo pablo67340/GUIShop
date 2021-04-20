@@ -604,6 +604,7 @@ public final class Item implements ConfigurationSerializable {
                 item.setCommands((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
                 item.setTargetShop((String) entry.getValue());
+                item.setItemType(ItemType.ITEM);
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 item.setEnchantments(((String) entry.getValue()).split(" "));
             } else if (entry.getKey().equalsIgnoreCase("custom-nbt")) {

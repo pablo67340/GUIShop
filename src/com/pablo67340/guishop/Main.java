@@ -102,8 +102,8 @@ public final class Main extends JavaPlugin {
 
     @Getter
     private final Map<String, Item> ITEMTABLE = new HashMap<>();
-    
-    @Getter 
+
+    @Getter
     private final Map<String, String> cachedHeads = new HashMap<>();
 
     // TODO: Make a HashMap. Key: Material, Value, List of SellProfiles/Items
@@ -434,10 +434,9 @@ public final class Main extends JavaPlugin {
         reloadMenuConfig();
         reloadCacheConfig();
         loadDefaults();
-        
+
         loadCache();
         warmup();
-        
 
         // If the CommandsMode is REGISTER, register/re-register the commands
         // Otherwise, unregister the commands
@@ -455,12 +454,14 @@ public final class Main extends JavaPlugin {
         sendMessage(player, "&aGUIShop Reloaded");
 
     }
-    
-    public void loadCache(){
+
+    public void loadCache() {
         log("Loading Cache...");
-        ConfigurationSection config = getCacheConfig().getConfigurationSection("player-heads");
-        for (Entry<String, Object> entry : config.getValues(false).entrySet()){
-            cachedHeads.put(entry.getKey(), (String)entry.getValue());
+        if (getCacheConfig().contains("player-heads")) {
+            ConfigurationSection config = getCacheConfig().getConfigurationSection("player-heads");
+            for (Entry<String, Object> entry : config.getValues(false).entrySet()) {
+                cachedHeads.put(entry.getKey(), (String) entry.getValue());
+            }
         }
         log("Cache loaded successfully!");
     }

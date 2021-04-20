@@ -124,7 +124,7 @@ public class Shop {
                     shopItems.getKeys(false).stream().map(key -> {
                         Main.debugLog("Reading item: " + key + " in page " + str);
                         ConfigurationSection section = shopItems.getConfigurationSection(key);
-                        Item item = Item.deserialize(section.getValues(true), Integer.parseInt(key));
+                        Item item = Item.deserialize(section.getValues(true), Integer.parseInt(key), shop);
                         return item;
                     }).forEachOrdered(item -> {
                         if (!Main.getINSTANCE().getITEMTABLE().containsKey(item.getMaterial())){
@@ -712,7 +712,7 @@ public class Shop {
 
     public void editShopItem(ItemStack itemStack, Integer slot) {
 
-        Item item = Item.parse(itemStack, slot);
+        Item item = Item.parse(itemStack, slot, shop);
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
 
         ConfigurationSection config = Main.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null

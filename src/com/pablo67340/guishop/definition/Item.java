@@ -456,7 +456,7 @@ public final class Item implements ConfigurationSerializable {
         return NBT != null;
     }
 
-    public static Item parse(ItemStack itemStack, Integer slot) {
+    public static Item parse(ItemStack itemStack, Integer slot, String shop) {
         Item item = new Item();
 
         if (itemStack != null) {
@@ -464,6 +464,7 @@ public final class Item implements ConfigurationSerializable {
             Main.debugLog(comp.toString());
             item.setMaterial(itemStack.getType().toString());
             item.setSlot(slot);
+            item.setShop(shop);
             if (comp.hasKey("itemType")) {
                 item.setItemType(ItemType.valueOf(comp.getString("itemType")));
             }
@@ -568,9 +569,10 @@ public final class Item implements ConfigurationSerializable {
         return null;
     }
 
-    public static Item deserialize(Map<String, Object> serialized, Integer slot) {
+    public static Item deserialize(Map<String, Object> serialized, Integer slot, String shop) {
         Item item = new Item();
         item.setSlot(slot);
+        item.setShop(shop);
         for (Entry<String, Object> entry : serialized.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("type")) {
                 item.setItemType(ItemType.valueOf((String) entry.getValue()));

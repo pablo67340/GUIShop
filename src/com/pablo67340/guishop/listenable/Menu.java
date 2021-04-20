@@ -99,7 +99,7 @@ public final class Menu {
                     shopItems.getKeys(false).stream().map(key -> {
                         Main.debugLog("Reading item: " + key + " in page " + str);
                         ConfigurationSection section = shopItems.getConfigurationSection(key);
-                        Item item = Item.deserialize(section.getValues(true), Integer.parseInt(key));
+                        Item item = Item.deserialize(section.getValues(true), Integer.parseInt(key), null);
                         return item;
                     }).forEachOrdered(item -> {
                         page.getItems().put(Integer.toString(item.getSlot()), item);
@@ -584,7 +584,7 @@ public final class Menu {
     }
 
     public void editMenuItem(ItemStack itemStack, Integer slot) {
-        Item item = Item.parse(itemStack, slot);
+        Item item = Item.parse(itemStack, slot, null);
         menuItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
 
         ConfigurationSection config = Main.getINSTANCE().getMenuConfig().getConfigurationSection("Menu.pages.Page" + currentPane.getPage() + ".items") != null

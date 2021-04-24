@@ -404,7 +404,7 @@ public class Shop {
                             }
                             PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 
-                            PotionData pd = null;
+                            PotionData pd;
                             try {
                                 pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                                 pm.setBasePotionData(pd);
@@ -726,6 +726,7 @@ public class Shop {
         } catch (IOException ex) {
             Main.debugLog("Error saving Shops: " + ex.getMessage());
         }
+        hasClicked = false;
     }
     
     /**
@@ -736,10 +737,11 @@ public class Shop {
             if (!ConfigUtil.isDisableEscapeBack() && !hasClicked) {
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
                 scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> menuInstance.open(player), 1L);
-
             } else {
                 hasClicked = false;
             }
+        }else if (!hasClicked){
+            Main.CREATOR.remove(player.getName());
         }
 
     }

@@ -481,7 +481,7 @@ public final class Item implements ConfigurationSerializable {
             if (comp.hasKey("shopName")) {
                 item.setShopName(comp.getString("shopName"));
             }
-            
+
             if (comp.hasKey("targetShop")) {
                 item.setTargetShop(comp.getString("targetShop"));
             }
@@ -489,7 +489,7 @@ public final class Item implements ConfigurationSerializable {
             if (comp.hasKey("buyName")) {
                 item.setBuyName(comp.getString("buyName"));
             }
-            
+
             if (comp.hasKey("name")) {
                 item.setName(comp.getString("name"));
             }
@@ -519,7 +519,7 @@ public final class Item implements ConfigurationSerializable {
                 String[] parsedLore = line.split("::");
                 item.setShopLore(Arrays.asList(parsedLore));
             }
-            
+
             if (comp.hasKey("LoreLines")) {
                 String line = comp.getString("LoreLines");
                 Main.debugLog("Item had Lore " + line);
@@ -584,6 +584,8 @@ public final class Item implements ConfigurationSerializable {
                 item.setName((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-name")) {
                 item.setBuyName((String) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("skull-uuid")) {
+                item.setSkullUUID((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("shop-lore")) {
                 item.setShopLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-lore")) {
@@ -634,6 +636,9 @@ public final class Item implements ConfigurationSerializable {
         }
         if (hasBuyName()) {
             serialized.put("buy-name", buyName);
+        }
+        if (hasSkullUUID()) {
+            serialized.put("skull-uuid", skullUUID);
         }
         if (hasName()) {
             serialized.put("name", name);

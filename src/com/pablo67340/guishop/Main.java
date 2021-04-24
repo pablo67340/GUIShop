@@ -114,9 +114,6 @@ public final class Main extends JavaPlugin {
     @Getter
     public static final List<String> CREATOR = new ArrayList<>();
 
-    @Getter
-    private final Map<UUID, Shop> openShopInstances = new HashMap<>();
-
     /**
      * The current buy command
      */
@@ -421,14 +418,16 @@ public final class Main extends JavaPlugin {
 
     public void reload(Player player, Boolean ignoreCreator) {
         Main.debugLog("GUIShop Reloaded");
-        createFiles();
+        
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
         SELL_COMMANDS.clear();
         loadedShops.clear();
+        loadedMenu = null;
         if (!ignoreCreator) {
             CREATOR.clear();
         }
+        createFiles();
         reloadConfig();
         reloadShopConfig();
         reloadMenuConfig();

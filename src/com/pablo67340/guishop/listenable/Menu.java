@@ -139,7 +139,7 @@ public final class Menu {
             for (MenuPage page : menuPages) {
                 menuPage = new ShopPane(9, 6);
                 for (Item item : page.getItems().values()) {
-                    ItemStack itemStack = null;
+                    ItemStack itemStack;
                     if (item.getItemType() == ItemType.DUMMY || player.hasPermission("guishop.shop." + item.getTargetShop()) || player.isOp()) {
                         itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
                     } else {
@@ -291,7 +291,7 @@ public final class Menu {
                         }
                     }
 
-                    if (item.hasPotion() && player.hasPermission("guishop.shop."+item.getTargetShop())) {
+                    if (item.hasPotion() && player.hasPermission("guishop.shop." + item.getTargetShop())) {
                         PotionInfo pi = item.getPotionInfo();
                         if (XMaterial.isNewVersion()) {
 
@@ -300,7 +300,7 @@ public final class Menu {
                             }
                             PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 
-                            PotionData pd = null;
+                            PotionData pd;
                             try {
                                 pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                                 pm.setBasePotionData(pd);
@@ -457,8 +457,6 @@ public final class Menu {
             e.setCancelled(true);
         }
 
-        hasClicked = true;
-
         if (e.getSlot() == Main.getINSTANCE().getMenuConfig().getInt("Menu.nextButtonSlot")) {
             hasClicked = true;
             if (hasMultiplePages() && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
@@ -502,9 +500,7 @@ public final class Menu {
                 } else {
                     pl.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou do not have permission to use this shop."));
                 }
-            } else if (e.isLeftClick() && !e.isShiftClick() && e.getCursor() == null) {
-                openShop(pl, Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop());
-            } else {
+            } else if (e.isLeftClick() && !e.isShiftClick()) {
                 // When players remove an item from the shop
                 if (e.getClickedInventory().getType() != InventoryType.PLAYER) {
 
@@ -548,6 +544,11 @@ public final class Menu {
                         }, 5L);
                     }
                 }
+            } else {
+
+                hasClicked = true;
+                openShop(pl, Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop());
+
             }
         }
 
@@ -581,6 +582,7 @@ public final class Menu {
         } catch (IOException ex) {
             Main.debugLog("Error saving Shops: " + ex.getMessage());
         }
+        hasClicked = false;
     }
 
     public void editMenuItem(ItemStack itemStack, Integer slot) {
@@ -598,11 +600,12 @@ public final class Menu {
         } catch (IOException ex) {
             Main.debugLog("Error saving Shops: " + ex.getMessage());
         }
+        hasClicked = false;
     }
 
     private void onClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (Main.getCREATOR().contains(p.getName())) {
+        if (Main.getCREATOR().contains(p.getName()) && !hasClicked) {
             Main.getCREATOR().remove(p.getName());
         }
     }

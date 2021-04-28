@@ -11,6 +11,7 @@ import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.ConfigUtil;
+import java.math.BigDecimal;
 
 public final class Sell {
 
@@ -46,7 +47,7 @@ public final class Sell {
      * @param items the items
      */
     public static void sellItems(Player player, ItemStack[] items) {
-        double moneyToGive = 0;
+        BigDecimal moneyToGive = BigDecimal.valueOf(0);
         boolean couldntSell = false;
         int countSell = 0;
         for (ItemStack item : items) {
@@ -73,11 +74,12 @@ public final class Sell {
 
             // buy price must be defined for dynamic pricing to work
             if (ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
-                moneyToGive += Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
-                        shopItem.getBuyPriceAsDouble(), shopItem.getSellPriceAsDouble());
+                moneyToGive = Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
+                        shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal());
                 Main.getDYNAMICPRICING().sellItem(itemString, quantity);
             } else {
-                moneyToGive += quantity * shopItem.getSellPriceAsDouble();
+                
+                moneyToGive = shopItem.getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
             }
 
         }
@@ -94,13 +96,12 @@ public final class Sell {
      * @param player the player
      * @param moneyToGive the amount to give
      */
-    public static void roundAndGiveMoney(Player player, double moneyToGive) {
-        Double moneyToGiveRounded = (double) Math.round(moneyToGive * 100) / 100;
+    public static void roundAndGiveMoney(Player player, BigDecimal moneyToGive) {
+       
+        if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
+            Main.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
-        if (moneyToGiveRounded > 0) {
-            Main.getECONOMY().depositPlayer(player, moneyToGiveRounded);
-
-            player.sendMessage(ConfigUtil.getSold() + moneyToGiveRounded + ConfigUtil.getAdded());
+            player.sendMessage(ConfigUtil.getSold() + moneyToGive.toPlainString() + ConfigUtil.getAdded());
         }
     }
 

@@ -1,16 +1,19 @@
 package com.pablo67340.guishop.commands;
 
+import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.ItemUtil;
+import java.math.BigDecimal;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class GuishopCommand implements CommandExecutor {
@@ -79,7 +82,7 @@ public class GuishopCommand implements CommandExecutor {
                     result = false;
                 } else {
                     try {
-                        result = Double.parseDouble(args[1]);
+                        result = BigDecimal.valueOf(Double.parseDouble(args[1]));
                     } catch (NumberFormatException ex) {
                         try {
                             result = Integer.parseInt(args[1]);
@@ -98,7 +101,7 @@ public class GuishopCommand implements CommandExecutor {
                         result = false;
                     } else {
                         try {
-                            result = Double.parseDouble(args[1]);
+                            result = BigDecimal.valueOf(Double.parseDouble(args[1]));
                         } catch (NumberFormatException ex) {
                             try {
                                 result = Integer.parseInt(args[1]);
@@ -294,8 +297,19 @@ public class GuishopCommand implements CommandExecutor {
                 if (args.length == 2) {
                     ItemUtil.setTargetShop(args[1], player);
                 } else {
-                    player.sendMessage("Please specify a Target Shhop");
+                    player.sendMessage("Please specify a Target Shop");
                 }
+            }else if (args[0].equalsIgnoreCase("printnbt")) {
+
+                    ItemStack item = player.getItemInHand();
+                    if (item != null){
+                        String message = "Printed NBT: "+ItemNBTUtil.getTag(item).toNBT().toString();
+                        Main.log(message);
+                        player.sendMessage(message);
+                    }else{
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou must be holding an item."));
+                    }
+
             } else if (args[0].equalsIgnoreCase("nb") || args[0].equalsIgnoreCase("nbt")) {
                 if (args.length >= 2) {
                     String line = "";

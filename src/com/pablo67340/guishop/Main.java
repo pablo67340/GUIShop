@@ -36,6 +36,7 @@ import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
+import java.math.BigDecimal;
 import java.net.URL;
 import java.util.Map.Entry;
 
@@ -502,9 +503,9 @@ public final class Main extends JavaPlugin {
      * @param value what to format
      * @return the formatted result
      */
-    public static String economyFormat(double value) {
+    public static String economyFormat(BigDecimal value) {
         int digits = ECONOMY.fractionalDigits();
-        return (digits == -1) ? Double.toString(value) : String.format("%." + digits + "f", value);
+        return (digits == -1) ? value.toPlainString() : String.format("%." + digits + "f", value);
     }
 
     public static String placeholderIfy(String input, Player player, Item item) {
@@ -523,10 +524,10 @@ public final class Main extends JavaPlugin {
             str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
         }
         if (item.hasBuyPrice()) {
-            str = str.replace("{BUY_PRICE}", Double.toString(item.calculateBuyPrice(1)));
+            str = str.replace("{BUY_PRICE}", item.calculateBuyPrice(1).toPlainString());
         }
         if (item.hasSellPrice()) {
-            str = str.replace("{SELL_PRICE}", Double.toString(item.calculateSellPrice(1)));
+            str = str.replace("{SELL_PRICE}", item.calculateSellPrice(1).toPlainString());
         }
         str = str.replace("{CURRENCY_SYMBOL}", ConfigUtil.getCurrency());
         str = str.replace("{CURRENCY_SUFFIX}", ConfigUtil.getCurrencySuffix());

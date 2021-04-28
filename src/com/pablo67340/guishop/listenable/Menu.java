@@ -31,8 +31,6 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.Potion;
@@ -130,6 +128,9 @@ public final class Menu {
                         ChatColor.translateAlternateColorCodes('&', ConfigUtil.getMenuTitle().replace("{page-number}", ConfigUtil.getMenuShopPageNumber().replace("{number}", "1"))));
             } else {
                 int rows = (int) Math.ceil((double) menuItem.getPages().get("Page0").getItems().size() / 9);
+                if (rows == 0) {
+                    rows = 1;
+                }
                 this.GUI = new Gui(Main.getINSTANCE(), rows,
                         ChatColor.translateAlternateColorCodes('&', ConfigUtil.getMenuTitle().replace("{page-number}", "")));
             }
@@ -363,6 +364,11 @@ public final class Menu {
 
             }
 
+            if (menuPages.isEmpty()) {
+                menuPage = new ShopPane(9, 6);
+                pane.addPane(pageIndex, menuPage);
+            }
+
             GUI.addPane(pane);
             this.currentPane = pane;
         }
@@ -434,12 +440,14 @@ public final class Menu {
 
         loadItems(false);
 
-        GUI.setOnTopClick(this::onShopClick);
         if (!Main.getCREATOR().contains(player.getName())) {
-            GUI.setOnBottomClick(event -> {
-                event.setCancelled(true);
+            GUI.setOnTopClick(this::onShopClick);
+            GUI.setOnBottomClick((e) -> {
+                e.setCancelled(true);
             });
         } else {
+            GUI.setOnBottomClick(this::creatorPlayerInventoryClick);
+            GUI.setOnTopClick(this::creatorTopInventoryClick);
             GUI.setOnClose(event -> onClose(event));
         }
         GUI.show(player);
@@ -453,9 +461,7 @@ public final class Menu {
     private void onShopClick(InventoryClickEvent e) {
         Player pl = (Player) e.getWhoClicked();
 
-        if (!Main.getCREATOR().contains(pl.getName())) {
-            e.setCancelled(true);
-        }
+        e.setCancelled(true);
 
         if (e.getSlot() == Main.getINSTANCE().getMenuConfig().getInt("Menu.nextButtonSlot")) {
             hasClicked = true;
@@ -493,65 +499,15 @@ public final class Menu {
         } else if (e.getSlot() == 53 && !ConfigUtil.isDisableBackButton()) {
             pl.closeInventory();
         } else {
-            if (!Main.CREATOR.contains(pl.getName())) {
+            if (Main.getINSTANCE().getLoadedMenu().getPages().containsKey("Page" + currentPane.getPage()) && Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().containsKey(((Integer) e.getSlot()).toString())) {
                 String shopName = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop();
                 if (pl.hasPermission("guishop.shop." + shopName)) {
                     openShop(pl, shopName);
                 } else {
                     pl.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou do not have permission to use this shop."));
                 }
-            } else if (e.isLeftClick() && !e.isShiftClick()) {
-                // When players remove an item from the shop
-                if (e.getClickedInventory().getType() != InventoryType.PLAYER) {
-
-                    // If an item was removed from the shop, this is null
-                    if (e.getAction() == InventoryAction.PICKUP_ALL || e.getAction() == InventoryAction.PICKUP_HALF || e.getAction() == InventoryAction.PICKUP_ONE || e.getAction() == InventoryAction.PICKUP_SOME) {
-
-                        deleteMenuItem(e.getSlot());
-
-                    } else {
-
-                        // Run the scheduler after this event is complete. This will ensure the
-                        // possible new item is in the slot in time.
-                        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                        scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
-                            ItemStack item = e.getInventory().getItem(e.getSlot());
-                            if (item != null) {
-                                Main.debugLog("new Item: " + item.getType());
-                                editMenuItem(item, e.getSlot());
-                            }
-                        }, 5L);
-                    }
-                } else {
-                    // When the player moves an item from their inventory to the shop via shift
-                    // click
-                    if (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT) {
-
-                        // Since shift clicking moves items to the first available slot, we can assume
-                        // the item
-                        // will end up in this slot.
-                        int slot = e.getInventory().firstEmpty();
-
-                        // Run the scheduler after this event is complete. This will ensure the
-                        // possible new item is in the slot in time.
-                        BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                        scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
-                            ItemStack item = e.getInventory().getItem(slot);
-                            if (item != null) {
-                                Main.debugLog("new Item: " + item.getType());
-                                editMenuItem(item, slot);
-                            }
-                        }, 5L);
-                    }
-                }
-            } else {
-
-                hasClicked = true;
-                openShop(pl, Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop());
-
             }
         }
-
     }
 
     public Boolean hasMultiplePages() {
@@ -601,6 +557,54 @@ public final class Menu {
             Main.debugLog("Error saving Shops: " + ex.getMessage());
         }
         hasClicked = false;
+    }
+
+    private void creatorPlayerInventoryClick(InventoryClickEvent e) {
+        if (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT) {
+
+            // Since shift clicking moves items to the first available slot, we can assume
+            // the item
+            // will end up in this slot.
+            int slot = e.getInventory().firstEmpty();
+
+            // Run the scheduler after this event is complete. This will ensure the
+            // possible new item is in the slot in time.
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
+                ItemStack item = e.getInventory().getItem(slot);
+                if (item != null) {
+                    Main.debugLog("new Item: " + item.getType());
+                    editMenuItem(item, slot);
+                } 
+            }, 5L);
+        }
+    }
+
+    private void creatorTopInventoryClick(InventoryClickEvent e) {
+        if (e.getCurrentItem() != null && e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT) {
+            Main.debugLog("Cursor: " + e.getCursor());
+            deleteMenuItem(e.getSlot());
+
+            // When an item is dropped into the slot, it's not null. This is a new item.
+        } else if (e.getClick() == ClickType.SHIFT_RIGHT || e.getClick() == ClickType.SHIFT_LEFT) {
+            e.setCancelled(true);
+            String shopName = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop();
+            openShop((Player) e.getWhoClicked(), shopName);
+
+        }else if (e.getCurrentItem() == null && e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT){
+            int slot = e.getInventory().firstEmpty();
+
+            // Run the scheduler after this event is complete. This will ensure the
+            // possible new item is in the slot in time.
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
+                ItemStack item = e.getInventory().getItem(slot);
+                if (item != null) {
+                    Main.debugLog("new Item: " + item.getType());
+                    editMenuItem(item, slot);
+                }
+            }, 5L);
+        }
     }
 
     private void onClose(InventoryCloseEvent e) {

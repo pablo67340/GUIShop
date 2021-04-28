@@ -1,5 +1,7 @@
 package com.pablo67340.guishop.api;
 
+import java.math.BigDecimal;
+
 /**
  * Used to hook into GUIShop and provide dynamic pricing. <br>
  * <br>
@@ -23,7 +25,7 @@ public interface DynamicPriceProvider {
      * @param staticSellPrice the configured sell price in the shops.yml
      * @return the calculated buy price
      */
-    double calculateBuyPrice(String item, int quantity, double staticBuyPrice, double staticSellPrice);
+    BigDecimal calculateBuyPrice(String item, int quantity, BigDecimal staticBuyPrice, BigDecimal staticSellPrice);
 
     /**
      * Calculates the sell price of a certain quantity of a specific item. <br>
@@ -39,7 +41,7 @@ public interface DynamicPriceProvider {
      * @param staticSellPrice the configured sell price in the shops.yml
      * @return the calculated buy price
      */
-    double calculateSellPrice(String item, int quantity, double staticBuyPrice, double staticSellPrice);
+    BigDecimal calculateSellPrice(String item, int quantity, BigDecimal staticBuyPrice, BigDecimal staticSellPrice);
 
     /**
      * Indicates to this DynamicPriceProvider that a certain quantity of a

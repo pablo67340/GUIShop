@@ -13,6 +13,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.util.ConfigUtil;
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -213,8 +214,8 @@ public final class Item implements ConfigurationSerializable {
      */
     public boolean hasSellPrice() {
         // instanceof does the null-check for us
-        return (sellPrice instanceof Double && ((Double) sellPrice) != 0D)
-                || (sellPrice instanceof Integer && ((Integer) sellPrice) != 0);
+        return (sellPrice instanceof BigDecimal && ((BigDecimal) sellPrice).compareTo(BigDecimal.ZERO) > 0)
+                || (sellPrice instanceof Integer && ((Integer) sellPrice) > 0);
     }
 
     /**
@@ -225,7 +226,7 @@ public final class Item implements ConfigurationSerializable {
      */
     public boolean hasBuyPrice() {
         // instanceof does the null-check for us
-        return (buyPrice instanceof Double) || (buyPrice instanceof Integer);
+        return (buyPrice instanceof BigDecimal) || (buyPrice instanceof Integer);
     }
 
     /**
@@ -243,8 +244,8 @@ public final class Item implements ConfigurationSerializable {
      *
      * @return the buy price as a double
      */
-    public double getBuyPriceAsDouble() {
-        return (buyPrice instanceof Double) ? (Double) buyPrice : ((Integer) buyPrice).doubleValue();
+    public BigDecimal getBuyPriceAsDecimal() {
+        return (buyPrice instanceof BigDecimal) ? (BigDecimal) buyPrice : BigDecimal.valueOf(((Integer) buyPrice).doubleValue());
     }
 
     /**
@@ -253,8 +254,8 @@ public final class Item implements ConfigurationSerializable {
      *
      * @return the sell price as a double
      */
-    public double getSellPriceAsDouble() {
-        return (sellPrice instanceof Double) ? (Double) sellPrice : ((Integer) sellPrice).doubleValue();
+    public BigDecimal getSellPriceAsDecimal() {
+        return (sellPrice instanceof BigDecimal) ? (BigDecimal) sellPrice : BigDecimal.valueOf(((Integer) sellPrice).doubleValue());
     }
 
     /**
@@ -267,15 +268,15 @@ public final class Item implements ConfigurationSerializable {
      * @param quantity the quantity of the item
      * @return the calculated buy price
      */
-    public double calculateBuyPrice(int quantity) {
+    public BigDecimal calculateBuyPrice(int quantity) {
         // sell price must be defined and nonzero for dynamic pricing to work
         if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
 
-            return Main.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDouble(),
-                    getSellPriceAsDouble());
+            return Main.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
+                    getSellPriceAsDecimal());
         }
         // default to fixed pricing
-        return getBuyPriceAsDouble() * quantity;
+        return getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
     }
 
     /**
@@ -288,15 +289,15 @@ public final class Item implements ConfigurationSerializable {
      * @param quantity the quantity of the item
      * @return the calculated sell price
      */
-    public double calculateSellPrice(int quantity) {
+    public BigDecimal calculateSellPrice(int quantity) {
         // buy price must be defined for dynamic pricing to work
         if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
 
-            return Main.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDouble(),
-                    getSellPriceAsDouble());
+            return Main.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
+                    getSellPriceAsDecimal());
         }
         // default to fixed pricing
-        return getSellPriceAsDouble() * quantity;
+        return getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
     }
 
     /**
@@ -313,8 +314,8 @@ public final class Item implements ConfigurationSerializable {
     public String getBuyLore(int quantity) {
         if (hasBuyPrice()) {
 
-            double buyPriceAsDouble = getBuyPriceAsDouble();
-            if (buyPriceAsDouble != 0) {
+            BigDecimal buyPriceAsDouble = getBuyPriceAsDecimal();
+            if (buyPriceAsDouble.compareTo(BigDecimal.ZERO) > 0) {
 
                 return ConfigUtil.getBuyLore().replace("{amount}",
                         ConfigUtil.getCurrency() + Main.economyFormat(calculateBuyPrice(quantity)) + ConfigUtil.getCurrencySuffix());
@@ -542,11 +543,11 @@ public final class Item implements ConfigurationSerializable {
      * @param item ItemStack to get the BuyPrice on
      * @return Buy Price either Double/Int
      */
-    public static Object getBuyPrice(ItemStack item) {
+    public static BigDecimal getBuyPrice(ItemStack item) {
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
         if (comp.hasKey("buyPrice")) {
-            Double vl = comp.getDouble("buyPrice");
+            BigDecimal vl = BigDecimal.valueOf(comp.getDouble("buyPrice"));
             return vl;
         }
         return null;
@@ -559,11 +560,11 @@ public final class Item implements ConfigurationSerializable {
      * @param item ItemStack to get the SellPrice of
      * @return Sell Price either Double/Int
      */
-    public static Object getSellPrice(ItemStack item) {
+    public static BigDecimal getSellPrice(ItemStack item) {
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
         if (comp.hasKey("sellPrice")) {
-            Double vl = comp.getDouble("sellPrice");
+            BigDecimal vl = BigDecimal.valueOf(comp.getDouble("sellPrice"));
             return vl;
         }
         return null;
@@ -594,13 +595,17 @@ public final class Item implements ConfigurationSerializable {
                 item.setLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-price")) {
                 if (entry.getValue() instanceof Double) {
-                    item.setBuyPrice((Double) entry.getValue());
+                    Double buyPrice = (Double) entry.getValue();
+                    BigDecimal buyPrice2 = BigDecimal.valueOf(buyPrice);
+                    item.setBuyPrice(buyPrice2);
                 } else if (entry.getValue() instanceof Integer) {
                     item.setBuyPrice((Integer) entry.getValue());
                 }
             } else if (entry.getKey().equalsIgnoreCase("sell-price")) {
                 if (entry.getValue() instanceof Double) {
-                    item.setSellPrice((Double) entry.getValue());
+                    Double sellPrice = (Double) entry.getValue();
+                    BigDecimal sellPrice2 = BigDecimal.valueOf(sellPrice);
+                    item.setSellPrice(sellPrice2);
                 } else if (entry.getValue() instanceof Integer) {
                     item.setSellPrice((Integer) entry.getValue());
                 }
@@ -653,10 +658,10 @@ public final class Item implements ConfigurationSerializable {
             serialized.put("lore", lore);
         }
         if (hasBuyPrice()) {
-            serialized.put("buy-price", buyPrice);
+            serialized.put("buy-price", ((BigDecimal)buyPrice).doubleValue());
         }
         if (hasSellPrice()) {
-            serialized.put("sell-price", sellPrice);
+            serialized.put("sell-price", ((BigDecimal)sellPrice).doubleValue());
         }
         if (hasCommands()) {
             serialized.put("commands", commands);

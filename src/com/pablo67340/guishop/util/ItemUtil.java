@@ -13,7 +13,9 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import java.math.BigDecimal;
 import org.apache.commons.lang.StringUtils;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 
 public final class ItemUtil {
@@ -32,9 +34,15 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
+        
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         int index = 0;
         boolean hasReplaced = false;
         for (String str : lore) {
@@ -59,8 +67,8 @@ public final class ItemUtil {
 
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
-        if (price instanceof Double) {
-            comp.setDouble("buyPrice", (Double) price);
+        if (price instanceof BigDecimal) {
+            comp.setDouble("buyPrice", ((BigDecimal)price).doubleValue());
         } else if (price instanceof Integer) {
             comp.setDouble("buyPrice", ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
@@ -78,7 +86,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Price set: " + price);
+        player.sendMessage(ConfigUtil.getPrefix() + " Price set: " + ((BigDecimal)price).toPlainString());
     }
 
     /**
@@ -95,9 +103,13 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         int index = 0;
         boolean hasReplaced = false;
         for (String str : lore) {
@@ -122,8 +134,8 @@ public final class ItemUtil {
 
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
-        if (price instanceof Double) {
-            comp.setDouble("sellPrice", (Double) price);
+        if (price instanceof BigDecimal) {
+            comp.setDouble("sellPrice", ((BigDecimal)price).doubleValue());
         } else if (price instanceof Integer) {
             comp.setDouble("sellPrice", ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
@@ -141,7 +153,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Sell set: " + price);
+        player.sendMessage(ConfigUtil.getPrefix() + " Sell set: " + ((BigDecimal)price).toPlainString());
     }
     
     /**
@@ -158,9 +170,13 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         boolean hasReplaced = false;
@@ -221,9 +237,13 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         boolean hasReplaced = false;
@@ -284,9 +304,13 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         boolean hasReplaced = false;
@@ -349,10 +373,15 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         boolean hasReplaced = false;
@@ -409,10 +438,15 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         boolean hasReplaced = false;
@@ -485,6 +519,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
@@ -496,7 +535,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -559,6 +598,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
@@ -571,7 +615,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -639,6 +683,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -649,7 +698,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -717,6 +766,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
@@ -728,7 +782,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -791,6 +845,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
@@ -803,7 +862,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -871,6 +930,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -881,7 +945,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -947,23 +1011,29 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
-        List<String> tempLore = new ArrayList<>(lore);
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         int index = 0;
         boolean hasReplaced = false;
-        for (String str : tempLore) {
+        for (String str : lore) {
             if (str.contains("Item Type: ")) {
-                lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fItem Type: &r" + type));
+                lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fItem Type: &c" + type));
                 hasReplaced = true;
             }
             index += 1;
         }
         if (!hasReplaced) {
-            lore.add(ChatColor.translateAlternateColorCodes('&', "Item Type: " + type));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&fItem Type: &c" + type));
         }
+        
+        im.setLore(lore);
 
         item.setItemMeta(im);
 
@@ -994,6 +1064,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
@@ -1005,7 +1080,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -1066,6 +1141,12 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
+        
         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
         if (comp.hasKey("commands")) {
@@ -1075,7 +1156,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -1141,6 +1222,11 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
@@ -1151,7 +1237,7 @@ public final class ItemUtil {
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         for (String str : tempLore) {
@@ -1217,10 +1303,15 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         List<String> tempLore = new ArrayList<>(lore);
         int index = 0;
         boolean hasReplaced = false;
@@ -1231,10 +1322,12 @@ public final class ItemUtil {
             }
             index += 1;
         }
-        im.setLore(lore);
+        
         if (!hasReplaced) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&fMob Type: " + type));
         }
+        
+        im.setLore(lore);
 
         item.setItemMeta(im);
 
@@ -1266,24 +1359,30 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
+        
+        if (item.getType() == Material.AIR){
+            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
+            return;
+        }
 
         ItemMeta im = item.getItemMeta();
 
-        List<String> lore = im.getLore();
-        List<String> tempLore = new ArrayList<>(lore);
+        List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
         int index = 0;
         boolean hasReplaced = false;
-        for (String str : tempLore) {
+        for (String str : lore) {
             if (str.contains("Target Shop: ")) {
-                lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &r" + type));
+                lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &c" + type));
                 hasReplaced = true;
             }
             index += 1;
         }
         im.setLore(lore);
         if (!hasReplaced) {
-            lore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: " + type));
+            lore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &c" + type));
         }
+        
+        im.setLore(lore);
 
         item.setItemMeta(im);
 

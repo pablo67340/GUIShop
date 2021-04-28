@@ -7,6 +7,7 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.util.ConfigUtil;
+import java.math.BigDecimal;
 
 /**
  * Officially supported API for interacting with GuiShop. <br>
@@ -82,9 +83,9 @@ public class GuiShopAPI {
      * @param quantity the quantity which would be purchased
      * @return the buy price or minus 1 if not set
      */
-    public static double getBuyPrice(ItemStack item, int quantity) {
+    public static BigDecimal getBuyPrice(ItemStack item, int quantity) {
         Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
-        return (shopItem != null && shopItem.hasBuyPrice()) ? shopItem.calculateBuyPrice(quantity) : -1;
+        return (shopItem != null && shopItem.hasBuyPrice()) ? shopItem.calculateBuyPrice(quantity) : BigDecimal.valueOf(-1);
     }
 
     /**
@@ -96,9 +97,9 @@ public class GuiShopAPI {
      * @param quantity the quantity which would be sold
      * @return the sell price or minus 1 if not set
      */
-    public static double getSellPrice(ItemStack item, int quantity) {
+    public static BigDecimal getSellPrice(ItemStack item, int quantity) {
         Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
-        return (shopItem != null && shopItem.hasSellPrice()) ? shopItem.calculateSellPrice(quantity) : -1;
+        return (shopItem != null && shopItem.hasSellPrice()) ? shopItem.calculateSellPrice(quantity) : BigDecimal.valueOf(-1);
     }
 
     /**

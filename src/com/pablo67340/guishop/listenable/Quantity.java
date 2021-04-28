@@ -32,6 +32,7 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
+import java.math.BigDecimal;
 import java.util.Map.Entry;
 
 import lombok.Getter;
@@ -97,7 +98,6 @@ class Quantity {
 
             if (item.hasPotion()) {
                 PotionInfo pi = item.getPotionInfo();
-                //System.out.println("Splash: "+pi.getSplash());
                 if (XMaterial.isNewVersion()) {
 
                     if (pi.getSplash()) {
@@ -353,7 +353,7 @@ class Quantity {
             itemStack.setItemMeta(itemMeta);
         }
 
-        double priceToPay;
+        BigDecimal priceToPay;
 
         /*
 	* If the map is empty, then the items purchased don't overflow the player's
@@ -373,15 +373,15 @@ class Quantity {
             String itemString = item.getItemString();
             dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, amount);
 
-            priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, amount, item.getBuyPriceAsDouble(), item.getSellPriceAsDouble());
+            priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, amount, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
-            priceToPay = item.getBuyPriceAsDouble() * amount;
+            priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(amount));
         }
 
-        priceToPay -= priceToReimburse;
+        priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
 
         // Check if the transition was successful
-        if (Main.getECONOMY().withdrawPlayer(player, priceToPay).transactionSuccess()) {
+        if (Main.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
             // If the player has the sound enabled, play
             // it!
             if (ConfigUtil.isSoundEnabled()) {

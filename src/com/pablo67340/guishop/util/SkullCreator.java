@@ -140,8 +140,6 @@ public class SkullCreator {
                     t1.start();
 
                     return skin_base64;
-                } else {
-                    System.out.println("GET request not worked");
                 }
             } catch (IOException | ParseException ex) {
                 Main.debugLog("Error grabbing skin base64 from Mojang: " + ex.getMessage());

@@ -49,6 +49,8 @@ public final class PlayerListener implements Listener {
         Main.sendMessage(player, "&7/guishop &esell/s {price} &0- &aSet item in hand's sell price");
         Main.sendMessage(player, "&7/guishop &eshopname/sn {name} &0- &aSet item in hand's Shop-Name");
         Main.sendMessage(player, "&7/guishop &ebuyname/bn {name} &0- &aSet item in hand's Buy-Name");
+        Main.sendMessage(player, "&7/guishop &en {name} &0- &aSet an item's Menu Name. Used for items in menu.");
+        Main.sendMessage(player, "&7/guishop &ets {target_shop} &0- &aSet an item's Target Shop. Used for items in menu.");
         Main.sendMessage(player, "&7/guishop &eenchant/e {enchants} &0- &aSet item in hand's Enchantments");
         Main.sendMessage(player, "&7/guishop &easll {line} &0- &aAdd Shop Lore Line");
         Main.sendMessage(player, "&7/guishop &edsll {lineNumber} &0- &aDelete Shop Lore Line. Starts at 0");

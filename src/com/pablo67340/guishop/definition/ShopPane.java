@@ -84,7 +84,6 @@ public class ShopPane extends Pane {
             inventory.setItem(entry.getKey(), entry.getValue().getItem());
         });
         dummies.entrySet().stream().map(entry -> {
-            System.out.println("Entry: " + entry.getKey() + ":" + entry.getValue());
             return entry;
         }).forEachOrdered(entry -> {
             inventory.setItem(entry.getKey(), entry.getValue());

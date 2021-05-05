@@ -74,12 +74,11 @@ public final class Sell {
 
             // buy price must be defined for dynamic pricing to work
             if (ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
-                moneyToGive = Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
-                        shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal());
+                moneyToGive = moneyToGive.add(Main.getDYNAMICPRICING().calculateSellPrice(itemString, quantity,
+                        shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal()));
                 Main.getDYNAMICPRICING().sellItem(itemString, quantity);
             } else {
-                
-                moneyToGive = shopItem.getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
+                moneyToGive = moneyToGive.add(shopItem.getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity)));
             }
 
         }

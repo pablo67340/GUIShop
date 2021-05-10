@@ -14,7 +14,7 @@ public final class ConfigUtil {
     @Getter
     @Setter
     private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled, enableCreator,
-            dynamicPricing, debugMode;
+            dynamicPricing, debugMode, sellSkullUUID;
 
     /**
      * The commands mode, determines whether to intercept commands, register
@@ -45,7 +45,7 @@ public final class ConfigUtil {
     @Getter
     @Setter
     private static int altSellQuantity1, altSellQuantity2, altSellQuantity3;
-    
+
     @Getter
     @Setter
     private static List<String> disabledWorlds;

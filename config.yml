@@ -204,6 +204,11 @@ alt-sell-not-enough: '&cYou do not have {amount} such items to sell.'
 
 disabled-worlds:
     -'Test'
+    
+# Enable if you want to seperate each head by UUID when determining sell price.
+# Setting to false will make all heads worth the same amount. 
+# You must have atleast 1 head in your shops to set the sell price of all heads.
+skull-uuid-selling: true
 
  ################################
  ## Developed by pablo67340    ##

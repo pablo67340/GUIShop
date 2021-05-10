@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.definition;
 
+import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import java.util.List;
 
@@ -10,20 +11,38 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.INBTBase;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.SkullCreator;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang.StringUtils;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.potion.Potion;
+import org.bukkit.potion.PotionData;
+import org.bukkit.potion.PotionType;
 
 public final class Item implements ConfigurationSerializable {
 
@@ -536,6 +555,543 @@ public final class Item implements ConfigurationSerializable {
         return item;
     }
 
+    public ItemStack toItemStack(Player player, boolean isMenu) {
+        ItemStack itemStack = null;
+
+        try {
+            itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
+        } catch (NoSuchElementException ex) {
+            setResolveFailed(true);
+        }
+
+        Main.debugLog("Adding item to slot: " + getSlot());
+        if (itemStack == null || itemStack.getType() == null || isResolveFailed()) {
+            Main.log("Item: " + getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
+            setResolveFailed(true);
+            return new ItemStack(Material.AIR);
+        }
+
+        if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && hasSkullUUID()) {
+            itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(getSkullUUID()), getSkullUUID());
+        }
+
+        // Checks if an item is either a shop item or command item. This also handles
+        // Null items as there is a item type switch in the lines above.
+        if (getItemType() != ItemType.DUMMY) {
+
+            ItemMeta itemMeta = itemStack.getItemMeta();
+
+            if (itemMeta == null) {
+                Main.log("Item: " + getMaterial() + " could not be resolved (null meta).");
+                setResolveFailed(true);
+                return new ItemStack(Material.AIR);
+            }
+
+            List<String> itemLore = new ArrayList<>();
+
+            if (!isMenu) {
+                itemLore.add(getBuyLore(1));
+                itemLore.add(getSellLore(1));
+            }
+
+            if (player != null) {
+                if (!Main.getCREATOR().contains(player.getName())) {
+                    if (hasShopName() && !isMenu) {
+                        assert itemMeta != null;
+                        itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getShopName()));
+                    } else if (hasName()) {
+                        assert itemMeta != null;
+                        itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getName()));
+                    } else if (isMobSpawner() && !isMenu) {
+                        String mobName = getMobType();
+                        mobName = mobName.toLowerCase();
+                        mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+                        assert itemMeta != null;
+                        itemMeta.setDisplayName(mobName + " Spawner");
+                    }
+                    if (hasShopLore() && !isMenu) {
+                        getShopLore().forEach(str -> {
+                            if (!itemLore.contains(str) && !itemLore.contains(ConfigUtil.getBuyLore().replace("{AMOUNT}", calculateBuyPrice(1).toPlainString()))) {
+                                itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                            }
+                        });
+                    } else if (hasLore() && isMenu) {
+                        getLore().forEach(str -> {
+                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                        });
+                    }
+                    itemMeta.setLore(itemLore);
+                    itemStack.setItemMeta(itemMeta);
+                } else {
+                    itemLore.add(" ");
+                    itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fItem Type: &r" + getItemType().toString()));
+                    if (hasShopName() && !isMenu) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Name: &r" + getShopName()));
+                    }
+                    if (hasMobType()) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fMob Type: &r" + getMobType()));
+                    }
+                    if (hasBuyName() && !isMenu) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Name: &r" + getBuyName()));
+                    }
+                    if (hasBuyLore() && !isMenu) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
+                        getBuyLore().forEach(str -> {
+                            itemLore.add(str);
+                        });
+                    }
+                    if (hasShopLore() && !isMenu) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
+                        getShopLore().forEach(str -> {
+                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                        });
+                    }
+                    if (hasLore() && isMenu) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fLore: &r"));
+                        getLore().forEach(str -> {
+                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
+                        });
+                    }
+                    if (hasCommands() && !isMenu) {
+                        itemLore.add(" ");
+                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fCommands: "));
+                        getCommands().forEach(str -> {
+                            if (str.length() > 20) {
+                                String s = ChatColor.translateAlternateColorCodes('&', "/" + str);
+                                s = s.substring(0, Math.min(s.length(), 20));
+                                itemLore.add(s + "...");
+                            } else {
+                                itemLore.add("/" + str);
+                            }
+                        });
+                    }
+                    if (hasEnchantments()) {
+                        String encLore = "";
+                        for (String str : getEnchantments()) {
+                            encLore += str + " ";
+                        }
+                        itemLore.add("Enchantments: " + encLore.trim());
+                    }
+                    if (!itemLore.isEmpty()) {
+                        assert itemMeta != null;
+                        itemMeta.setLore(itemLore);
+                    }
+                    itemStack.setItemMeta(itemMeta);
+                    NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                    Main.debugLog("USER IN CREATOR.Setting item Buy Price");
+                    if (hasBuyPrice() && !isMenu) {
+                        comp.setDouble("buyPrice", getBuyPriceAsDecimal().doubleValue());
+                    }
+                    if (hasSellPrice() && !isMenu) {
+                        comp.setDouble("sellPrice", getSellPriceAsDecimal().doubleValue());
+                    }
+                    if (hasBuyName() && !isMenu) {
+                        comp.setString("buyName", getBuyName());
+                    }
+                    if (hasShopName() && !isMenu) {
+                        comp.setString("shopName", getShopName());
+                    }
+                    if (hasName() && isMenu) {
+                        comp.setString("name", getName());
+                    }
+                    if (hasMobType()) {
+                        comp.setString("mob-type", getMobType());
+                    }
+                    if (hasEnchantments()) {
+                        String itemEnchantments = "";
+                        for (String str : getEnchantments()) {
+                            itemEnchantments += str + ",";
+                        }
+                        comp.setString("enchantments", itemEnchantments);
+                    }
+                    if (hasShopLore() && !isMenu) {
+                        String lor = "";
+                        int index = 0;
+                        for (String str : getShopLore()) {
+                            if (index != (getShopLore().size() - 1)) {
+                                lor += str + "::";
+                            } else {
+                                lor += str;
+                            }
+                            index += 1;
+                        }
+                        comp.setString("shopLoreLines", lor);
+                    }
+                    if (hasBuyLore() && !isMenu) {
+                        String lor = "";
+                        int index = 0;
+                        for (String str : getBuyLore()) {
+                            if (index != (getBuyLore().size() - 1)) {
+                                lor += str + "::";
+                            } else {
+                                lor += str;
+                            }
+                            index += 1;
+                        }
+                        comp.setString("buyLoreLines", lor);
+                    }
+                    if (hasLore() && isMenu) {
+                        String lor = "";
+                        int index = 0;
+                        for (String str : getLore()) {
+                            if (index != (getLore().size() - 1)) {
+                                lor += str + "::";
+                            } else {
+                                lor += str;
+                            }
+                            index += 1;
+                        }
+                        comp.setString("loreLines", lor);
+                    }
+                    if (hasCommands() && !isMenu) {
+                        String lor = "";
+                        int index = 0;
+                        for (String str : getCommands()) {
+                            if (index != (getCommands().size() - 1)) {
+                                lor += str + "::";
+                            } else {
+                                lor += str;
+                            }
+                            index += 1;
+                        }
+                        comp.setString("commands", lor);
+                    }
+                    comp.setString("itemType", getItemType().toString());
+                    itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+                }
+            }
+
+            if (hasItemFlags()) {
+                for (String flag : itemFlags) {
+                    itemMeta.addItemFlags(ItemFlag.valueOf(flag));
+                }
+            }
+            if (hasCustomModelID()) {
+                itemMeta.setCustomModelData(getCustomModelData());
+            }
+
+            if (hasEnchantments()) {
+                if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                    EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                    for (String enc : getEnchantments()) {
+                        String enchantment = StringUtils.substringBefore(enc, ":");
+                        String level = StringUtils.substringAfter(enc, ":");
+                        assert meta != null;
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemStack.setItemMeta(meta);
+                    }
+                } else {
+                    for (String enc : getEnchantments()) {
+                        String enchantment = StringUtils.substringBefore(enc, ":");
+                        String level = StringUtils.substringAfter(enc, ":");
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemStack.setItemMeta(itemMeta);
+                    }
+                }
+            }
+            itemStack.setItemMeta(itemMeta);
+
+            if (hasNBT()) {
+                try {
+                    NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                    NBTTagCompound newComp = NbtParser.parse(getNBT());
+                    for (Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                        if (!newComp.hasKey(entry.getKey())) {
+                            newComp.set(entry.getKey(), entry.getValue());
+                        }
+                    }
+                    itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+                    if (itemStack == null) {
+                        Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
+                        setResolveFailed(true);
+                        return new ItemStack(Material.AIR);
+                    }
+
+                } catch (NbtParser.NbtParseException ex) {
+                    Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
+                    setResolveFailed(true);
+                    return new ItemStack(Material.AIR);
+                }
+            }
+
+            if (hasPotion()) {
+                PotionInfo pi = getPotionInfo();
+                if (XMaterial.isNewVersion()) {
+
+                    if (pi.getSplash()) {
+                        itemStack = new ItemStack(Material.SPLASH_POTION);
+                    }
+                    PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+                    PotionData pd;
+                    try {
+                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                        pm.setBasePotionData(pd);
+                    } catch (IllegalArgumentException ex) {
+                        if (ex.getMessage().contains("upgradable")) {
+                            Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            pi.setUpgraded(false);
+                            pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                            pm.setBasePotionData(pd);
+                        } else if (ex.getMessage().contains("extended")) {
+                            Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            pi.setExtended(false);
+                            pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                            pm.setBasePotionData(pd);
+                        }
+                    }
+                    itemStack.setItemMeta(pm);
+                } else {
+                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                    potion.apply(itemStack);
+                }
+            }
+        } else {
+            ItemMeta itemMeta = itemStack.getItemMeta();
+            if (hasShopName()) {
+                assert itemMeta != null;
+                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getShopName()));
+            }
+            itemStack.setItemMeta(itemMeta);
+        }
+
+        // Create Page
+        Main.debugLog("Setting item to slot: " + getSlot());
+
+        return itemStack;
+    }
+
+    public Boolean isItemFromItemStack(ItemStack input) {
+        if (!hasPotion()) {
+            if (input.getType() != XMaterial.matchXMaterial(getMaterial()).get().parseMaterial()) {
+                return false;
+            }
+        } else {
+            if (input.getType() != XMaterial.matchXMaterial(getMaterial()).get().parseMaterial() && input.getType() != XMaterial.matchXMaterial("SPLASH_POTION").get().parseMaterial()) {
+                return false;
+            }
+        }
+        if (hasEnchantments()) {
+            if (input.getType() != XMaterial.matchXMaterial("ENCHANTED_BOOK").get().parseMaterial()) {
+                for (String enc : getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    Integer level = Integer.parseInt(StringUtils.substringAfter(enc, ":"));
+                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment();
+                    if (!input.getEnchantments().containsKey(targetEnchantment)) {
+                        return false;
+                    } else {
+                        if (!input.getEnchantments().get(targetEnchantment).equals(level)) {
+                            return false;
+                        }
+                    }
+                }
+            } else {
+                ItemMeta itemMeta = input.getItemMeta();
+                EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                for (String enc : getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    Integer level = Integer.parseInt(StringUtils.substringAfter(enc, ":"));
+                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment();
+                    if (!meta.getStoredEnchants().containsKey(targetEnchantment)) {
+                        return false;
+                    } else {
+                        if (!meta.getStoredEnchants().get(targetEnchantment).equals(level)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        if (hasPotion()) {
+            PotionMeta pm = (PotionMeta) input.getItemMeta();
+            PotionData pd = pm.getBasePotionData();
+            if (pd.isExtended() != getPotionInfo().getExtended()) {
+                return false;
+            }
+            if (pd.isUpgraded() != getPotionInfo().getUpgraded()) {
+                return false;
+            }
+            if (!pd.getType().toString().equals(getPotionInfo().getType())) {
+                return false;
+            }
+        }
+        if (hasNBT()) {
+            try {
+                NBTTagCompound tag = ItemNBTUtil.getTag(input);
+
+                // We need to make a fake item, as Minecraft will
+                // automatically re-cast some of the NBTTag's do 
+                // more optimized object types. This will ensure
+                // everything is matching Minecraft's optimized tag casting.
+                ItemStack fakeItem = new ItemStack(input.getType());
+                fakeItem = ItemNBTUtil.setNBTTag(NbtParser.parse(getNBT()), fakeItem);
+
+                NBTTagCompound cTag = ItemNBTUtil.getTag(fakeItem);
+
+                for (Entry<String, INBTBase> entry : tag.getAllEntries().entrySet()) {
+                    if (!cTag.getAllEntries().containsKey(entry.getKey())) {
+                        return false;
+                    } else {
+                        if (!cTag.getAllEntries().get(entry.getKey()).equals(entry.getValue())) {
+                            return false;
+                        }
+                    }
+                }
+
+            } catch (NbtParser.NbtParseException ex) {
+                Main.debugLog("Error parsing NBT: " + ex.getMessage());
+            }
+        }
+        if (hasSkullUUID() && ConfigUtil.isSellSkullUUID()) {
+            SkullMeta sm = (SkullMeta) input.getItemMeta();
+            if (!sm.getOwningPlayer().getUniqueId().toString().equals(skullUUID)) {
+                return false;
+            }
+        }
+        if (isMobSpawner()) {
+            NBTTagCompound tag = ItemNBTUtil.getTag(input);
+            if (!tag.getString("GUIShopSpawner").equals(mobType)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public ItemStack toBuyItemStack(Integer quantity, Player player, Shop currentShop) {
+
+        ItemStack itemStack = null;
+
+        try {
+            itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
+            itemStack.setAmount(quantity);
+        } catch (NoSuchElementException ex) {
+            setResolveFailed(true);
+        }
+
+        if (hasSkullUUID() && itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial()) {
+            itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(getSkullUUID()), getSkullUUID());
+        }
+
+        if (hasPotion()) {
+            PotionInfo pi = getPotionInfo();
+            if (XMaterial.isNewVersion()) {
+
+                if (pi.getSplash()) {
+                    itemStack = new ItemStack(Material.SPLASH_POTION);
+                }
+                PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+                PotionData pd = null;
+                try {
+                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                    pm.setBasePotionData(pd);
+                } catch (IllegalArgumentException ex) {
+                    if (ex.getMessage().contains("upgradable")) {
+                        Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                        pi.setUpgraded(false);
+                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                        pm.setBasePotionData(pd);
+                    } else if (ex.getMessage().contains("extended")) {
+                        Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                        pi.setExtended(false);
+                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
+                        pm.setBasePotionData(pd);
+                    }
+                }
+                itemStack.setItemMeta(pm);
+            } else {
+                Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                potion.apply(itemStack);
+            }
+        }
+
+        ItemMeta itemMeta = itemStack.getItemMeta();
+
+        List<String> itemLore = new ArrayList<>();
+        if (hasBuyLore()) {
+            getBuyLore().forEach(str -> {
+                itemLore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, this)));
+            });
+        }
+
+        itemMeta.setLore(itemLore);
+
+        if (hasBuyName()) {
+            assert itemMeta != null;
+            itemMeta.setDisplayName(
+                    ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(getBuyName(), player, this)));
+        } else if (Item.isSpawnerItem(itemStack)) {
+            String mobName = getMobType();
+            mobName = mobName.toLowerCase();
+            mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
+            assert itemMeta != null;
+            itemMeta.setDisplayName(mobName + " Spawner");
+        }
+
+        if (hasCustomModelID()) {
+            itemMeta.setCustomModelData(getCustomModelData());
+        }
+
+        if (hasEnchantments()) {
+            if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                for (String enc : getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    String level = StringUtils.substringAfter(enc, ":");
+                    assert meta != null;
+                    meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                    itemStack.setItemMeta(meta);
+                }
+            } else {
+                for (String enc : getEnchantments()) {
+                    String enchantment = StringUtils.substringBefore(enc, ":");
+                    String level = StringUtils.substringAfter(enc, ":");
+                    itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                    itemStack.setItemMeta(itemMeta);
+                }
+            }
+        } else {
+            itemStack.setItemMeta(itemMeta);
+        }
+        if (isMobSpawner()) {
+
+            EntityType type = parseMobSpawnerType();
+            if (type == null) {
+                Main.log("Invalid Mob Spawner Entity Type: " + getMobType() + " In Shop: " + currentShop.getShop());
+
+            } else {
+                String entityValue = type.name();
+                Main.debugLog("Attaching " + entityValue + " to purchased spawner");
+
+                NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
+                tag.setString("GUIShopSpawner", entityValue);
+                itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+            }
+        }
+        if (hasNBT()) {
+            try {
+                NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
+                NBTTagCompound newComp = NbtParser.parse(getNBT());
+                for (Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
+                    if (!newComp.hasKey(entry.getKey())) {
+                        newComp.set(entry.getKey(), entry.getValue());
+                    }
+                }
+                itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
+
+            } catch (NbtParser.NbtParseException ex) {
+                Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+            }
+        }
+        return itemStack;
+    }
+
     /**
      * Gets the buyPrice of an item using NBT, or <code>null</code> if not
      * defined
@@ -591,6 +1147,8 @@ public final class Item implements ConfigurationSerializable {
                 item.setShopLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-lore")) {
                 item.setBuyLore((List<String>) entry.getValue());
+            } else if (entry.getKey().equalsIgnoreCase("item-flags")) {
+                item.setItemFlags((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("lore")) {
                 item.setLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-price")) {
@@ -654,14 +1212,17 @@ public final class Item implements ConfigurationSerializable {
         if (hasBuyLore()) {
             serialized.put("buy-lore", buyLore);
         }
+        if (hasItemFlags()) {
+            serialized.put("item-flags", itemFlags);
+        }
         if (hasLore()) {
             serialized.put("lore", lore);
         }
         if (hasBuyPrice()) {
-            serialized.put("buy-price", ((BigDecimal)buyPrice).doubleValue());
+            serialized.put("buy-price", ((BigDecimal) buyPrice).doubleValue());
         }
         if (hasSellPrice()) {
-            serialized.put("sell-price", ((BigDecimal)sellPrice).doubleValue());
+            serialized.put("sell-price", ((BigDecimal) sellPrice).doubleValue());
         }
         if (hasCommands()) {
             serialized.put("commands", commands);

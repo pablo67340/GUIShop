@@ -8,6 +8,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.util.ConfigUtil;
 import java.math.BigDecimal;
+import java.util.List;
 
 /**
  * Officially supported API for interacting with GuiShop. <br>
@@ -54,7 +55,17 @@ public class GuiShopAPI {
      * @return whether it can be sold
      */
     public static boolean canBeSold(ItemStack item) {
-        Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+        Item shopItem = null;
+        String itemString = item.getType().toString();
+        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+        if (itemList != null) {
+            for (Item itm : itemList) {
+                if (itm.isItemFromItemStack(item)) {
+                    shopItem = itm;
+                }
+            }
+        }
         return shopItem != null && shopItem.hasSellPrice();
     }
 
@@ -70,7 +81,17 @@ public class GuiShopAPI {
      * @return whether it can be bought
      */
     public static boolean canBeBought(ItemStack item) {
-        Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+        Item shopItem = null;
+        String itemString = item.getType().toString();
+        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+        if (itemList != null) {
+            for (Item itm : itemList) {
+                if (itm.isItemFromItemStack(item)) {
+                    shopItem = itm;
+                }
+            }
+        }
         return shopItem != null && shopItem.hasBuyPrice();
     }
 
@@ -84,7 +105,17 @@ public class GuiShopAPI {
      * @return the buy price or minus 1 if not set
      */
     public static BigDecimal getBuyPrice(ItemStack item, int quantity) {
-        Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+        Item shopItem = null;
+        String itemString = item.getType().toString();
+        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+        if (itemList != null) {
+            for (Item itm : itemList) {
+                if (itm.isItemFromItemStack(item)) {
+                    shopItem = itm;
+                }
+            }
+        }
         return (shopItem != null && shopItem.hasBuyPrice()) ? shopItem.calculateBuyPrice(quantity) : BigDecimal.valueOf(-1);
     }
 
@@ -98,7 +129,17 @@ public class GuiShopAPI {
      * @return the sell price or minus 1 if not set
      */
     public static BigDecimal getSellPrice(ItemStack item, int quantity) {
-        Item shopItem = Main.getINSTANCE().getITEMTABLE().get(Item.getItemStringForItemStack(item));
+        Item shopItem = null;
+        String itemString = item.getType().toString();
+        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+        if (itemList != null) {
+            for (Item itm : itemList) {
+                if (itm.isItemFromItemStack(item)) {
+                    shopItem = itm;
+                }
+            }
+        }
         return (shopItem != null && shopItem.hasSellPrice()) ? shopItem.calculateSellPrice(quantity) : BigDecimal.valueOf(-1);
     }
 
@@ -117,8 +158,17 @@ public class GuiShopAPI {
      * @param quantity the quantity which was purchased
      */
     public static void indicateBoughtItems(ItemStack item, int quantity) {
-        String itemString = Item.getItemStringForItemStack(item);
-        Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        Item shopItem = null;
+        String itemString = item.getType().toString();
+        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+        if (itemList != null) {
+            for (Item itm : itemList) {
+                if (itm.isItemFromItemStack(item)) {
+                    shopItem = itm;
+                }
+            }
+        }
 
         if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
@@ -141,8 +191,17 @@ public class GuiShopAPI {
      * @param quantity the quantity which was purchased
      */
     public static void indicateSoldItems(ItemStack item, int quantity) {
-        String itemString = Item.getItemStringForItemStack(item);
-        Item shopItem = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        Item shopItem = null;
+        String itemString = item.getType().toString();
+        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+
+        if (itemList != null) {
+            for (Item itm : itemList) {
+                if (itm.isItemFromItemStack(item)) {
+                    shopItem = itm;
+                }
+            }
+        }
 
         if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {

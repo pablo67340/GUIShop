@@ -4,7 +4,6 @@ import com.pablo67340.guishop.Main;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
-
 import java.util.ArrayList;
 
 public class BuyCommand extends BukkitCommand {

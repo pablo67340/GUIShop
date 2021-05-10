@@ -9,7 +9,6 @@ import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -105,7 +104,7 @@ class Quantity {
                     }
                     PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 
-                    PotionData pd = null;
+                    PotionData pd;
                     try {
                         pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                         pm.setBasePotionData(pd);
@@ -134,6 +133,7 @@ class Quantity {
             List<String> lore = new ArrayList<>();
 
             lore.add(item.getBuyLore(multiplier));
+            lore.add(item.getSellLore(multiplier));
 
             if (item.hasShopLore()) {
                 item.getShopLore().forEach(str -> {
@@ -188,7 +188,7 @@ class Quantity {
             }
 
             if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && item.hasSkullUUID()) {
-                itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()));
+                itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()), item.getSkullUUID());
             }
 
             if (item.hasNBT()) {
@@ -292,67 +292,6 @@ class Quantity {
             return;
         }
 
-        ItemStack itemStack;
-
-        if (item.hasPotion() || item.hasSkullUUID()) {
-            itemStack = e.getCurrentItem().clone();
-        } else {
-            itemStack = new ItemStack(e.getCurrentItem().getType(), quantity);
-        }
-
-        ItemMeta itemMeta = itemStack.getItemMeta();
-
-        List<String> lore = new ArrayList<>();
-        if (item.hasBuyLore()) {
-            item.getBuyLore().forEach(str -> {
-                lore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, item)));
-            });
-        }
-
-        itemMeta.setLore(lore);
-
-        if (item.hasBuyName()) {
-            assert itemMeta != null;
-            itemMeta.setDisplayName(
-                    ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(item.getBuyName(), player, item)));
-        } else if (Item.isSpawnerItem(itemStack)) {
-            String mobName = item.getMobType();
-            mobName = mobName.toLowerCase();
-            mobName = mobName.substring(0, 1).toUpperCase() + mobName.substring(1).replace("_", " ");
-            assert itemMeta != null;
-            itemMeta.setDisplayName(mobName + " Spawner");
-        }
-
-        if (item.hasCustomModelID()) {
-            itemMeta.setCustomModelData(item.getCustomModelData());
-        }
-
-        if (item.hasItemFlags()) {
-            itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
-        }
-
-        if (item.hasEnchantments()) {
-            if (itemStack.getType() == Material.ENCHANTED_BOOK) {
-                EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
-                for (String enc : item.getEnchantments()) {
-                    String enchantment = StringUtils.substringBefore(enc, ":");
-                    String level = StringUtils.substringAfter(enc, ":");
-                    assert meta != null;
-                    meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
-                    itemStack.setItemMeta(meta);
-                }
-            } else {
-                for (String enc : item.getEnchantments()) {
-                    String enchantment = StringUtils.substringBefore(enc, ":");
-                    String level = StringUtils.substringAfter(enc, ":");
-                    itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
-                    itemStack.setItemMeta(itemMeta);
-                }
-            }
-        } else {
-            itemStack.setItemMeta(itemMeta);
-        }
-
         BigDecimal priceToPay;
 
         /*
@@ -362,20 +301,17 @@ class Quantity {
          */
         double priceToReimburse = 0D;
 
-        // if the item is not a shift click
-        int amount = itemStack.getAmount();
-
         Runnable dynamicPricingUpdate = null;
 
         // sell price must be defined and nonzero for dynamic pricing to work
         if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
             String itemString = item.getItemString();
-            dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, amount);
+            dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, quantity);
 
-            priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, amount, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+            priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
-            priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(amount));
+            priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
         }
 
         priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
@@ -385,51 +321,16 @@ class Quantity {
             // If the player has the sound enabled, play
             // it!
             if (ConfigUtil.isSoundEnabled()) {
-
                 player.playSound(player.getLocation(), XSound.matchXSound(ConfigUtil.getSound()).get().parseSound(), 1, 1);
-
             }
             player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getPurchased() + priceToPay + ConfigUtil.getTaken()
                     + ConfigUtil.getCurrencySuffix());
-
-            if (item.isMobSpawner()) {
-
-                EntityType type = item.parseMobSpawnerType();
-                if (type == null) {
-                    Main.log("Invalid Mob Spawner Entity Type: " + item.getMobType() + " In Shop: " + currentShop.getShop());
-
-                } else {
-                    String entityValue = type.name();
-                    Main.debugLog("Attaching " + entityValue + " to purchased spawner");
-
-                    NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
-                    tag.setString("GUIShopSpawner", entityValue);
-                    itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
-                }
-            }
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
             }
 
-            // No need to check for invalid NBT here. If NBT is invalid, error is thrown from Shop.
-            if (item.hasNBT()) {
-                try {
-                    NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
-                    NBTTagCompound newComp = NbtParser.parse(item.getNBT());
-                    for (Entry<String, INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                        if (!newComp.hasKey(entry.getKey())) {
-                            newComp.set(entry.getKey(), entry.getValue());
-                        }
-                    }
-                    itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
-
-                } catch (NbtParser.NbtParseException ex) {
-                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
-                }
-            }
-
-            player.getInventory().addItem(itemStack);
+            player.getInventory().addItem(item.toBuyItemStack(quantity, player, currentShop));
         } else {
             player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getNotEnoughPre() + priceToPay + ConfigUtil.getNotEnoughPost());
         }

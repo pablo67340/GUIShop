@@ -34,12 +34,12 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
-        
+
         ItemMeta im = item.getItemMeta();
 
         List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
@@ -68,7 +68,7 @@ public final class ItemUtil {
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
         if (price instanceof BigDecimal) {
-            comp.setDouble("buyPrice", ((BigDecimal)price).doubleValue());
+            comp.setDouble("buyPrice", ((BigDecimal) price).doubleValue());
         } else if (price instanceof Integer) {
             comp.setDouble("buyPrice", ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
@@ -86,7 +86,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Price set: " + ((BigDecimal)price).toPlainString());
+        player.sendMessage(ConfigUtil.getPrefix() + " Price set: " + ((BigDecimal) price).toPlainString());
     }
 
     /**
@@ -103,7 +103,7 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        if (item.getType() == Material.AIR){
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -135,7 +135,7 @@ public final class ItemUtil {
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
         if (price instanceof BigDecimal) {
-            comp.setDouble("sellPrice", ((BigDecimal)price).doubleValue());
+            comp.setDouble("sellPrice", ((BigDecimal) price).doubleValue());
         } else if (price instanceof Integer) {
             comp.setDouble("sellPrice", ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
@@ -153,9 +153,9 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        player.sendMessage(ConfigUtil.getPrefix() + " Sell set: " + ((BigDecimal)price).toPlainString());
+        player.sendMessage(ConfigUtil.getPrefix() + " Sell set: " + ((BigDecimal) price).toPlainString());
     }
-    
+
     /**
      * @param name The Item Name
      * @param player The player who clicked the item.
@@ -170,7 +170,7 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        if (item.getType() == Material.AIR){
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -237,7 +237,7 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        if (item.getType() == Material.AIR){
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -289,7 +289,7 @@ public final class ItemUtil {
             player.sendMessage(ConfigUtil.getPrefix() + " Shop Name Removed");
         }
     }
-    
+
     /**
      * @param name The Item Name
      * @param player The player who clicked the item.
@@ -304,7 +304,7 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        if (item.getType() == Material.AIR){
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -373,8 +373,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -438,8 +438,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -519,8 +519,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -598,8 +598,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -683,8 +683,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -766,8 +766,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -845,8 +845,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -930,8 +930,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -1011,8 +1011,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -1032,7 +1032,7 @@ public final class ItemUtil {
         if (!hasReplaced) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&fItem Type: &c" + type));
         }
-        
+
         im.setLore(lore);
 
         item.setItemMeta(im);
@@ -1064,8 +1064,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -1141,12 +1141,12 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
-        
+
         String preParsedLine = "";
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
         if (comp.hasKey("commands")) {
@@ -1222,8 +1222,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -1303,8 +1303,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -1322,11 +1322,11 @@ public final class ItemUtil {
             }
             index += 1;
         }
-        
+
         if (!hasReplaced) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&fMob Type: " + type));
         }
-        
+
         im.setLore(lore);
 
         item.setItemMeta(im);
@@ -1345,8 +1345,7 @@ public final class ItemUtil {
 
         player.sendMessage(ConfigUtil.getPrefix() + " Set Item Mob Type: " + type);
     }
-    
-    
+
     /**
      * @param type - The Shop the item will open
      * @param player - The player who is setting the mob entity type
@@ -1359,8 +1358,8 @@ public final class ItemUtil {
         } else {
             item = player.getItemInHand();
         }
-        
-        if (item.getType() == Material.AIR){
+
+        if (item.getType() == Material.AIR) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cPlease hold an item in your hand."));
             return;
         }
@@ -1381,7 +1380,7 @@ public final class ItemUtil {
         if (!hasReplaced) {
             lore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &c" + type));
         }
-        
+
         im.setLore(lore);
 
         item.setItemMeta(im);

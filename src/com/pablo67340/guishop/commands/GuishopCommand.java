@@ -134,7 +134,7 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage("Please specify a custom sell-name.");
                 }
-            }else if (args[0].equalsIgnoreCase("n") || args[0].equalsIgnoreCase("name")) {
+            } else if (args[0].equalsIgnoreCase("n") || args[0].equalsIgnoreCase("name")) {
                 if (args.length >= 2) {
                     String line = "";
                     for (int x = 1; x <= args.length - 1; x++) {
@@ -299,16 +299,16 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage("Please specify a Target Shop");
                 }
-            }else if (args[0].equalsIgnoreCase("printnbt")) {
+            } else if (args[0].equalsIgnoreCase("printnbt")) {
 
-                    ItemStack item = player.getItemInHand();
-                    if (item != null){
-                        String message = "Printed NBT: "+ItemNBTUtil.getTag(item).toNBT().toString();
-                        Main.log(message);
-                        player.sendMessage(message);
-                    }else{
-                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou must be holding an item."));
-                    }
+                ItemStack item = player.getItemInHand();
+                if (item != null) {
+                    String message = "Printed NBT: " + ItemNBTUtil.getTag(item).toNBT().toString();
+                    Main.log(message);
+                    player.sendMessage(message);
+                } else {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou must be holding an item."));
+                }
 
             } else if (args[0].equalsIgnoreCase("nb") || args[0].equalsIgnoreCase("nbt")) {
                 if (args.length >= 2) {

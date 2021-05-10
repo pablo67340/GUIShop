@@ -4,7 +4,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
@@ -34,7 +33,7 @@ public class GuishopUserCommand implements CommandExecutor {
                     sellCommand(player);
                     return true;
                 }
-            }else{
+            } else {
                 player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cShop cannot be used in this world"));
                 return false;
             }

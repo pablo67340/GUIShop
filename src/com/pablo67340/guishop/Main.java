@@ -102,7 +102,7 @@ public final class Main extends JavaPlugin {
     MenuItem loadedMenu = null;
 
     @Getter
-    private final Map<String, Item> ITEMTABLE = new HashMap<>();
+    private final Map<String, List<Item>> ITEMTABLE = new HashMap<>();
 
     @Getter
     private final Map<String, String> cachedHeads = new HashMap<>();
@@ -139,24 +139,6 @@ public final class Main extends JavaPlugin {
         getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
         getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new GuishopUserCommand());
-        loadDefaults();
-        if (ConfigUtil.isDynamicPricing() && !setupDynamicPricing()) {
-            getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
-            ConfigUtil.setDynamicPricing(false);
-        }
-
-        switch (ConfigUtil.getCommandsMode()) {
-            case INTERCEPT:
-                CommandsInterceptor.register();
-                break;
-            case REGISTER:
-                registerCommands(false);
-                break;
-            default:
-                break;
-        }
-        loadCache();
-        warmup();
     }
 
     /**
@@ -330,39 +312,89 @@ public final class Main extends JavaPlugin {
         ConfigUtil.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
         ConfigUtil.setDebugMode(getMainConfig().getBoolean("debug-mode"));
         ConfigUtil.setDisabledWorlds(getMainConfig().getStringList("disabled-worlds"));
+        ConfigUtil.setSellSkullUUID(getMainConfig().contains("skull-uuid-selling") ? getMainConfig().getBoolean("skull-uuid-selling") : true);
+        if (ConfigUtil.isDynamicPricing() && !setupDynamicPricing()) {
+            getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
+            ConfigUtil.setDynamicPricing(false);
+        }
+
+        switch (ConfigUtil.getCommandsMode()) {
+            case INTERCEPT:
+                CommandsInterceptor.register();
+                break;
+            case REGISTER:
+                registerCommands(false);
+                break;
+            default:
+                break;
+        }
     }
 
     /**
      * Force create all YML files.
      */
-    public void createFiles() {
-
+    public void handleConfig() {
         configf = new File(getDataFolder(), "config.yml");
-        shopf = new File(getDataFolder(), "shops.yml");
-        menuf = new File(getDataFolder(), "menu.yml");
-        cachef = new File(getDataFolder(), "cache.yml");
-        dictionaryf = new File(getDataFolder().getPath() + "/Dictionary");
-
         if (!configf.exists()) {
             configf.getParentFile().mkdirs();
             saveResource("config.yml", false);
         }
+        mainConfig = new YamlConfiguration();
+        try {
+            mainConfig.load(configf);
+        } catch (IOException | InvalidConfigurationException e) {
+            debugLog("Error Main config: " + e.getMessage());
+        }
+        loadDefaults();
+    }
 
+    public void handleShopsConfig() {
+        shopf = new File(getDataFolder(), "shops.yml");
         if (!shopf.exists()) {
             shopf.getParentFile().mkdirs();
             saveResource("shops.yml", false);
         }
+        shopConfig = new YamlConfiguration();
+        try {
+            shopConfig.load(shopf);
+            warmup();
+        } catch (IOException | InvalidConfigurationException e) {
+            debugLog("Error loading Shop Config: " + e.getMessage());
+        }
+    }
 
+    public void handleMenuConfig() {
+        menuf = new File(getDataFolder(), "menu.yml");
         if (!menuf.exists()) {
             menuf.getParentFile().mkdirs();
             saveResource("menu.yml", false);
         }
+        menuConfig = new YamlConfiguration();
+        try {
+            menuConfig.load(menuf);
+        } catch (IOException | InvalidConfigurationException e) {
+            debugLog("Error loading Menu config: " + e.getMessage());
+        }
+    }
 
+    public void handleCacheConfig() {
+        cachef = new File(getDataFolder(), "cache.yml");
         if (!cachef.exists()) {
             cachef.getParentFile().mkdirs();
             saveResource("cache.yml", false);
         }
+        cacheConfig = new YamlConfiguration();
 
+        try {
+            cacheConfig.load(cachef);
+            loadCache();
+        } catch (IOException | InvalidConfigurationException e) {
+            debugLog("Error loading Cache config: " + e.getMessage());
+        }
+    }
+
+    public void handleDictionary() {
+        dictionaryf = new File(getDataFolder().getPath() + "/Dictionary");
         if (!dictionaryf.exists()) {
             dictionaryf.mkdirs();
             URL potionInput = getClass().getClassLoader().getResource("potion-names.txt");
@@ -386,21 +418,28 @@ public final class Main extends JavaPlugin {
                 Main.debugLog("Error copying Dictionary files: " + ex.getMessage());
             }
         }
+    }
 
-        mainConfig = new YamlConfiguration();
-        shopConfig = new YamlConfiguration();
-        menuConfig = new YamlConfiguration();
-        cacheConfig = new YamlConfiguration();
-
-        try {
-            mainConfig.load(configf);
-            shopConfig.load(shopf);
-            menuConfig.load(menuf);
-            cacheConfig.load(cachef);
-        } catch (InvalidConfigurationException | IOException e) {
-            debugLog("Error creating configs: " + e.getMessage());
-        }
-
+    public void createFiles() {
+        // Load all configs separately in their own threads, to prevent
+        // blocking if one config fails to load, but others do not.
+        // This will correct error logging when it's time to find out
+        // which config is causing a problem.
+        new Thread(() -> {
+            handleConfig();
+        }).start();
+        new Thread(() -> {
+            handleCacheConfig();
+        }).start();
+        new Thread(() -> {
+            handleDictionary();
+        }).start();
+        new Thread(() -> {
+            handleMenuConfig();
+        }).start();
+        new Thread(() -> {
+            handleShopsConfig();
+        }).start();
     }
 
     public void warmup() {
@@ -409,6 +448,7 @@ public final class Main extends JavaPlugin {
         for (MenuPage page : loadedMenu.getPages().values()) {
             for (Item item : page.getItems().values()) {
                 if (item.getTargetShop() != null) {
+                    Main.debugLog("Starting Warmup for Shop: " + item.getTargetShop());
                     new Shop(item.getTargetShop()).loadItems(true);
                 }
             }
@@ -419,7 +459,7 @@ public final class Main extends JavaPlugin {
 
     public void reload(Player player, Boolean ignoreCreator) {
         Main.debugLog("GUIShop Reloaded");
-        
+
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
         SELL_COMMANDS.clear();
@@ -511,8 +551,10 @@ public final class Main extends JavaPlugin {
     public static String placeholderIfy(String input, Player player, Item item) {
         String str = input;
 
-        str = str.replace("{PLAYER_NAME}", player.getName());
-        str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
+        if (player != null) {
+            str = str.replace("{PLAYER_NAME}", player.getName());
+            str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
+        }
         if (item.hasShopName()) {
             str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
         } else {

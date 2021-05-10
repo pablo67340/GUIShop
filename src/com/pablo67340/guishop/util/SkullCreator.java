@@ -45,7 +45,7 @@ public class SkullCreator {
      * @param base64 The base64 string containing the texture.
      * @return The head with a custom texture.
      */
-    public static ItemStack itemFromBase64(ItemStack item, String base64) {
+    public static ItemStack itemFromBase64(ItemStack item, String base64, String UUID) {
         notNull(item, "item");
         notNull(base64, "base64");
 
@@ -53,7 +53,7 @@ public class SkullCreator {
             return null;
         }
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        mutateItemMeta(meta, base64);
+        mutateItemMeta(meta, base64, UUID);
         item.setItemMeta(meta);
 
         return item;
@@ -65,24 +65,20 @@ public class SkullCreator {
         }
     }
 
-    private static GameProfile makeProfile(String b64) {
+    private static GameProfile makeProfile(String uid, String b64) {
         // random uuid based on the b64 string
-        UUID id = new UUID(
-                b64.substring(b64.length() - 20).hashCode(),
-                b64.substring(b64.length() - 10).hashCode()
-        );
-        GameProfile profile = new GameProfile(id, "aaaaa");
+        GameProfile profile = new GameProfile(UUID.fromString(uid), "aaaaa");
         profile.getProperties().put("textures", new Property("textures", b64));
         return profile;
     }
 
-    public static void mutateItemMeta(SkullMeta meta, String b64) {
+    public static void mutateItemMeta(SkullMeta meta, String b64, String UUID) {
         try {
             if (metaSetProfileMethod == null) {
                 metaSetProfileMethod = meta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
                 metaSetProfileMethod.setAccessible(true);
             }
-            metaSetProfileMethod.invoke(meta, makeProfile(b64));
+            metaSetProfileMethod.invoke(meta, makeProfile(UUID, b64));
         } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
             // if in an older API where there is no setProfile method,
             // we set the profile field directly.
@@ -91,10 +87,10 @@ public class SkullCreator {
                     metaProfileField = meta.getClass().getDeclaredField("profile");
                     metaProfileField.setAccessible(true);
                 }
-                metaProfileField.set(meta, makeProfile(b64));
+                metaProfileField.set(meta, makeProfile(UUID, b64));
 
             } catch (NoSuchFieldException | IllegalAccessException ex2) {
-                Main.debugLog("Error making profile when loading player head: "+ex2.getMessage());
+                Main.debugLog("Error making profile when loading player head: " + ex2.getMessage());
             }
         }
     }
@@ -128,7 +124,7 @@ public class SkullCreator {
                     JSONObject default_props = (JSONObject) properties.get(0);
                     String skin_base64 = (String) default_props.get("value");
 
-                    Main.getINSTANCE().getCacheConfig().set("player-heads."+uuid, skin_base64);
+                    Main.getINSTANCE().getCacheConfig().set("player-heads." + uuid, skin_base64);
 
                     Thread t1 = new Thread(() -> {
                         try {

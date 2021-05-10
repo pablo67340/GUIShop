@@ -17,9 +17,6 @@ import com.github.stefvanschie.inventoryframework.pane.Pane;
 import com.pablo67340.guishop.Main;
 
 import lombok.Getter;
-import net.md_5.bungee.api.ChatColor;
-import org.bukkit.Material;
-import org.bukkit.inventory.meta.ItemMeta;
 
 import org.jetbrains.annotations.NotNull;
 
@@ -36,18 +33,6 @@ public class ShopPane extends Pane {
         items = new HashMap<>();
         dummies = new HashMap<>();
         INSTANCE = this;
-    }
-
-    public void addBlankItem() {
-        increment++;
-    }
-
-    public void addBrokenItem(String reason, Integer slot) {
-        ItemStack item = new ItemStack(Material.BARRIER);
-        ItemMeta im = item.getItemMeta();
-        im.setDisplayName(ChatColor.translateAlternateColorCodes('&', reason));
-        item.setItemMeta(im);
-        items.put(slot, new GuiItem(item));
     }
 
     public void addItem(GuiItem item) {

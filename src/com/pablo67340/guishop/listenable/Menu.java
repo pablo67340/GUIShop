@@ -1,22 +1,15 @@
 package com.pablo67340.guishop.listenable;
 
-import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.MenuItem;
 import com.pablo67340.guishop.definition.MenuPage;
-import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.ConfigUtil;
-import com.pablo67340.guishop.util.SkullCreator;
 import java.io.IOException;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -27,15 +20,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.*;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.inventory.ClickType;
-import org.bukkit.inventory.ItemFlag;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitScheduler;
 
 public final class Menu {
@@ -140,220 +127,8 @@ public final class Menu {
             for (MenuPage page : menuPages) {
                 menuPage = new ShopPane(9, 6);
                 for (Item item : page.getItems().values()) {
-                    ItemStack itemStack;
-                    if (item.getItemType() == ItemType.DUMMY || player.hasPermission("guishop.shop." + item.getTargetShop()) || player.isOp()) {
-                        itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
-                    } else {
-                        itemStack = XMaterial.matchXMaterial("BARRIER").get().parseItem();
-                    }
-                    Main.debugLog("Adding item to slot: " + item.getSlot());
-                    if (itemStack == null) {
-                        Main.log("Item: " + item.getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
-                        menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
-                        continue;
-                    }
 
-                    ItemMeta itemMeta = itemStack.getItemMeta();
-
-                    if (itemMeta == null) {
-                        Main.log("Item: " + item.getMaterial() + " could not be resolved (null meta).");
-                        menuPage.addBrokenItem("&cItem Material Not Found", item.getSlot());
-                        continue;
-                    }
-
-                    List<String> itemLore = new ArrayList<>();
-
-                    if (player != null) {
-                        if (!Main.getCREATOR().contains(player.getName())) {
-                            if (item.hasName()) {
-                                assert itemMeta != null;
-                                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', item.getName()));
-                            }
-                            if (item.hasEnchantments()) {
-                                for (String str : item.getEnchantments()) {
-                                    String enchant = StringUtils.substringBefore(str, ":");
-                                    String level = StringUtils.substringAfter(str, ":");
-                                    itemLore.add(enchant + " " + level);
-                                }
-                            }
-                            if (item.hasLore()) {
-                                item.getLore().forEach(str -> {
-                                    if (!itemLore.contains(str)) {
-                                        itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
-                                    }
-                                });
-                            }
-                        } else {
-                            NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                            if (item.hasName()) {
-                                comp.setString("name", item.getName());
-                            }
-                            if (item.hasTargetShop()) {
-                                comp.setString("targetShop", item.getTargetShop());
-                            }
-                            if (comp.hasKey("customNBT")) {
-                                item.setNBT(comp.getString("customNBT"));
-                            }
-                            if (item.hasLore()) {
-                                String lor = "";
-                                int index = 0;
-                                for (String str : item.getLore()) {
-                                    if (index != (item.getLore().size() - 1)) {
-                                        lor += str + "::";
-                                    } else {
-                                        lor += str;
-                                    }
-                                    index += 1;
-                                }
-                                comp.setString("LoreLines", lor);
-                            }
-                            if (item.hasName()) {
-                                itemLore.add(" ");
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fName: &r" + item.getName()));
-                            }
-                            if (item.hasTargetShop()) {
-                                itemLore.add(" ");
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fTarget Shop: &r" + item.getTargetShop()));
-                            }
-
-                            if (item.hasLore()) {
-                                itemLore.add(" ");
-                                itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fLore: &r"));
-                                item.getLore().forEach(str -> {
-                                    itemLore.add(str);
-                                });
-                            }
-                            if (item.hasEnchantments()) {
-                                String enchantments = "";
-                                for (String str : item.getEnchantments()) {
-                                    enchantments += str + " ";
-                                }
-                                itemLore.add("Enchantments: " + enchantments.trim());
-                            }
-                            itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
-                            itemMeta = itemStack.getItemMeta();
-                        }
-                    }
-
-                    if (!(item.getItemType() == ItemType.DUMMY || player.hasPermission("guishop.shop." + item.getTargetShop()) || player.isOp())) {
-                        itemLore.add(ChatColor.translateAlternateColorCodes('&', "&cError: No Permission"));
-                    }
-
-                    if (!itemLore.isEmpty()) {
-                        assert itemMeta != null;
-                        itemMeta.setLore(itemLore);
-                    }
-
-                    if (item.hasItemFlags()) {
-                        itemMeta.addItemFlags((ItemFlag[]) item.getItemFlags().toArray());
-                    }
-
-                    if (item.hasCustomModelID()) {
-                        itemMeta.setCustomModelData(item.getCustomModelData());
-                    }
-
-                    itemStack.setItemMeta(itemMeta);
-
-                    if (player != null) {
-                        if (Main.getCREATOR().contains(player.getName())) {
-                            NBTWrappers.NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                            Main.debugLog("USER IN CREATOR.Setting item Buy Price");
-                            if (item.hasName()) {
-                                comp.setString("itemName", item.getName());
-                            }
-                            if (item.hasEnchantments()) {
-                                String enchantments = "";
-                                for (String str : item.getEnchantments()) {
-                                    enchantments += str + ",";
-                                }
-                                comp.setString("enchantments", enchantments);
-                            }
-                            if (item.hasLore()) {
-                                String lor = "";
-                                int index = 0;
-                                for (String str : item.getLore()) {
-                                    if (index != (item.getLore().size() - 1)) {
-                                        lor += str + "::";
-                                    } else {
-                                        lor += str;
-                                    }
-                                    index += 1;
-                                }
-                                comp.setString("loreLines", lor);
-                            }
-                        }
-                    }
-
-                    if (item.hasEnchantments()) {
-                        for (String enc : item.getEnchantments()) {
-                            String enchantment = StringUtils.substringBefore(enc, ":");
-                            String level = StringUtils.substringAfter(enc, ":");
-                            itemStack.addUnsafeEnchantment(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
-                        }
-                    }
-
-                    if (item.hasPotion() && player.hasPermission("guishop.shop." + item.getTargetShop())) {
-                        PotionInfo pi = item.getPotionInfo();
-                        if (XMaterial.isNewVersion()) {
-
-                            if (pi.getSplash()) {
-                                itemStack = new ItemStack(Material.SPLASH_POTION);
-                            }
-                            PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
-
-                            PotionData pd;
-                            try {
-                                pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                                pm.setBasePotionData(pd);
-                            } catch (IllegalArgumentException ex) {
-                                if (ex.getMessage().contains("upgradable")) {
-                                    Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                                    pi.setUpgraded(false);
-                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                                    pm.setBasePotionData(pd);
-                                } else if (ex.getMessage().contains("extended")) {
-                                    Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                                    pi.setExtended(false);
-                                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                                    pm.setBasePotionData(pd);
-                                }
-                            }
-                            itemStack.setItemMeta(pm);
-                        } else {
-                            Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
-                            potion.apply(itemStack);
-                        }
-                    }
-
-                    if (item.hasNBT()) {
-                        try {
-                            NBTWrappers.NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
-                            NBTWrappers.NBTTagCompound newComp = NbtParser.parse(item.getNBT());
-                            for (Map.Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                                if (!newComp.hasKey(entry.getKey())) {
-                                    newComp.set(entry.getKey(), entry.getValue());
-                                }
-                            }
-                            itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
-                            if (itemStack == null) {
-                                Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
-                                menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
-                                continue;
-                            }
-
-                        } catch (NbtParser.NbtParseException ex) {
-                            Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Menu. Please fix or remove custom-nbt value.");
-                            menuPage.addBrokenItem("&cInvalid or Unsupported NBT", item.getSlot());
-                            continue;
-                        }
-                    }
-
-                    // Create Page
-                    Main.debugLog("Setting item to slot: " + item.getSlot());
-                    if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && item.hasSkullUUID()) {
-                        itemStack = SkullCreator.itemFromBase64(itemStack, SkullCreator.getBase64FromUUID(item.getSkullUUID()));
-                    }
-                    GuiItem gItem = new GuiItem(itemStack);
+                    GuiItem gItem = new GuiItem(item.toItemStack(player, true));
                     menuPage.setItem(gItem, item.getSlot());
 
                 }
@@ -575,7 +350,7 @@ public final class Menu {
                 if (item != null) {
                     Main.debugLog("new Item: " + item.getType());
                     editMenuItem(item, slot);
-                } 
+                }
             }, 5L);
         }
     }
@@ -591,7 +366,7 @@ public final class Menu {
             String shopName = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop();
             openShop((Player) e.getWhoClicked(), shopName);
 
-        }else if (e.getCurrentItem() == null && e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT){
+        } else if (e.getCurrentItem() == null && e.getClick() != ClickType.SHIFT_RIGHT && e.getClick() != ClickType.SHIFT_LEFT) {
             int slot = e.getInventory().firstEmpty();
 
             // Run the scheduler after this event is complete. This will ensure the

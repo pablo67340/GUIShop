@@ -5,6 +5,11 @@ may not exist for your older version.
 Note: Anything in the brackets "()" are alternative names you can use
 for the same enchantment.
 
+Example Config Format:
+
+enchantments: 'POWER:2 FLAME:1 KB:3'
+
+Available Enchantments:
     ARROW_DAMAGE("POWER", "ARROW_DAMAGE", "ARROW_POWER", "AD"),
     ARROW_FIRE("FLAME", "FLAME_ARROW", "FIRE_ARROW", "AF"),
     ARROW_INFINITE("INFINITY", "INF_ARROWS", "INFINITE_ARROWS", "INFINITE", "UNLIMITED", "UNLIMITED_ARROWS", "AI"),

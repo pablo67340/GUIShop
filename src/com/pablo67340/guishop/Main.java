@@ -408,12 +408,16 @@ public final class Main extends JavaPlugin {
 
             URL enchantmentInput = getClass().getClassLoader().getResource("enchantment-names.txt");
             File enchantmentDest = new File(dictionaryf.getPath() + "/enchantment-names.txt");
+            
+            URL flagInput = getClass().getClassLoader().getResource("item-flags.txt");
+            File flagDest = new File(dictionaryf.getPath() + "/item-flags.txt");
 
             try {
                 FileUtils.copyURLToFile(potionInput, potionDest);
                 FileUtils.copyURLToFile(spawnerInput, spawnerDest);
                 FileUtils.copyURLToFile(materialsInput, materialsDest);
                 FileUtils.copyURLToFile(enchantmentInput, enchantmentDest);
+                FileUtils.copyURLToFile(flagInput, flagDest);
             } catch (IOException ex) {
                 Main.debugLog("Error copying Dictionary files: " + ex.getMessage());
             }

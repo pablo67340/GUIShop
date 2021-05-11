@@ -55,8 +55,6 @@ public class Shop {
 
     private ShopPane shopPage = new ShopPane(9, 6);
 
-    private final List<Integer> blacklistedSlots = new ArrayList<>(Arrays.asList(53, 52, 50, 49, 48, 46, 45));
-
     private final Player player;
 
     private Boolean shopMissing = false;
@@ -152,28 +150,43 @@ public class Shop {
     }
 
     private void loadShop() {
-        this.GUI = new Gui(Main.getINSTANCE(), 6,
-                ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
-        PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
-        Collection<ShopPage> shopPages = shopItem.getPages().values();
-        for (ShopPage page : shopPages) {
-            shopPage = new ShopPane(9, 6);
-            for (Item item : page.getItems().values()) {
+        if (this.GUI == null || this.GUI.getItems().isEmpty()) {
+            if (this.hasMultiplePages()) {
+                this.GUI = new Gui(Main.getINSTANCE(), 6,
+                        ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
+            } else {
+                int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
+                if (rows == 0) {
+                    rows = 1;
+                }
+                this.GUI = new Gui(Main.getINSTANCE(), rows,
+                        ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
+            }
+            PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
+            Collection<ShopPage> shopPages = shopItem.getPages().values();
+            for (ShopPage page : shopPages) {
+                shopPage = new ShopPane(9, 6);
+                for (Item item : page.getItems().values()) {
 
-                GuiItem gItem = new GuiItem(item.toItemStack(player, false));
-                shopPage.setItem(gItem, item.getSlot());
+                    GuiItem gItem = new GuiItem(item.toItemStack(player, false));
+                    shopPage.setItem(gItem, item.getSlot());
+
+                }
+
+                applyButtons(shopPage, pageIndex, shopPages.size());
+                pane.addPane(pageIndex, shopPage);
+                pageIndex += 1;
 
             }
 
-            applyButtons(shopPage, pageIndex, shopPages.size());
-            pane.addPane(pageIndex, shopPage);
-            pageIndex += 1;
-
+            GUI.addPane(pane);
+            this.currentPane = pane;
         }
 
-        GUI.addPane(pane);
-        this.currentPane = pane;
+    }
 
+    public Boolean hasMultiplePages() {
+        return this.shopItem.getPages().size() > 1;
     }
 
     /**
@@ -216,7 +229,7 @@ public class Shop {
 
             GuiItem item = new GuiItem(backButtonItem);
 
-            page.setItem(item, 53);
+            page.setItem(item, this.GUI.getInventory().getSize()-1);
         }
     }
 
@@ -246,9 +259,6 @@ public class Shop {
 
     private void onShopClick(InventoryClickEvent e) {
         e.setCancelled(true);
-        if (blacklistedSlots.contains(e.getSlot())) {
-            return;
-        }
 
         if (e.getClickedInventory() == null) {
             return;
@@ -286,7 +296,7 @@ public class Shop {
             }
             return;
             // Back Button
-        } else if (e.getSlot() == 53 && !ConfigUtil.isDisableBackButton()) {
+        } else if (e.getSlot() == (this.GUI.getInventory().getSize()-1) && !ConfigUtil.isDisableBackButton()) {
             if (menuInstance != null && !Main.getCREATOR().contains(player.getName())) {
                 menuInstance.open(player);
             }

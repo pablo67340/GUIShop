@@ -1,0 +1,15 @@
+Item Flags are used to show/hide certain elements of an Item's information.
+Example config format:
+
+item-flags:
+  - HIDE_ATTRIBUTES
+  - HIDE_ENCHANTS
+
+Available Flags:
+    HIDE_ATTRIBUTES - Setting to show/hide Attributes like Damage
+    HIDE_DESTROYS - Setting to show/hide what the ItemStack can break/destroy
+    HIDE_DYE - Setting to show/hide dyes from coloured leather armour
+    HIDE_ENCHANTS - Setting to show/hide enchants
+    HIDE_PLACED_ON - Setting to show/hide where this ItemStack can be build/placed on
+    HIDE_POTION_EFFECTS - Setting to show/hide potion effects on this ItemStack
+    HIDE_UNBREAKABLE - Setting to show/hide the unbreakable State

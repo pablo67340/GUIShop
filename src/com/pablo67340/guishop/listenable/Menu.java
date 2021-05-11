@@ -109,7 +109,6 @@ public final class Menu {
 
     private void loadMenu() {
         if (this.GUI == null || this.GUI.getItems().isEmpty()) {
-
             if (this.hasMultiplePages()) {
                 this.GUI = new Gui(Main.getINSTANCE(), 6,
                         ChatColor.translateAlternateColorCodes('&', ConfigUtil.getMenuTitle().replace("{page-number}", ConfigUtil.getMenuShopPageNumber().replace("{number}", "1"))));
@@ -190,7 +189,7 @@ public final class Menu {
 
             GuiItem item = new GuiItem(backButtonItem);
 
-            page.setItem(item, 53);
+            page.setItem(item, (this.GUI.getInventory().getSize()-1));
         }
     }
 
@@ -271,7 +270,7 @@ public final class Menu {
                 GUI.update();
             }
             // Back Button
-        } else if (e.getSlot() == 53 && !ConfigUtil.isDisableBackButton()) {
+        } else if (e.getSlot() == (this.GUI.getInventory().getSize()-1) && !ConfigUtil.isDisableBackButton()) {
             pl.closeInventory();
         } else {
             if (Main.getINSTANCE().getLoadedMenu().getPages().containsKey("Page" + currentPane.getPage()) && Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().containsKey(((Integer) e.getSlot()).toString())) {

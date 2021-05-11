@@ -150,6 +150,7 @@
                             <include>spawner-names.txt</include>
                             <include>material-names.txt</include>
                             <include>enchantment-names.txt</include>
+                            <include>item-flags.txt</include>
                         </includes>
                     </resource>
                 </resources>
@@ -210,6 +211,7 @@
                             <include>spawner-names.txt</include>
                             <include>material-names.txt</include>
                             <include>enchantment-names.txt</include>
+                            <include>item-flags.txt</include>
                         </includes>
                     </resource>
                 </resources>

@@ -202,8 +202,9 @@ alt-sell-cancel-name: '&c&lCancel'
 
 alt-sell-not-enough: '&cYou do not have {amount} such items to sell.'
 
+# Disabled worlds users cannot use GUIShop
 disabled-worlds:
-    -'Test'
+    - 'Test'
     
 # Enable if you want to seperate each head by UUID when determining sell price.
 # Setting to false will make all heads worth the same amount. 

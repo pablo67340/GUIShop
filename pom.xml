@@ -119,11 +119,6 @@
             <artifactId>jsr305</artifactId>
             <version>3.0.2</version>
         </dependency>
-        <dependency>
-            <groupId>commons-io</groupId>
-            <artifactId>commons-io</artifactId>
-            <version>2.8.0</version>
-        </dependency>
     </dependencies>
     <build>                
         <defaultGoal>clean install</defaultGoal>
@@ -175,9 +170,32 @@
                                     <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
-                                    <include>commons-io:commons-io:jar:</include>
                                 </includes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>com/cryptomorin/xseries/XBiome*</exclude>
+                                        <exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
+                                        <exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
+                                        <exclude>com/cryptomorin/xseries/ReflectionUtils*</exclude>
+                                        <exclude>com/cryptomorin/xseries/SkullCacheListener*</exclude>
+                                        <exclude>com/cryptomorin/xseries/SkullUtils*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XBlock*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XEntity*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XItemStack*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XMaterialUtil*</exclude>
+                                        <exclude>com/cryptomorin/xseries/messages/ActionBar*</exclude>
+                                        <exclude>com/cryptomorin/xseries/messages/Titles*</exclude>
+                                        <exclude>com/cryptomorin/xseries/particles/ParticleDisplay*</exclude>
+                                        <exclude>com/cryptomorin/xseries/particles/XParticle*</exclude>
+                                        <exclude>com/cryptomorin/xseries/unused/BossBar*</exclude>
+                                        <exclude>com/cryptomorin/xseries/unused/ZEnchantment*</exclude>
+                                        <exclude>fonts/*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                         <executions>
                             <execution>
@@ -236,9 +254,32 @@
                                     <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
-                                    <include>commons-io:commons-io:jar:</include>
                                 </includes>
                             </artifactSet>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>com/cryptomorin/xseries/XBiome*</exclude>
+                                        <exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
+                                        <exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
+                                        <exclude>com/cryptomorin/xseries/ReflectionUtils*</exclude>
+                                        <exclude>com/cryptomorin/xseries/SkullCacheListener*</exclude>
+                                        <exclude>com/cryptomorin/xseries/SkullUtils*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XBlock*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XEntity*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XItemStack*</exclude>
+                                        <exclude>com/cryptomorin/xseries/XMaterialUtil*</exclude>
+                                        <exclude>com/cryptomorin/xseries/messages/ActionBar*</exclude>
+                                        <exclude>com/cryptomorin/xseries/messages/Titles*</exclude>
+                                        <exclude>com/cryptomorin/xseries/particles/ParticleDisplay*</exclude>
+                                        <exclude>com/cryptomorin/xseries/particles/XParticle*</exclude>
+                                        <exclude>com/cryptomorin/xseries/unused/BossBar*</exclude>
+                                        <exclude>com/cryptomorin/xseries/unused/ZEnchantment*</exclude>
+                                        <exclude>fonts/*</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                         </configuration>
                         <executions>
                             <execution>

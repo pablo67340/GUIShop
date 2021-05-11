@@ -36,13 +36,15 @@ import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
+import java.io.InputStream;
 import java.math.BigDecimal;
-import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.Map.Entry;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.io.FileUtils;
 import org.bukkit.configuration.ConfigurationSection;
 
 public final class Main extends JavaPlugin {
@@ -397,30 +399,18 @@ public final class Main extends JavaPlugin {
         dictionaryf = new File(getDataFolder().getPath() + "/Dictionary");
         if (!dictionaryf.exists()) {
             dictionaryf.mkdirs();
-            URL potionInput = getClass().getClassLoader().getResource("potion-names.txt");
+
             File potionDest = new File(dictionaryf.getPath() + "/potion-names.txt");
-
-            URL spawnerInput = getClass().getClassLoader().getResource("spawner-names.txt");
             File spawnerDest = new File(dictionaryf.getPath() + "/spawner-names.txt");
-
-            URL materialsInput = getClass().getClassLoader().getResource("material-names.txt");
             File materialsDest = new File(dictionaryf.getPath() + "/material-names.txt");
-
-            URL enchantmentInput = getClass().getClassLoader().getResource("enchantment-names.txt");
             File enchantmentDest = new File(dictionaryf.getPath() + "/enchantment-names.txt");
-            
-            URL flagInput = getClass().getClassLoader().getResource("item-flags.txt");
             File flagDest = new File(dictionaryf.getPath() + "/item-flags.txt");
 
-            try {
-                FileUtils.copyURLToFile(potionInput, potionDest);
-                FileUtils.copyURLToFile(spawnerInput, spawnerDest);
-                FileUtils.copyURLToFile(materialsInput, materialsDest);
-                FileUtils.copyURLToFile(enchantmentInput, enchantmentDest);
-                FileUtils.copyURLToFile(flagInput, flagDest);
-            } catch (IOException ex) {
-                Main.debugLog("Error copying Dictionary files: " + ex.getMessage());
-            }
+            copy("potion-names.txt", getClass().getClassLoader().getResourceAsStream("potion-names.txt"), potionDest.getPath());
+            copy("spawner-names.txt", getClass().getClassLoader().getResourceAsStream("spawner-names.txt"), spawnerDest.getPath());
+            copy("material-names.txt", getClass().getClassLoader().getResourceAsStream("material-names.txt"), materialsDest.getPath());
+            copy("enchantment-names.txt", getClass().getClassLoader().getResourceAsStream("enchantment-names.txt"), enchantmentDest.getPath());
+            copy("item-flags.txt", getClass().getClassLoader().getResourceAsStream("item-flags.txt"), flagDest.getPath());
         }
     }
 
@@ -444,6 +434,26 @@ public final class Main extends JavaPlugin {
         new Thread(() -> {
             handleShopsConfig();
         }).start();
+    }
+    
+    /**
+     * Copy a file from source to destination.
+     *
+     * @param source
+     *        the source
+     * @param destination
+     *        the destination
+     * @param name
+     *        the name of the file
+     */
+    public void copy(String name, InputStream source , String destination) {
+        log("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/"+name);
+
+        try {
+            Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
+        } catch (IOException ex) {
+            debugLog("Error extracting Dictionary files: "+ex.getMessage());
+        }
     }
 
     public void warmup() {

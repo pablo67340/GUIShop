@@ -101,7 +101,7 @@ public final class Main extends JavaPlugin {
 
     @Getter
     @Setter
-    MenuItem loadedMenu = null;
+    private MenuItem loadedMenu = null;
 
     @Getter
     private final Map<String, List<Item>> ITEMTABLE = new HashMap<>();
@@ -256,7 +256,6 @@ public final class Main extends JavaPlugin {
         ConfigUtil.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
         ConfigUtil.setSound(getMainConfig().getString("purchase-sound"));
         ConfigUtil.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
-        ConfigUtil.setEnableCreator(getMainConfig().getBoolean("ingame-config"));
         ConfigUtil.setCantBuy(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cant-buy"))));
         ConfigUtil.setFull(ChatColor.translateAlternateColorCodes('&',

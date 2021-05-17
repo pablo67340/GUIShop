@@ -164,6 +164,12 @@
                         <artifactId>maven-shade-plugin</artifactId>
                         <version>2.3</version>
                         <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.cryptomorin.xseries</pattern>
+                                    <shadedPattern>com.pablo67340.GUIShop.shade.xseries</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
@@ -248,6 +254,12 @@
                         <artifactId>maven-shade-plugin</artifactId>
                         <version>2.3</version>
                         <configuration>
+                            <relocations>
+                                <relocation>
+                                    <pattern>com.cryptomorin.xseries</pattern>
+                                    <shadedPattern>com.pablo67340.GUIShop.shade.xseries</shadedPattern>
+                                </relocation>
+                            </relocations>
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>

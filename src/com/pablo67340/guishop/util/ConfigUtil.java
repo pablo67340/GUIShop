@@ -13,7 +13,7 @@ public final class ConfigUtil {
      */
     @Getter
     @Setter
-    private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled, enableCreator,
+    private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled,
             dynamicPricing, debugMode, sellSkullUUID;
 
     /**

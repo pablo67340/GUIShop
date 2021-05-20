@@ -16,6 +16,7 @@ import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.AltSellPane;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.util.ConfigUtil;
+import org.bukkit.inventory.meta.ItemMeta;
 
 public class AltSell {
 
@@ -45,8 +46,17 @@ public class AltSell {
         cancelItem.setMaterial(ConfigUtil.getAltSellCancelMaterial());
     }
 
-    private GuiItem setQuantityAndGet(ItemStack item, int quantity) {
+    private GuiItem setQuantityAndGet(ItemStack item, int quantity, boolean isDecrease) {
         item.setAmount(quantity);
+        ItemMeta im = item.getItemMeta();
+        if (isDecrease){
+            im.setDisplayName(ConfigUtil.getAltSellDecreaseTitle().replace("{amount}", Integer.toString(quantity)));
+        }else{
+            im.setDisplayName(ConfigUtil.getAltSellIncreaseTitle().replace("{amount}", Integer.toString(quantity)));
+        }
+        
+        item.setItemMeta(im);
+        
         return new GuiItem(item);
     }
 
@@ -65,13 +75,13 @@ public class AltSell {
                 && gCancelItem != null) {
             GuiItem[] addRemoveItems = new GuiItem[6];
             ItemStack addItemstack = gAddItem.getItem();
-            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity1());
-            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity2());
-            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity3());
+            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity1(), false);
+            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity2(), false);
+            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), ConfigUtil.getAltSellQuantity3(), false);
             ItemStack removeItemstack = gRemoveItem.getItem();
-            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity1());
-            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity2());
-            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity3());
+            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity1(), true);
+            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity2(), true);
+            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), ConfigUtil.getAltSellQuantity3(), true);
             pane = new AltSellPane(gItem, addRemoveItems, gIndicator,
                     Item.renameGuiItem(gConfirmItem, ConfigUtil.getAltSellConfirmName()), Item.renameGuiItem(gCancelItem, ConfigUtil.getAltSellCancelName()));
             pane.setSubjectQuantity(1);

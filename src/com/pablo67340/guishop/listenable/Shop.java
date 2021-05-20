@@ -122,8 +122,13 @@ public class Shop {
                                 Main.debugLog("Making item: SPLASH_POTION sellable.");
                                 Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString(), items);
                             } else {
-                                Main.debugLog("Making item: " + item.getMaterial() + " sellable.");
-                                Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
+
+                                if (XMaterial.matchXMaterial(item.getMaterial()).get().parseItem() != null) {
+                                    Main.debugLog("Making item: " + item.getMaterial() + " sellable.");
+                                    Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
+                                } else {
+                                    Main.log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name, or item does not exist for this server version.");
+                                }
                             }
                         }
                         page.getItems().put(Integer.toString(item.getSlot()), item);
@@ -229,7 +234,7 @@ public class Shop {
 
             GuiItem item = new GuiItem(backButtonItem);
 
-            page.setItem(item, this.GUI.getInventory().getSize()-1);
+            page.setItem(item, this.GUI.getInventory().getSize() - 1);
         }
     }
 
@@ -296,7 +301,7 @@ public class Shop {
             }
             return;
             // Back Button
-        } else if (e.getSlot() == (this.GUI.getInventory().getSize()-1) && !ConfigUtil.isDisableBackButton()) {
+        } else if (e.getSlot() == (this.GUI.getInventory().getSize() - 1) && !ConfigUtil.isDisableBackButton()) {
             if (menuInstance != null && !Main.getCREATOR().contains(player.getName())) {
                 menuInstance.open(player);
             }
@@ -315,7 +320,8 @@ public class Shop {
 
         } else if (!item.hasBuyPrice()) {
 
-            if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+            if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice()) {
+                hasClicked = true;
                 new AltSell(item).open(player);
             } else {
                 if (item.getItemType() == ItemType.DUMMY) {
@@ -330,10 +336,12 @@ public class Shop {
         if (item.getItemType() == ItemType.SHOP) {
             hasClicked = true;
             if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
+                hasClicked = true;
                 new AltSell(item).open(player);
             } else {
                 if (item.isResolveFailed()) {
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot purchase item that contains errors."));
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cError: " + item.getResolveReason()));
                 } else {
                     if (!item.isDisableQty()) {
                         new Quantity(item, this, player).loadInventory().open();

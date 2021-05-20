@@ -194,6 +194,9 @@ alt-sell-quantity-1: 1
 alt-sell-quantity-2: 10
 alt-sell-quantity-3: 64
 
+alt-sell-increase-title: '&aIncrease quantity by {amount}'
+alt-sell-decrease-title: '&cDecrease quantity by {amount}'
+
 alt-sell-confirm-material: 'EMERALD_BLOCK'
 alt-sell-cancel-material: 'REDSTONE_BLOCK'
 

@@ -189,7 +189,7 @@ public final class Menu {
 
             GuiItem item = new GuiItem(backButtonItem);
 
-            page.setItem(item, (this.GUI.getInventory().getSize()-1));
+            page.setItem(item, (this.GUI.getInventory().getSize() - 1));
         }
     }
 
@@ -270,13 +270,18 @@ public final class Menu {
                 GUI.update();
             }
             // Back Button
-        } else if (e.getSlot() == (this.GUI.getInventory().getSize()-1) && !ConfigUtil.isDisableBackButton()) {
+        } else if (e.getSlot() == (this.GUI.getInventory().getSize() - 1) && !ConfigUtil.isDisableBackButton()) {
             pl.closeInventory();
         } else {
             if (Main.getINSTANCE().getLoadedMenu().getPages().containsKey("Page" + currentPane.getPage()) && Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().containsKey(((Integer) e.getSlot()).toString())) {
-                String shopName = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString()).getTargetShop();
+                Item clickedItem = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString());
+                String shopName = clickedItem.getTargetShop();
                 if (pl.hasPermission("guishop.shop." + shopName)) {
-                    openShop(pl, shopName);
+                    if (!clickedItem.isResolveFailed()) {
+                        openShop(pl, shopName);
+                    } else {
+                        pl.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cCannot open shop. Reason: "+clickedItem.getResolveReason()));
+                    }
                 } else {
                     pl.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou do not have permission to use this shop."));
                 }

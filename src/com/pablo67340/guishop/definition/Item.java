@@ -83,6 +83,13 @@ public final class Item implements ConfigurationSerializable {
     private String mobType;
 
     /**
+     * The reason a resolution may has failed.
+     */
+    @Getter
+    @Setter
+    private String resolveReason;
+
+    /**
      * The amount of money given when selling this {@link Item}.
      */
     @Getter
@@ -94,7 +101,10 @@ public final class Item implements ConfigurationSerializable {
      */
     @Getter
     @Setter
-    private boolean useDynamicPricing, disableQty, resolveFailed = false;
+    private boolean useDynamicPricing, disableQty;
+
+    @Getter
+    private boolean resolveFailed = false;
 
     /**
      * The slot of this {@link Item} when presented on the GUI.
@@ -561,14 +571,14 @@ public final class Item implements ConfigurationSerializable {
         try {
             itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
         } catch (NoSuchElementException ex) {
-            setResolveFailed(true);
+            setResolveFailed("Item has Invalid Material");
         }
 
         Main.debugLog("Adding item to slot: " + getSlot());
         if (itemStack == null || itemStack.getType() == null || isResolveFailed()) {
             Main.log("Item: " + getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
-            setResolveFailed(true);
-            return new ItemStack(Material.AIR);
+            setResolveFailed("Item has Invalid Material");
+            return getErrorStack();
         }
 
         if (itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial() && hasSkullUUID()) {
@@ -583,8 +593,8 @@ public final class Item implements ConfigurationSerializable {
 
             if (itemMeta == null) {
                 Main.log("Item: " + getMaterial() + " could not be resolved (null meta).");
-                setResolveFailed(true);
-                return new ItemStack(Material.AIR);
+                setResolveFailed("Item has invalid Item Meta");
+                return getErrorStack();
             }
 
             List<String> itemLore = new ArrayList<>();
@@ -809,14 +819,14 @@ public final class Item implements ConfigurationSerializable {
                     itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
                     if (itemStack == null) {
                         Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
-                        setResolveFailed(true);
-                        return new ItemStack(Material.AIR);
+                        setResolveFailed("Item has Invalid Custom NBT");
+                        return getErrorStack();
                     }
 
                 } catch (NbtParser.NbtParseException ex) {
                     Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
-                    setResolveFailed(true);
-                    return new ItemStack(Material.AIR);
+                    setResolveFailed("Item has Invalid Custom NBT");
+                    return getErrorStack();
                 }
             }
 
@@ -971,7 +981,7 @@ public final class Item implements ConfigurationSerializable {
             itemStack = XMaterial.matchXMaterial(getMaterial()).get().parseItem();
             itemStack.setAmount(quantity);
         } catch (NoSuchElementException ex) {
-            setResolveFailed(true);
+            setResolveFailed("Item has Invalid Material");
         }
 
         if (hasSkullUUID() && itemStack.getType() == XMaterial.matchXMaterial("PLAYER_HEAD").get().parseMaterial()) {
@@ -987,7 +997,7 @@ public final class Item implements ConfigurationSerializable {
                 }
                 PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 
-                PotionData pd = null;
+                PotionData pd;
                 try {
                     pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                     pm.setBasePotionData(pd);
@@ -1253,6 +1263,19 @@ public final class Item implements ConfigurationSerializable {
         }
 
         return serialized;
+    }
+
+    public void setResolveFailed(String reason) {
+        resolveFailed = true;
+        resolveReason = reason;
+    }
+
+    public ItemStack getErrorStack() {
+        ItemStack itemStack = new ItemStack(Material.BARRIER);
+        ItemMeta im = itemStack.getItemMeta();
+        im.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c" + resolveReason));
+        itemStack.setItemMeta(im);
+        return itemStack;
     }
 
 }

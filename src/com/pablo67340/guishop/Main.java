@@ -35,6 +35,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
+import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ConfigUtil;
 import java.io.InputStream;
 import java.math.BigDecimal;
@@ -45,18 +46,18 @@ import java.util.Map.Entry;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
-public final class Main extends JavaPlugin {
+public final class Main extends JavaPlugin implements CommandExecutor {
 
     /**
      * The overridden config file objects.
      */
     @Getter
-    private File configf, shopf, menuf, cachef;
-
-    @Getter
-    File dictionaryf;
+    private File configf, shopf, menuf, cachef, dictionaryf;
 
     /**
      * The configs FileConfiguration object.
@@ -109,7 +110,6 @@ public final class Main extends JavaPlugin {
     @Getter
     private final Map<String, String> cachedHeads = new HashMap<>();
 
-    // TODO: Make a HashMap. Key: Material, Value, List of SellProfiles/Items
     /**
      * A {@link Map} that will store our {@link Creator}s when the server first
      * starts.
@@ -318,6 +318,12 @@ public final class Main extends JavaPlugin {
             getLogger().log(Level.INFO, "Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
             ConfigUtil.setDynamicPricing(false);
         }
+        
+        ConfigUtil.setAltSellIncreaseTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("alt-sell-increase-title", "&aIncrease quantity by {amount}")));
+        
+        ConfigUtil.setAltSellDecreaseTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("alt-sell-decrease-title", "&aDecrease quantity by {amount}")));
 
         switch (ConfigUtil.getCommandsMode()) {
             case INTERCEPT:
@@ -434,24 +440,21 @@ public final class Main extends JavaPlugin {
             handleShopsConfig();
         }).start();
     }
-    
+
     /**
      * Copy a file from source to destination.
      *
-     * @param source
-     *        the source
-     * @param destination
-     *        the destination
-     * @param name
-     *        the name of the file
+     * @param source the source
+     * @param destination the destination
+     * @param name the name of the file
      */
-    public void copy(String name, InputStream source , String destination) {
-        log("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/"+name);
+    public void copy(String name, InputStream source, String destination) {
+        log("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/" + name);
 
         try {
             Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            debugLog("Error extracting Dictionary files: "+ex.getMessage());
+            debugLog("Error extracting Dictionary files: " + ex.getMessage());
         }
     }
 
@@ -608,6 +611,32 @@ public final class Main extends JavaPlugin {
      */
     public static void sendMessage(CommandSender commandSender, String message) {
         commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }
+
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        if (sender instanceof Player) {
+            Player player = (Player) sender;
+            if (cmd.getName().equalsIgnoreCase("value")) {
+                if (player.hasPermission("guishop.value")) {
+                    if (player.getItemInHand() != null) {
+                        ItemStack target = player.getItemInHand();
+                        String targetMaterial = target.getType().toString();
+                        Value value = new Value(player, targetMaterial);
+                        value.loadItems();
+                    } else {
+                        player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou must be holding an item."));
+                    }
+                } else {
+                    player.sendMessage(ChatColor.translateAlternateColorCodes('&', ConfigUtil.getNoPermission()));
+                }
+                return true;
+            }
+        } else {
+            sender.sendMessage("You must run this command in-game.");
+            return false;
+        }
+        return false;
     }
 
 }

@@ -26,3 +26,7 @@ commands:
   guishopuser:
     description: GUIShop alias for buy and sell commands.
     permission: guishop.use
+  value:
+    description: View an Item's Buy or Sell Value.
+    permission: guishop.value
+    aliases: [val, gvalue]

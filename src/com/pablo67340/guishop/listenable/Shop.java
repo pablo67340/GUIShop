@@ -123,10 +123,10 @@ public class Shop {
                                 Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString(), items);
                             } else {
 
-                                if (XMaterial.matchXMaterial(item.getMaterial()).get().parseItem() != null) {
+                                try {
                                     Main.debugLog("Making item: " + item.getMaterial() + " sellable.");
                                     Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
-                                } else {
+                                } catch (Exception ex) {
                                     Main.log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name, or item does not exist for this server version.");
                                 }
                             }

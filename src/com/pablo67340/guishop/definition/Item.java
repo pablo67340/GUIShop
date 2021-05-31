@@ -1147,6 +1147,8 @@ public final class Item implements ConfigurationSerializable {
                 item.setMaterial((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("shop-name")) {
                 item.setShopName((String) entry.getValue());
+            }else if (entry.getKey().equalsIgnoreCase("disable-qty")) {
+                item.setDisableQty((Boolean) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("name")) {
                 item.setName((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-name")) {
@@ -1227,6 +1229,9 @@ public final class Item implements ConfigurationSerializable {
         }
         if (hasLore()) {
             serialized.put("lore", lore);
+        }
+        if (isDisableQty()){
+            serialized.put("disable-qty", disableQty);
         }
         if (hasBuyPrice()) {
             serialized.put("buy-price", ((BigDecimal) buyPrice).doubleValue());

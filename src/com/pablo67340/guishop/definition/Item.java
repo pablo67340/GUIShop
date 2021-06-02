@@ -836,6 +836,7 @@ public final class Item implements ConfigurationSerializable {
 
                     if (pi.getSplash()) {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
+                        itemStack.setItemMeta(itemMeta);
                     }
                     PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 

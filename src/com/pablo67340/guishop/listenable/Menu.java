@@ -225,7 +225,6 @@ public final class Menu {
             GUI.setOnClose(event -> onClose(event));
         }
         GUI.show(player);
-
     }
 
     /**
@@ -237,6 +236,7 @@ public final class Menu {
 
         e.setCancelled(true);
 
+        // Next Buttom
         if (e.getSlot() == Main.getINSTANCE().getMenuConfig().getInt("Menu.nextButtonSlot")) {
             hasClicked = true;
             if (hasMultiplePages() && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
@@ -273,6 +273,7 @@ public final class Menu {
         } else if (e.getSlot() == (this.GUI.getInventory().getSize() - 1) && !ConfigUtil.isDisableBackButton()) {
             pl.closeInventory();
         } else {
+            // Everything else<
             if (Main.getINSTANCE().getLoadedMenu().getPages().containsKey("Page" + currentPane.getPage()) && Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().containsKey(((Integer) e.getSlot()).toString())) {
                 Item clickedItem = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString());
                 String shopName = clickedItem.getTargetShop();
@@ -301,8 +302,6 @@ public final class Menu {
             Shop openShop = new Shop(player, shop, this);
             openShop.loadItems(false);
             openShop.open(player);
-        } else {
-            Main.log("Error: Target shop of clicked item not specified. Please add target-shop to specific item in menu.yml to fix this.");
         }
     }
 

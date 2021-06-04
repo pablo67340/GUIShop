@@ -853,10 +853,14 @@ public final class Item implements ConfigurationSerializable {
                 }
             }
         } else {
-            if (hasShopName()) {
+            if (hasName()) {
+                assert itemMeta != null;
+                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getName()));
+            } else if (hasShopName()) {
                 assert itemMeta != null;
                 itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getShopName()));
             }
+
             itemStack.setItemMeta(itemMeta);
         }
 

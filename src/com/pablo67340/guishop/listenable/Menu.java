@@ -273,7 +273,7 @@ public final class Menu {
         } else if (e.getSlot() == (this.GUI.getInventory().getSize() - 1) && !ConfigUtil.isDisableBackButton()) {
             pl.closeInventory();
         } else {
-            // Everything else<
+            // Everything else
             if (Main.getINSTANCE().getLoadedMenu().getPages().containsKey("Page" + currentPane.getPage()) && Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().containsKey(((Integer) e.getSlot()).toString())) {
                 Item clickedItem = Main.getINSTANCE().getLoadedMenu().getPages().get("Page" + currentPane.getPage()).getItems().get(((Integer) e.getSlot()).toString());
                 String shopName = clickedItem.getTargetShop();

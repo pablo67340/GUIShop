@@ -847,6 +847,7 @@ public final class Item implements ConfigurationSerializable {
                             pm.setBasePotionData(pd);
                         }
                     }
+
                     itemStack.setItemMeta(pm);
                 } else {
                     Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());

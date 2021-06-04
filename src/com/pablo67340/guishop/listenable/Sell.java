@@ -6,7 +6,7 @@ import org.bukkit.inventory.*;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.util.ConfigUtil;
 import java.math.BigDecimal;
 import java.util.List;
@@ -21,7 +21,7 @@ public final class Sell {
      * @param player - The player the GUI will display to
      */
     public void open(Player player) {
-        GUI = new Gui(Main.getINSTANCE(), 6, ConfigUtil.getSellTitle());
+        GUI = new Gui(GUIShop.getINSTANCE(), 6, ConfigUtil.getSellTitle());
         GUI.setOnClose(this::onSellClose);
         StaticPane pane = new StaticPane(0, 0, 9, 6);
         GUI.addPane(pane);
@@ -56,9 +56,9 @@ public final class Sell {
 
             Item shopItem = null;
 
-            Main.debugLog("Checking if " + item.getType().toString() + " is sellable");
+            GUIShop.debugLog("Checking if " + item.getType() + " is sellable");
 
-            List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(item.getType().toString());
+            List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(item.getType().toString());
 
             if (itemList != null) {
                 for (Item itm : itemList) {
@@ -79,9 +79,9 @@ public final class Sell {
 
             // buy price must be defined for dynamic pricing to work
             if (ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
-                moneyToGive = moneyToGive.add(Main.getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
+                moneyToGive = moneyToGive.add(GUIShop.getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
                         shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal()));
-                Main.getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
+                GUIShop.getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
             } else {
                 moneyToGive = moneyToGive.add(shopItem.getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity)));
             }
@@ -103,7 +103,7 @@ public final class Sell {
     public static void roundAndGiveMoney(Player player, BigDecimal moneyToGive) {
 
         if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
-            Main.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
+            GUIShop.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
             player.sendMessage(ConfigUtil.getSold() + moneyToGive.toPlainString() + ConfigUtil.getAdded());
         }

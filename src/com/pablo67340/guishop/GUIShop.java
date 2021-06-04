@@ -51,7 +51,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
-public final class Main extends JavaPlugin implements CommandExecutor {
+public final class GUIShop extends JavaPlugin implements CommandExecutor {
 
     /**
      * The overridden config file objects.
@@ -81,7 +81,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
      * An instance of this class.
      */
     @Getter
-    public static Main INSTANCE;
+    public static GUIShop INSTANCE;
 
     /**
      * A {@link Set} that will store every command that can be used by a
@@ -155,7 +155,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
             // Nothing is registered, no need to do anything
             return;
         }
-        getLogger().log(Level.INFO, "Registering/unregistering commands {0} and {1}", new Object[]{StringUtils.join(Main.BUY_COMMANDS, "|"), StringUtils.join(Main.SELL_COMMANDS, "|")});
+        getLogger().log(Level.INFO, "Registering/unregistering commands {0} and {1}", new Object[]{StringUtils.join(GUIShop.BUY_COMMANDS, "|"), StringUtils.join(GUIShop.SELL_COMMANDS, "|")});
 
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -176,10 +176,10 @@ public final class Main extends JavaPlugin implements CommandExecutor {
                 return;
             }
             // Register new commands
-            buyCommand = new BuyCommand(new ArrayList<>(Main.BUY_COMMANDS));
+            buyCommand = new BuyCommand(new ArrayList<>(GUIShop.BUY_COMMANDS));
             commandMap.register(buyCommand.getName(), buyCommand);
 
-            sellCommand = new SellCommand(new ArrayList<>(Main.SELL_COMMANDS));
+            sellCommand = new SellCommand(new ArrayList<>(GUIShop.SELL_COMMANDS));
             commandMap.register(sellCommand.getName(), sellCommand);
 
         } catch (IllegalAccessException | NoSuchFieldException e) {
@@ -464,7 +464,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
         for (MenuPage page : loadedMenu.getPages().values()) {
             for (Item item : page.getItems().values()) {
                 if (item.getTargetShop() != null) {
-                    Main.debugLog("Starting Warmup for Shop: " + item.getTargetShop());
+                    GUIShop.debugLog("Starting Warmup for Shop: " + item.getTargetShop());
                     new Shop(item.getTargetShop()).loadItems(true);
                 }
             }
@@ -474,7 +474,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
     }
 
     public void reload(Player player, Boolean ignoreCreator) {
-        Main.debugLog("GUIShop Reloaded");
+        GUIShop.debugLog("GUIShop Reloaded");
 
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
@@ -594,12 +594,12 @@ public final class Main extends JavaPlugin implements CommandExecutor {
     }
 
     public static void log(String input) {
-        Main.getINSTANCE().getLogger().log(Level.INFO, ": {0}", input);
+        GUIShop.getINSTANCE().getLogger().log(Level.INFO, ": {0}", input);
     }
 
     public static void debugLog(String input) {
         if (ConfigUtil.isDebugMode()) {
-            Main.getINSTANCE().getLogger().log(Level.INFO, "[DEBUG]: {0}", input);
+            GUIShop.getINSTANCE().getLogger().log(Level.INFO, "[DEBUG]: {0}", input);
         }
     }
 

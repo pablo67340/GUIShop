@@ -1,13 +1,12 @@
 package com.pablo67340.guishop.commands;
 
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.ItemUtil;
-import java.math.BigDecimal;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -15,6 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+
+import java.math.BigDecimal;
 
 public class GuishopCommand implements CommandExecutor {
 
@@ -40,21 +41,21 @@ public class GuishopCommand implements CommandExecutor {
      * Whether the command sender has the permission for a subcommand of
      * /guishop
      *
-     * @param sender the command sender
+     * @param sender     the command sender
      * @param subCommand the sub command, null for the base command
      * @return true if permitted, false otherwise
      */
     private boolean hasRequiredPermission(CommandSender sender, String subCommand) {
-        Main.debugLog("Sender is op: " + sender.isOp());
+        GUIShop.debugLog("Sender is op: " + sender.isOp());
         return sender.hasPermission(getRequiredPermission(subCommand)) || sender.isOp();
     }
 
     @Override
     public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
 
-        Main.debugLog("Checking if sender is op");
+        GUIShop.debugLog("Checking if sender is op");
         if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
-            Main.sendMessage(commandSender, ConfigUtil.getNoPermission());
+            GUIShop.sendMessage(commandSender, ConfigUtil.getNoPermission());
             return true;
         }
 
@@ -72,8 +73,8 @@ public class GuishopCommand implements CommandExecutor {
 
             } else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
 
-                Main.getCREATOR().add(player.getName());
-                Main.debugLog("Added player to creator mode");
+                GUIShop.getCREATOR().add(player.getName());
+                GUIShop.debugLog("Added player to creator mode");
                 PlayerListener.INSTANCE.openShop(player);
 
             } else if (args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("price")) {
@@ -117,18 +118,18 @@ public class GuishopCommand implements CommandExecutor {
 
             } else if (args[0].equalsIgnoreCase("sn") || args[0].equalsIgnoreCase("shopname")) {
                 if (args.length >= 2) {
-                    String line = "";
+                    StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
-                        line += args[x] + " ";
+                        line.append(args[x]).append(" ");
                     }
                     if (args.length == 2) {
-                        Boolean hasValue;
+                        boolean hasValue;
                         if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
-                            hasValue = Boolean.valueOf(args[1]);
+                            hasValue = Boolean.parseBoolean(args[1]);
                             ItemUtil.setShopName(hasValue, player);
                         }
                     } else {
-                        ItemUtil.setShopName(line, player);
+                        ItemUtil.setShopName(line.toString(), player);
                     }
 
                 } else {
@@ -136,18 +137,18 @@ public class GuishopCommand implements CommandExecutor {
                 }
             } else if (args[0].equalsIgnoreCase("n") || args[0].equalsIgnoreCase("name")) {
                 if (args.length >= 2) {
-                    String line = "";
+                    StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
-                        line += args[x] + " ";
+                        line.append(args[x]).append(" ");
                     }
                     if (args.length == 2) {
-                        Boolean hasValue;
+                        boolean hasValue;
                         if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
-                            hasValue = Boolean.valueOf(args[1]);
+                            hasValue = Boolean.parseBoolean(args[1]);
                             ItemUtil.setName(hasValue, player);
                         }
                     } else {
-                        ItemUtil.setName(line, player);
+                        ItemUtil.setName(line.toString(), player);
                     }
 
                 } else {
@@ -155,47 +156,47 @@ public class GuishopCommand implements CommandExecutor {
                 }
             } else if (args[0].equalsIgnoreCase("bn") || args[0].equalsIgnoreCase("buyname")) {
                 if (args.length >= 2) {
-                    String line = "";
+                    StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
-                        line += args[x] + " ";
+                        line.append(args[x]).append(" ");
                     }
                     if (args.length == 2) {
-                        Boolean hasValue;
+                        boolean hasValue;
                         if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
-                            hasValue = Boolean.valueOf(args[1]);
+                            hasValue = Boolean.parseBoolean(args[1]);
                             ItemUtil.setBuyName(hasValue, player);
                         }
                     } else {
-                        ItemUtil.setBuyName(line, player);
+                        ItemUtil.setBuyName(line.toString(), player);
                     }
                 } else {
                     player.sendMessage("Please specify a custom buy-name.");
                 }
             } else if (args[0].equalsIgnoreCase("en") || args[0].equalsIgnoreCase("enchant")) {
                 if (args.length >= 2) {
-                    String enchantments = "";
+                    StringBuilder enchantments = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
-                        enchantments += args[x] + " ";
+                        enchantments.append(args[x]).append(" ");
                     }
                     if (args.length == 2) {
-                        Boolean hasValue;
+                        boolean hasValue;
                         if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
-                            hasValue = Boolean.valueOf(args[1]);
+                            hasValue = Boolean.parseBoolean(args[1]);
                             ItemUtil.setEnchantments(hasValue, player);
                         }
                     } else {
-                        ItemUtil.setEnchantments(enchantments, player);
+                        ItemUtil.setEnchantments(enchantments.toString(), player);
                     }
                 } else {
                     player.sendMessage("Please specify enchantments. E.G 'dura:1 sharp:2'");
                 }
             } else if (args[0].equalsIgnoreCase("asll")) {
                 if (args.length >= 2) {
-                    String line = "";
+                    StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
-                        line += args[x] + " ";
+                        line.append(args[x]).append(" ");
                     }
-                    ItemUtil.addToShopLore(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
+                    ItemUtil.addToShopLore(ChatColor.translateAlternateColorCodes('&', line.toString().trim()), player);
                 } else {
                     player.sendMessage("Please specify a line.");
                 }
@@ -225,13 +226,6 @@ public class GuishopCommand implements CommandExecutor {
                         line += args[x] + " ";
                     }
                     ItemUtil.addToBuyLore(ChatColor.translateAlternateColorCodes('&', line.trim()), player);
-                } else {
-                    player.sendMessage("Please specify a line.");
-                }
-            } else if (args[0].equalsIgnoreCase("dsll")) {
-                if (args.length >= 2) {
-                    int slot = Integer.parseInt(args[1]);
-                    ItemUtil.deleteBuyLore(slot, player);
                 } else {
                     player.sendMessage("Please specify a line.");
                 }
@@ -270,12 +264,12 @@ public class GuishopCommand implements CommandExecutor {
                 }
             } else if (args[0].equalsIgnoreCase("ec")) {
                 if (args.length >= 2) {
-                    String line = "";
+                    StringBuilder line = new StringBuilder();
                     int slot = Integer.parseInt(args[1]);
                     for (int x = 2; x <= args.length - 1; x++) {
-                        line += args[x] + " ";
+                        line.append(args[x]).append(" ");
                     }
-                    ItemUtil.editCommand(slot, ChatColor.translateAlternateColorCodes('&', line.trim()),
+                    ItemUtil.editCommand(slot, ChatColor.translateAlternateColorCodes('&', line.toString().trim()),
                             player);
                 } else {
                     player.sendMessage("Please specify a line.");
@@ -304,7 +298,7 @@ public class GuishopCommand implements CommandExecutor {
                 ItemStack item = player.getItemInHand();
                 if (item != null) {
                     String message = "Printed NBT: " + ItemNBTUtil.getTag(item).toNBT().toString();
-                    Main.log(message);
+                    GUIShop.log(message);
                     player.sendMessage(message);
                 } else {
                     player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&cYou must be holding an item."));
@@ -312,23 +306,23 @@ public class GuishopCommand implements CommandExecutor {
 
             } else if (args[0].equalsIgnoreCase("nb") || args[0].equalsIgnoreCase("nbt")) {
                 if (args.length >= 2) {
-                    String line = "";
+                    StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
-                        line += args[x] + " ";
+                        line.append(args[x]).append(" ");
                     }
 
                     if (args[1].equalsIgnoreCase("false")) {
                         ItemUtil.setNBT(null, player);
                     } else {
 
-                        ItemUtil.setNBT(line.trim(), player);
+                        ItemUtil.setNBT(line.toString().trim(), player);
                     }
 
                 } else {
                     player.sendMessage("Please specify a custom NBT.");
                 }
             } else if (args[0].equalsIgnoreCase("reload")) {
-                Main.getINSTANCE().reload(player, false);
+                GUIShop.getINSTANCE().reload(player, false);
 
             } else {
                 PlayerListener.INSTANCE.printUsage(player);

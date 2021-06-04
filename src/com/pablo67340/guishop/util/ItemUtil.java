@@ -454,11 +454,10 @@ public final class ItemUtil {
             if (str.contains("Enchantments: ")) {
                 if (enchantments instanceof Boolean) {
                     lore.remove(index);
-                    hasReplaced = true;
                 } else {
                     lore.set(index, ChatColor.translateAlternateColorCodes('&', "&fEnchantments: &r" + enchantments));
-                    hasReplaced = true;
                 }
+                hasReplaced = true;
 
             }
             index += 1;

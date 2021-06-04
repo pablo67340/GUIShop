@@ -2,47 +2,39 @@ package com.pablo67340.guishop.definition;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
-import java.util.List;
-
-import org.bukkit.Material;
-import org.bukkit.entity.EntityType;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.INBTBase;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-
 import lombok.Getter;
 import lombok.Setter;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.Map.Entry;
 
 public final class Item implements ConfigurationSerializable {
 
@@ -301,7 +293,7 @@ public final class Item implements ConfigurationSerializable {
         // sell price must be defined and nonzero for dynamic pricing to work
         if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
 
-            return Main.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
+            return GUIShop.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
                     getSellPriceAsDecimal());
         }
         // default to fixed pricing
@@ -322,7 +314,7 @@ public final class Item implements ConfigurationSerializable {
         // buy price must be defined for dynamic pricing to work
         if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
 
-            return Main.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
+            return GUIShop.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
                     getSellPriceAsDecimal());
         }
         // default to fixed pricing
@@ -347,7 +339,7 @@ public final class Item implements ConfigurationSerializable {
             if (buyPriceAsDouble.compareTo(BigDecimal.ZERO) > 0) {
 
                 return ConfigUtil.getBuyLore().replace("{amount}",
-                        ConfigUtil.getCurrency() + Main.economyFormat(calculateBuyPrice(quantity)) + ConfigUtil.getCurrencySuffix());
+                        ConfigUtil.getCurrency() + GUIShop.economyFormat(calculateBuyPrice(quantity)) + ConfigUtil.getCurrencySuffix());
             }
             return ConfigUtil.getFreeLore();
         }
@@ -367,7 +359,7 @@ public final class Item implements ConfigurationSerializable {
     public String getSellLore(int quantity) {
         if (hasSellPrice()) {
             return ConfigUtil.getSellLore().replace("{amount}",
-                    ConfigUtil.getCurrency() + Main.economyFormat(calculateSellPrice(quantity)) + ConfigUtil.getCurrencySuffix());
+                    ConfigUtil.getCurrency() + GUIShop.economyFormat(calculateSellPrice(quantity)) + ConfigUtil.getCurrencySuffix());
         }
         return ConfigUtil.getCannotSell();
     }
@@ -445,13 +437,13 @@ public final class Item implements ConfigurationSerializable {
             return type;
         }
 
-        Main.debugLog("Failed to find entity type using EntityType#fromName");
+        GUIShop.debugLog("Failed to find entity type using EntityType#fromName");
         try {
             return EntityType.valueOf(getMobType());
         } catch (IllegalArgumentException ignored) {
         }
 
-        Main.debugLog("Failed to find entity type using EntityType#valueOf");
+        GUIShop.debugLog("Failed to find entity type using EntityType#valueOf");
         return null;
     }
 
@@ -491,7 +483,7 @@ public final class Item implements ConfigurationSerializable {
 
         if (itemStack != null) {
             NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-            Main.debugLog(comp.toString());
+            GUIShop.debugLog(comp.toString());
             item.setMaterial(itemStack.getType().toString());
             item.setSlot(slot);
             item.setShop(shop);
@@ -500,7 +492,7 @@ public final class Item implements ConfigurationSerializable {
             }
             if (comp.hasKey("buyPrice")) {
                 Object buyPrice = getBuyPrice(itemStack);
-                Main.debugLog("had buyPrice comp: " + buyPrice);
+                GUIShop.debugLog("had buyPrice comp: " + buyPrice);
                 item.setBuyPrice(buyPrice);
             }
             if (comp.hasKey("sellPrice")) {
@@ -545,14 +537,14 @@ public final class Item implements ConfigurationSerializable {
 
             if (comp.hasKey("shopLoreLines")) {
                 String line = comp.getString("shopLoreLines");
-                Main.debugLog("Item had Shop Lore " + line);
+                GUIShop.debugLog("Item had Shop Lore " + line);
                 String[] parsedLore = line.split("::");
                 item.setShopLore(Arrays.asList(parsedLore));
             }
 
             if (comp.hasKey("LoreLines")) {
                 String line = comp.getString("LoreLines");
-                Main.debugLog("Item had Lore " + line);
+                GUIShop.debugLog("Item had Lore " + line);
                 String[] parsedLore = line.split("::");
                 item.setLore(Arrays.asList(parsedLore));
             }
@@ -574,9 +566,9 @@ public final class Item implements ConfigurationSerializable {
             setResolveFailed("Item has Invalid Material");
         }
 
-        Main.debugLog("Adding item to slot: " + getSlot());
-        if (itemStack == null || itemStack.getType() == null || isResolveFailed()) {
-            Main.log("Item: " + getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
+        GUIShop.debugLog("Adding item to slot: " + getSlot());
+        if (itemStack == null || isResolveFailed()) {
+            GUIShop.log("Item: " + getMaterial() + " could not be resolved (invalid material). Are you using an old server version?");
             setResolveFailed("Item has Invalid Material");
             return getErrorStack();
         }
@@ -587,12 +579,11 @@ public final class Item implements ConfigurationSerializable {
 
         // Checks if an item is either a shop item or command item. This also handles
         // Null items as there is a item type switch in the lines above.
+        ItemMeta itemMeta = itemStack.getItemMeta();
         if (getItemType() != ItemType.DUMMY) {
 
-            ItemMeta itemMeta = itemStack.getItemMeta();
-
             if (itemMeta == null) {
-                Main.log("Item: " + getMaterial() + " could not be resolved (null meta).");
+                GUIShop.log("Item: " + getMaterial() + " could not be resolved (null meta).");
                 setResolveFailed("Item has invalid Item Meta");
                 return getErrorStack();
             }
@@ -605,7 +596,7 @@ public final class Item implements ConfigurationSerializable {
             }
 
             if (player != null) {
-                if (!Main.getCREATOR().contains(player.getName())) {
+                if (!GUIShop.getCREATOR().contains(player.getName())) {
                     if (hasShopName() && !isMenu) {
                         assert itemMeta != null;
                         itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getShopName()));
@@ -650,9 +641,7 @@ public final class Item implements ConfigurationSerializable {
                     if (hasBuyLore() && !isMenu) {
                         itemLore.add(" ");
                         itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fBuy Lore: &r"));
-                        getBuyLore().forEach(str -> {
-                            itemLore.add(str);
-                        });
+                        itemLore.addAll(getBuyLore());
                     }
                     if (hasShopLore() && !isMenu) {
                         itemLore.add(" ");
@@ -682,11 +671,11 @@ public final class Item implements ConfigurationSerializable {
                         });
                     }
                     if (hasEnchantments()) {
-                        String encLore = "";
+                        StringBuilder encLore = new StringBuilder();
                         for (String str : getEnchantments()) {
-                            encLore += str + " ";
+                            encLore.append(str).append(" ");
                         }
-                        itemLore.add("Enchantments: " + encLore.trim());
+                        itemLore.add("Enchantments: " + encLore.toString().trim());
                     }
                     if (!itemLore.isEmpty()) {
                         assert itemMeta != null;
@@ -694,7 +683,7 @@ public final class Item implements ConfigurationSerializable {
                     }
                     itemStack.setItemMeta(itemMeta);
                     NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                    Main.debugLog("USER IN CREATOR.Setting item Buy Price");
+                    GUIShop.debugLog("USER IN CREATOR.Setting item Buy Price");
                     if (hasBuyPrice() && !isMenu) {
                         comp.setDouble("buyPrice", getBuyPriceAsDecimal().doubleValue());
                     }
@@ -714,63 +703,63 @@ public final class Item implements ConfigurationSerializable {
                         comp.setString("mob-type", getMobType());
                     }
                     if (hasEnchantments()) {
-                        String itemEnchantments = "";
+                        StringBuilder itemEnchantments = new StringBuilder();
                         for (String str : getEnchantments()) {
-                            itemEnchantments += str + ",";
+                            itemEnchantments.append(str).append(",");
                         }
-                        comp.setString("enchantments", itemEnchantments);
+                        comp.setString("enchantments", itemEnchantments.toString());
                     }
                     if (hasShopLore() && !isMenu) {
-                        String lor = "";
+                        StringBuilder lor = new StringBuilder();
                         int index = 0;
                         for (String str : getShopLore()) {
                             if (index != (getShopLore().size() - 1)) {
-                                lor += str + "::";
+                                lor.append(str).append("::");
                             } else {
-                                lor += str;
+                                lor.append(str);
                             }
                             index += 1;
                         }
-                        comp.setString("shopLoreLines", lor);
+                        comp.setString("shopLoreLines", lor.toString());
                     }
                     if (hasBuyLore() && !isMenu) {
-                        String lor = "";
+                        StringBuilder lor = new StringBuilder();
                         int index = 0;
                         for (String str : getBuyLore()) {
                             if (index != (getBuyLore().size() - 1)) {
-                                lor += str + "::";
+                                lor.append(str).append("::");
                             } else {
-                                lor += str;
+                                lor.append(str);
                             }
                             index += 1;
                         }
-                        comp.setString("buyLoreLines", lor);
+                        comp.setString("buyLoreLines", lor.toString());
                     }
                     if (hasLore() && isMenu) {
-                        String lor = "";
+                        StringBuilder lor = new StringBuilder();
                         int index = 0;
                         for (String str : getLore()) {
                             if (index != (getLore().size() - 1)) {
-                                lor += str + "::";
+                                lor.append(str).append("::");
                             } else {
-                                lor += str;
+                                lor.append(str);
                             }
                             index += 1;
                         }
-                        comp.setString("loreLines", lor);
+                        comp.setString("loreLines", lor.toString());
                     }
                     if (hasCommands() && !isMenu) {
-                        String lor = "";
+                        StringBuilder lor = new StringBuilder();
                         int index = 0;
                         for (String str : getCommands()) {
                             if (index != (getCommands().size() - 1)) {
-                                lor += str + "::";
+                                lor.append(str).append("::");
                             } else {
-                                lor += str;
+                                lor.append(str);
                             }
                             index += 1;
                         }
-                        comp.setString("commands", lor);
+                        comp.setString("commands", lor.toString());
                     }
                     comp.setString("itemType", getItemType().toString());
                     itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
@@ -818,13 +807,13 @@ public final class Item implements ConfigurationSerializable {
                     }
                     itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
                     if (itemStack == null) {
-                        Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
+                        GUIShop.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
                         setResolveFailed("Item has Invalid Custom NBT");
                         return getErrorStack();
                     }
 
                 } catch (NbtParser.NbtParseException ex) {
-                    Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
+                    GUIShop.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
                     setResolveFailed("Item has Invalid Custom NBT");
                     return getErrorStack();
                 }
@@ -846,12 +835,12 @@ public final class Item implements ConfigurationSerializable {
                         pm.setBasePotionData(pd);
                     } catch (IllegalArgumentException ex) {
                         if (ex.getMessage().contains("upgradable")) {
-                            Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setUpgraded(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
                         } else if (ex.getMessage().contains("extended")) {
-                            Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setExtended(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
@@ -859,12 +848,11 @@ public final class Item implements ConfigurationSerializable {
                     }
                     itemStack.setItemMeta(pm);
                 } else {
-                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());
                     potion.apply(itemStack);
                 }
             }
         } else {
-            ItemMeta itemMeta = itemStack.getItemMeta();
             if (hasShopName()) {
                 assert itemMeta != null;
                 itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getShopName()));
@@ -873,7 +861,7 @@ public final class Item implements ConfigurationSerializable {
         }
 
         // Create Page
-        Main.debugLog("Setting item to slot: " + getSlot());
+        GUIShop.debugLog("Setting item to slot: " + getSlot());
 
         return itemStack;
     }
@@ -956,7 +944,7 @@ public final class Item implements ConfigurationSerializable {
                 }
 
             } catch (NbtParser.NbtParseException ex) {
-                Main.debugLog("Error parsing NBT: " + ex.getMessage());
+                GUIShop.debugLog("Error parsing NBT: " + ex.getMessage());
             }
         }
         if (hasSkullUUID() && ConfigUtil.isSellSkullUUID()) {
@@ -1004,12 +992,12 @@ public final class Item implements ConfigurationSerializable {
                     pm.setBasePotionData(pd);
                 } catch (IllegalArgumentException ex) {
                     if (ex.getMessage().contains("upgradable")) {
-                        Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                        GUIShop.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                         pi.setUpgraded(false);
                         pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                         pm.setBasePotionData(pd);
                     } else if (ex.getMessage().contains("extended")) {
-                        Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                        GUIShop.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                         pi.setExtended(false);
                         pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                         pm.setBasePotionData(pd);
@@ -1017,7 +1005,7 @@ public final class Item implements ConfigurationSerializable {
                 }
                 itemStack.setItemMeta(pm);
             } else {
-                Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());
                 potion.apply(itemStack);
             }
         }
@@ -1027,7 +1015,7 @@ public final class Item implements ConfigurationSerializable {
         List<String> itemLore = new ArrayList<>();
         if (hasBuyLore()) {
             getBuyLore().forEach(str -> {
-                itemLore.add(ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(str, player, this)));
+                itemLore.add(ChatColor.translateAlternateColorCodes('&', GUIShop.placeholderIfy(str, player, this)));
             });
         }
 
@@ -1036,7 +1024,7 @@ public final class Item implements ConfigurationSerializable {
         if (hasBuyName()) {
             assert itemMeta != null;
             itemMeta.setDisplayName(
-                    ChatColor.translateAlternateColorCodes('&', Main.placeholderIfy(getBuyName(), player, this)));
+                    ChatColor.translateAlternateColorCodes('&', GUIShop.placeholderIfy(getBuyName(), player, this)));
         } else if (Item.isSpawnerItem(itemStack)) {
             String mobName = getMobType();
             mobName = mobName.toLowerCase();
@@ -1074,11 +1062,11 @@ public final class Item implements ConfigurationSerializable {
 
             EntityType type = parseMobSpawnerType();
             if (type == null) {
-                Main.log("Invalid Mob Spawner Entity Type: " + getMobType() + " In Shop: " + currentShop.getShop());
+                GUIShop.log("Invalid Mob Spawner Entity Type: " + getMobType() + " In Shop: " + currentShop.getShop());
 
             } else {
                 String entityValue = type.name();
-                Main.debugLog("Attaching " + entityValue + " to purchased spawner");
+                GUIShop.debugLog("Attaching " + entityValue + " to purchased spawner");
 
                 NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
                 tag.setString("GUIShopSpawner", entityValue);
@@ -1097,7 +1085,7 @@ public final class Item implements ConfigurationSerializable {
                 itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
 
             } catch (NbtParser.NbtParseException ex) {
-                Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+                GUIShop.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
             }
         }
         return itemStack;
@@ -1114,8 +1102,7 @@ public final class Item implements ConfigurationSerializable {
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
         if (comp.hasKey("buyPrice")) {
-            BigDecimal vl = BigDecimal.valueOf(comp.getDouble("buyPrice"));
-            return vl;
+            return BigDecimal.valueOf(comp.getDouble("buyPrice"));
         }
         return null;
     }
@@ -1131,8 +1118,7 @@ public final class Item implements ConfigurationSerializable {
         NBTTagCompound comp = ItemNBTUtil.getTag(item);
 
         if (comp.hasKey("sellPrice")) {
-            BigDecimal vl = BigDecimal.valueOf(comp.getDouble("sellPrice"));
-            return vl;
+            return BigDecimal.valueOf(comp.getDouble("sellPrice"));
         }
         return null;
     }
@@ -1184,7 +1170,6 @@ public final class Item implements ConfigurationSerializable {
                 item.setCommands((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
                 item.setTargetShop((String) entry.getValue());
-                item.setItemType(ItemType.ITEM);
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 item.setEnchantments(((String) entry.getValue()).split(" "));
             } else if (entry.getKey().equalsIgnoreCase("custom-nbt")) {

@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.definition;
 
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import java.util.logging.Level;
 
 public enum CommandsMode {
@@ -28,7 +28,7 @@ public enum CommandsMode {
     public static CommandsMode parseFromConfig(String cmdsModeStr) {
         if (cmdsModeStr == null) {
             // Fallback to legacy option register-commands
-            return (Main.getINSTANCE().getMainConfig().getBoolean("register-commands", true)) ? REGISTER : NONE;
+            return (GUIShop.getINSTANCE().getMainConfig().getBoolean("register-commands", true)) ? REGISTER : NONE;
         }
         switch (cmdsModeStr) {
             case "INTERCEPT":
@@ -39,7 +39,7 @@ public enum CommandsMode {
                 return NONE;
             default:
                 // User specified unknown mode, warn in console and use default option
-                Main.getINSTANCE().getLogger().log(Level.WARNING, "Unknown commands-mode {0}", cmdsModeStr);
+                GUIShop.getINSTANCE().getLogger().log(Level.WARNING, "Unknown commands-mode {0}", cmdsModeStr);
                 return REGISTER;
         }
     }

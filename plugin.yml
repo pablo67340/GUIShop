@@ -1,5 +1,5 @@
 name: GUIShop
-main: com.pablo67340.guishop.Main
+main: com.pablo67340.guishop.GUIShop
 version: ${project.version}
 author: pablo67340
 description: Shop Plugin for any server.

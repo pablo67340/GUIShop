@@ -12,7 +12,7 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.AltSellPane;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.util.ConfigUtil;
@@ -33,7 +33,7 @@ public class AltSell {
 
     public AltSell(Item subjectItem) {
         this.subjectItem = subjectItem;
-        gui = new Gui(Main.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', ConfigUtil.getAltSellTitle()));
+        gui = new Gui(GUIShop.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', ConfigUtil.getAltSellTitle()));
         indicatorItem = new Item();
         indicatorItem.setMaterial(ConfigUtil.getAltSellIndicatorMaterial());
         addItem = new Item();
@@ -91,7 +91,7 @@ public class AltSell {
             gui.setOnBottomClick(event -> event.setCancelled(true));
             gui.show(player);
         } else {
-            Main.log("One or more of the materials you defined in the alt sell GUI are not valid.");
+            GUIShop.log("One or more of the materials you defined in the alt sell GUI are not valid.");
         }
     }
 
@@ -114,7 +114,7 @@ public class AltSell {
         comp.remove("IF-uuid");
         itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
 
-        Main.debugLog(itemStack.toString());
+        GUIShop.debugLog(itemStack.toString());
 
         int amount = itemStack.getAmount();
         Map<Integer, ItemStack> result = player.getInventory().removeItem(itemStack);
@@ -123,7 +123,7 @@ public class AltSell {
             Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
             // buy price must be defined for dynamic pricing to work
             if (subjectItem.hasBuyPrice() && ConfigUtil.isDynamicPricing()) {
-                Main.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
+                GUIShop.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
             }
         } else {
             ItemStack addBack = result.get(0).clone();

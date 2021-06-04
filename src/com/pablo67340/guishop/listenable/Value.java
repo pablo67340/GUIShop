@@ -10,7 +10,7 @@ import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.definition.ShopPage;
 
@@ -59,17 +59,17 @@ public class Value {
         shopItem = new ShopItem();
         ShopPage page = new ShopPage();
         int index = 0;
-        if (!Main.getINSTANCE().getITEMTABLE().containsKey(targetMaterial)) {
+        if (!GUIShop.getINSTANCE().getITEMTABLE().containsKey(targetMaterial)) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&2This item is not sellable."));
             return;
         }
 
-        for (Item item : Main.getINSTANCE().getITEMTABLE().get(targetMaterial)) {
-            Main.debugLog("Reading Item Value: " + item.getMaterial());
+        for (Item item : GUIShop.getINSTANCE().getITEMTABLE().get(targetMaterial)) {
+            GUIShop.debugLog("Reading Item Value: " + item.getMaterial());
             page.getItems().put(Integer.toString(index), item);
             index += 1;
         }
-        Main.debugLog("Adding page: " + "Page" + Integer.toString(shopItem.getPages().size()) + " to pages.");
+        GUIShop.debugLog("Adding page: " + "Page" + Integer.toString(shopItem.getPages().size()) + " to pages.");
         shopItem.getPages().put("Page" + Integer.toString(shopItem.getPages().size()), page);
 
         loadShop();
@@ -79,14 +79,14 @@ public class Value {
     private void loadShop() {
         if (this.GUI == null || this.GUI.getItems().isEmpty()) {
             if (this.hasMultiplePages()) {
-                this.GUI = new Gui(Main.getINSTANCE(), 6,
+                this.GUI = new Gui(GUIShop.getINSTANCE(), 6,
                         ChatColor.translateAlternateColorCodes('&', "&2Item Values"));
             } else {
                 int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
                 if (rows == 0) {
                     rows = 1;
                 }
-                this.GUI = new Gui(Main.getINSTANCE(), rows,
+                this.GUI = new Gui(GUIShop.getINSTANCE(), rows,
                         ChatColor.translateAlternateColorCodes('&', "&2Item Values"));
             }
             PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);

@@ -23,55 +23,42 @@ Menu:
                 '0':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '1':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '2':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '3':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '4':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '5':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '6':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '7':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '8':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '9':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '10':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '11':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '12':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '13':
                   id: BREWING_STAND
                   lore:
@@ -82,31 +69,24 @@ Menu:
                 '14':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '15':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '16':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '17':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '18':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '19':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '20':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '21':
                   id: TNT
                   lore:
@@ -131,23 +111,18 @@ Menu:
                 '24':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '25':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '26':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '27':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '28':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '29':
                   id: SPAWNER
                   lore:
@@ -180,137 +155,104 @@ Menu:
                 '34':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '35':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '36':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '37':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '38':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '39':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '40':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '41':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '42':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '43':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '44':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '45':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '46':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '47':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '48':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '49':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '50':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '51':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '52':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '53':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
         Page1:
             items:
                 '0':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '1':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '2':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '3':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '4':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '5':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '6':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '7':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '8':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '9':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '10':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '11':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '12':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '13':
                   id: PLAYER_HEAD
                   skull-uuid: 'bb6bccb6-cd90-4844-9b1b-60722b1823ae'
@@ -322,31 +264,24 @@ Menu:
                 '14':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '15':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '16':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '17':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '18':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '19':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '20':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '21':
                   id: POTION
                   potion-info:
@@ -376,23 +311,18 @@ Menu:
                 '24':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '25':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '26':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '27':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '28':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '29':
                   id: BOW
                   lore:
@@ -403,7 +333,6 @@ Menu:
                 '30':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '31':
                   id: CREEPER_SPAWN_EGG
                   lore:
@@ -414,7 +343,6 @@ Menu:
                 '32':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '33':
                   id: POPPY
                   lore:
@@ -425,80 +353,60 @@ Menu:
                 '34':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '35':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '36':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '37':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '38':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '39':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '40':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '41':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '42':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '43':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '44':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '45':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '46':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '47':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '48':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '49':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '50':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '51':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '52':
                   id: BLUE_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''
                 '53':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
-                  target-shop: ''

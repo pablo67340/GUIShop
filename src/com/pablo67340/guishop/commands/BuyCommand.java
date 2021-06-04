@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.commands;
 
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
@@ -19,7 +19,7 @@ public class BuyCommand extends BukkitCommand {
     public boolean execute(CommandSender commandSender, String label, String[] args) {
         Player player = (Player) commandSender;
 
-        Main.getINSTANCE().getUserCommands().buyCommand(player, (args.length >= 1) ? args[0] : null);
+        GUIShop.getINSTANCE().getUserCommands().buyCommand(player, (args.length >= 1) ? args[0] : null);
 
         return true;
     }

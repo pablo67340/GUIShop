@@ -27,7 +27,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
@@ -88,7 +88,7 @@ class Quantity {
      * Preloads the inventory to display items.
      */
     public Quantity loadInventory() {
-        GUI = new Gui(Main.getINSTANCE(), 6, ConfigUtil.getQtyTitle());
+        GUI = new Gui(GUIShop.getINSTANCE(), 6, ConfigUtil.getQtyTitle());
         int multiplier = 1;
         ShopPane page = new ShopPane(9, 6);
         for (int x = 19; x <= 25; x++) {
@@ -110,12 +110,12 @@ class Quantity {
                         pm.setBasePotionData(pd);
                     } catch (IllegalArgumentException ex) {
                         if (ex.getMessage().contains("upgradable")) {
-                            Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setUpgraded(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
                         } else if (ex.getMessage().contains("extended")) {
-                            Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setExtended(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
@@ -203,7 +203,7 @@ class Quantity {
                     itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
 
                 } catch (NbtParser.NbtParseException ex) {
-                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+                    GUIShop.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
                 }
             }
 
@@ -221,7 +221,7 @@ class Quantity {
 
             assert backButtonMeta != null;
             backButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
-                    Objects.requireNonNull(Main.INSTANCE.getConfig().getString("back"))));
+                    Objects.requireNonNull(GUIShop.INSTANCE.getConfig().getString("back"))));
 
             backButtonItem.setItemMeta(backButtonMeta);
 
@@ -273,7 +273,7 @@ class Quantity {
     private void onClose(InventoryCloseEvent e) {
         if (!ConfigUtil.isDisableEscapeBack()) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
+            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> currentShop.open(player), 1L);
 
         }
     }
@@ -307,17 +307,17 @@ class Quantity {
         if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
             String itemString = item.getItemString();
-            dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, quantity);
+            dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, quantity);
 
-            priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+            priceToPay = GUIShop.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
             priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
         }
 
-        priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
+        priceToPay = priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
 
         // Check if the transition was successful
-        if (Main.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
+        if (GUIShop.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
             // If the player has the sound enabled, play
             // it!
             if (ConfigUtil.isSoundEnabled()) {

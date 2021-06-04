@@ -3,7 +3,7 @@ package com.pablo67340.guishop.api;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.util.ConfigUtil;
@@ -57,7 +57,7 @@ public class GuiShopAPI {
     public static boolean canBeSold(ItemStack item) {
         Item shopItem = null;
         String itemString = item.getType().toString();
-        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
             for (Item itm : itemList) {
@@ -83,7 +83,7 @@ public class GuiShopAPI {
     public static boolean canBeBought(ItemStack item) {
         Item shopItem = null;
         String itemString = item.getType().toString();
-        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
             for (Item itm : itemList) {
@@ -107,7 +107,7 @@ public class GuiShopAPI {
     public static BigDecimal getBuyPrice(ItemStack item, int quantity) {
         Item shopItem = null;
         String itemString = item.getType().toString();
-        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
             for (Item itm : itemList) {
@@ -131,7 +131,7 @@ public class GuiShopAPI {
     public static BigDecimal getSellPrice(ItemStack item, int quantity) {
         Item shopItem = null;
         String itemString = item.getType().toString();
-        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
             for (Item itm : itemList) {
@@ -160,7 +160,7 @@ public class GuiShopAPI {
     public static void indicateBoughtItems(ItemStack item, int quantity) {
         Item shopItem = null;
         String itemString = item.getType().toString();
-        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
             for (Item itm : itemList) {
@@ -172,7 +172,7 @@ public class GuiShopAPI {
 
         if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
-            Main.getDYNAMICPRICING().buyItem(itemString, quantity);
+            GUIShop.getDYNAMICPRICING().buyItem(itemString, quantity);
         }
     }
 
@@ -193,7 +193,7 @@ public class GuiShopAPI {
     public static void indicateSoldItems(ItemStack item, int quantity) {
         Item shopItem = null;
         String itemString = item.getType().toString();
-        List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(itemString);
+        List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
             for (Item itm : itemList) {
@@ -205,7 +205,7 @@ public class GuiShopAPI {
 
         if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
-            Main.getDYNAMICPRICING().sellItem(itemString, quantity);
+            GUIShop.getDYNAMICPRICING().sellItem(itemString, quantity);
         }
     }
 

@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.commands;
 
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
@@ -20,7 +20,7 @@ public class SellCommand extends BukkitCommand {
 
         Player player = (Player) commandSender;
 
-        Main.getINSTANCE().getUserCommands().sellCommand(player);
+        GUIShop.getINSTANCE().getUserCommands().sellCommand(player);
 
         return true;
     }

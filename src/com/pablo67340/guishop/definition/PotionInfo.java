@@ -8,7 +8,6 @@ import lombok.Setter;
  * @author Bryce
  */
 public class PotionInfo {
-
     public PotionInfo(String type, Boolean splash, Boolean extended, Boolean upgraded) {
         this.type = type;
         this.upgraded = upgraded;
@@ -23,5 +22,4 @@ public class PotionInfo {
     @Getter
     @Setter
     private Boolean extended, splash, upgraded;
-
 }

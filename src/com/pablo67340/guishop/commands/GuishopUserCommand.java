@@ -4,7 +4,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
@@ -16,19 +16,19 @@ public class GuishopUserCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
         if (!(sender instanceof Player)) {
-            Main.sendMessage(sender, "&cPlayers only.");
+            GUIShop.sendMessage(sender, "&cPlayers only.");
             return true;
         }
         Player player = (Player) sender;
 
         if (args.length >= 1) {
             if (ConfigUtil.getDisabledWorlds().contains(player.getWorld().getName())) {
-                if (Main.BUY_COMMANDS.contains(args[0].toLowerCase())) {
+                if (GUIShop.BUY_COMMANDS.contains(args[0].toLowerCase())) {
 
                     buyCommand(player, (args.length >= 2) ? args[1] : null);
                     return true;
 
-                } else if (Main.SELL_COMMANDS.contains(args[0].toLowerCase())) {
+                } else if (GUIShop.SELL_COMMANDS.contains(args[0].toLowerCase())) {
 
                     sellCommand(player);
                     return true;
@@ -38,7 +38,7 @@ public class GuishopUserCommand implements CommandExecutor {
                 return false;
             }
         }
-        Main.sendMessage(player, "&cUnknown command.");
+        GUIShop.sendMessage(player, "&cUnknown command.");
         return true;
     }
 

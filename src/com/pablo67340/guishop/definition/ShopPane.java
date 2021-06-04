@@ -14,7 +14,7 @@ import org.bukkit.inventory.PlayerInventory;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 
 import lombok.Getter;
 
@@ -41,7 +41,7 @@ public class ShopPane extends Pane {
 
     public void setItem(GuiItem item, Integer slot) {
         if (slot > 53) {
-            Main.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is 53. Item Ignored. Please Delete this item from shops.yml!");
+            GUIShop.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is 53. Item Ignored. Please Delete this item from shops.yml!");
         } else {
             items.put(slot, item);
         }
@@ -65,14 +65,8 @@ public class ShopPane extends Pane {
     @Override
     public void display(@NotNull Gui gui, @NotNull Inventory inventory, @NotNull PlayerInventory playerInventory,
             int paneOffsetX, int paneOffsetY, int maxLength, int maxHeight) {
-        items.entrySet().forEach(entry -> {
-            inventory.setItem(entry.getKey(), entry.getValue().getItem());
-        });
-        dummies.entrySet().stream().map(entry -> {
-            return entry;
-        }).forEachOrdered(entry -> {
-            inventory.setItem(entry.getKey(), entry.getValue());
-        });
+        items.entrySet().forEach(entry -> inventory.setItem(entry.getKey(), entry.getValue().getItem()));
+        dummies.entrySet().forEach(entry -> inventory.setItem(entry.getKey(), entry.getValue()));
     }
 
     @NotNull

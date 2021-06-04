@@ -10,7 +10,5 @@ import lombok.Data;
  */
 @Data
 public class MenuPage {
-
     Map<String, Item> items = new LinkedHashMap<>();
-
 }

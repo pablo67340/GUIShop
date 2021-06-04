@@ -1131,37 +1131,30 @@ public final class Item implements ConfigurationSerializable {
         Item item = new Item();
         item.setSlot(slot);
         item.setShop(shop);
-        item.setItemType(ItemType.DUMMY);
         for (Entry<String, Object> entry : serialized.entrySet()) {
             if (entry.getKey().equalsIgnoreCase("type")) {
                 item.setItemType(ItemType.valueOf((String) entry.getValue()));
             } else if (entry.getKey().equalsIgnoreCase("id")) {
                 item.setMaterial((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("shop-name")) {
-                item.setItemType(ItemType.SHOP);
                 item.setShopName((String) entry.getValue());
             }else if (entry.getKey().equalsIgnoreCase("disable-qty")) {
-                item.setItemType(ItemType.SHOP);
                 item.setDisableQty((Boolean) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("name")) {
                 item.setName((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-name")) {
-                item.setItemType(ItemType.SHOP);
                 item.setBuyName((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("skull-uuid")) {
                 item.setSkullUUID((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("shop-lore")) {
-                item.setItemType(ItemType.SHOP);
                 item.setShopLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-lore")) {
-                item.setItemType(ItemType.SHOP);
                 item.setBuyLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("item-flags")) {
                 item.setItemFlags((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("lore")) {
                 item.setLore((List<String>) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("buy-price")) {
-                item.setItemType(ItemType.SHOP);
                 if (entry.getValue() instanceof Double) {
                     Double buyPrice = (Double) entry.getValue();
                     BigDecimal buyPrice2 = BigDecimal.valueOf(buyPrice);
@@ -1170,7 +1163,6 @@ public final class Item implements ConfigurationSerializable {
                     item.setBuyPrice(entry.getValue());
                 }
             } else if (entry.getKey().equalsIgnoreCase("sell-price")) {
-                item.setItemType(ItemType.SHOP);
                 if (entry.getValue() instanceof Double) {
                     Double sellPrice = (Double) entry.getValue();
                     BigDecimal sellPrice2 = BigDecimal.valueOf(sellPrice);

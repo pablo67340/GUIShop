@@ -2,6 +2,7 @@ package com.pablo67340.guishop.listenable;
 
 import java.util.*;
 
+import com.pablo67340.guishop.util.Config;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -27,7 +28,7 @@ public class Value {
     private String targetMaterial;
 
     /**
-     * The list of {@link Page}'s in this {@link Shop}.
+     * The list of {@link ShopPage}'s in this {@link Shop}.
      */
     private Gui GUI;
 
@@ -44,7 +45,6 @@ public class Value {
      *
      * @param player The player using the shop.
      * @param targetMaterial The item that is being valued.
-     * @param title The title of the Value Inventory.
      */
     public Value(Player player, String targetMaterial) {
         this.player = player;
@@ -60,7 +60,7 @@ public class Value {
         ShopPage page = new ShopPage();
         int index = 0;
         if (!GUIShop.getINSTANCE().getITEMTABLE().containsKey(targetMaterial)) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&', "&2This item is not sellable."));
+            player.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&2This item is not sellable."));
             return;
         }
 
@@ -69,8 +69,8 @@ public class Value {
             page.getItems().put(Integer.toString(index), item);
             index += 1;
         }
-        GUIShop.debugLog("Adding page: " + "Page" + Integer.toString(shopItem.getPages().size()) + " to pages.");
-        shopItem.getPages().put("Page" + Integer.toString(shopItem.getPages().size()), page);
+        GUIShop.debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
+        shopItem.getPages().put("Page" + shopItem.getPages().size(), page);
 
         loadShop();
 
@@ -108,7 +108,7 @@ public class Value {
         }
     }
 
-    public Boolean hasMultiplePages() {
+    public boolean hasMultiplePages() {
         return this.shopItem.getPages().size() > 1;
     }
 
@@ -119,11 +119,8 @@ public class Value {
     public void open() {
         GUI.show(player);
 
-        GUI.setOnTopClick((e) -> {
-            e.setCancelled(true);
-        });
-        GUI.setOnBottomClick((e) -> {
-            e.setCancelled(true);
-        });
+        GUI.setOnTopClick((e) -> e.setCancelled(true));
+
+        GUI.setOnBottomClick((e) -> e.setCancelled(true));
     }
 }

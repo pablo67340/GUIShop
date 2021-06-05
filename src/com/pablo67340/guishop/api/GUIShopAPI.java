@@ -6,7 +6,7 @@ import org.bukkit.inventory.ItemStack;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.Config;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -17,9 +17,9 @@ import java.util.List;
  * time.
  *
  */
-public class GuiShopAPI {
+public class GUIShopAPI {
 
-    private GuiShopAPI() {
+    private GUIShopAPI() {
     }
 
     /**
@@ -29,7 +29,7 @@ public class GuiShopAPI {
      * The items' total sale price is summed and the reward is given to the
      * player. If an item cannot be sold, the items are added back to the
      * player's inventory. <br>
-     * Use check {@link #canBeSold(ItemStack} to check if an item cannot be
+     * Use check {@link #canBeSold(ItemStack)} to check if an item cannot be
      * sold. No items are <i>removed</i> from the players' inventory; the caller
      * is trusted with such. <br>
      * <br>
@@ -170,7 +170,7 @@ public class GuiShopAPI {
             }
         }
 
-        if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+        if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
             GUIShop.getDYNAMICPRICING().buyItem(itemString, quantity);
         }
@@ -203,7 +203,7 @@ public class GuiShopAPI {
             }
         }
 
-        if (shopItem != null && ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+        if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
             GUIShop.getDYNAMICPRICING().sellItem(itemString, quantity);
         }

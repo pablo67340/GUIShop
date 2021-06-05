@@ -65,8 +65,8 @@ public class ShopPane extends Pane {
     @Override
     public void display(@NotNull Gui gui, @NotNull Inventory inventory, @NotNull PlayerInventory playerInventory,
             int paneOffsetX, int paneOffsetY, int maxLength, int maxHeight) {
-        items.entrySet().forEach(entry -> inventory.setItem(entry.getKey(), entry.getValue().getItem()));
-        dummies.entrySet().forEach(entry -> inventory.setItem(entry.getKey(), entry.getValue()));
+        items.forEach((key, value) -> inventory.setItem(key, value.getItem()));
+        dummies.forEach(inventory::setItem);
     }
 
     @NotNull
@@ -88,5 +88,4 @@ public class ShopPane extends Pane {
     public ShopPane getINSTANCE() {
         return INSTANCE;
     }
-
 }

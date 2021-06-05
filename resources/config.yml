@@ -10,16 +10,8 @@
 ##                                       |_|    ##
 ##################################################
 
-
-
-##################################################
-#             Looking for Item Names?            #
-##################################################
-#           https://tinyurl.com/okqdcvo          #
-##################################################
-
 ## Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
-prefix: '[&cGUIShop&f]'
+prefix: '&f[&cGUIShop&f] '
 
 ## Command used to open shop, DON'T PUT A /
 buy-commands: 
@@ -50,11 +42,14 @@ no-permission: '&cNo Permission!'
 #Disabled world message
 disabled-world: '&cYou cannot use the shop from this world!'
 
-#Disables the Physical Back Button that appears in the shop inventory.
+#Disables the physical back button that appears in the shop inventory.
 disable-back-button: true
 
-#Disables the Escape to go Back functionality.
+#Disables the escape to go back functionality.
 disable-escape-back: false
+
+#Disables the escape to go back for the quantity inventory. (If the upper one is disabled, this is disabled too)
+disable-escape-back-quantity: true
 
 #Rightclick an item in the shop to open an alternate sell GUI
 alternate-sell-enable: false
@@ -113,10 +108,10 @@ in-stacks: '&fPlease sell in stacks of &c'
 
 #Message when a player cannot sell a certain item.
 #{count} can be used to display the amount of non sellable, returned items.
-cant-sell: '&f({count}) item(s) failed to sell and have been returned to your inventory.'
+cant-sell-message: '&f({count}) item(s) failed to sell and have been returned to your inventory.'
 
 #Message when a player cannot buy a certain item.
-cant-buy: '&fSorry, you are not able to buy that item.'
+cant-buy-message: '&fSorry, you are not able to buy that item.'
 
 #When a player has a full inventory
 full-inventory: '&cPlease empty your inventory!'

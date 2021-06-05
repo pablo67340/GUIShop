@@ -7,6 +7,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
 
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.*;
 
 import org.bukkit.event.block.BlockPlaceEvent;
@@ -21,7 +22,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.Config;
 
 public final class PlayerListener implements Listener {
 
@@ -40,29 +41,29 @@ public final class PlayerListener implements Listener {
     /**
      * Print the usage of the plugin to the player.
      *
-     * @param player - The player the help text will be sent to
+     * @param sender - The player the help text will be sent to
      */
-    public void printUsage(Player player) {
-        GUIShop.sendMessage(player, "&dG&9U&8I&3S&dh&9o&8p &3C&do&9m&8m&3a&dn&8d&3s&d:");
-        GUIShop.sendMessage(player, "&7/guishop &eedit/e &0- &aOpens in Editor Mode");
-        GUIShop.sendMessage(player, "&7/guishop &eprice/p {price} &0- &aSet item in hand's buy price");
-        GUIShop.sendMessage(player, "&7/guishop &esell/s {price} &0- &aSet item in hand's sell price");
-        GUIShop.sendMessage(player, "&7/guishop &eshopname/sn {name} &0- &aSet item in hand's Shop-Name");
-        GUIShop.sendMessage(player, "&7/guishop &ebuyname/bn {name} &0- &aSet item in hand's Buy-Name");
-        GUIShop.sendMessage(player, "&7/guishop &en {name} &0- &aSet an item's Menu Name. Used for items in menu.");
-        GUIShop.sendMessage(player, "&7/guishop &ets {target_shop} &0- &aSet an item's Target Shop. Used for items in menu.");
-        GUIShop.sendMessage(player, "&7/guishop &eenchant/e {enchants} &0- &aSet item in hand's Enchantments");
-        GUIShop.sendMessage(player, "&7/guishop &easll {line} &0- &aAdd Shop Lore Line");
-        GUIShop.sendMessage(player, "&7/guishop &edsll {lineNumber} &0- &aDelete Shop Lore Line. Starts at 0");
-        GUIShop.sendMessage(player, "&7/guishop &eesll {lineNumber} {line} &0- &aEdit Shop Lore Line. Starts at 0");
-        GUIShop.sendMessage(player, "&7/guishop &eabll {line} &0- &aAdd Buy Lore Line");
-        GUIShop.sendMessage(player, "&7/guishop &edbll {lineNumber} &0- &aDelete Buy Lore Line. Starts at 0");
-        GUIShop.sendMessage(player, "&7/guishop &eebll {lineNumber} {line} &0- &aEdit Buy Lore Line. Starts at 0");
-        GUIShop.sendMessage(player, "&7/guishop &eac {command} &0- &aAdd Command to item");
-        GUIShop.sendMessage(player, "&7/guishop &edc {lineNumber} &0- &aDelete Command by line. Starts at 0");
-        GUIShop.sendMessage(player, "&7/guishop &eec {lineNumber} {cmd} &0- &aEdit Command by line. Starts at 0");
-        GUIShop.sendMessage(player, "&7/guishop &emt {type} &0- &aSet an item's mob type. Used for Spawners/Eggs.");
-        GUIShop.sendMessage(player, "&7/guishop &et {type} &0- &aSet an item's type. BLANK, SHOP, COMMAND, DUMMY");
+    public void printUsage(CommandSender sender) {
+        GUIShop.sendMessage(sender, "&dG&9U&8I&3S&dh&9o&8p &3C&do&9m&8m&3a&dn&8d&3s&d:");
+        GUIShop.sendMessage(sender, "&7/guishop &eedit/e &0- &aOpens in Editor Mode");
+        GUIShop.sendMessage(sender, "&7/guishop &eprice/p {price} &0- &aSet item in hand's buy price");
+        GUIShop.sendMessage(sender, "&7/guishop &esell/s {price} &0- &aSet item in hand's sell price");
+        GUIShop.sendMessage(sender, "&7/guishop &eshopname/sn {name} &0- &aSet item in hand's Shop-Name");
+        GUIShop.sendMessage(sender, "&7/guishop &ebuyname/bn {name} &0- &aSet item in hand's Buy-Name");
+        GUIShop.sendMessage(sender, "&7/guishop &en {name} &0- &aSet an item's Menu Name. Used for items in menu.");
+        GUIShop.sendMessage(sender, "&7/guishop &ets {target_shop} &0- &aSet an item's Target Shop. Used for items in menu.");
+        GUIShop.sendMessage(sender, "&7/guishop &eenchant/e {enchants} &0- &aSet item in hand's Enchantments");
+        GUIShop.sendMessage(sender, "&7/guishop &easll {line} &0- &aAdd Shop Lore Line");
+        GUIShop.sendMessage(sender, "&7/guishop &edsll {lineNumber} &0- &aDelete Shop Lore Line. Starts at 0");
+        GUIShop.sendMessage(sender, "&7/guishop &eesll {lineNumber} {line} &0- &aEdit Shop Lore Line. Starts at 0");
+        GUIShop.sendMessage(sender, "&7/guishop &eabll {line} &0- &aAdd Buy Lore Line");
+        GUIShop.sendMessage(sender, "&7/guishop &edbll {lineNumber} &0- &aDelete Buy Lore Line. Starts at 0");
+        GUIShop.sendMessage(sender, "&7/guishop &eebll {lineNumber} {line} &0- &aEdit Buy Lore Line. Starts at 0");
+        GUIShop.sendMessage(sender, "&7/guishop &eac {command} &0- &aAdd Command to item");
+        GUIShop.sendMessage(sender, "&7/guishop &edc {lineNumber} &0- &aDelete Command by line. Starts at 0");
+        GUIShop.sendMessage(sender, "&7/guishop &eec {lineNumber} {cmd} &0- &aEdit Command by line. Starts at 0");
+        GUIShop.sendMessage(sender, "&7/guishop &emt {type} &0- &aSet an item's mob type. Used for Spawners/Eggs.");
+        GUIShop.sendMessage(sender, "&7/guishop &et {type} &0- &aSet an item's type. BLANK, SHOP, COMMAND, DUMMY");
     }
 
     // When the inventory closes
@@ -91,7 +92,7 @@ public final class PlayerListener implements Listener {
                         menu.open(player);
                     } else {
                         e.setCancelled(true);
-                        player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getNoPermission());
+                        player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
                     }
 
                 }

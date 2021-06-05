@@ -47,14 +47,14 @@ public class CommandsInterceptor implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent evt) {
 
         String[] cut = evt.getMessage().substring(1).split(" ");
-        GuishopUserCommand userCmds = GUIShop.getINSTANCE().getUserCommands();
+        UserCommand userCommands = GUIShop.getINSTANCE().getUserCommands();
 
         if (GUIShop.BUY_COMMANDS.contains(cut[0])) {
-            userCmds.buyCommand(evt.getPlayer(), (cut.length >= 2) ? cut[1] : null);
+            userCommands.buyCommand(evt.getPlayer(), (cut.length >= 2) ? cut[1] : null);
             evt.setCancelled(true);
 
         } else if (GUIShop.SELL_COMMANDS.contains(cut[0])) {
-            userCmds.sellCommand(evt.getPlayer());
+            userCommands.sellCommand(evt.getPlayer());
             evt.setCancelled(true);
         }
     }

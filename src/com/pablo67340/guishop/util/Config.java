@@ -6,15 +6,16 @@ import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 
-public final class ConfigUtil {
+public final class Config {
 
     /**
-     * True/False if GUIShop should use signs only.
+     * Some configuration booleans to enable/disable things
+     *
      */
     @Getter
     @Setter
     private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled,
-            dynamicPricing, debugMode, sellSkullUUID;
+            dynamicPricing, debugMode, sellSkullUUID, disableEscapeBackQuantity;
 
     /**
      * The commands mode, determines whether to intercept commands, register
@@ -26,7 +27,7 @@ public final class ConfigUtil {
     private static CommandsMode commandsMode;
 
     /**
-     * Common Language strings set in configuration.
+     * Common Language strings set in configuration
      *
      */
     @Getter
@@ -46,8 +47,11 @@ public final class ConfigUtil {
     @Setter
     private static int altSellQuantity1, altSellQuantity2, altSellQuantity3;
 
+    /**
+     * The list of disabled worlds for GUIShop
+     *
+     */
     @Getter
     @Setter
     private static List<String> disabledWorlds;
-
 }

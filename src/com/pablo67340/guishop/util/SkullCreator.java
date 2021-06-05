@@ -31,9 +31,6 @@ import org.json.simple.parser.ParseException;
  */
 public class SkullCreator {
 
-    private SkullCreator() {
-    }
-
     // some reflection stuff to be used when setting a skull's profile
     private static Method metaSetProfileMethod;
     private static Field metaProfileField;

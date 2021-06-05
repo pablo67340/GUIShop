@@ -7,7 +7,7 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.Config;
 import java.math.BigDecimal;
 import java.util.List;
 
@@ -21,7 +21,7 @@ public final class Sell {
      * @param player - The player the GUI will display to
      */
     public void open(Player player) {
-        GUI = new Gui(GUIShop.getINSTANCE(), 6, ConfigUtil.getSellTitle());
+        GUI = new Gui(GUIShop.getINSTANCE(), 6, Config.getSellTitle());
         GUI.setOnClose(this::onSellClose);
         StaticPane pane = new StaticPane(0, 0, 9, 6);
         GUI.addPane(pane);
@@ -78,7 +78,7 @@ public final class Sell {
             int quantity = item.getAmount();
 
             // buy price must be defined for dynamic pricing to work
-            if (ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
+            if (Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
                 moneyToGive = moneyToGive.add(GUIShop.getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
                         shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal()));
                 GUIShop.getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
@@ -89,7 +89,7 @@ public final class Sell {
         }
 
         if (couldntSell) {
-            player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getCantSell().replace("{count}", countSell + ""));
+            player.sendMessage(Config.getPrefix() + " " + Config.getCantSell().replace("{count}", countSell + ""));
         }
         roundAndGiveMoney(player, moneyToGive);
     }
@@ -101,11 +101,10 @@ public final class Sell {
      * @param moneyToGive the amount to give
      */
     public static void roundAndGiveMoney(Player player, BigDecimal moneyToGive) {
-
         if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
             GUIShop.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
-            player.sendMessage(ConfigUtil.getSold() + moneyToGive.toPlainString() + ConfigUtil.getAdded());
+            player.sendMessage(Config.getPrefix() + " " + Config.getSold() + moneyToGive.toPlainString() + Config.getAdded());
         }
     }
 
@@ -113,5 +112,4 @@ public final class Sell {
         Player player = (Player) event.getPlayer();
         sell(player);
     }
-
 }

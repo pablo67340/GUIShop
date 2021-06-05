@@ -29,7 +29,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.PotionInfo;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.SkullCreator;
 import java.math.BigDecimal;
 import java.util.Map.Entry;
@@ -78,9 +78,7 @@ class Quantity {
     void open() {
         GUI.setOnClose(this::onClose);
         GUI.setOnTopClick(this::onQuantityClick);
-        GUI.setOnBottomClick(event -> {
-            event.setCancelled(true);
-        });
+        GUI.setOnBottomClick(event -> event.setCancelled(true));
         GUI.show(player);
     }
 
@@ -88,9 +86,9 @@ class Quantity {
      * Preloads the inventory to display items.
      */
     public Quantity loadInventory() {
-        GUI = new Gui(GUIShop.getINSTANCE(), 6, ConfigUtil.getQtyTitle());
+        GUI = new Gui(GUIShop.getINSTANCE(), 5, Config.getQtyTitle());
         int multiplier = 1;
-        ShopPane page = new ShopPane(9, 6);
+        ShopPane page = new ShopPane(9, 5);
         for (int x = 19; x <= 25; x++) {
 
             ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
@@ -123,7 +121,7 @@ class Quantity {
                     }
                     itemStack.setItemMeta(pm);
                 } else {
-                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());
                     potion.apply(itemStack);
                 }
             }
@@ -132,14 +130,14 @@ class Quantity {
             ItemMeta itemMeta = itemStack.getItemMeta();
             List<String> lore = new ArrayList<>();
 
-            lore.add(item.getBuyLore(multiplier));
-            lore.add(item.getSellLore(multiplier));
-
             if (item.hasShopLore()) {
                 item.getShopLore().forEach(str -> {
                     lore.add(ChatColor.translateAlternateColorCodes('&', str));
                 });
             }
+
+            lore.add(item.getBuyLore(multiplier));
+            lore.add(item.getSellLore(multiplier));
 
             assert itemMeta != null;
             itemMeta.setLore(lore);
@@ -213,9 +211,9 @@ class Quantity {
             multiplier *= 2;
         }
 
-        if (!ConfigUtil.isDisableBackButton()) {
+        if (!Config.isDisableBackButton()) {
 
-            ItemStack backButtonItem = XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseItem();
+            ItemStack backButtonItem = XMaterial.matchXMaterial(Config.getBackButtonItem()).get().parseItem();
 
             ItemMeta backButtonMeta = backButtonItem.getItemMeta();
 
@@ -226,7 +224,7 @@ class Quantity {
             backButtonItem.setItemMeta(backButtonMeta);
 
             GuiItem gItem = new GuiItem(backButtonItem, this::onQuantityClick);
-            page.setItem(gItem, 53);
+            page.setItem(gItem, 44);
 
         }
         GUI.addPane(page);
@@ -234,17 +232,13 @@ class Quantity {
         return this;
     }
 
-    private Boolean spellCheck(String type, String t) {
-        return type.contains(t);
-    }
-
     /**
      * Executes when an item is clicked inside the Quantity Inventory.
      */
     private void onQuantityClick(InventoryClickEvent e) {
         e.setCancelled(true);
-        if (!ConfigUtil.isDisableBackButton()) {
-            if (e.getSlot() == 53) {
+        if (!Config.isDisableBackButton()) {
+            if (e.getSlot() == 44) {
                 currentShop.open(player);
                 return;
             }
@@ -259,11 +253,11 @@ class Quantity {
         }
 
         if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage(ConfigUtil.getFull());
+            player.sendMessage(Config.getPrefix() + " " + Config.getFull());
             return;
         }
 
-        buy(item, qty.get(e.getSlot()), e);
+        buy(item, qty.get(e.getSlot()));
 
     }
 
@@ -271,23 +265,22 @@ class Quantity {
      * The inventory closeEvent handling for the Menu.
      */
     private void onClose(InventoryCloseEvent e) {
-        if (!ConfigUtil.isDisableEscapeBack()) {
+        if (!Config.isDisableEscapeBack() || !Config.isDisableEscapeBackQuantity()) {
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> currentShop.open(player), 1L);
-
         }
     }
 
-    public void buy(Item item, Integer quantity, InventoryClickEvent e) {
+    public void buy(Item item, Integer quantity) {
         if (!item.hasBuyPrice()) {
-            player.sendMessage(ConfigUtil.getCantBuy());
+            player.sendMessage(Config.getPrefix() + " " + Config.getCantBuy());
             return;
         }
 
         // If the quantity is 0
         if (quantity == 0) {
-            player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getNotEnoughPre() + item.calculateBuyPrice(1)
-                    + ConfigUtil.getNotEnoughPost());
+            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.calculateBuyPrice(1)
+                    + Config.getNotEnoughPost());
             player.setItemOnCursor(new ItemStack(Material.AIR));
             return;
         }
@@ -304,7 +297,7 @@ class Quantity {
         Runnable dynamicPricingUpdate = null;
 
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+        if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
 
             String itemString = item.getItemString();
             dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, quantity);
@@ -320,11 +313,11 @@ class Quantity {
         if (GUIShop.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
             // If the player has the sound enabled, play
             // it!
-            if (ConfigUtil.isSoundEnabled()) {
-                player.playSound(player.getLocation(), XSound.matchXSound(ConfigUtil.getSound()).get().parseSound(), 1, 1);
+            if (Config.isSoundEnabled()) {
+                player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
             }
-            player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getPurchased() + priceToPay + ConfigUtil.getTaken()
-                    + ConfigUtil.getCurrencySuffix());
+            player.sendMessage(Config.getPrefix() + " " + Config.getPurchased() + priceToPay + Config.getTaken()
+                    + Config.getCurrencySuffix());
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
@@ -332,7 +325,7 @@ class Quantity {
 
             player.getInventory().addItem(item.toBuyItemStack(quantity, player, currentShop));
         } else {
-            player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getNotEnoughPre() + priceToPay + ConfigUtil.getNotEnoughPost());
+            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
         }
     }
 }

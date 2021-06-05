@@ -10,7 +10,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTT
 import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.listenable.Shop;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.SkullCreator;
 import lombok.Getter;
 import lombok.Setter;
@@ -291,7 +291,7 @@ public final class Item implements ConfigurationSerializable {
      */
     public BigDecimal calculateBuyPrice(int quantity) {
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
+        if (Config.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
 
             return GUIShop.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
                     getSellPriceAsDecimal());
@@ -312,7 +312,7 @@ public final class Item implements ConfigurationSerializable {
      */
     public BigDecimal calculateSellPrice(int quantity) {
         // buy price must be defined for dynamic pricing to work
-        if (ConfigUtil.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
+        if (Config.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
 
             return GUIShop.getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
                     getSellPriceAsDecimal());
@@ -338,12 +338,12 @@ public final class Item implements ConfigurationSerializable {
             BigDecimal buyPriceAsDouble = getBuyPriceAsDecimal();
             if (buyPriceAsDouble.compareTo(BigDecimal.ZERO) > 0) {
 
-                return ConfigUtil.getBuyLore().replace("{amount}",
-                        ConfigUtil.getCurrency() + GUIShop.economyFormat(calculateBuyPrice(quantity)) + ConfigUtil.getCurrencySuffix());
+                return Config.getBuyLore().replace("{amount}",
+                        Config.getCurrency() + GUIShop.economyFormat(calculateBuyPrice(quantity)) + Config.getCurrencySuffix());
             }
-            return ConfigUtil.getFreeLore();
+            return Config.getFreeLore();
         }
-        return ConfigUtil.getCannotBuy();
+        return Config.getCannotBuy();
     }
 
     /**
@@ -358,10 +358,10 @@ public final class Item implements ConfigurationSerializable {
      */
     public String getSellLore(int quantity) {
         if (hasSellPrice()) {
-            return ConfigUtil.getSellLore().replace("{amount}",
-                    ConfigUtil.getCurrency() + GUIShop.economyFormat(calculateSellPrice(quantity)) + ConfigUtil.getCurrencySuffix());
+            return Config.getSellLore().replace("{amount}",
+                    Config.getCurrency() + GUIShop.economyFormat(calculateSellPrice(quantity)) + Config.getCurrencySuffix());
         }
-        return ConfigUtil.getCannotSell();
+        return Config.getCannotSell();
     }
 
     /**
@@ -612,14 +612,12 @@ public final class Item implements ConfigurationSerializable {
                     }
                     if (hasShopLore() && !isMenu) {
                         getShopLore().forEach(str -> {
-                            if (!itemLore.contains(str) && !itemLore.contains(ConfigUtil.getBuyLore().replace("{AMOUNT}", calculateBuyPrice(1).toPlainString()))) {
+                            if (!itemLore.contains(str) && !itemLore.contains(Config.getBuyLore().replace("{AMOUNT}", calculateBuyPrice(1).toPlainString()))) {
                                 itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
                             }
                         });
                     } else if (hasLore() && isMenu) {
-                        getLore().forEach(str -> {
-                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
-                        });
+                        getLore().forEach(str -> itemLore.add(ChatColor.translateAlternateColorCodes('&', str)));
                     }
                     itemMeta.setLore(itemLore);
                     itemStack.setItemMeta(itemMeta);
@@ -646,16 +644,12 @@ public final class Item implements ConfigurationSerializable {
                     if (hasShopLore() && !isMenu) {
                         itemLore.add(" ");
                         itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fShop Lore: &r"));
-                        getShopLore().forEach(str -> {
-                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
-                        });
+                        getShopLore().forEach(str -> itemLore.add(ChatColor.translateAlternateColorCodes('&', str)));
                     }
                     if (hasLore() && isMenu) {
                         itemLore.add(" ");
                         itemLore.add(ChatColor.translateAlternateColorCodes('&', "&fLore: &r"));
-                        getLore().forEach(str -> {
-                            itemLore.add(ChatColor.translateAlternateColorCodes('&', str));
-                        });
+                        getLore().forEach(str -> itemLore.add(ChatColor.translateAlternateColorCodes('&', str)));
                     }
                     if (hasCommands() && !isMenu) {
                         itemLore.add(" ");
@@ -953,7 +947,7 @@ public final class Item implements ConfigurationSerializable {
                 GUIShop.debugLog("Error parsing NBT: " + ex.getMessage());
             }
         }
-        if (hasSkullUUID() && ConfigUtil.isSellSkullUUID()) {
+        if (hasSkullUUID() && Config.isSellSkullUUID()) {
             SkullMeta sm = (SkullMeta) input.getItemMeta();
             if (!sm.getOwningPlayer().getUniqueId().toString().equals(skullUUID)) {
                 return false;
@@ -1240,11 +1234,11 @@ public final class Item implements ConfigurationSerializable {
             serialized.put("target-shop", targetShop);
         }
         if (hasEnchantments()) {
-            String parsed = "";
+            StringBuilder parsed = new StringBuilder();
             for (String str : enchantments) {
-                parsed += str + " ";
+                parsed.append(str).append(" ");
             }
-            serialized.put("enchantments", parsed);
+            serialized.put("enchantments", parsed.toString());
         }
         if (hasNBT()) {
             serialized.put("custom-nbt", NBT);

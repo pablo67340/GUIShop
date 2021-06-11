@@ -179,7 +179,7 @@ public final class GUIShop extends JavaPlugin {
             commandMap.register(sellCommand.getName(), sellCommand);
 
         } catch (IllegalAccessException | NoSuchFieldException e) {
-            debugLog("Error registering commands: " + e.getMessage());
+            log("Error registering commands: " + e.getMessage());
         }
     }
 
@@ -229,6 +229,10 @@ public final class GUIShop extends JavaPlugin {
      * Load all deault config values, translate colors, store.
      */
     public void loadDefaults() {
+        if (getMainConfig() == null) {
+            getLogger().log(Level.WARNING, "An error occurred while loading the config.yml! Please correct the errors and try again.");
+            return;
+        }
 
         // All buy commands
         BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
@@ -450,7 +454,7 @@ public final class GUIShop extends JavaPlugin {
         try {
             mainConfig.load(configf);
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error Main config: " + e.getMessage());
+            log("Error Main config: " + e.getMessage());
         }
         loadDefaults();
     }
@@ -466,7 +470,7 @@ public final class GUIShop extends JavaPlugin {
             shopConfig.load(shopf);
             warmup();
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error loading Shop Config: " + e.getMessage());
+            log("Error loading Shop Config: " + e.getMessage());
         }
     }
 
@@ -480,7 +484,7 @@ public final class GUIShop extends JavaPlugin {
         try {
             menuConfig.load(menuf);
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error loading Menu config: " + e.getMessage());
+            log("Error loading Menu config: " + e.getMessage());
         }
     }
 
@@ -496,7 +500,7 @@ public final class GUIShop extends JavaPlugin {
             cacheConfig.load(cachef);
             loadCache();
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error loading Cache config: " + e.getMessage());
+            log("Error loading Cache config: " + e.getMessage());
         }
     }
 
@@ -539,12 +543,12 @@ public final class GUIShop extends JavaPlugin {
      * @param name the name of the file
      */
     public void copy(String name, InputStream source, String destination) {
-        log("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/" + name);
+        debugLog("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/" + name);
 
         try {
             Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            debugLog("Error extracting Dictionary files: " + ex.getMessage());
+            log("Error extracting Dictionary files: " + ex.getMessage());
         }
     }
 
@@ -554,17 +558,17 @@ public final class GUIShop extends JavaPlugin {
         for (MenuPage page : loadedMenu.getPages().values()) {
             for (Item item : page.getItems().values()) {
                 if (item.getTargetShop() != null) {
-                    GUIShop.debugLog("Starting Warmup for Shop: " + item.getTargetShop());
+                    debugLog("Starting Warmup for Shop: " + item.getTargetShop());
                     new Shop(item.getTargetShop()).loadItems(true);
                 }
             }
         }
         long estimatedTime = System.currentTimeMillis() - startTime;
-        getLogger().log(Level.INFO, "Item warming completed in: {0}ms", estimatedTime);
+        debugLog("Item warming completed in: {0}ms" + estimatedTime);
     }
 
     public void reload(CommandSender sender, Boolean ignoreCreator) {
-        GUIShop.debugLog("GUIShop Reloaded");
+        log("GUIShop Reloaded");
 
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
@@ -602,21 +606,21 @@ public final class GUIShop extends JavaPlugin {
     }
 
     public void loadCache() {
-        log("Loading Cache...");
+        debugLog("Loading Cache...");
         if (getCacheConfig().contains("player-heads")) {
             ConfigurationSection config = getCacheConfig().getConfigurationSection("player-heads");
             for (Entry<String, Object> entry : config.getValues(false).entrySet()) {
                 cachedHeads.put(entry.getKey(), (String) entry.getValue());
             }
         }
-        log("Cache loaded successfully!");
+        debugLog("Cache loaded successfully!");
     }
 
     public void reloadShopConfig() {
         try {
             shopConfig.load(shopf);
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error loading custom config: " + e.getMessage());
+            log("Error loading custom config: " + e.getMessage());
         }
     }
 
@@ -624,7 +628,7 @@ public final class GUIShop extends JavaPlugin {
         try {
             menuConfig.load(menuf);
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error loading custom config: " + e.getMessage());
+            log("Error loading custom config: " + e.getMessage());
         }
     }
 
@@ -632,7 +636,7 @@ public final class GUIShop extends JavaPlugin {
         try {
             cacheConfig.load(cachef);
         } catch (IOException | InvalidConfigurationException e) {
-            debugLog("Error loading custom config: " + e.getMessage());
+            log("Error loading custom config: " + e.getMessage());
         }
     }
 

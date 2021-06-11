@@ -208,5 +208,4 @@ public class GUIShopAPI {
             GUIShop.getDYNAMICPRICING().sellItem(itemString, quantity);
         }
     }
-
 }

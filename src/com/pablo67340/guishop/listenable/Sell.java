@@ -104,7 +104,8 @@ public final class Sell {
         if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
             GUIShop.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
-            player.sendMessage(Config.getPrefix() + " " + Config.getSold() + moneyToGive.toPlainString() + Config.getAdded());
+            player.sendMessage(Config.getPrefix() + " " + Config.getSold() +
+                    Config.getCurrency() + moneyToGive.toPlainString() + Config.getCurrencySuffix() + Config.getAdded());
         }
     }
 

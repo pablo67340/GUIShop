@@ -71,8 +71,7 @@ public class AltSell {
         GuiItem gRemoveItem = new GuiItem(XMaterial.matchXMaterial(removeItem.getMaterial()).get().parseItem());
         GuiItem gConfirmItem = new GuiItem(XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem());
         GuiItem gCancelItem = new GuiItem(XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem());
-        if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null
-                && gCancelItem != null) {
+        if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null && gCancelItem != null) {
             GuiItem[] addRemoveItems = new GuiItem[6];
             ItemStack addItemstack = gAddItem.getItem();
             addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity1(), false);
@@ -119,7 +118,6 @@ public class AltSell {
         int amount = itemStack.getAmount();
         Map<Integer, ItemStack> result = player.getInventory().removeItem(itemStack);
         if (result.isEmpty()) {
-
             Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
             // buy price must be defined for dynamic pricing to work
             if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {

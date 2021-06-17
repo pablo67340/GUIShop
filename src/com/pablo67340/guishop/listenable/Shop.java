@@ -89,6 +89,7 @@ public class Shop {
         if (shop.equalsIgnoreCase("NONE")) {
             return;
         }
+
         if (!GUIShop.getINSTANCE().getLoadedShops().containsKey(shop)) {
             this.setTitle(GUIShop.getINSTANCE().getShopConfig().getString(shop + ".title"));
             shopItem = new ShopItem();
@@ -121,12 +122,11 @@ public class Shop {
                                 GUIShop.debugLog("Making item: SPLASH_POTION sellable.");
                                 GUIShop.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString(), items);
                             } else {
-
                                 try {
                                     GUIShop.debugLog("Making item: " + item.getMaterial() + " sellable.");
                                     GUIShop.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
                                 } catch (Exception ex) {
-                                    GUIShop.log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name, or item does not exist for this server version.");
+                                    GUIShop.log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name or item does not exist for this server version.");
                                 }
                             }
                         }
@@ -171,18 +171,13 @@ public class Shop {
             for (ShopPage page : shopPages) {
                 shopPage = new ShopPane(9, 6);
                 for (Item item : page.getItems().values()) {
-
                     GuiItem gItem = new GuiItem(item.toItemStack(player, false));
                     shopPage.setItem(gItem, item.getSlot());
-
                 }
-
                 applyButtons(shopPage, pageIndex, shopPages.size());
                 pane.addPane(pageIndex, shopPage);
                 pageIndex += 1;
-
             }
-
             GUI.addPane(pane);
             this.currentPane = pane;
         }
@@ -212,15 +207,14 @@ public class Shop {
 
     private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
         if (pageIndex < (maxPages - 1)) {
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getForwardPageButtonName())), 51);
+            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getForwardPageButtonName())), this.GUI.getInventory().getSize() - 3);
         }
         GUIShop.debugLog("Applying buttons with pageIndex: " + pageIndex + " maxPages: " + maxPages);
         if (pageIndex > 0) {
             GUIShop.debugLog("Adding Back Button");
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getBackwardPageButtonName())), 47);
+            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getBackwardPageButtonName())), this.GUI.getInventory().getSize() - 7);
         }
         if (!Config.isDisableBackButton()) {
-
             ItemStack backButtonItem = new ItemStack(
                     Objects.requireNonNull(XMaterial.matchXMaterial(Config.getBackButtonItem()).get().parseMaterial()));
 
@@ -242,23 +236,20 @@ public class Shop {
      *
      * @param input The player the shop will open for.
      */
-    public void open(Player input) {
-        // currentPane.setPage(0);
+    public boolean open(Player input) {
         if (this.isShopMissing() || shop.equalsIgnoreCase("NONE")) {
-            return;
+            return false;
         }
         GUI.show(input);
         if (!GUIShop.getCREATOR().contains(input.getName())) {
             GUI.setOnTopClick(this::onShopClick);
-            GUI.setOnBottomClick((e) -> {
-                e.setCancelled(true);
-            });
+            GUI.setOnBottomClick((e) -> e.setCancelled(true));
         } else {
             GUI.setOnBottomClick(this::creatorPlayerInventoryClick);
             GUI.setOnTopClick(this::creatorTopInventoryClick);
         }
         GUI.setOnClose(this::onClose);
-
+        return true;
     }
 
     private void onShopClick(InventoryClickEvent e) {
@@ -274,7 +265,7 @@ public class Shop {
 
         // Forward Button
         GUIShop.debugLog("Clicked: " + e.getSlot());
-        if (e.getSlot() == 51) {
+        if (e.getSlot() == this.GUI.getInventory().getSize() - 3) {
             if (shopItem.getPages().size() > 1 && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
                 hasClicked = true;
 
@@ -289,7 +280,7 @@ public class Shop {
             }
             return;
             // Backward Button
-        } else if (e.getSlot() == 47) {
+        } else if (e.getSlot() == this.GUI.getInventory().getSize() - 7) {
             if (currentPane.getPage() != 0 && currentPane.getPages() > 0) {
                 hasClicked = true;
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
@@ -316,9 +307,7 @@ public class Shop {
 
         if (item == null) {
             return;
-
         } else if (!item.hasBuyPrice()) {
-
             if (Config.isAlternateSellEnabled() && item.hasSellPrice()) {
                 hasClicked = true;
                 new AltSell(item).open(player);
@@ -374,7 +363,7 @@ public class Shop {
                     dynamicPricingUpdate.run();
                 }
             } else {
-                player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + priceToPay
+                player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + Config.getCurrency() + priceToPay + Config.getCurrencySuffix()
                         + Config.getNotEnoughPost());
             }
         }
@@ -435,7 +424,6 @@ public class Shop {
     }
 
     public void editShopItem(ItemStack itemStack, Integer slot) {
-
         Item item = Item.parse(itemStack, slot, shop);
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
 
@@ -464,13 +452,12 @@ public class Shop {
             } else {
                 hasClicked = false;
             }
-        } else if (!hasClicked) {
-            GUIShop.CREATOR.remove(player.getName());
+        } else {
+            GUIShop.getCREATOR().remove(player.getName());
         }
-
     }
 
-    public Boolean isShopMissing() {
+    public boolean isShopMissing() {
         return this.shopMissing;
     }
 }

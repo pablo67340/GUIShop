@@ -37,7 +37,7 @@ public final class Config {
             noPermission, qtyTitle, currencySuffix, backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore,
             sellLore, freeLore, forwardPageButtonName, backwardPageButtonName, altSellAddMaterial,
             altSellRemoveMaterial, altSellIndicatorMaterial, altSellConfirmMaterial, altSellCancelMaterial,
-            altSellConfirmName, altSellCancelName, altSellNotEnough, menuShopPageNumber, altSellIncreaseTitle, altSellDecreaseTitle;
+            altSellConfirmName, altSellCancelName, altSellNotEnough, menuShopPageNumber, altSellIncreaseTitle, altSellDecreaseTitle, tooHighBuyQuantity;
 
     /**
      * Integers from the config

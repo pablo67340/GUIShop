@@ -75,7 +75,7 @@ public final class Menu {
             GUIShop.debugLog("Loading items for Menu");
 
             if (config == null) {
-                GUIShop.log("Check menu.yml for Menu Items. They were not found, or config is incorrectly formatted.");
+                GUIShop.log("Check menu.yml for Menu items. They were not found, or the menu.yml is incorrectly formatted.");
             } else {
                 config.getKeys(false).stream().map(str -> {
                     MenuPage page = new MenuPage();
@@ -91,17 +91,17 @@ public final class Menu {
                     });
                     return page;
                 }).forEachOrdered(page -> {
-                    GUIShop.debugLog("Adding page: " + "Page" + Integer.toString(menuItem.getPages().size()) + " to pages.");
-                    menuItem.getPages().put("Page" + Integer.toString(menuItem.getPages().size()), page);
+                    GUIShop.debugLog("Adding page: " + "Page" + menuItem.getPages().size() + " to pages.");
+                    menuItem.getPages().put("Page" + menuItem.getPages().size(), page);
                 });
-                GUIShop.debugLog("Loaded Menu Cached");
+                GUIShop.debugLog("Loaded Menu cached");
                 GUIShop.getINSTANCE().setLoadedMenu(menuItem);
                 if (!preLoad) {
                     loadMenu();
                 }
             }
         } else {
-            GUIShop.debugLog("Loading Menu from Cache.");
+            GUIShop.debugLog("Loading Menu from cache.");
             menuItem = GUIShop.getINSTANCE().getLoadedMenu();
             loadMenu();
         }
@@ -196,7 +196,6 @@ public final class Menu {
      * @param player - The player the GUI will display to
      */
     public void open(Player player) {
-
         if (!player.hasPermission("guishop.use") && !player.isOp()) {
             player.sendMessage(ChatColor.translateAlternateColorCodes('&',
                     Config.getPrefix() + " " + Config.getNoPermission()));
@@ -280,7 +279,7 @@ public final class Menu {
                         if (!clickedItem.isResolveFailed()) {
                             openShop(pl, shopName);
                         } else {
-                            pl.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&cCannot open shop. Reason: "+clickedItem.getResolveReason()));
+                            pl.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&cCannot open shop. Reason: " +clickedItem.getResolveReason()));
                          }
                     } else {
                         pl.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&cYou do not have permission to use this shop."));
@@ -301,9 +300,11 @@ public final class Menu {
         if (shop != null) {
             Shop openShop = new Shop(player, shop, this);
             openShop.loadItems(false);
-            openShop.open(player);
+            if (!openShop.open(player)) {
+                GUIShop.log("Error: Target shop of clicked item not existent. Please edit target-shop to the item in menu.yml to fix this.");
+            }
         } else {
-            GUIShop.log("Error: Target shop of clicked item not specified. Please add target-shop to specific item in menu.yml to fix this.");
+            GUIShop.log("Error: Target shop of clicked item not specified. Please add target-shop to the item in menu.yml to fix this.");
         }
     }
 
@@ -380,7 +381,7 @@ public final class Menu {
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
                 ItemStack item = e.getInventory().getItem(slot);
                 if (item != null) {
-                    GUIShop.debugLog("new Item: " + item.getType());
+                    GUIShop.debugLog("New item: " + item.getType());
                     editMenuItem(item, slot);
                 }
             }, 5L);
@@ -389,8 +390,7 @@ public final class Menu {
 
     private void onClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
-        if (GUIShop.getCREATOR().contains(p.getName()) && !hasClicked) {
-            GUIShop.getCREATOR().remove(p.getName());
-        }
+
+        GUIShop.getCREATOR().remove(p.getName());
     }
 }

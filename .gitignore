@@ -2,3 +2,9 @@
 **/*.swp
 .settings/
 dependency-reduced-pom.xml
+.github
+.gitignore
+.idea
+.vscode
+.classpath
+.project

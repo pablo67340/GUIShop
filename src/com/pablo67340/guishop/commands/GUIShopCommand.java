@@ -4,7 +4,9 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
+import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.Config;
 import com.pablo67340.guishop.util.ItemUtil;
 import org.bukkit.ChatColor;
@@ -90,6 +92,13 @@ public class GUIShopCommand implements CommandExecutor {
                 GUIShop.debugLog("Added player to creator mode");
                 PlayerListener.INSTANCE.openShop(player);
 
+                if (args.length >= 2) {
+                    Shop openShop = new Shop(player, args[1], new Menu(player));
+                    openShop.loadItems(false);
+                    if (!openShop.open(player)) {
+                        GUIShop.sendMessage(player, "The shop &c" + args[1] + " &fdoesn't exist!");
+                    }
+                }
             } else if (args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("price")) {
                 Object result = null;
                 if (args[1].equalsIgnoreCase("false")) {
@@ -118,7 +127,7 @@ public class GUIShopCommand implements CommandExecutor {
                             try {
                                 result = Integer.parseInt(args[1]);
                             } catch (NumberFormatException ex2) {
-                                player.sendMessage(Config.getPrefix() + " " + "Please use a valid value");
+                                player.sendMessage(Config.getPrefix() + " " + "Please use a valid number.");
                             }
                         }
                     }
@@ -198,7 +207,7 @@ public class GUIShopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify enchantments. E.G 'dura:1 sharp:2'");
                 }
-            } else if (args[0].equalsIgnoreCase("asll")) {
+            } else if (args[0].equalsIgnoreCase("asll") || args[0].equalsIgnoreCase("addshoplore")) {
                 if (args.length >= 2) {
                     StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
@@ -208,14 +217,14 @@ public class GUIShopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
                 }
-            } else if (args[0].equalsIgnoreCase("dsll")) {
+            } else if (args[0].equalsIgnoreCase("dsll") || args[0].equalsIgnoreCase("deleteshoplore")) {
                 if (args.length >= 2) {
                     int slot = Integer.parseInt(args[1]);
                     ItemUtil.deleteShopLore(slot, player);
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
                 }
-            } else if (args[0].equalsIgnoreCase("esll")) {
+            } else if (args[0].equalsIgnoreCase("esll") || args[0].equalsIgnoreCase("editshoplore")) {
                 if (args.length >= 2) {
                     StringBuilder line = new StringBuilder();
                     int slot = Integer.parseInt(args[1]);
@@ -227,7 +236,7 @@ public class GUIShopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
                 }
-            } else if (args[0].equalsIgnoreCase("abll")) {
+            } else if (args[0].equalsIgnoreCase("abll") || args[0].equalsIgnoreCase("addbuylore")) {
                 if (args.length >= 2) {
                     StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
@@ -237,10 +246,17 @@ public class GUIShopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
                 }
-            } else if (args[0].equalsIgnoreCase("ebll")) {
+            } else if (args[0].equalsIgnoreCase("ebll") || args[0].equalsIgnoreCase("editbuylore")) {
                 if (args.length >= 2) {
                     StringBuilder line = new StringBuilder();
-                    int slot = Integer.parseInt(args[1]);
+                    int slot = 0;
+
+                    try {
+                        slot = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException exception) {
+                        GUIShop.sendMessage(commandSender, "&cYour number input must be a number!");
+                    }
+
                     for (int x = 2; x <= args.length - 1; x++) {
                         line.append(args[x]).append(" ");
                     }
@@ -249,7 +265,7 @@ public class GUIShopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
                 }
-            } else if (args[0].equalsIgnoreCase("t")) {
+            } else if (args[0].equalsIgnoreCase("t") || args[0].equalsIgnoreCase("type")) {
                 if (args.length >= 2) {
                     String type = args[1];
                     try {
@@ -261,7 +277,7 @@ public class GUIShopCommand implements CommandExecutor {
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a type.");
                 }
-            } else if (args[0].equalsIgnoreCase("ac")) {
+            } else if (args[0].equalsIgnoreCase("ac") || args[0].equalsIgnoreCase("addcommand")) {
                 if (args.length >= 2) {
                     StringBuilder line = new StringBuilder();
                     for (int x = 1; x <= args.length - 1; x++) {
@@ -269,28 +285,42 @@ public class GUIShopCommand implements CommandExecutor {
                     }
                     ItemUtil.addCommand(ChatColor.translateAlternateColorCodes('&', line.toString().trim()), player);
                 } else {
-                    player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
+                    player.sendMessage(Config.getPrefix() + " " + "Please specify a command.");
                 }
-            } else if (args[0].equalsIgnoreCase("ec")) {
-                if (args.length >= 2) {
+            } else if (args[0].equalsIgnoreCase("ec") || args[0].equalsIgnoreCase("editcommand")) {
+                if (args.length >= 3) {
                     StringBuilder line = new StringBuilder();
-                    int slot = Integer.parseInt(args[1]);
+
+                    int slot = 0;
+
+                    try {
+                        slot = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException exception) {
+                        GUIShop.sendMessage(commandSender, "&cYour number input must be a number!");
+                    }
+
                     for (int x = 2; x <= args.length - 1; x++) {
                         line.append(args[x]).append(" ");
                     }
                     ItemUtil.editCommand(slot, ChatColor.translateAlternateColorCodes('&', line.toString().trim()),
                             player);
                 } else {
-                    player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
+                    player.sendMessage(Config.getPrefix() + " " + "Please specify a slot and a command.");
                 }
-            } else if (args[0].equalsIgnoreCase("dc")) {
+            } else if (args[0].equalsIgnoreCase("dc") || args[0].equalsIgnoreCase("deletecommand")) {
                 if (args.length >= 2) {
-                    int slot = Integer.parseInt(args[1]);
+                    int slot = 0;
+
+                    try {
+                        slot = Integer.parseInt(args[1]);
+                    } catch (NumberFormatException exception) {
+                        GUIShop.sendMessage(commandSender, "&cYour number input must be a number!");
+                    }
                     ItemUtil.deleteCommand(slot, player);
                 } else {
-                    player.sendMessage(Config.getPrefix() + " " + "Please specify a line.");
+                    player.sendMessage(Config.getPrefix() + " " + "Please specify a slot.");
                 }
-            } else if (args[0].equalsIgnoreCase("mt")) {
+            } else if (args[0].equalsIgnoreCase("mt") || args[0].equalsIgnoreCase("mobtype")) {
                 if (args.length == 2) {
                     ItemUtil.setMobType(args[1], player);
                 } else {

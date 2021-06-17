@@ -129,7 +129,6 @@ public final class GUIShop extends JavaPlugin {
         if (!setupEconomy()) {
             getLogger().log(Level.WARNING, "Vault could not detect an economy plugin!");
             setNoEconomySystem(true);
-//          getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
@@ -151,7 +150,10 @@ public final class GUIShop extends JavaPlugin {
             // Nothing is registered, no need to do anything
             return;
         }
-        getLogger().log(Level.INFO, "Registering/unregistering commands {0} and {1}", new Object[]{StringUtils.join(GUIShop.BUY_COMMANDS, "|"), StringUtils.join(GUIShop.SELL_COMMANDS, "|")});
+
+        if (Config.isDebugMode()) {
+            getLogger().log(Level.INFO, "Registering/unregistering commands {0} and {1}", new Object[]{StringUtils.join(GUIShop.BUY_COMMANDS, "|"), StringUtils.join(GUIShop.SELL_COMMANDS, "|")});
+        }
 
         try {
             final Field bukkitCommandMap = Bukkit.getServer().getClass().getDeclaredField("commandMap");
@@ -171,13 +173,13 @@ public final class GUIShop extends JavaPlugin {
             if (onlyUnregister) {
                 return;
             }
+
             // Register new commands
             buyCommand = new BuyCommand(new ArrayList<>(GUIShop.BUY_COMMANDS));
             commandMap.register(buyCommand.getName(), buyCommand);
 
             sellCommand = new SellCommand(new ArrayList<>(GUIShop.SELL_COMMANDS));
             commandMap.register(sellCommand.getName(), sellCommand);
-
         } catch (IllegalAccessException | NoSuchFieldException e) {
             log("Error registering commands: " + e.getMessage());
         }
@@ -188,10 +190,10 @@ public final class GUIShop extends JavaPlugin {
     }
 
     /**
-     * Check if Vault is present, Check if an Economy plugin is present, if so
-     * Hook.
+     * Check if Vault is present, check if an Economy plugin is present, if so,
+     * hook.
      */
-    private Boolean setupEconomy() {
+    private boolean setupEconomy() {
         if (getServer().getPluginManager().getPlugin("Vault") == null) {
             return false;
         }
@@ -241,40 +243,42 @@ public final class GUIShop extends JavaPlugin {
         SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
 
         // The command mode GUIShop should use
-        Config.setCommandsMode(CommandsMode.parseFromConfig(getMainConfig().getString("commands-mode")));
+        Config.setCommandsMode(CommandsMode.parseFromConfig(getMainConfig().getString("commands-mode", "REGISTER")));
+
+        // The prefix for GUIShop
         Config.setPrefix(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("prefix"))));
+                Objects.requireNonNull(getMainConfig().getString("prefix", "&f[&cGUIShop&f]"))));
 
         // Signs only?
-        Config.setSignsOnly(getMainConfig().getBoolean("signs-only"));
+        Config.setSignsOnly(getMainConfig().getBoolean("signs-only", false));
 
         // The title for signs
         Config.setSignTitle(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("sign-title"))));
+                Objects.requireNonNull(getMainConfig().getString("sign-title", "&f[&cGUIShop&f]"))));
 
         // Message for not enough money - pre
         Config.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("not-enough-pre"))));
+                Objects.requireNonNull(getMainConfig().getString("not-enough-pre", "&fYou need &c"))));
 
         // Message for not enough money - post
         Config.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("not-enough-post"))));
+                Objects.requireNonNull(getMainConfig().getString("not-enough-post", "&f to purchase this!"))));
 
         // Message for buying - pre
         Config.setPurchased(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("purchased"))));
+                Objects.requireNonNull(getMainConfig().getString("purchased", "&fA purchase was made, and &c"))));
 
         // Message for buying - post
         Config.setTaken(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("taken"))));
+                Objects.requireNonNull(getMainConfig().getString("taken", "&f was taken from your account."))));
 
         // Message for selling - pre
-        Config.setSold(
-                ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getMainConfig().getString("sold"))));
+        Config.setSold(ChatColor.translateAlternateColorCodes('&',
+                        Objects.requireNonNull(getMainConfig().getString("sold", "&fYour items were sold, and &a"))));
 
         // Message for selling - post
         Config.setAdded(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("added"))));
+                Objects.requireNonNull(getMainConfig().getString("added", "&f was added to your account."))));
 
         // Message if something cant sell
         Config.setCantSell(ChatColor.translateAlternateColorCodes('&',
@@ -284,11 +288,15 @@ public final class GUIShop extends JavaPlugin {
         Config.setCantBuy(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(getMainConfig().getString("cant-buy-message", "&fSorry, you are not able to buy that item."))));
 
+        // Message when a player tries to buy more items than allowed
+        Config.setTooHighBuyQuantity(ChatColor.translateAlternateColorCodes('&',
+                Objects.requireNonNull(getMainConfig().getString("too-high-quantity", "&fYou can't buy more than &c{max} &fitems of that type!"))));
+
         // Disable the back button
-        Config.setDisableBackButton(getMainConfig().getBoolean("disable-back-button"));
+        Config.setDisableBackButton(getMainConfig().getBoolean("disable-back-button", true));
 
         // Disable the feature to escape back
-        Config.setDisableEscapeBack(getMainConfig().getBoolean("disable-escape-back"));
+        Config.setDisableEscapeBack(getMainConfig().getBoolean("disable-escape-back", false));
 
         // Disable the feature to escape back from quantity (If the upper one is disabled, this is enabled)
         Config.setDisableEscapeBackQuantity(getMainConfig().getBoolean("disable-escape-back-quantity", true));
@@ -297,25 +305,25 @@ public final class GUIShop extends JavaPlugin {
         Config.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
 
         // The sound when buying something
-        Config.setSound(getMainConfig().getString("purchase-sound"));
+        Config.setSound(getMainConfig().getString("purchase-sound", "ENTITY_PLAYER_LEVELUP"));
 
         // If the sound should be enabled
-        Config.setSoundEnabled(getMainConfig().getBoolean("enable-sound"));
+        Config.setSoundEnabled(getMainConfig().getBoolean("enable-sound", true));
 
         // The message sent when your inventory is too full
         Config.setFull(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("full-inventory"))));
+                Objects.requireNonNull(getMainConfig().getString("full-inventory", "&cPlease empty your inventory!"))));
 
         // The message sent when the user doesn't have the correct permission
         Config.setNoPermission(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("no-permission"))));
+                Objects.requireNonNull(getMainConfig().getString("no-permission", "&cNo permission!"))));
 
         // Currency prefix
-        Config.setCurrency(Objects.requireNonNull(getMainConfig().getString("currency")));
+        Config.setCurrency(Objects.requireNonNull(getMainConfig().getString("currency", "$")));
 
         // Currency suffix
         Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("currency-suffix"))));
+                Objects.requireNonNull(getMainConfig().getString("currency-suffix", ""))));
 
         // Menu title
         Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
@@ -347,35 +355,38 @@ public final class GUIShop extends JavaPlugin {
 
         // Back button display name
         Config.setBackButtonText(
-                ChatColor.translateAlternateColorCodes('&', Objects.requireNonNull(getMainConfig().getString("back"))));
+                ChatColor.translateAlternateColorCodes('&',
+                        Objects.requireNonNull(getMainConfig().getString("back", "&cBack"))));
 
         // Lore when you can buy the item
         Config.setBuyLore(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("buy-lore"))));
+                Objects.requireNonNull(getMainConfig().getString("buy-lore", "&fBuy: &c{amount}"))));
 
         // Lore when you can sell the item
         Config.setSellLore(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("sell-lore"))));
+                Objects.requireNonNull(getMainConfig().getString("sell-lore", "&fSell: &c{amount}"))));
 
         // Lore when you can buy the item for free
         Config.setFreeLore(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("free-lore"))));
+                Objects.requireNonNull(getMainConfig().getString("free-lore", "&fBuy: &aFREE"))));
 
         // Lore when you can't buy the item
         Config.setCannotBuy(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("cannot-buy"))));
+                Objects.requireNonNull(getMainConfig().getString("cannot-buy", "&cCannot buy"))));
 
         // Lore when you can't sell the item
         Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("cannot-sell"))));
+                Objects.requireNonNull(getMainConfig().getString("cannot-sell", "&cCannot sell"))));
 
         // Forward button display name
-        Config.setForwardPageButtonName(
-                ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("forward-page-button-name", "")));
+        Config.setForwardPageButtonName(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("forward-page-button-name", "&rNext page")));
 
         // Backward button display name
-        Config.setBackwardPageButtonName(
-                ChatColor.translateAlternateColorCodes('&', getMainConfig().getString("backward-page-button-name", "")));
+        Config.setBackwardPageButtonName(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("backward-page-button-name", "&rLastPage")));
+
+        // The material for the indicator
         Config.setAltSellIndicatorMaterial(getMainConfig().getString("alt-sell-indicator-material", "EMERALD"));
 
         // Alternate sell add item material
@@ -411,13 +422,13 @@ public final class GUIShop extends JavaPlugin {
         Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
 
         // If debug should be enabled
-        Config.setDebugMode(getMainConfig().getBoolean("debug-mode"));
+        Config.setDebugMode(getMainConfig().getBoolean("debug-mode", false));
 
         // The disabled worlds for GUIShop
         Config.setDisabledWorlds(getMainConfig().getStringList("disabled-worlds"));
 
         // Separate uuid of heads when selling
-        Config.setSellSkullUUID(!getMainConfig().contains("skull-uuid-selling") || getMainConfig().getBoolean("skull-uuid-selling"));
+        Config.setSellSkullUUID(!getMainConfig().contains("skull-uuid-selling") || getMainConfig().getBoolean("skull-uuid-selling", true));
 
         // Disables dynamic pricing if no provider was found
         if (Config.isDynamicPricing() && !setupDynamicPricing()) {
@@ -568,7 +579,7 @@ public final class GUIShop extends JavaPlugin {
     }
 
     public void reload(CommandSender sender, Boolean ignoreCreator) {
-        log("GUIShop Reloaded");
+        log("GUIShop reloaded");
 
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
@@ -601,8 +612,7 @@ public final class GUIShop extends JavaPlugin {
             // Unregisters previous command listener
             CommandsInterceptor.unregister();
         }
-        sendMessage(sender, Config.getPrefix() + " " + "&aGUIShop Reloaded");
-
+        sendMessage(sender, Config.getPrefix() + " " + "&aGUIShop reloaded");
     }
 
     public void loadCache() {
@@ -685,12 +695,12 @@ public final class GUIShop extends JavaPlugin {
     }
 
     public static void log(String input) {
-        GUIShop.getINSTANCE().getLogger().log(Level.INFO, ": {0}", input);
+        GUIShop.getINSTANCE().getLogger().log(Level.INFO, "LOG: {0}", input);
     }
 
     public static void debugLog(String input) {
         if (Config.isDebugMode()) {
-            GUIShop.getINSTANCE().getLogger().log(Level.INFO, "[DEBUG]: {0}", input);
+            GUIShop.getINSTANCE().getLogger().log(Level.INFO, "DEBUG: {0}", input);
         }
     }
 

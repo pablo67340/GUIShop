@@ -141,6 +141,12 @@
                             <include>shops.yml</include>
                             <include>menu.yml</include>
                             <include>cache.yml</include>
+                        </includes>
+                    </resource>
+                    <resource>
+                        <directory>${project.basedir}/resources/Dictionary</directory>
+                        <filtering>true</filtering>
+                        <includes>
                             <include>potion-names.txt</include>
                             <include>spawner-names.txt</include>
                             <include>material-names.txt</include>
@@ -155,8 +161,8 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.8.1</version>
                         <configuration>
-                            <source>11</source>
-                            <target>11</target>                                
+                            <source>1.8</source>
+                            <target>1.8</target>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -223,7 +229,7 @@
             <build>
                 <resources>
                     <resource>
-                        <directory>${project.basedir}</directory>
+                        <directory>${project.basedir}/resources</directory>
                         <filtering>true</filtering>
                         <includes>
                             <include>plugin.yml</include>

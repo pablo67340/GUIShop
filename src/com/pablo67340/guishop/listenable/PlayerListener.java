@@ -44,8 +44,10 @@ public final class PlayerListener implements Listener {
      * @param sender - The player the help text will be sent to
      */
     public void printUsage(CommandSender sender) {
-        GUIShop.sendMessage(sender, "&dG&9U&8I&3S&dh&9o&8p &3C&do&9m&8m&3a&dn&8d&3s&d:");
-        GUIShop.sendMessage(sender, "&7/guishop &eedit/e &0- &aOpens in Editor Mode");
+        GUIShop.sendMessage(sender, "&l&aGUIShop &l&fcommands:");
+        GUIShop.sendMessage(sender, "&a{required} &7- &a[optional]");
+        GUIShop.sendMessage(sender, "&o---------------------------");
+        GUIShop.sendMessage(sender, "&7/guishop &eedit/e [shop name] &0- &aOpens in Editor Mode");
         GUIShop.sendMessage(sender, "&7/guishop &eprice/p {price} &0- &aSet item in hand's buy price");
         GUIShop.sendMessage(sender, "&7/guishop &esell/s {price} &0- &aSet item in hand's sell price");
         GUIShop.sendMessage(sender, "&7/guishop &eshopname/sn {name} &0- &aSet item in hand's Shop-Name");
@@ -64,6 +66,7 @@ public final class PlayerListener implements Listener {
         GUIShop.sendMessage(sender, "&7/guishop &eec {lineNumber} {cmd} &0- &aEdit Command by line. Starts at 0");
         GUIShop.sendMessage(sender, "&7/guishop &emt {type} &0- &aSet an item's mob type. Used for Spawners/Eggs.");
         GUIShop.sendMessage(sender, "&7/guishop &et {type} &0- &aSet an item's type. BLANK, SHOP, COMMAND, DUMMY");
+        GUIShop.sendMessage(sender, "&o---------------------------");
     }
 
     // When the inventory closes
@@ -94,7 +97,6 @@ public final class PlayerListener implements Listener {
                         e.setCancelled(true);
                         player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
                     }
-
                 }
             }
         }
@@ -103,7 +105,7 @@ public final class PlayerListener implements Listener {
     /**
      * Custom MobSpawner placement method.
      *
-     * @param event - The event type we're listening to
+     * @param event The event type we're listening to
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
@@ -123,10 +125,10 @@ public final class PlayerListener implements Listener {
                     GUIShop.debugLog("Applying mob type " + mobId);
 
                     /*
-		    * Although valueOf is almost always safe here because
-		    * we used EntityType.name() when setting the NBT tag,
-		    * it's possible the user might change server versions,
-		    * in which case the EntityType enum may have changed.
+                     * Although valueOf is almost always safe here because
+                     * we used EntityType.name() when setting the NBT tag,
+                     * it's possible the user might change server versions,
+                     * in which case the EntityType enum may have changed.
                      */
                     try {
                         cs.setSpawnedType(EntityType.valueOf(mobId));
@@ -139,5 +141,4 @@ public final class PlayerListener implements Listener {
             }
         }
     }
-
 }

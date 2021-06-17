@@ -258,7 +258,6 @@ class Quantity {
         }
 
         buy(item, qty.get(e.getSlot()));
-
     }
 
     /**
@@ -271,7 +270,7 @@ class Quantity {
         }
     }
 
-    public void buy(Item item, Integer quantity) {
+    public void buy(Item item, int quantity) {
         if (!item.hasBuyPrice()) {
             player.sendMessage(Config.getPrefix() + " " + Config.getCantBuy());
             return;
@@ -279,18 +278,20 @@ class Quantity {
 
         // If the quantity is 0
         if (quantity == 0) {
-            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + item.calculateBuyPrice(1)
-                    + Config.getNotEnoughPost());
-            player.setItemOnCursor(new ItemStack(Material.AIR));
+            quantity = 1;
+        }
+
+        if (Material.getMaterial(item.getMaterial()).getMaxStackSize() < quantity) {
+            GUIShop.sendMessage(player, Config.getTooHighBuyQuantity());
             return;
         }
 
         BigDecimal priceToPay;
 
         /*
-	* If the map is empty, then the items purchased don't overflow the player's
-	* inventory. Otherwise, we need to reimburse the player (subtract it from
-	* priceToPay).
+         * If the map is empty, then the items purchased don't overflow the player's
+         * inventory. Otherwise, we need to reimburse the player (subtract it from
+         * priceToPay).
          */
         double priceToReimburse = 0D;
 
@@ -298,9 +299,9 @@ class Quantity {
 
         // sell price must be defined and nonzero for dynamic pricing to work
         if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
-
             String itemString = item.getItemString();
-            dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, quantity);
+            int finalQuantity = quantity;
+            dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, finalQuantity);
 
             priceToPay = GUIShop.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
@@ -311,13 +312,13 @@ class Quantity {
 
         // Check if the transition was successful
         if (GUIShop.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
-            // If the player has the sound enabled, play
-            // it!
+            // If the player has the sound enabled, play it
             if (Config.isSoundEnabled()) {
                 player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
             }
-            player.sendMessage(Config.getPrefix() + " " + Config.getPurchased() + priceToPay + Config.getTaken()
-                    + Config.getCurrencySuffix());
+
+            player.sendMessage(Config.getPrefix() + " " + Config.getPurchased() +
+                    Config.getCurrency() + priceToPay + Config.getCurrencySuffix() + Config.getTaken());
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
@@ -325,7 +326,8 @@ class Quantity {
 
             player.getInventory().addItem(item.toBuyItemStack(quantity, player, currentShop));
         } else {
-            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() + priceToPay + Config.getNotEnoughPost());
+            player.sendMessage(Config.getPrefix() + " " + Config.getNotEnoughPre() +
+                    Config.getCurrency() + priceToPay + Config.getCurrencySuffix() + Config.getNotEnoughPost());
         }
     }
 }

@@ -90,14 +90,17 @@ public class GUIShopCommand implements CommandExecutor {
             } else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
                 GUIShop.getCREATOR().add(player.getName());
                 GUIShop.debugLog("Added player to creator mode");
-                PlayerListener.INSTANCE.openShop(player);
 
                 if (args.length >= 2) {
                     Shop openShop = new Shop(player, args[1], new Menu(player));
                     openShop.loadItems(false);
                     if (!openShop.open(player)) {
                         GUIShop.sendMessage(player, "The shop &c" + args[1] + " &fdoesn't exist!");
+                    } else {
+                        PlayerListener.INSTANCE.openShop(player);
                     }
+                } else {
+                    PlayerListener.INSTANCE.openShop(player);
                 }
             } else if (args[0].equalsIgnoreCase("p") || args[0].equalsIgnoreCase("price")) {
                 Object result = null;

@@ -391,6 +391,8 @@ public final class Menu {
     private void onClose(InventoryCloseEvent e) {
         Player p = (Player) e.getPlayer();
 
-        GUIShop.getCREATOR().remove(p.getName());
+        if (!hasClicked) {
+            GUIShop.getCREATOR().remove(p.getName());
+        }
     }
 }

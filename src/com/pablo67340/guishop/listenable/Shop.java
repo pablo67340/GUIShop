@@ -301,7 +301,7 @@ public class Shop {
         /*
          * If the player has enough money to purchase the item, then allow them to.
          */
-        GUIShop.debugLog("Creator Status:" + GUIShop.getCREATOR().contains(player.getName()));
+        GUIShop.debugLog("Creator status:" + GUIShop.getCREATOR().contains(player.getName()));
 
         Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(e.getSlot()));
 
@@ -403,7 +403,7 @@ public class Shop {
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
                 ItemStack item = e.getInventory().getItem(e.getSlot());
                 if (item != null) {
-                    GUIShop.debugLog("new Item: " + item.getType());
+                    GUIShop.debugLog("New item: " + item.getType());
                     editShopItem(item, e.getSlot());
                 }
             }, 5L);
@@ -452,7 +452,7 @@ public class Shop {
             } else {
                 hasClicked = false;
             }
-        } else {
+        } else if (!hasClicked) {
             GUIShop.getCREATOR().remove(player.getName());
         }
     }

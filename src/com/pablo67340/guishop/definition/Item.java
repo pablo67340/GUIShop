@@ -677,7 +677,7 @@ public final class Item implements ConfigurationSerializable {
                     }
                     itemStack.setItemMeta(itemMeta);
                     NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-                    GUIShop.debugLog("USER IN CREATOR.Setting item Buy Price");
+                    GUIShop.debugLog("USER IN CREATOR.\nSetting item Buy price");
                     if (hasBuyPrice() && !isMenu) {
                         comp.setDouble("buyPrice", getBuyPriceAsDecimal().doubleValue());
                     }

@@ -130,14 +130,14 @@ class Quantity {
             ItemMeta itemMeta = itemStack.getItemMeta();
             List<String> lore = new ArrayList<>();
 
+            lore.add(item.getBuyLore(multiplier));
+            lore.add(item.getSellLore(multiplier));
+
             if (item.hasShopLore()) {
                 item.getShopLore().forEach(str -> {
                     lore.add(ChatColor.translateAlternateColorCodes('&', str));
                 });
             }
-
-            lore.add(item.getBuyLore(multiplier));
-            lore.add(item.getSellLore(multiplier));
 
             assert itemMeta != null;
             itemMeta.setLore(lore);

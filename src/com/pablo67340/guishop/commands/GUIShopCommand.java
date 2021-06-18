@@ -4,6 +4,7 @@ import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Shop;
@@ -67,7 +68,7 @@ public class GUIShopCommand implements CommandExecutor {
 
         if (args.length >= 1) {
             if (!(commandSender instanceof Player)) {
-                if (args[0].equalsIgnoreCase("reload")) {
+                if (args[0].equalsIgnoreCase("reload") || args[0].equalsIgnoreCase("r")) {
                     GUIShop.getINSTANCE().reload(commandSender, false);
                 } else {
                     GUIShop.sendMessage(commandSender, Config.getPrefix() + " " + "&4You can only run this command as a player!");
@@ -92,12 +93,39 @@ public class GUIShopCommand implements CommandExecutor {
                 GUIShop.debugLog("Added player to creator mode");
 
                 if (args.length >= 2) {
-                    Shop openShop = new Shop(player, args[1], new Menu(player));
+                    Shop openShop = new Shop(player, args[1], new Menu());
                     openShop.loadItems(false);
+
                     if (!openShop.open(player)) {
+                        if (args.length >= 3) {
+                            try {
+                                int page = Integer.parseInt(args[2]);
+                                ((ShopPane) openShop.currentPane.getPanes().toArray()[openShop.currentPane.getPage()]).setVisible(false);
+                                openShop.currentPane.setPage(page);
+                                ((ShopPane) openShop.currentPane.getPanes().toArray()[openShop.currentPane.getPage()]).setVisible(true);
+                                openShop.GUI.update();
+                            } catch (NumberFormatException numberFormatException) {
+                                GUIShop.sendMessage(player, "&fYour input &cmust be a number!");
+                            } catch (ArrayIndexOutOfBoundsException exception) {
+                                GUIShop.sendMessage(player, "&fYour input &cmust be &fa number between &c1 and " + openShop.currentPane.getPages() + "!");
+                            }
+                        }
                         GUIShop.sendMessage(player, "The shop &c" + args[1] + " &fdoesn't exist!");
                     } else {
-                        PlayerListener.INSTANCE.openShop(player);
+                        Menu menu = PlayerListener.INSTANCE.openShop(player);
+                        if (menu.hasMultiplePages()) {
+                            try {
+                                int page = Integer.parseInt(args[1]);
+                                ((ShopPane) openShop.currentPane.getPanes().toArray()[openShop.currentPane.getPage()]).setVisible(false);
+                                menu.currentPane.setPage(page);
+                                ((ShopPane) menu.currentPane.getPanes().toArray()[menu.currentPane.getPage()]).setVisible(true);
+                                menu.GUI.update();
+                            } catch (NumberFormatException numberFormatException) {
+                                GUIShop.sendMessage(player, "&fYour input &cmust be a number!");
+                            } catch (ArrayIndexOutOfBoundsException exception) {
+                                GUIShop.sendMessage(player, "&fYour input &cmust be &fa number between &c1 and " + menu.currentPane.getPages() + "!");
+                            }
+                        }
                     }
                 } else {
                     PlayerListener.INSTANCE.openShop(player);
@@ -167,6 +195,8 @@ public class GUIShopCommand implements CommandExecutor {
                         if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
                             hasValue = Boolean.parseBoolean(args[1]);
                             ItemUtil.setName(hasValue, player);
+                        } else {
+                            GUIShop.sendMessage(player, "&cYour input must be either true or false!");
                         }
                     } else {
                         ItemUtil.setName(line.toString(), player);
@@ -203,6 +233,8 @@ public class GUIShopCommand implements CommandExecutor {
                         if (args[1].equalsIgnoreCase("false") || args[1].equalsIgnoreCase("true")) {
                             hasValue = Boolean.parseBoolean(args[1]);
                             ItemUtil.setEnchantments(hasValue, player);
+                        } else {
+                            GUIShop.sendMessage(player, "&cYour input must be either true or false!");
                         }
                     } else {
                         ItemUtil.setEnchantments(enchantments.toString(), player);
@@ -333,7 +365,7 @@ public class GUIShopCommand implements CommandExecutor {
                 if (args.length == 2) {
                     ItemUtil.setTargetShop(args[1], player);
                 } else {
-                    player.sendMessage(Config.getPrefix() + " " + "Please specify a Target Shop");
+                    player.sendMessage(Config.getPrefix() + " " + "Please specify a target shop");
                 }
             } else if (args[0].equalsIgnoreCase("printnbt")) {
                 if (player.getEquipment().getItemInMainHand() != null) {
@@ -355,10 +387,8 @@ public class GUIShopCommand implements CommandExecutor {
                     if (args[1].equalsIgnoreCase("false")) {
                         ItemUtil.setNBT(null, player);
                     } else {
-
                         ItemUtil.setNBT(line.toString().trim(), player);
                     }
-
                 } else {
                     player.sendMessage(Config.getPrefix() + " " + "Please specify a custom NBT.");
                 }
@@ -368,7 +398,6 @@ public class GUIShopCommand implements CommandExecutor {
         } else {
             PlayerListener.INSTANCE.printUsage(commandSender);
         }
-
         return true;
     }
 }

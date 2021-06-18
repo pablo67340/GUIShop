@@ -31,7 +31,7 @@ public final class Menu {
      * The GUI that is projected onto the screen when a {@link Player} opens the
      * {@link Menu}.
      */
-    private Gui GUI;
+    public Gui GUI;
 
     private Boolean hasClicked = false;
 
@@ -41,9 +41,9 @@ public final class Menu {
 
     private final Player player;
 
-    Integer pageIndex = 0;
+    int pageIndex = 0;
 
-    private PaginatedPane currentPane;
+    public PaginatedPane currentPane;
 
     /**
      * A {@link Map} that will store our {@link Shop}s when the server first

@@ -43,13 +43,13 @@ public class Shop {
     /**
      * The list of {@link ShopPage}'s in this {@link Shop}.
      */
-    private Gui GUI;
+    public Gui GUI;
 
     private final Menu menuInstance;
 
     private Boolean hasClicked = false;
 
-    private PaginatedPane currentPane;
+    public PaginatedPane currentPane;
 
     private ShopItem shopItem;
 
@@ -383,7 +383,7 @@ public class Shop {
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
                 ItemStack item = e.getInventory().getItem(slot);
                 if (item != null) {
-                    GUIShop.debugLog("new Item: " + item.getType());
+                    GUIShop.debugLog("New item: " + item.getType());
                     editShopItem(item, slot);
                 }
             }, 5L);

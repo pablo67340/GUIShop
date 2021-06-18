@@ -10,6 +10,5 @@ import lombok.Data;
  */
 @Data
 public class ShopItem implements Cloneable {
-
     Map<String, ShopPage> pages = new LinkedHashMap<>();
 }

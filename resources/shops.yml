@@ -39,7 +39,12 @@
 # custom-model ~ OPT ~ Set custom Model ID of item for Resource Packs.    #
 # disable-qty ~ OPT ~ True/False if item uses Quantity Selector.          #
 # commands ~ Required only if type is COMMAND ~ List of commands to run.  #
-# #########################################################################
+###########################################################################
+#                        Looking for Item Names?                          #
+###########################################################################
+#                     See in the Dictionary folder                        #
+###########################################################################
+
 Raiding:
     title: '&4Raiding &bShop'
     pages:
@@ -3459,3 +3464,9 @@ Flowers:
                 '53':
                   id: RED_STAINED_GLASS_PANE
                   shop-name: ' '
+
+################################
+##  Developed by pablo67340   ##
+##  If you need any support:  ##
+##  discord.gg/zeVh2M9H8q     ##
+################################

@@ -60,5 +60,4 @@ public interface DynamicPriceProvider {
      * @param quantity the amount of the item which was sold
      */
     void sellItem(String item, int quantity);
-
 }

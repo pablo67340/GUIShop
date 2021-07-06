@@ -933,13 +933,12 @@ public final class Item implements ConfigurationSerializable {
             NBTItem fakeComp = new NBTItem(fakeItem);
             NBTContainer container = new NBTContainer(getNBT());
             fakeComp.mergeCompound(container);
-            
-            
+
             for (String key : tag.getKeys()) {
                 if (!fakeComp.hasKey(key)) {
                     return false;
-                }else{
-                    if (!fakeComp.equals(tag)){
+                } else {
+                    if (!fakeComp.equals(tag)) {
                         return false;
                     }
                 }

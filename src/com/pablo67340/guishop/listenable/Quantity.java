@@ -21,7 +21,6 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.definition.Item;
@@ -31,7 +30,6 @@ import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.util.ConfigUtil;
 import com.pablo67340.guishop.util.SkullCreator;
 import java.math.BigDecimal;
-import java.util.Map.Entry;
 
 import lombok.Getter;
 import org.bukkit.inventory.ItemFlag;
@@ -226,10 +224,6 @@ class Quantity {
         GUI.addPane(page);
 
         return this;
-    }
-
-    private Boolean spellCheck(String type, String t) {
-        return type.contains(t);
     }
 
     /**

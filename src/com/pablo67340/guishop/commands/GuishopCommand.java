@@ -1,7 +1,5 @@
 package com.pablo67340.guishop.commands;
 
-
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;

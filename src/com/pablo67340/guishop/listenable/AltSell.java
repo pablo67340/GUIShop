@@ -10,8 +10,7 @@ import org.bukkit.inventory.ItemStack;
 
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.AltSellPane;
 import com.pablo67340.guishop.definition.Item;
@@ -49,14 +48,14 @@ public class AltSell {
     private GuiItem setQuantityAndGet(ItemStack item, int quantity, boolean isDecrease) {
         item.setAmount(quantity);
         ItemMeta im = item.getItemMeta();
-        if (isDecrease){
+        if (isDecrease) {
             im.setDisplayName(ConfigUtil.getAltSellDecreaseTitle().replace("{amount}", Integer.toString(quantity)));
-        }else{
+        } else {
             im.setDisplayName(ConfigUtil.getAltSellIncreaseTitle().replace("{amount}", Integer.toString(quantity)));
         }
-        
+
         item.setItemMeta(im);
-        
+
         return new GuiItem(item);
     }
 
@@ -110,9 +109,9 @@ public class AltSell {
 
     private void sell(Player player, ItemStack itemStack) {
         // remove IF's IF-uuid NBT tag
-        NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-        comp.remove("IF-uuid");
-        itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+        NBTItem comp = new NBTItem(itemStack);
+        comp.removeKey("IF-uuid");
+        itemStack = comp.getItem();
 
         Main.debugLog(itemStack.toString());
 

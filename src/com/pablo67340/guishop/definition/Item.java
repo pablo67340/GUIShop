@@ -10,11 +10,9 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.INBTBase;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.ConfigUtil;
@@ -413,12 +411,13 @@ public final class Item implements ConfigurationSerializable {
         if (isSpawnerItem(item)) {
 
             String mobType;
-            NBTTagCompound cmp = ItemNBTUtil.getTag(item);
-            if (cmp.hasKey("GUIShopSpawner")) {
-                mobType = cmp.getString("GUIShopSpawner");
+            NBTItem nbti = new NBTItem(item);
 
-            } else if (cmp.hasKey("BlockEntityTag")) {
-                NBTTagCompound subCmp = (NBTTagCompound) cmp.get("BlockEntityTag");
+            if (nbti.hasKey("GUIShopSpawner")) {
+                mobType = nbti.getString("GUIShopSpawner");
+
+            } else if (nbti.hasKey("BlockEntityTag")) {
+                NBTCompound subCmp = (NBTCompound) nbti.getCompound("BlockEntityTag");
                 mobType = subCmp.getString("EntityId").toUpperCase();
 
             } else {
@@ -490,7 +489,7 @@ public final class Item implements ConfigurationSerializable {
         Item item = new Item();
 
         if (itemStack != null) {
-            NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+            NBTItem comp = new NBTItem(itemStack);
             Main.debugLog(comp.toString());
             item.setMaterial(itemStack.getType().toString());
             item.setSlot(slot);
@@ -693,7 +692,7 @@ public final class Item implements ConfigurationSerializable {
                         itemMeta.setLore(itemLore);
                     }
                     itemStack.setItemMeta(itemMeta);
-                    NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
+                    NBTItem comp = new NBTItem(itemStack);
                     Main.debugLog("USER IN CREATOR.Setting item Buy Price");
                     if (hasBuyPrice() && !isMenu) {
                         comp.setDouble("buyPrice", getBuyPriceAsDecimal().doubleValue());
@@ -773,7 +772,7 @@ public final class Item implements ConfigurationSerializable {
                         comp.setString("commands", lor);
                     }
                     comp.setString("itemType", getItemType().toString());
-                    itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+                    itemStack = comp.getItem();
                 }
             }
 
@@ -808,26 +807,16 @@ public final class Item implements ConfigurationSerializable {
             itemStack.setItemMeta(itemMeta);
 
             if (hasNBT()) {
-                try {
-                    NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
-                    NBTTagCompound newComp = NbtParser.parse(getNBT());
-                    for (Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                        if (!newComp.hasKey(entry.getKey())) {
-                            newComp.set(entry.getKey(), entry.getValue());
-                        }
-                    }
-                    itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
-                    if (itemStack == null) {
-                        Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
-                        setResolveFailed("Item has Invalid Custom NBT");
-                        return getErrorStack();
-                    }
-
-                } catch (NbtParser.NbtParseException ex) {
+                NBTContainer container = new NBTContainer(getNBT());
+                NBTItem nbti = new NBTItem(itemStack);
+                nbti.mergeCompound(container);
+                itemStack = nbti.getItem();
+                if (itemStack == null) {
                     Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
                     setResolveFailed("Item has Invalid Custom NBT");
                     return getErrorStack();
                 }
+
             }
 
             if (hasPotion()) {
@@ -933,31 +922,29 @@ public final class Item implements ConfigurationSerializable {
             }
         }
         if (hasNBT()) {
-            try {
-                NBTTagCompound tag = ItemNBTUtil.getTag(input);
 
-                // We need to make a fake item, as Minecraft will
-                // automatically re-cast some of the NBTTag's do 
-                // more optimized object types. This will ensure
-                // everything is matching Minecraft's optimized tag casting.
-                ItemStack fakeItem = new ItemStack(input.getType());
-                fakeItem = ItemNBTUtil.setNBTTag(NbtParser.parse(getNBT()), fakeItem);
+            NBTItem tag = new NBTItem(input);
 
-                NBTTagCompound cTag = ItemNBTUtil.getTag(fakeItem);
-
-                for (Entry<String, INBTBase> entry : tag.getAllEntries().entrySet()) {
-                    if (!cTag.getAllEntries().containsKey(entry.getKey())) {
+            // We need to make a fake item, as Minecraft will
+            // automatically re-cast some of the NBTTag's do 
+            // more optimized object types. This will ensure
+            // everything is matching Minecraft's optimized tag casting.
+            ItemStack fakeItem = new ItemStack(input.getType());
+            NBTItem fakeComp = new NBTItem(fakeItem);
+            NBTContainer container = new NBTContainer(getNBT());
+            fakeComp.mergeCompound(container);
+            
+            
+            for (String key : tag.getKeys()) {
+                if (!fakeComp.hasKey(key)) {
+                    return false;
+                }else{
+                    if (!fakeComp.equals(tag)){
                         return false;
-                    } else {
-                        if (!cTag.getAllEntries().get(entry.getKey()).equals(entry.getValue())) {
-                            return false;
-                        }
                     }
                 }
-
-            } catch (NbtParser.NbtParseException ex) {
-                Main.debugLog("Error parsing NBT: " + ex.getMessage());
             }
+
         }
         if (hasSkullUUID() && ConfigUtil.isSellSkullUUID()) {
             SkullMeta sm = (SkullMeta) input.getItemMeta();
@@ -966,7 +953,7 @@ public final class Item implements ConfigurationSerializable {
             }
         }
         if (isMobSpawner()) {
-            NBTTagCompound tag = ItemNBTUtil.getTag(input);
+            NBTItem tag = new NBTItem(input);
             if (!tag.getString("GUIShopSpawner").equals(mobType)) {
                 return false;
             }
@@ -1080,25 +1067,22 @@ public final class Item implements ConfigurationSerializable {
                 String entityValue = type.name();
                 Main.debugLog("Attaching " + entityValue + " to purchased spawner");
 
-                NBTTagCompound tag = ItemNBTUtil.getTag(itemStack);
+                NBTItem tag = new NBTItem(itemStack);
                 tag.setString("GUIShopSpawner", entityValue);
-                itemStack = ItemNBTUtil.setNBTTag(tag, itemStack);
+                itemStack = tag.getItem();
             }
         }
         if (hasNBT()) {
-            try {
-                NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
-                NBTTagCompound newComp = NbtParser.parse(getNBT());
-                for (Entry<String, NBTWrappers.INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                    if (!newComp.hasKey(entry.getKey())) {
-                        newComp.set(entry.getKey(), entry.getValue());
-                    }
-                }
-                itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
-
-            } catch (NbtParser.NbtParseException ex) {
-                Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+            NBTContainer container = new NBTContainer(getNBT());
+            NBTItem nbti = new NBTItem(itemStack);
+            nbti.mergeCompound(container);
+            itemStack = nbti.getItem();
+            if (itemStack == null) {
+                Main.log("Error Parsing Custom NBT for Item: " + getMaterial() + " in Shop: " + shop + ". Please fix or remove custom-nbt value.");
+                setResolveFailed("Item has Invalid Custom NBT");
+                return getErrorStack();
             }
+
         }
         return itemStack;
     }
@@ -1111,7 +1095,7 @@ public final class Item implements ConfigurationSerializable {
      * @return Buy Price either Double/Int
      */
     public static BigDecimal getBuyPrice(ItemStack item) {
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (comp.hasKey("buyPrice")) {
             BigDecimal vl = BigDecimal.valueOf(comp.getDouble("buyPrice"));
@@ -1128,7 +1112,7 @@ public final class Item implements ConfigurationSerializable {
      * @return Sell Price either Double/Int
      */
     public static BigDecimal getSellPrice(ItemStack item) {
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (comp.hasKey("sellPrice")) {
             BigDecimal vl = BigDecimal.valueOf(comp.getDouble("sellPrice"));
@@ -1148,7 +1132,7 @@ public final class Item implements ConfigurationSerializable {
                 item.setMaterial((String) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("shop-name")) {
                 item.setShopName((String) entry.getValue());
-            }else if (entry.getKey().equalsIgnoreCase("disable-qty")) {
+            } else if (entry.getKey().equalsIgnoreCase("disable-qty")) {
                 item.setDisableQty((Boolean) entry.getValue());
             } else if (entry.getKey().equalsIgnoreCase("name")) {
                 item.setName((String) entry.getValue());
@@ -1231,7 +1215,7 @@ public final class Item implements ConfigurationSerializable {
         if (hasLore()) {
             serialized.put("lore", lore);
         }
-        if (isDisableQty()){
+        if (isDisableQty()) {
             serialized.put("disable-qty", disableQty);
         }
         if (hasBuyPrice()) {

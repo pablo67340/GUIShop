@@ -61,6 +61,8 @@ public class Shop {
 
     private Integer pageIndex = 0;
 
+    private Boolean loadFailed = false;
+
     /**
      * The constructor for a {@link Shop}.
      *
@@ -187,7 +189,6 @@ public class Shop {
             GUI.addPane(pane);
             this.currentPane = pane;
         }
-
     }
 
     public Boolean hasMultiplePages() {
@@ -244,21 +245,25 @@ public class Shop {
      * @param input The player the shop will open for.
      */
     public void open(Player input) {
-        // currentPane.setPage(0);
-        if (this.isShopMissing() || shop.equalsIgnoreCase("NONE")) {
-            return;
+        try {
+            Main.debugLog("Opening Loaded Shop");
+            if (this.isShopMissing() || shop.equalsIgnoreCase("NONE")) {
+                return;
+            }
+            GUI.show(input);
+            if (!Main.getCREATOR().contains(input.getName())) {
+                GUI.setOnTopClick(this::onShopClick);
+                GUI.setOnBottomClick((e) -> {
+                    e.setCancelled(true);
+                });
+            } else {
+                GUI.setOnBottomClick(this::creatorPlayerInventoryClick);
+                GUI.setOnTopClick(this::creatorTopInventoryClick);
+            }
+            GUI.setOnClose(this::onClose);
+        } catch (Exception ex) {
+            Main.debugLog("An error occured opening shop: " + ex.getMessage());
         }
-        GUI.show(input);
-        if (!Main.getCREATOR().contains(input.getName())) {
-            GUI.setOnTopClick(this::onShopClick);
-            GUI.setOnBottomClick((e) -> {
-                e.setCancelled(true);
-            });
-        } else {
-            GUI.setOnBottomClick(this::creatorPlayerInventoryClick);
-            GUI.setOnTopClick(this::creatorTopInventoryClick);
-        }
-        GUI.setOnClose(this::onClose);
 
     }
 

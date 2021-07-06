@@ -1,6 +1,8 @@
 package com.pablo67340.guishop.commands;
 
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
+
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemType;
@@ -14,7 +16,6 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.jetbrains.annotations.NotNull;
 
 public class GuishopCommand implements CommandExecutor {
 
@@ -50,7 +51,7 @@ public class GuishopCommand implements CommandExecutor {
     }
 
     @Override
-    public boolean onCommand(@NotNull CommandSender commandSender, @NotNull Command command, @NotNull String s, @NotNull String[] args) {
+    public boolean onCommand(CommandSender commandSender, Command command, String s, String[] args) {
 
         Main.debugLog("Checking if sender is op");
         if (!hasRequiredPermission(commandSender, (args.length >= 1) ? args[0] : null)) {
@@ -303,7 +304,8 @@ public class GuishopCommand implements CommandExecutor {
 
                 ItemStack item = player.getItemInHand();
                 if (item != null) {
-                    String message = "Printed NBT: " + ItemNBTUtil.getTag(item).toNBT().toString();
+                    NBTItem nbti = new NBTItem(item);
+                    String message = "Printed NBT: " + nbti.asNBTString();
                     Main.log(message);
                     player.sendMessage(message);
                 } else {

@@ -21,10 +21,9 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.INBTBase;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NbtParser;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.Main;
@@ -192,19 +191,14 @@ class Quantity {
             }
 
             if (item.hasNBT()) {
-                try {
-                    NBTTagCompound oldComp = ItemNBTUtil.getTag(itemStack);
-                    NBTTagCompound newComp = NbtParser.parse(item.getNBT());
-                    for (Entry<String, INBTBase> entry : oldComp.getAllEntries().entrySet()) {
-                        if (!newComp.hasKey(entry.getKey())) {
-                            newComp.set(entry.getKey(), entry.getValue());
-                        }
-                    }
-                    itemStack = ItemNBTUtil.setNBTTag(newComp, itemStack);
-
-                } catch (NbtParser.NbtParseException ex) {
-                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+                NBTContainer container = new NBTContainer(item.getNBT());
+                NBTItem nbti = new NBTItem(itemStack);
+                nbti.mergeCompound(container);
+                itemStack = nbti.getItem();
+                if (itemStack == null) {
+                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + item.getShop() + ". Please fix or remove custom-nbt value.");
                 }
+
             }
 
             GuiItem gItem = new GuiItem(itemStack);

@@ -54,6 +54,10 @@
             <url>https://mvn-repo.arim.space/lesser-gpl3/</url>
         </repository>
         <repository>
+            <id>abstract-repo</id>
+            <url>https://abstract.support/repo/</url>
+        </repository>
+        <repository>
             <id>jitpack.io</id>
             <url>https://jitpack.io</url>
         </repository>
@@ -99,14 +103,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.stefvanschie.inventoryframework</groupId>
-            <artifactId>IF</artifactId>
-            <version>0.5.12</version>
+            <groupId>com.github.stefvanschie</groupId>
+            <artifactId>inventoryframework</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -155,14 +159,34 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.8.1</version>
                         <configuration>
-                            <source>11</source>
-                            <target>11</target>                                
+                            <source>16</source>
+                            <target>16</target>
+                            <fork>true</fork>
+                            <compilerArgs>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
+                            </compilerArgs>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                    <version>1.18.20</version>
+                                </path>
+                            </annotationProcessorPaths>                         
                         </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
-                        <version>2.3</version>
+                        <version>3.3.0-SNAPSHOT</version>
                         <configuration>
                             <relocations>
                                 <relocation>
@@ -173,7 +197,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
-                                    <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
+                                    <include>com.github.stefvanschie:inventoryframework:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                 </includes>
@@ -252,7 +276,7 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
-                        <version>2.3</version>
+                        <version>3.3.0-SNAPSHOT</version>
                         <configuration>
                             <relocations>
                                 <relocation>
@@ -263,7 +287,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
-                                    <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
+                                    <include>com.github.stefvanschie:inventoryframework:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                 </includes>
@@ -336,7 +360,7 @@
                         <artifactId>minecraft-server-plugin</artifactId>
                         <version>1.0.2</version>
                         <configuration>
-                            <serverVersion>1.16.5</serverVersion>
+                            <serverVersion>1.17</serverVersion>
                             <createEula>true</createEula>
                             <gui>true</gui>
                         </configuration>

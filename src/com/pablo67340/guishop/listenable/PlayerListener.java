@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.listenable;
 
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import java.util.Objects;
 
 import org.bukkit.*;
@@ -15,9 +16,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
-
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 
 import com.pablo67340.guishop.Main;
 import com.pablo67340.guishop.definition.Item;
@@ -109,7 +107,7 @@ public final class PlayerListener implements Listener {
         ItemStack item = event.getItemInHand();
         if (Item.isSpawnerItem(item)) {
 
-            NBTTagCompound cmp = ItemNBTUtil.getTag(item);
+            NBTItem cmp = new NBTItem(item);
             if (cmp.hasKey("GUIShopSpawner")) {
 
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();

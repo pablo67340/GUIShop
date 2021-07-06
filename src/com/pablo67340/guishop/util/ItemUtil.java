@@ -2,6 +2,7 @@ package com.pablo67340.guishop.util;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,8 +12,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
 import java.math.BigDecimal;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Material;
@@ -65,20 +64,20 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (price instanceof BigDecimal) {
             comp.setDouble("buyPrice", ((BigDecimal) price).doubleValue());
         } else if (price instanceof Integer) {
             comp.setDouble("buyPrice", ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
-            comp.remove("buyPrice");
+            comp.removeKey("buyPrice");
         } else {
             player.sendMessage(
                     ConfigUtil.getPrefix() + " Pleas enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -132,20 +131,20 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (price instanceof BigDecimal) {
             comp.setDouble("sellPrice", ((BigDecimal) price).doubleValue());
         } else if (price instanceof Integer) {
             comp.setDouble("sellPrice", ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
-            comp.remove("sellPrice");
+            comp.removeKey("sellPrice");
         } else {
             player.sendMessage(
                     ConfigUtil.getPrefix() + " Please enter valid data. Accepted Value Example: (0.0, 100.0, 100, false)");
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -200,15 +199,15 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (name instanceof Boolean) {
-            comp.remove("customNBT");
+            comp.removeKey("customNBT");
         } else {
             comp.setString("customNBT", (String) name);
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -267,15 +266,15 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (name instanceof Boolean) {
-            comp.remove("shopName");
+            comp.removeKey("shopName");
         } else {
             comp.setString("shopName", (String) name);
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -334,15 +333,15 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (name instanceof Boolean) {
-            comp.remove("name");
+            comp.removeKey("name");
         } else {
             comp.setString("name", (String) name);
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -405,15 +404,15 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         if (name instanceof Boolean) {
-            comp.remove("buyName");
+            comp.removeKey("buyName");
         } else {
             comp.setString("buyName", (String) name);
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -483,15 +482,15 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (enchantments instanceof Boolean) {
-            comp.remove("enchantments");
+            comp.removeKey("enchantments");
 
         } else {
             comp.setString("enchantments", (String) enchantments);
         }
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -527,7 +526,7 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("shopLoreLines")) {
             line = comp.getString("shopLoreLines") + "::" + line;
         }
@@ -565,10 +564,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         comp.setString("shopLoreLines", line);
-        ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
+        ItemStack fnl = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(fnl);
@@ -607,7 +606,7 @@ public final class ItemUtil {
         line = ChatColor.translateAlternateColorCodes('&', line);
 
         String preParsedLine = "";
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("shopLoreLines")) {
             preParsedLine = comp.getString("shopLoreLines");
         }
@@ -648,13 +647,13 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
         comp.setString("shopLoreLines", fnl);
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -690,7 +689,7 @@ public final class ItemUtil {
         }
 
         String preParsedLine = "";
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("shopLoreLines")) {
             preParsedLine = comp.getString("shopLoreLines");
         }
@@ -731,13 +730,13 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
         comp.setString("shopLoreLines", fnl);
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -774,7 +773,7 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("buyLoreLines")) {
             line = comp.getString("buyLoreLines") + "::" + line;
         }
@@ -812,10 +811,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         comp.setString("buyLoreLines", line);
-        ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
+        ItemStack fnl = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(fnl);
@@ -854,7 +853,7 @@ public final class ItemUtil {
         line = ChatColor.translateAlternateColorCodes('&', line);
 
         String preParsedLine = "";
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("buyLoreLines")) {
             preParsedLine = comp.getString("buyLoreLines");
         }
@@ -895,13 +894,13 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
         comp.setString("buyLoreLines", fnl);
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -937,7 +936,7 @@ public final class ItemUtil {
         }
 
         String preParsedLine = "";
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("buyLoreLines")) {
             preParsedLine = comp.getString("buyLoreLines");
         }
@@ -978,13 +977,13 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
         comp.setString("buyLoreLines", fnl);
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -1037,11 +1036,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         comp.setString("itemType", type);
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -1072,7 +1071,7 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("commands")) {
             line = comp.getString("commands") + "::" + line;
         }
@@ -1110,9 +1109,9 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
         comp.setString("commands", line);
-        ItemStack fnl = ItemNBTUtil.setNBTTag(comp, item);
+        ItemStack fnl = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(fnl);
@@ -1148,7 +1147,7 @@ public final class ItemUtil {
         }
 
         String preParsedLine = "";
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("commands")) {
             preParsedLine = comp.getString("commands");
         }
@@ -1189,13 +1188,13 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
         comp.setString("commands", fnl);
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -1229,7 +1228,7 @@ public final class ItemUtil {
         }
 
         String preParsedLine = "";
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
         if (comp.hasKey("commands")) {
             preParsedLine = comp.getString("commands");
         }
@@ -1270,13 +1269,13 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = ItemNBTUtil.getTag(item);
+        comp = new NBTItem(item);
 
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
         comp.setString("commands", fnl);
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -1331,11 +1330,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         comp.setString("mobType", type);
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);
@@ -1385,11 +1384,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTTagCompound comp = ItemNBTUtil.getTag(item);
+        NBTItem comp = new NBTItem(item);
 
         comp.setString("targetShop", type);
 
-        item = ItemNBTUtil.setNBTTag(comp, item);
+        item = comp.getItem();
 
         if (XMaterial.isNewVersion()) {
             player.getInventory().setItemInMainHand(item);

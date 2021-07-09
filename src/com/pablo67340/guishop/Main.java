@@ -37,6 +37,7 @@ import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.RowChart;
 import java.io.InputStream;
 import java.math.BigDecimal;
 import java.nio.file.Files;
@@ -126,6 +127,8 @@ public final class Main extends JavaPlugin implements CommandExecutor {
      * The current sell command
      */
     private SellCommand sellCommand = null;
+    
+    public static RowChart rowchart = new RowChart();
 
     @Override
     public void onEnable() {

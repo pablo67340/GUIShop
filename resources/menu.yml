@@ -15,8 +15,6 @@
 ###########################################################################
 
 Menu:
-    backButtonSlot: 47
-    nextButtonSlot: 51
     pages:
         Page0:
             items:
@@ -414,5 +412,5 @@ Menu:
   ################################
   ##  Developed by pablo67340   ##
   ##  If you need any support:  ##
-  ##  discord.gg/zeVh2M9H8q     ##
+  ##  discord.gg/XQb2Y2jBCa     ##
   ################################

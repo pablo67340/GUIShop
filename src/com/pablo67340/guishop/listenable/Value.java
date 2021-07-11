@@ -2,7 +2,6 @@ package com.pablo67340.guishop.listenable;
 
 import java.util.*;
 
-import com.pablo67340.guishop.util.Config;
 import org.bukkit.*;
 import org.bukkit.entity.Player;
 import com.github.stefvanschie.inventoryframework.Gui;
@@ -60,34 +59,32 @@ public class Value {
         ShopPage page = new ShopPage();
         int index = 0;
         if (!GUIShop.getINSTANCE().getITEMTABLE().containsKey(targetMaterial)) {
-            player.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&2This item is not sellable."));
+            GUIShop.sendPrefix(player, "value.doesnt-exist");
             return;
         }
 
         for (Item item : GUIShop.getINSTANCE().getITEMTABLE().get(targetMaterial)) {
-            GUIShop.debugLog("Reading Item Value: " + item.getMaterial());
+            GUIShop.debugLog("Reading item value: " + item.getMaterial());
             page.getItems().put(Integer.toString(index), item);
             index += 1;
         }
         GUIShop.debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
         shopItem.getPages().put("Page" + shopItem.getPages().size(), page);
-
         loadShop();
-
     }
 
     private void loadShop() {
         if (this.GUI == null || this.GUI.getItems().isEmpty()) {
             if (this.hasMultiplePages()) {
                 this.GUI = new Gui(GUIShop.getINSTANCE(), 6,
-                        ChatColor.translateAlternateColorCodes('&', "&2Item Values"));
+                        ChatColor.translateAlternateColorCodes('&', "&2Item values"));
             } else {
                 int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
                 if (rows == 0) {
                     rows = 1;
                 }
                 this.GUI = new Gui(GUIShop.getINSTANCE(), rows,
-                        ChatColor.translateAlternateColorCodes('&', "&2Item Values"));
+                        ChatColor.translateAlternateColorCodes('&', "&2Item values"));
             }
             PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
             Collection<ShopPage> shopPages = shopItem.getPages().values();
@@ -97,10 +94,8 @@ public class Value {
                     GuiItem gItem = new GuiItem(item.toItemStack(player, false));
                     shopPage.addItem(gItem);
                 }
-
                 pane.addPane(pageIndex, shopPage);
                 pageIndex += 1;
-
             }
 
             GUI.addPane(pane);
@@ -118,9 +113,7 @@ public class Value {
      */
     public void open() {
         GUI.show(player);
-
         GUI.setOnTopClick((e) -> e.setCancelled(true));
-
         GUI.setOnBottomClick((e) -> e.setCancelled(true));
     }
 }

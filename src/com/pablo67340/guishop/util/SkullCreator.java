@@ -123,14 +123,14 @@ public class SkullCreator {
 
                     GUIShop.getINSTANCE().getCacheConfig().set("player-heads." + uuid, skin_base64);
 
-                    Thread t1 = new Thread(() -> {
+                    Thread thread = new Thread(() -> {
                         try {
                             GUIShop.getINSTANCE().getCacheConfig().save(GUIShop.getINSTANCE().getCachef());
                         } catch (IOException ex) {
                             GUIShop.debugLog("Error saving player-heads to cache: " + ex.getMessage());
                         }
                     });
-                    t1.start();
+                    thread.start();
 
                     return skin_base64;
                 }

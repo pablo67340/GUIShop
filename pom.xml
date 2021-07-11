@@ -77,8 +77,27 @@
             <id>minecraft-repo</id>
             <url>https://libraries.minecraft.net/</url>
         </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
+        <repository>
+            <id>abstract-repo</id>
+            <url>https://abstract.support/repo/</url>
+        </repository>
+        <repository>
+            <id>codemc-repo</id>
+            <url>https://repo.codemc.org/repository/maven-public/</url>
+            <layout>default</layout>
+        </repository>
     </repositories>
     <dependencies>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.10.9</version>
+            <scope>provided</scope>
+        </dependency>
         <dependency>
             <groupId>com.mojang</groupId>
             <artifactId>authlib</artifactId>
@@ -88,7 +107,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.17-R0.1-SNAPSHOT</version>
+            <version>1.16.5-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!--Bukkit API -->
@@ -99,14 +118,14 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>com.github.stefvanschie.inventoryframework</groupId>
-            <artifactId>IF</artifactId>
-            <version>0.5.12</version>
+            <groupId>com.github.stefvanschie</groupId>
+            <artifactId>inventoryframework</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.12</version>
+            <version>1.18.20</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -118,6 +137,12 @@
             <groupId>com.google.code.findbugs</groupId>
             <artifactId>jsr305</artifactId>
             <version>3.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>de.tr7zw</groupId>
+            <artifactId>item-nbt-api</artifactId>
+            <version>2.8.0</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>                
@@ -141,6 +166,7 @@
                             <include>shops.yml</include>
                             <include>menu.yml</include>
                             <include>cache.yml</include>
+                            <include>README.txt</include>
                         </includes>
                     </resource>
                     <resource>
@@ -154,6 +180,14 @@
                             <include>item-flags.txt</include>
                         </includes>
                     </resource>
+                    <resource>
+                        <directory>${project.basedir}/resources/Data</directory>
+                        <filtering>true</filtering>
+                        <includes>
+                            <include>cache.yml</include>
+                            <include>inventories.yml</include>
+                        </includes>
+                    </resource>
                 </resources>
                 <plugins>
                     <plugin>
@@ -161,14 +195,34 @@
                         <artifactId>maven-compiler-plugin</artifactId>
                         <version>3.8.1</version>
                         <configuration>
-                            <source>1.8</source>
-                            <target>1.8</target>
+                            <source>16</source>
+                            <target>16</target>
+                            <fork>true</fork>
+                            <compilerArgs>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.comp=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.model=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.processing=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED</arg>
+                                <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.jvm=ALL-UNNAMED</arg>
+                            </compilerArgs>
+                            <annotationProcessorPaths>
+                                <path>
+                                    <groupId>org.projectlombok</groupId>
+                                    <artifactId>lombok</artifactId>
+                                    <version>1.18.20</version>
+                                </path>
+                            </annotationProcessorPaths>
                         </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
-                        <version>2.3</version>
+                        <version>3.2.1</version>
                         <configuration>
                             <relocations>
                                 <relocation>
@@ -179,7 +233,8 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
-                                    <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
+                                    <include>com.github.stefvanschie:inventoryframework:jar:</include>
+                                    <include>de.tr7zw.chageme:nbtapi:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                 </includes>
@@ -269,7 +324,7 @@
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
-                                    <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
+                                    <include>com.github.stefvanschie.inventoryframework:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                 </includes>
@@ -342,7 +397,7 @@
                         <artifactId>minecraft-server-plugin</artifactId>
                         <version>1.0.2</version>
                         <configuration>
-                            <serverVersion>1.16.5</serverVersion>
+                            <serverVersion>1.17</serverVersion>
                             <createEula>true</createEula>
                             <gui>true</gui>
                         </configuration>

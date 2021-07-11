@@ -9,16 +9,18 @@
 #                options such as: shop-name, buy-name,                    #
 #                   shop-lore, buy-lore and commands.                     #
 #                                                                         #
-#  {ITEM_SHOP_NAME} - The declared shop-name.                             #
-#  {ITEM_BUY_NAME} - The declared buy-name.                               #
-#  {PLAYER_NAME} - Name of player who clicks shop item. Only Supports     #
+#  %item_shop_name% - The declared shop-name.                             #
+#  %item_buy_name% - The declared buy-name.                               #
+#  %player_name% - Name of player who clicks shop item. Only Supports     #
 #  buy-lore, buy-name, commands.                                          #
-#  {PLAYER_UUID} - UUID of player who clicks shop item. Only Supports     #
+#  %player_uuid% - UUID of player who clicks shop item. Only Supports     #
 #  buy-lore, buy-name, commands.                                          #
-#  {BUY_PRICE} - The declared buy-price of the item.                      #
-#  {SELL_PRICE} - The declared sell-price of the item.                    #
-#  {CURRENCY_SYMBOL} - The declared symbol in config.yml                   #
-#  {CURRENCY_SUFFIX} - The declared suffix in config.yml                  #
+#  %player_world% - World name of player who clicks shop item.            #
+#  Only Supports buy-lore, buy-name, commands.                            #
+#  %buy_price% - The declared buy-price of the item.                      #
+#  %sell_price% - The declared sell-price of the item.                    #
+#  %currency_symbol% - The declared symbol in messages.yml                #
+#  %currency_suffix% - The declared suffix in messages.yml                #
 ###########################################################################
 #                    Available Item Fields & Their Purpose:               #
 #                      REQ = REQUIRED, OPT = OPTIONAL.                    #
@@ -110,12 +112,12 @@ Raiding:
                 '19':
                   type: COMMAND
                   id: PISTON
-                  shop-name: '&4Example Command Item (Suicide)'
+                  shop-name: '&4Example command item (Kill)'
                   buy-price: 100.0
                   sell-price: 50.2
                   commands: 
-                    - 'kill {PLAYER_NAME}'
-                    - 'broadcast {PLAYER_NAME} Tested the Suicide Item'
+                    - 'kill %player_name%'
+                    - 'broadcast %player_name% Tested the Suicide Item'
                 '20':
                   type: SHOP
                   id: REDSTONE_BLOCK
@@ -3468,5 +3470,5 @@ Flowers:
 ################################
 ##  Developed by pablo67340   ##
 ##  If you need any support:  ##
-##  discord.gg/zeVh2M9H8q     ##
+##  discord.gg/XQb2Y2jBCa     ##
 ################################

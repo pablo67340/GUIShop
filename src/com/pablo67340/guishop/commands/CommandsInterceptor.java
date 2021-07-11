@@ -58,5 +58,4 @@ public class CommandsInterceptor implements Listener {
             evt.setCancelled(true);
         }
     }
-
 }

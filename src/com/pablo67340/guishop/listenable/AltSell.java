@@ -1,22 +1,21 @@
 package com.pablo67340.guishop.listenable;
 
 import com.cryptomorin.xseries.XMaterial;
-import java.util.Map;
-
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.definition.AltSellPane;
+import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.config.Config;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
-
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.ItemNBTUtil;
-import com.github.stefvanschie.inventoryframework.shade.mininbt.NBTWrappers.NBTTagCompound;
-import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.definition.AltSellPane;
-import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.util.Config;
 import org.bukkit.inventory.meta.ItemMeta;
+
+import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class AltSell {
 
@@ -33,26 +32,26 @@ public class AltSell {
 
     public AltSell(Item subjectItem) {
         this.subjectItem = subjectItem;
-        gui = new Gui(GUIShop.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellTitle()));
+        gui = new Gui(GUIShop.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellConfig().getTitle()));
         indicatorItem = new Item();
-        indicatorItem.setMaterial(Config.getAltSellIndicatorMaterial());
+        indicatorItem.setMaterial(Config.getAltSellConfig().getIndicatorMaterial());
         addItem = new Item();
-        addItem.setMaterial(Config.getAltSellAddMaterial());
+        addItem.setMaterial(Config.getAltSellConfig().getAddMaterial());
         removeItem = new Item();
-        removeItem.setMaterial(Config.getAltSellRemoveMaterial());
+        removeItem.setMaterial(Config.getAltSellConfig().getRemoveMaterial());
         confirmItem = new Item();
-        confirmItem.setMaterial(Config.getAltSellConfirmMaterial());
+        confirmItem.setMaterial(Config.getAltSellConfig().getConfirmMaterial());
         cancelItem = new Item();
-        cancelItem.setMaterial(Config.getAltSellCancelMaterial());
+        cancelItem.setMaterial(Config.getAltSellConfig().getCancelMaterial());
     }
 
     private GuiItem setQuantityAndGet(ItemStack item, int quantity, boolean isDecrease) {
         item.setAmount(quantity);
         ItemMeta im = item.getItemMeta();
         if (isDecrease){
-            im.setDisplayName(Config.getAltSellDecreaseTitle().replace("{amount}", Integer.toString(quantity)));
+            im.setDisplayName(Config.getAltSellConfig().getDecreaseTitle().replace("%amount%", Integer.toString(quantity)));
         }else{
-            im.setDisplayName(Config.getAltSellIncreaseTitle().replace("{amount}", Integer.toString(quantity)));
+            im.setDisplayName(Config.getAltSellConfig().getIncreaseTitle().replace("%amount%", Integer.toString(quantity)));
         }
         
         item.setItemMeta(im);
@@ -62,27 +61,41 @@ public class AltSell {
 
     public void open(Player player) {
         if (!player.hasPermission("guishop.sell")) {
-            player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
+            GUIShop.sendPrefix(player, "no-permission");
             return;
         }
-        GuiItem gItem = new GuiItem(XMaterial.matchXMaterial(subjectItem.getMaterial()).get().parseItem());
-        GuiItem gIndicator = new GuiItem(XMaterial.matchXMaterial(indicatorItem.getMaterial()).get().parseItem());
-        GuiItem gAddItem = new GuiItem(XMaterial.matchXMaterial(addItem.getMaterial()).get().parseItem());
-        GuiItem gRemoveItem = new GuiItem(XMaterial.matchXMaterial(removeItem.getMaterial()).get().parseItem());
-        GuiItem gConfirmItem = new GuiItem(XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem());
-        GuiItem gCancelItem = new GuiItem(XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem());
+
+        GuiItem gItem;
+        GuiItem gIndicator;
+        GuiItem gAddItem;
+        GuiItem gRemoveItem;
+        GuiItem gConfirmItem;
+        GuiItem gCancelItem;
+
+        try {
+            gItem = new GuiItem(XMaterial.matchXMaterial(subjectItem.getMaterial()).get().parseItem());
+            gIndicator = new GuiItem(XMaterial.matchXMaterial(indicatorItem.getMaterial()).get().parseItem());
+            gAddItem = new GuiItem(XMaterial.matchXMaterial(addItem.getMaterial()).get().parseItem());
+            gRemoveItem = new GuiItem(XMaterial.matchXMaterial(removeItem.getMaterial()).get().parseItem());
+            gConfirmItem = new GuiItem(XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem());
+            gCancelItem = new GuiItem(XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem());
+        } catch (NoSuchElementException | NullPointerException exception) {
+            GUIShop.log("One or more of the materials you defined in the alt sell GUI are not valid.");
+            return;
+        }
+
         if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null && gCancelItem != null) {
             GuiItem[] addRemoveItems = new GuiItem[6];
             ItemStack addItemstack = gAddItem.getItem();
-            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity1(), false);
-            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity2(), false);
-            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellQuantity3(), false);
+            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellConfig().getQuantity1(), false);
+            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellConfig().getQuantity2(), false);
+            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellConfig().getQuantity3(), false);
             ItemStack removeItemstack = gRemoveItem.getItem();
-            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellQuantity1(), true);
-            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellQuantity2(), true);
-            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellQuantity3(), true);
+            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellConfig().getQuantity1(), true);
+            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellConfig().getQuantity2(), true);
+            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellConfig().getQuantity3(), true);
             pane = new AltSellPane(gItem, addRemoveItems, gIndicator,
-                    Item.renameGuiItem(gConfirmItem, Config.getAltSellConfirmName()), Item.renameGuiItem(gCancelItem, Config.getAltSellCancelName()));
+                    Item.renameGuiItem(gConfirmItem, Config.getAltSellConfig().getConfirmName()), Item.renameGuiItem(gCancelItem, Config.getAltSellConfig().getCancelName()));
             pane.setSubjectQuantity(1);
             pane.setIndicatorName(subjectItem.getSellLore(1));
             gui.addPane(pane);
@@ -109,9 +122,9 @@ public class AltSell {
 
     private void sell(Player player, ItemStack itemStack) {
         // remove IF's IF-uuid NBT tag
-        NBTTagCompound comp = ItemNBTUtil.getTag(itemStack);
-        comp.remove("IF-uuid");
-        itemStack = ItemNBTUtil.setNBTTag(comp, itemStack);
+        NBTItem comp = new NBTItem(itemStack);
+        comp.removeKey("IF-uuid");
+        itemStack = comp.getItem();
 
         GUIShop.debugLog(itemStack.toString());
 
@@ -123,34 +136,37 @@ public class AltSell {
             if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
                 GUIShop.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
             }
+
+            GUIShop.transactionLog(
+                    "Player " + player.getName() + " sold " + amount + " items (1 different) for " + subjectItem.calculateSellPrice(amount) + ". Item: \n" + itemStack.getType());
         } else {
             ItemStack addBack = result.get(0).clone();
             addBack.setAmount(amount - addBack.getAmount());
             if (addBack.getAmount() > 0) {
                 player.getInventory().addItem(addBack);
             }
-            player.sendMessage(Config.getPrefix() + " " + Config.getAltSellNotEnough().replace("{amount}", Integer.toString(amount)));
+            GUIShop.sendPrefix(player, "alt-sell-not-enough", amount);
         }
     }
 
-    private void onClick(InventoryClickEvent evt) {
-        evt.setCancelled(true);
-        switch (evt.getSlot()) {
+    private void onClick(InventoryClickEvent event) {
+        event.setCancelled(true);
+        switch (event.getSlot()) {
             case 18:
             case 19:
             case 20:
-                changeQuantity(evt.getCurrentItem().getAmount());
+                changeQuantity(event.getCurrentItem().getAmount());
                 break;
             case 24:
             case 25:
             case 26:
-                changeQuantity(-evt.getCurrentItem().getAmount());
+                changeQuantity(-event.getCurrentItem().getAmount());
                 break;
             case 48:
-                sell((Player) evt.getWhoClicked(), evt.getInventory().getItem(13));
+                sell((Player) event.getWhoClicked(), event.getInventory().getItem(13));
                 break;
             case 50:
-                evt.getWhoClicked().closeInventory();
+                event.getWhoClicked().closeInventory();
                 break;
             default:
                 break;

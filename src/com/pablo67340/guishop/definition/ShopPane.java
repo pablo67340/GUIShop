@@ -21,7 +21,6 @@ import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 
 public class ShopPane extends Pane {
-
     private final Map<Integer, GuiItem> items;
     @Getter
     private final Map<Integer, ItemStack> dummies;

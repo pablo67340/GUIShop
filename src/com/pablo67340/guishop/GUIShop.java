@@ -1,9 +1,9 @@
 package com.pablo67340.guishop;
 
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSound;
 import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.commands.*;
-import com.pablo67340.guishop.commands.CommandsInterceptor;
 import com.pablo67340.guishop.definition.CommandsMode;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.MenuItem;
@@ -12,13 +12,17 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.messages.MessageSystem;
+import com.pablo67340.guishop.config.Config;
+import com.pablo67340.guishop.util.RowChart;
 import lombok.Getter;
 import lombok.Setter;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
@@ -30,6 +34,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -37,9 +42,12 @@ import java.math.BigDecimal;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public final class GUIShop extends JavaPlugin {
 
@@ -47,13 +55,13 @@ public final class GUIShop extends JavaPlugin {
      * The overridden config file objects.
      */
     @Getter
-    private File configf, shopf, menuf, cachef, dictionaryf;
+    private File configf, shopf, menuf, cachef, dictionaryf, inventoryf, messagesf;
 
     /**
      * The configs FileConfiguration object.
      */
     @Getter
-    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig;
+    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig;
 
     /**
      * An instance Vault's Economy.
@@ -109,21 +117,25 @@ public final class GUIShop extends JavaPlugin {
      * starts.
      */
     @Getter
-    public static final List<String> CREATOR = new ArrayList<>();
+    public static final List<UUID> CREATOR = new ArrayList<>();
 
-    /**
-     * The current buy command
-     */
+    public static final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
+
+    public static final RowChart rowChart = new RowChart();
+
+    public MessageSystem messageSystem, configSystem;
+
     private BuyCommand buyCommand = null;
 
-    /**
-     * The current sell command
-     */
     private SellCommand sellCommand = null;
 
     @Override
     public void onEnable() {
         INSTANCE = this;
+        messageSystem = new MessageSystem(this);
+        messageSystem.generateDefaults(getClassLoader().getResourceAsStream("messages.yml"));
+        configSystem = new MessageSystem(this);
+        configSystem.generateDefaults(getClassLoader().getResourceAsStream("config.yml"));
         createFiles();
 
         if (!setupEconomy()) {
@@ -135,7 +147,6 @@ public final class GUIShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
         getServer().getPluginCommand("guishop").setExecutor(new GUIShopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new UserCommand());
-        getServer().getPluginCommand("value").setExecutor(new ValueCommand());
     }
 
     /**
@@ -149,10 +160,6 @@ public final class GUIShop extends JavaPlugin {
         if (onlyUnregister && buyCommand == null && sellCommand == null) {
             // Nothing is registered, no need to do anything
             return;
-        }
-
-        if (Config.isDebugMode()) {
-            getLogger().log(Level.INFO, "Registering/unregistering commands {0} and {1}", new Object[]{StringUtils.join(GUIShop.BUY_COMMANDS, "|"), StringUtils.join(GUIShop.SELL_COMMANDS, "|")});
         }
 
         try {
@@ -174,12 +181,19 @@ public final class GUIShop extends JavaPlugin {
                 return;
             }
 
-            // Register new commands
-            buyCommand = new BuyCommand(new ArrayList<>(GUIShop.BUY_COMMANDS));
-            commandMap.register(buyCommand.getName(), buyCommand);
+            // Register buy commands if there are any
+            if (!GUIShop.BUY_COMMANDS.isEmpty()) {
+                debugLog("Registering/unregistering shop commands: " + StringUtils.join(GUIShop.BUY_COMMANDS, ", "));
+                buyCommand = new BuyCommand(new ArrayList<>(GUIShop.BUY_COMMANDS));
+                commandMap.register(buyCommand.getName(), buyCommand);
+            }
 
-            sellCommand = new SellCommand(new ArrayList<>(GUIShop.SELL_COMMANDS));
-            commandMap.register(sellCommand.getName(), sellCommand);
+            // Register sell commands if there are any
+            if (!GUIShop.SELL_COMMANDS.isEmpty()) {
+                debugLog("Registering/unregistering sell commands: " + StringUtils.join(GUIShop.SELL_COMMANDS, ", "));
+                sellCommand = new SellCommand(new ArrayList<>(GUIShop.SELL_COMMANDS));
+                commandMap.register(sellCommand.getName(), sellCommand);
+            }
         } catch (IllegalAccessException | NoSuchFieldException e) {
             log("Error registering commands: " + e.getMessage());
         }
@@ -228,7 +242,7 @@ public final class GUIShop extends JavaPlugin {
     }
 
     /**
-     * Load all deault config values, translate colors, store.
+     * Load all default config values, translate colors, store.
      */
     public void loadDefaults() {
         if (getMainConfig() == null) {
@@ -237,60 +251,29 @@ public final class GUIShop extends JavaPlugin {
         }
 
         // All buy commands
-        BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
+        if (getMainConfig().get("buy-commands") instanceof List) {
+            BUY_COMMANDS.addAll(getMainConfig().getStringList("buy-commands"));
+        } else {
+            BUY_COMMANDS.add(getMainConfig().getString("buy-commands"));
+        }
 
         // All sell commands
-        SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
+        if (getMainConfig().get("sell-commands") instanceof List) {
+            SELL_COMMANDS.addAll(getMainConfig().getStringList("sell-commands"));
+        } else {
+            SELL_COMMANDS.add(getMainConfig().getString("sell-commands"));
+        }
 
         // The command mode GUIShop should use
         Config.setCommandsMode(CommandsMode.parseFromConfig(getMainConfig().getString("commands-mode", "REGISTER")));
 
-        // The prefix for GUIShop
-        Config.setPrefix(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("prefix", "&f[&cGUIShop&f]"))));
 
         // Signs only?
         Config.setSignsOnly(getMainConfig().getBoolean("signs-only", false));
 
         // The title for signs
-        Config.setSignTitle(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("sign-title", "&f[&cGUIShop&f]"))));
-
-        // Message for not enough money - pre
-        Config.setNotEnoughPre(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("not-enough-pre", "&fYou need &c"))));
-
-        // Message for not enough money - post
-        Config.setNotEnoughPost(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("not-enough-post", "&f to purchase this!"))));
-
-        // Message for buying - pre
-        Config.setPurchased(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("purchased", "&fA purchase was made, and &c"))));
-
-        // Message for buying - post
-        Config.setTaken(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("taken", "&f was taken from your account."))));
-
-        // Message for selling - pre
-        Config.setSold(ChatColor.translateAlternateColorCodes('&',
-                        Objects.requireNonNull(getMainConfig().getString("sold", "&fYour items were sold, and &a"))));
-
-        // Message for selling - post
-        Config.setAdded(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("added", "&f was added to your account."))));
-
-        // Message if something cant sell
-        Config.setCantSell(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("cant-sell-message", "&f({count}) item(s) failed to sell and have been returned to your inventory."))));
-
-        // Message if something cant buy
-        Config.setCantBuy(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("cant-buy-message", "&fSorry, you are not able to buy that item."))));
-
-        // Message when a player tries to buy more items than allowed
-        Config.setTooHighBuyQuantity(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("too-high-quantity", "&fYou can't buy more than &c{max} &fitems of that type!"))));
+        Config.getTitlesConfig().setSignTitle(ChatColor.translateAlternateColorCodes('&',
+                Objects.requireNonNull(getMainConfig().getString("titles.sign", "&f[&cGUIShop&f]"))));
 
         // Disable the back button
         Config.setDisableBackButton(getMainConfig().getBoolean("disable-back-button", true));
@@ -305,118 +288,69 @@ public final class GUIShop extends JavaPlugin {
         Config.setAlternateSellEnabled(getMainConfig().getBoolean("alternate-sell-enable", false));
 
         // The sound when buying something
-        Config.setSound(getMainConfig().getString("purchase-sound", "ENTITY_PLAYER_LEVELUP"));
+        try {
+            XSound.matchXSound(getMainConfig().getString("purchase-sound", "ENTITY_PLAYER_LEVELUP")).get().parseSound();
+            Config.setSound(getMainConfig().getString("purchase-sound", "ENTITY_PLAYER_LEVELUP"));
+        } catch (NoSuchElementException | NullPointerException exception) {
+            Config.setSound("ENTITY_PLAYER_LEVELUP");
+            log("&cThe buy sound input in the config.yml is NOT valid! \n&fCurrent: &c" +
+                    getMainConfig().getString("purchase-sound", "ENTITY_PLAYER_LEVELUP") + " &f| Using default: &cENTITY_PLAYER_LEVELUP");
+        }
 
         // If the sound should be enabled
         Config.setSoundEnabled(getMainConfig().getBoolean("enable-sound", true));
 
-        // The message sent when your inventory is too full
-        Config.setFull(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("full-inventory", "&cPlease empty your inventory!"))));
-
-        // The message sent when the user doesn't have the correct permission
-        Config.setNoPermission(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("no-permission", "&cNo permission!"))));
-
-        // Currency prefix
-        Config.setCurrency(Objects.requireNonNull(getMainConfig().getString("currency", "$")));
-
-        // Currency suffix
-        Config.setCurrencySuffix(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("currency-suffix", ""))));
-
         // Menu title
-        Config.setMenuTitle(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("menu-title", "Menu")));
+        Config.getTitlesConfig().setMenuTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("titles.menu", "Menu")));
 
         // Menu title when there are multiple pages
-        Config.setMenuShopPageNumber(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("menu-shop-pagenumber", "&f> Page: &e{number}")));
+        Config.getTitlesConfig().setMenuShopPageNumber(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("titles.menu-shop-pagenumber", "&f> Page: &e%number%")));
 
         // Shop title
-        Config.setShopTitle(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("shop-title", "Menu &f> &r{shopname}")));
+        Config.getTitlesConfig().setShopTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("titles.shop", "Menu &f> &r%shopname%")));
 
         // Sell title
-        Config.setSellTitle(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("sell-title", "Menu &f> &rSell")));
+        Config.getTitlesConfig().setSellTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("titles.sell", "Menu &f> &rSell")));
 
         // Alternate sell title
-        Config.setAltSellTitle(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("alt-sell-title", "Menu &f> &rSell")));
+        Config.getAltSellConfig().setTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("titles.alt-sell", "Menu &f> &rSell")));
 
         // Quantity title
-        Config.setQtyTitle(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("qty-title"))));
-
-        // Back button item
-        Config.setBackButtonItem(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("back-button-item"))));
-
-        // Back button display name
-        Config.setBackButtonText(
-                ChatColor.translateAlternateColorCodes('&',
-                        Objects.requireNonNull(getMainConfig().getString("back", "&cBack"))));
-
-        // Lore when you can buy the item
-        Config.setBuyLore(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("buy-lore", "&fBuy: &c{amount}"))));
-
-        // Lore when you can sell the item
-        Config.setSellLore(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("sell-lore", "&fSell: &c{amount}"))));
-
-        // Lore when you can buy the item for free
-        Config.setFreeLore(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("free-lore", "&fBuy: &aFREE"))));
-
-        // Lore when you can't buy the item
-        Config.setCannotBuy(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("cannot-buy", "&cCannot buy"))));
-
-        // Lore when you can't sell the item
-        Config.setCannotSell(ChatColor.translateAlternateColorCodes('&',
-                Objects.requireNonNull(getMainConfig().getString("cannot-sell", "&cCannot sell"))));
-
-        // Forward button display name
-        Config.setForwardPageButtonName(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("forward-page-button-name", "&rNext page")));
-
-        // Backward button display name
-        Config.setBackwardPageButtonName(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("backward-page-button-name", "&rLastPage")));
+        Config.getTitlesConfig().setQtyTitle(ChatColor.translateAlternateColorCodes('&',
+                Objects.requireNonNull(getMainConfig().getString("titles.qty"))));
 
         // The material for the indicator
-        Config.setAltSellIndicatorMaterial(getMainConfig().getString("alt-sell-indicator-material", "EMERALD"));
+        Config.getAltSellConfig().setIndicatorMaterial(getMainConfig().getString("alt-sell.indicator-material", "EMERALD"));
 
         // Alternate sell add item material
-        Config.setAltSellAddMaterial(getMainConfig().getString("alt-sell-add-material", "GREEN_STAINED_GLASS_PANE"));
+        Config.getAltSellConfig().setAddMaterial(getMainConfig().getString("alt-sell.add-material", "GREEN_STAINED_GLASS_PANE"));
 
         // Alternate sell remove item material
-        Config.setAltSellRemoveMaterial(getMainConfig().getString("alt-sell-remove-material", "RED_STAINED_GLASS_PANE"));
+        Config.getAltSellConfig().setRemoveMaterial(getMainConfig().getString("alt-sell.remove-material", "RED_STAINED_GLASS_PANE"));
 
         // Alternate sell quantities
-        Config.setAltSellQuantity1(getMainConfig().getInt("alt-sell-quantity-1", 1));
-        Config.setAltSellQuantity2(getMainConfig().getInt("alt-sell-quantity-2", 10));
-        Config.setAltSellQuantity3(getMainConfig().getInt("alt-sell-quantity-3", 64));
+        Config.getAltSellConfig().setQuantity1(getMainConfig().getInt("alt-sell.quantity-1", 1));
+        Config.getAltSellConfig().setQuantity2(getMainConfig().getInt("alt-sell.quantity-2", 10));
+        Config.getAltSellConfig().setQuantity3(getMainConfig().getInt("alt-sell.quantity-3", 64));
 
         // Alternate sell confirm item material
-        Config.setAltSellConfirmMaterial(getMainConfig().getString("alt-sell-confirm-material", "EMERALD_BLOCK"));
+        Config.getAltSellConfig().setConfirmMaterial(getMainConfig().getString("alt-sell.confirm-material", "EMERALD_BLOCK"));
 
         // Alternate sell cancel item material
-        Config.setAltSellCancelMaterial(getMainConfig().getString("alt-sell-cancel-material", "REDSTONE_BLOCK"));
+        Config.getAltSellConfig().setCancelMaterial(getMainConfig().getString("alt-sell.cancel-material", "REDSTONE_BLOCK"));
 
         // Alternate sell confirm item display name
-        Config.setAltSellConfirmName(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("alt-sell-confirm-name", "&a&lConfirm")));
+        Config.getAltSellConfig().setConfirmName(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("alt-sell.confirm-name", "&a&lConfirm")));
 
         // Alternate sell cancel item display name
-        Config.setAltSellCancelName(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("alt-sell-cancel-name", "&c&lCancel")));
-
-        // Alternate sell not enough items message
-        Config.setAltSellNotEnough(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("alt-sell-not-enough", "&cYou do not have enough items to sell.")));
+        Config.getAltSellConfig().setCancelName(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("alt-sell.cancel-name", "&c&lCancel")));
 
         // If dynamic pricing should be enabled
         Config.setDynamicPricing(getMainConfig().getBoolean("dynamic-pricing", false));
@@ -437,12 +371,15 @@ public final class GUIShop extends JavaPlugin {
         }
 
         // Increase item display name
-        Config.setAltSellIncreaseTitle(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("alt-sell-increase-title", "&aIncrease quantity by {amount}")));
+        Config.getAltSellConfig().setIncreaseTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("alt-sell.increase-title", "&aIncrease quantity by %amount%")));
 
         // Decrease item display name
-        Config.setAltSellDecreaseTitle(ChatColor.translateAlternateColorCodes('&',
-                getMainConfig().getString("alt-sell-decrease-title", "&aDecrease quantity by {amount}")));
+        Config.getAltSellConfig().setDecreaseTitle(ChatColor.translateAlternateColorCodes('&',
+                getMainConfig().getString("alt-sell.decrease-title", "&aDecrease quantity by %amount%")));
+
+        // If the transaction logging to the console should be enabled
+        Config.setTransactionLog(getMainConfig().getBoolean("transaction-log"));
 
         // Register commands
         if (Config.getCommandsMode() == CommandsMode.INTERCEPT) {
@@ -450,17 +387,66 @@ public final class GUIShop extends JavaPlugin {
         } else {
             registerCommands(false);
         }
+
+        // Load the buttons
+        Config.getButtonConfig().createButtons();
+
+        // Load the lores
+        Map<String, String> lores = new ConcurrentHashMap<>();
+
+        for (Map.Entry<String, Object> entry : getMainConfig().getConfigurationSection("lores").getValues(false).entrySet()) {
+            lores.put(entry.getKey(), ChatColor.translateAlternateColorCodes('&', entry.getValue().toString()));
+        }
+
+        Config.getLoreConfig().lores.putAll(lores);
+    }
+
+    public void handleMessages() {
+        messagesf = new File(getDataFolder(), "messages.yml");
+        if (!messagesf.exists()) {
+            messagesf.getParentFile().mkdirs();
+            saveResource("messages.yml", false);
+        }
+
+        messagesConfig = new YamlConfiguration();
+        try {
+            messagesConfig.load(messagesf);
+            messageSystem.saveDefaultMessages(messagesConfig, false);
+            messagesConfig.save(messagesf);
+            messageSystem.loadCustomMessages(messagesConfig);
+        } catch (IOException | InvalidConfigurationException exception) {
+            log("Error Messages config: " + exception.getMessage());
+        }
     }
 
     /**
      * Force create all YML files.
      */
     public void handleConfig() {
+        // New way to handle
         configf = new File(getDataFolder(), "config.yml");
         if (!configf.exists()) {
             configf.getParentFile().mkdirs();
             saveResource("config.yml", false);
         }
+
+        mainConfig = new YamlConfiguration();
+        try {
+            mainConfig.load(configf);
+            configSystem.saveDefaultMessages(mainConfig, false);
+            mainConfig.save(configf);
+            configSystem.loadCustomMessages(mainConfig);
+        } catch (IOException | InvalidConfigurationException exception) {
+            log("Error main config: " + exception.getMessage());
+        }
+
+        // Deprecated
+        configf = new File(getDataFolder(), "config.yml");
+        if (!configf.exists()) {
+            configf.getParentFile().mkdirs();
+            saveResource("config.yml", false);
+        }
+
         mainConfig = new YamlConfiguration();
         try {
             mainConfig.load(configf);
@@ -476,12 +462,13 @@ public final class GUIShop extends JavaPlugin {
             shopf.getParentFile().mkdirs();
             saveResource("shops.yml", false);
         }
+
         shopConfig = new YamlConfiguration();
         try {
             shopConfig.load(shopf);
             warmup();
         } catch (IOException | InvalidConfigurationException e) {
-            log("Error loading Shop Config: " + e.getMessage());
+            log("Error loading Shop config: " + e.getMessage());
         }
     }
 
@@ -491,6 +478,7 @@ public final class GUIShop extends JavaPlugin {
             menuf.getParentFile().mkdirs();
             saveResource("menu.yml", false);
         }
+
         menuConfig = new YamlConfiguration();
         try {
             menuConfig.load(menuf);
@@ -500,13 +488,13 @@ public final class GUIShop extends JavaPlugin {
     }
 
     public void handleCacheConfig() {
-        cachef = new File(getDataFolder(), "cache.yml");
+        cachef = new File(getDataFolder(), "/Data/cache.yml");
         if (!cachef.exists()) {
             cachef.getParentFile().mkdirs();
-            saveResource("cache.yml", false);
+            copy("cache.yml", getClass().getClassLoader().getResourceAsStream("cache.yml"), cachef.getPath());
         }
-        cacheConfig = new YamlConfiguration();
 
+        cacheConfig = new YamlConfiguration();
         try {
             cacheConfig.load(cachef);
             loadCache();
@@ -515,22 +503,51 @@ public final class GUIShop extends JavaPlugin {
         }
     }
 
+    public void handleInventoryConfig() {
+        inventoryf = new File(getDataFolder().getPath(), "/Data/inventories.yml");
+        if (!inventoryf.exists()) {
+            inventoryf.getParentFile().mkdirs();
+            copy("inventories.yml", getClass().getClassLoader().getResourceAsStream("inventories.yml"), inventoryf.getPath());
+        }
+
+        inventoryConfig = new YamlConfiguration();
+        try {
+            inventoryConfig.load(inventoryf);
+        } catch (IOException | InvalidConfigurationException e) {
+            log("Error loading Inventories config: " + e.getMessage());
+        }
+    }
+
     public void handleDictionary() {
         dictionaryf = new File(getDataFolder().getPath() + "/Dictionary");
         if (!dictionaryf.exists()) {
             dictionaryf.mkdirs();
+        }
 
-            File potionDest = new File(dictionaryf.getPath() + "/potion-names.txt");
-            File spawnerDest = new File(dictionaryf.getPath() + "/spawner-names.txt");
-            File materialsDest = new File(dictionaryf.getPath() + "/material-names.txt");
-            File enchantmentDest = new File(dictionaryf.getPath() + "/enchantment-names.txt");
-            File flagDest = new File(dictionaryf.getPath() + "/item-flags.txt");
+        File potionDest = new File(dictionaryf.getPath() + "/potion-names.txt");
+        File spawnerDest = new File(dictionaryf.getPath() + "/spawner-names.txt");
+        File materialsDest = new File(dictionaryf.getPath() + "/material-names.txt");
+        File enchantmentDest = new File(dictionaryf.getPath() + "/enchantment-names.txt");
+        File flagDest = new File(dictionaryf.getPath() + "/item-flags.txt");
+        File readmeDest = new File(getDataFolder().getPath() + "/README.txt");
 
+        if (!potionDest.exists()) {
             copy("potion-names.txt", getClass().getClassLoader().getResourceAsStream("potion-names.txt"), potionDest.getPath());
+        }
+        if (!spawnerDest.exists()) {
             copy("spawner-names.txt", getClass().getClassLoader().getResourceAsStream("spawner-names.txt"), spawnerDest.getPath());
+        }
+        if (!materialsDest.exists()) {
             copy("material-names.txt", getClass().getClassLoader().getResourceAsStream("material-names.txt"), materialsDest.getPath());
+        }
+        if (!enchantmentDest.exists()) {
             copy("enchantment-names.txt", getClass().getClassLoader().getResourceAsStream("enchantment-names.txt"), enchantmentDest.getPath());
+        }
+        if (!flagDest.exists()) {
             copy("item-flags.txt", getClass().getClassLoader().getResourceAsStream("item-flags.txt"), flagDest.getPath());
+        }
+        if (!readmeDest.exists()) {
+            copy("README.txt", getClass().getClassLoader().getResourceAsStream("README.txt"), readmeDest.getPath());
         }
     }
 
@@ -542,8 +559,10 @@ public final class GUIShop extends JavaPlugin {
         new Thread(this::handleConfig).start();
         new Thread(this::handleCacheConfig).start();
         new Thread(this::handleDictionary).start();
+        new Thread(this::handleMessages).start();
         new Thread(this::handleMenuConfig).start();
         new Thread(this::handleShopsConfig).start();
+        new Thread(this::handleInventoryConfig).start();
     }
 
     /**
@@ -555,7 +574,6 @@ public final class GUIShop extends JavaPlugin {
      */
     public void copy(String name, InputStream source, String destination) {
         debugLog("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/" + name);
-
         try {
             Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
@@ -612,7 +630,7 @@ public final class GUIShop extends JavaPlugin {
             // Unregisters previous command listener
             CommandsInterceptor.unregister();
         }
-        sendMessage(sender, Config.getPrefix() + " " + "&aGUIShop reloaded");
+        sendPrefix(sender, "reload.execute");
     }
 
     public void loadCache() {
@@ -666,42 +684,131 @@ public final class GUIShop extends JavaPlugin {
     }
 
     public static String placeholderIfy(String input, Player player, Item item) {
-        String str = input;
+        String string = input;
+        
+        if (item.hasShopName()) {
+            string = string.replace("%item_shop_name%", item.getShopName());
+        } else {
+            string = string.replace("%item_shop_name%", XMaterial.matchXMaterial(item.getMaterial()).get().name());
+        }
+        
+        if (item.hasBuyName()) {
+            string = string.replace("%item_buy_name%", item.getBuyName());
+        } else {
+            string = string.replace("%item_buy_name%", XMaterial.matchXMaterial(item.getMaterial()).get().name());
+        }
+        
+        if (item.hasBuyPrice()) {
+            string = string.replace("%buy_price%", item.calculateBuyPrice(1).toPlainString());
+        }
+        
+        if (item.hasSellPrice()) {
+            string = string.replace("%sell_price%", item.calculateSellPrice(1).toPlainString());
+        }
+        
+        string = string.replace("%currency_symbol%", getINSTANCE().messageSystem.translate("currency-prefix"));
+        string = string.replace("%currency_suffix%", getINSTANCE().messageSystem.translate("currency-suffix"));
 
         if (player != null) {
-            str = str.replace("{PLAYER_NAME}", player.getName());
-            str = str.replace("{PLAYER_UUID}", player.getUniqueId().toString());
-        }
-        if (item.hasShopName()) {
-            str = str.replace("{ITEM_SHOP_NAME}", item.getShopName());
-        } else {
-            str = str.replace("{ITEM_SHOP_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
-        }
-        if (item.hasBuyName()) {
-            str = str.replace("{ITEM_BUY_NAME}", item.getBuyName());
-        } else {
-            str = str.replace("{ITEM_BUY_NAME}", XMaterial.matchXMaterial(item.getMaterial()).get().name());
-        }
-        if (item.hasBuyPrice()) {
-            str = str.replace("{BUY_PRICE}", item.calculateBuyPrice(1).toPlainString());
-        }
-        if (item.hasSellPrice()) {
-            str = str.replace("{SELL_PRICE}", item.calculateSellPrice(1).toPlainString());
-        }
-        str = str.replace("{CURRENCY_SYMBOL}", Config.getCurrency());
-        str = str.replace("{CURRENCY_SUFFIX}", Config.getCurrencySuffix());
+            string = string.replace("%player_name%", player.getName());
+            string = string.replace("%player_uuid%", player.getUniqueId().toString());
+            string = string.replace("%player_world%", player.getLocation().getWorld().getName());
 
-        return str;
+            if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+                string = PlaceholderAPI.setPlaceholders(player, string);
+            }
+        }
+
+        return string;
     }
 
     public static void log(String input) {
         GUIShop.getINSTANCE().getLogger().log(Level.INFO, "LOG: {0}", input);
+
+        File file = new File("logs/main.log");
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                file.createNewFile();
+                write(file.getPath(), "LOG", input);
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while creating the main.log file!");
+                exception.printStackTrace();
+            }
+        }
     }
 
     public static void debugLog(String input) {
         if (Config.isDebugMode()) {
             GUIShop.getINSTANCE().getLogger().log(Level.INFO, "DEBUG: {0}", input);
         }
+
+        File file = new File("logs/debug.log");
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                file.createNewFile();
+                write(file.getPath(), "DEBUG", input);
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while creating the debug.log file!");
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    public static void transactionLog(String input) {
+        if (Config.isTransactionLog()) {
+            GUIShop.getINSTANCE().getLogger().log(Level.INFO, "TRANSACTION: {0}", input);
+        }
+
+        File file = new File("logs/transactions.log");
+        if (!file.exists()) {
+            file.getParentFile().mkdirs();
+            try {
+                file.createNewFile();
+                write(file.getPath(), "TRANSACTION", input);
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while creating the debug.log file!");
+                exception.printStackTrace();
+            }
+        }
+    }
+
+    /**
+     * Writes to the given log file with the current date
+     *
+     * @param filePath The path to the file
+     * @param prefix The prefix for the log
+     * @param message The log message
+     */
+    public static void write(String filePath, String prefix, String message) {
+        Bukkit.getScheduler().runTaskAsynchronously(GUIShop.getINSTANCE(), () -> {
+            FileWriter writer;
+            try {
+                writer = new FileWriter(filePath);
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while trying to write to the debug.log file!");
+                exception.printStackTrace();
+                return;
+            }
+
+            Calendar calendar = Calendar.getInstance();
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_NOW);
+
+            try {
+                writer.write("[" + simpleDateFormat.format(calendar.getTime()) + "] " + prefix + ": " + message);
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while trying to write to the debug.log file!");
+                exception.printStackTrace();
+                return;
+            }
+
+            try {
+                writer.close();
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while trying to close  the debug.log writer!");
+            }
+        });
     }
 
     /**
@@ -712,5 +819,43 @@ public final class GUIShop extends JavaPlugin {
      */
     public static void sendMessage(CommandSender commandSender, String message) {
         commandSender.sendMessage(ChatColor.translateAlternateColorCodes('&', message));
+    }
+
+    /**
+     * Sends a message to the sender with the translated path and optional placeholders
+     *
+     * @param sender The receiver
+     * @param path The path to the message
+     * @param params Optional, the placeholder replacements
+     */
+    public static void sendPrefix(CommandSender sender, String path, Object... params) {
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', getINSTANCE().messageSystem.translate("messages.prefix") + " " + getINSTANCE().messageSystem.translate("messages" + path, params)));
+    }
+
+    /**
+     * Sends a message to the sender with the prefix from the config
+     *
+     * @param sender The sender the message should be sent to
+     * @param message The message the sender should receive
+     */
+    public static void sendMessagePrefix(CommandSender sender, String message) {
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', getINSTANCE().messageSystem.translate("messages.prefix") + " " + ChatColor.translateAlternateColorCodes('&', message)));
+    }
+
+    /**
+     * A little helper to check if a players main hand is AIR
+     *
+     * @param player The player that the check should be ran on
+     * @return If the main hand is null
+     */
+    public static boolean isMainHandNull(Player player) {
+        if (XMaterial.isNewVersion()) {
+            if (player.getEquipment() != null) {
+                return player.getEquipment().getItemInMainHand().getType() == Material.AIR;
+            }
+        } else {
+            return player.getItemInHand().getType() == Material.AIR;
+        }
+        return true;
     }
 }

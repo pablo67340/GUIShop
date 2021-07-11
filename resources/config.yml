@@ -9,10 +9,6 @@
 ##                                       | |    ##
 ##                                       |_|    ##
 ##################################################
-
-# Tag in chat before text in chat from shop. e.g [GUIShop] Purchase Successful.
-prefix: '&f[&cGUIShop&f]'
-
 # Command used to open shop, DON'T PUT A /
 buy-commands: 
     - 'buy'
@@ -34,14 +30,6 @@ sell-commands:
 ##     Of course, the /guishopuser commands will still work.
 commands-mode: 'REGISTER'
 
-############ Language settings ###############
-
-# No permission message
-no-permission: '&cNo permission!'
-
-# Disabled world message
-disabled-world: '&cYou cannot use the shop from this world!'
-
 # Disables the physical back button that appears in the shop inventory.
 disable-back-button: true
 
@@ -51,93 +39,11 @@ disable-escape-back: false
 # Disables the escape to go back for the quantity inventory. (If the upper one is disabled, this is disabled too)
 disable-escape-back-quantity: true
 
-# Rightclick an item in the shop to open an alternate sell GUI
+# Right-click an item in the shop to open an alternate sell GUI
 alternate-sell-enable: false
-
-# The message for the amount you lose, E.G Cost, Or Price
-cost: '&7Price'
-
-# The message for the amount you get back AKA. Sell or Returned
-return: '&7Sell'
-
-# The 1st line of the message on shop items
-line1: '&8To sell, click the item in your inventory.'
-
-# The 2nd line of the message on shop items
-line2: '&6Must be the same quantity!'
-
-# The 3rd line of the message on shop items
-line3: 'Click to buy item of quantity'
-
-# The 4th line of the message on shop items
-line4: 'Shift+Click to buy 1 item'
-
-# The text back button in the shops
-back: '&cBack'
-
-# The item the back button will be!
-back-button-item: 'RED_STAINED_GLASS_PANE'
-
-# The messaged displayed before the item amount.
-purchased: '&fA purchase was made, and &c'
-
-# The second message displayed when you purchase an item.
-# E.G 54$ Taken from your account.
-taken: '&f was taken from your account.'
-
-# The words displayed before the amount needed.
-not-enough-pre: '&fYou need &c'
-
-# The words displayed AFTER the amount needed.
-not-enough-post: '&f to purchase this!'
-
-# Text displayed before item name.
-sold: '&fYour items were sold, and &a'
-
-# Second message when buying, Words AFTER the amount
-# E.G 54$ "Added to your account"
-added: '&f was added to your account.'
-
-# When something magical goes wrong?
-something-wrong: '&fSomething went wrong, contact an admin.'
-
-# Message displayed when a player tries to sell blocks not matching the quantity.
-in-stacks: '&fPlease sell in stacks of &c'
-
-# Message when a player cannot sell a certain item.
-# {count} can be used to display the amount of non sellable, returned items.
-cant-sell-message: '&f({count}) item(s) failed to sell and have been returned to your inventory.'
-
-# Message when a player cannot buy a certain item.
-cant-buy-message: '&fSorry, you are not able to buy that item.'
-
-# When a player has a full inventory
-full-inventory: '&cPlease empty your inventory!'
-
-# When a player tries to buy more of an item than allowed.
-# Use {MAX} for the max quantity of the item
-too-high-quantity: '&fYou can''t buy more than &c{max} &fitems of that type!'
-
-# The currency symbol
-currency: '$'
-
-# The suffix after the currency. E.G Dollars. Yen, etc.
-currency-suffix: ''
-
-# The title of a sign that players can click to open shop
-sign-title: '&f[&cGUIShop&f]'
-
-# Do want players to be able to access the shop ONLY using the sign?
-signs-only: false
-
-# The message when it is enabled and a player tries to open it through a command
-signs-only-message: '&cYou can only access the shop by clicking a [&cGUIShop&f] sign!'
 
 # Enable sound on purchase
 enable-sound: true
-
-# Purchase sound effect (You can find them here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)
-purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 
 # Enable in-game creator.
 ingame-config: true
@@ -148,78 +54,161 @@ dynamic-pricing: false
 # Enable DEBUG mode
 debug-mode: false
 
-# The overall shop menu title.
-menu-title: "Menu {page-number}"
+# Enable transaction log mode (Logs buy/sell transactions into the console)
+transaction-log: false
 
-# The text displayed where {page-number} appears.
-menu-shop-pagenumber: "&f> Page: &e{number}"
+# Do want players to be able to access the shop ONLY using the sign?
+signs-only: false
 
-# The title of a specific shop inventory
-shop-title: "Menu &f> &r{shopname}"
+# The title of a sign that players can click to open shop
+sign-title: '&f[&cGUIShop&f]'
 
-# he title of the sell inventory
-sell-title: "Menu &f> &rSell"
+# Purchase sound effect (You can find them here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)
+purchase-sound: 'ENTITY_PLAYER_LEVELUP'
 
-# The title of the quantity inventory.
-qty-title: "&4Select Amount"
+# Item name when the type is a spawner with a mob type (is overwritten by anything else)
+spawner-name: '&c%type% &fSpawner'
 
-# The title of the alternate sell GUI, if enabled
-alt-sell-title: "Menu &f> &rSell"
+# All the buttons
+buttons:
+    # The back button
+    back:
+        id: 'RED_STAINED_GLASS_PANE'
+        shop-name: '&cBack'
+        name: '&cBack'
+        shop-lore: '&fGo back to the menu'
+        lore: '&fClose the menu'
+    # The forward button
+    forward:
+        id: 'ARROW'
+        shop-name: '&cNext page'
+        name: '&cNext page'
+        shop-lore: '&fGo to the next page'
+        lore: '&fGo to the next page'
+    # The backward button
+    backward:
+        id: 'ARROW'
+        shop-name: '&cPrevious page'
+        name: '&cPrevious page'
+        shop-lore: '&fGo to the previous page'
+        lore: '&fGo to the previous page'
 
-# The title of the message that says what commands you have access
-access-to: "&aAccess to Commands:"
 
-# The buy lore for an item
-buy-lore: "&fBuy: &c{amount}"
+# The titles for the GUIs
+titles:
+    # The overall shop menu title.
+    menu: "Menu %page-number%"
 
-# The sell lore for an item
-sell-lore: "&fSell: &c{amount}"
+    # The text displayed where %page-number% appears.
+    menu-shop-pagenumber: "&f> Page: &e%number%"
 
-# The buy lore when an item is free
-free-lore: "&fBuy: &aFREE"
+    # The title of a specific shop inventory
+    shop: "Menu &f> &r%shopname%"
 
-# The lore when you can't buy something
-cannot-buy: "&cCannot buy"
+    # he title of the sell inventory
+    sell: "Menu &f> &rSell"
 
-# The lore when you can't sell something
-cannot-sell: "&cCannot sell"
+    # The title of the quantity inventory.
+    qty: "&4Select amount"
 
-# The item name for the forward button
-forward-page-button-name: "&rNext page"
+    # The title of the alternate sell GUI, if enabled
+    alt-sell: "Menu &f> &rSell"
 
-# The item name for the backward button
-backward-page-button-name: "&rLast page"
+# Alt sell settings
+alt-sell:
+    # Used in the alternate sell GUI
+    indicator-material: 'GOLD_INGOT'
 
-# Used in the alternate sell GUI
-alt-sell-indicator-material: 'GOLD_INGOT'
+    # Item materials for the add and remove buttons
+    add-material: 'GREEN_STAINED_GLASS_PANE'
+    remove-material: 'RED_STAINED_GLASS_PANE'
 
-# Item materials for the add and remove buttons
-alt-sell-add-material: 'GREEN_STAINED_GLASS_PANE'
-alt-sell-remove-material: 'RED_STAINED_GLASS_PANE'
+    # The 3 different quantities for the buttons
+    quantity-1: 1
+    quantity-2: 10
+    quantity-3: 64
 
-# The 3 different quantities for the buttons
-alt-sell-quantity-1: 1
-alt-sell-quantity-2: 10
-alt-sell-quantity-3: 64
+    # The item names for the increase/decrease buttons. Use %amount% for the amount placeholder
+    increase-title: '&aIncrease quantity by %amount%'
+    decrease-title: '&cDecrease quantity by %amount%'
 
-# The item names for the increase/decrease buttons. Use {amount} for the amount placeholder
-alt-sell-increase-title: '&aIncrease quantity by {amount}'
-alt-sell-decrease-title: '&cDecrease quantity by {amount}'
+    # Materials for the confirm and cancel buttons
+    confirm-material: 'EMERALD_BLOCK'
+    cancel-material: 'REDSTONE_BLOCK'
 
-# Materials for the confirm and cancel buttons
-alt-sell-confirm-material: 'EMERALD_BLOCK'
-alt-sell-cancel-material: 'REDSTONE_BLOCK'
+    # Item names for the confirm and cancel buttons
+    confirm-name: '&a&lConfirm'
+    cancel-name: '&c&lCancel'
 
-# Item names for the confirm and cancel buttons
-alt-sell-confirm-name: '&a&lConfirm'
-alt-sell-cancel-name: '&c&lCancel'
-
-# If you don't have enough items to sell
-alt-sell-not-enough: '&cYou do not have {amount} such items to sell.'
+    # If you don't have enough items to sell
+    not-enough: '&cYou do not have %amount% such items to sell.'
 
 # Disabled worlds users cannot use GUIShop
 disabled-worlds:
-    - 'Test'
+    - 'SomeDisabledWorld'
+    - 'AnotherDisabledWorld'
+
+# Lores for the GUIs and commands
+lores:
+    # The buy lore for an item
+    buy: "&fBuy: &c%amount%"
+
+    # The sell lore for an item
+    sell: "&fSell: &c%amount%"
+
+    # The buy lore when an item is free
+    free: "&fBuy: &aFREE"
+
+    # The lore when you can't buy something
+    cannot-buy: "&cCannot buy"
+
+    # The lore when you can't sell something
+    cannot-sell: "&cCannot sell"
+
+    # The lore when there is nbt set
+    nbt: '&fNBT: &c%nbt%'
+
+    # The lore when there is a shop name set
+    shop-name: '&fShop-name: &c%name%'
+
+    # The lore when there is a name set
+    name: '&fName: &c%name%'
+
+    # The lore when there is a buy name set
+    buy-name: '&fBuy-name: &c%name%'
+
+    # The lore when there are enchantments set
+    enchantments: '&fEnchantments: &c%enchantments%'
+
+    # The lore when there is a shop lore
+    shop-lore: '&fShop-lore:'
+
+    # The lore when there is a buy lore
+    buy-lore: '&fBuy-lore:'
+
+    # The lore when there is a given lore
+    lore: '&fLore:'
+
+    # The lore when there is a type set
+    type: '&fItem-type: &c%type%'
+
+    # The lore when there are commands
+    commands: '&fCommands:'
+
+    # The lore when there is a mob type
+    mob-type: '&fMob-type: &c%type%'
+
+    # The lore when there is a target shop
+    target-shop: '&fTarget-shop: &c%shop%'
+
+    # The lore when there is potion info
+    potion-info: '&fPotion info: &c%info%'
+
+    # The lore when there is a skull uuid
+    skull-uuid: '&fSkull-uuid: &c%uuid%'
+
+    # The lore when disable quantity is set
+    disable-quantity: '&fDisable quantity: &c%disable%'
     
 # Enable if you want to separate each head by UUID when determining sell price.
 # Setting to false will make all heads worth the same amount. 
@@ -229,5 +218,5 @@ skull-uuid-selling: true
  ################################
  ##  Developed by pablo67340   ##
  ##  If you need any support:  ##
- ##  discord.gg/zeVh2M9H8q     ##
+ ##  discord.gg/XQb2Y2jBCa     ##
  ################################

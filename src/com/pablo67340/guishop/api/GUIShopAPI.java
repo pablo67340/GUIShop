@@ -6,11 +6,9 @@ import org.bukkit.inventory.ItemStack;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.config.Config;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * Officially supported API for interacting with GuiShop. <br>
@@ -62,9 +60,9 @@ public class GUIShopAPI {
         List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
-            for (Item itm : itemList) {
-                if (itm.isItemFromItemStack(item)) {
-                    shopItem = itm;
+            for (Item iterator : itemList) {
+                if (iterator.isItemFromItemStack(item)) {
+                    shopItem = iterator;
                 }
             }
         }
@@ -88,9 +86,9 @@ public class GUIShopAPI {
         List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
-            for (Item itm : itemList) {
-                if (itm.isItemFromItemStack(item)) {
-                    shopItem = itm;
+            for (Item iterator : itemList) {
+                if (iterator.isItemFromItemStack(item)) {
+                    shopItem = iterator;
                 }
             }
         }
@@ -112,9 +110,9 @@ public class GUIShopAPI {
         List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
-            for (Item itm : itemList) {
-                if (itm.isItemFromItemStack(item)) {
-                    shopItem = itm;
+            for (Item iterator : itemList) {
+                if (iterator.isItemFromItemStack(item)) {
+                    shopItem = iterator;
                 }
             }
         }
@@ -136,9 +134,9 @@ public class GUIShopAPI {
         List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
-            for (Item itm : itemList) {
-                if (itm.isItemFromItemStack(item)) {
-                    shopItem = itm;
+            for (Item iterator : itemList) {
+                if (iterator.isItemFromItemStack(item)) {
+                    shopItem = iterator;
                 }
             }
         }
@@ -165,9 +163,9 @@ public class GUIShopAPI {
         List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
-            for (Item itm : itemList) {
-                if (itm.isItemFromItemStack(item)) {
-                    shopItem = itm;
+            for (Item iterator : itemList) {
+                if (iterator.isItemFromItemStack(item)) {
+                    shopItem = iterator;
                 }
             }
         }
@@ -198,9 +196,9 @@ public class GUIShopAPI {
         List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(itemString);
 
         if (itemList != null) {
-            for (Item itm : itemList) {
-                if (itm.isItemFromItemStack(item)) {
-                    shopItem = itm;
+            for (Item iterator : itemList) {
+                if (iterator.isItemFromItemStack(item)) {
+                    shopItem = iterator;
                 }
             }
         }

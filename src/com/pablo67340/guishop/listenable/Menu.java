@@ -9,7 +9,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.MenuItem;
 import com.pablo67340.guishop.definition.MenuPage;
 import com.pablo67340.guishop.definition.ShopPane;
-import com.pablo67340.guishop.util.Config;
+import com.pablo67340.guishop.config.Config;
 import java.io.IOException;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -69,7 +69,7 @@ public final class Menu {
     public void loadItems(Boolean preLoad) {
         pageIndex = 0;
         if (GUIShop.getINSTANCE().getLoadedMenu() == null) {
-            GUIShop.debugLog("Loading Menu from Config.");
+            GUIShop.debugLog("Loading Menu from config.");
             menuItem = new MenuItem();
             ConfigurationSection config = GUIShop.getINSTANCE().getMenuConfig().getConfigurationSection("Menu.pages");
             GUIShop.debugLog("Loading items for Menu");
@@ -84,7 +84,6 @@ public final class Menu {
                     shopItems.getKeys(false).stream().map(key -> {
                         GUIShop.debugLog("Reading item: " + key + " in page " + str);
                         ConfigurationSection section = shopItems.getConfigurationSection(key);
-                        assert section != null;
                         return Item.deserialize(section.getValues(true), Integer.parseInt(key), null);
                     }).forEachOrdered(item -> {
                         page.getItems().put(Integer.toString(item.getSlot()), item);
@@ -111,14 +110,14 @@ public final class Menu {
         if (this.GUI == null || this.GUI.getItems().isEmpty()) {
             if (this.hasMultiplePages()) {
                 this.GUI = new Gui(GUIShop.getINSTANCE(), 6,
-                        ChatColor.translateAlternateColorCodes('&', Config.getMenuTitle().replace("{page-number}", Config.getMenuShopPageNumber().replace("{number}", "1"))));
+                        ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("%page-number%", Config.getTitlesConfig().getMenuShopPageNumber().replace("%number%", "1"))));
             } else {
                 int rows = (int) Math.ceil((double) menuItem.getPages().get("Page0").getItems().size() / 9);
                 if (rows == 0) {
                     rows = 1;
                 }
                 this.GUI = new Gui(GUIShop.getINSTANCE(), rows,
-                        ChatColor.translateAlternateColorCodes('&', Config.getMenuTitle().replace("{page-number}", "")));
+                        ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("%page-number%", "")));
             }
 
             PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
@@ -146,43 +145,17 @@ public final class Menu {
 
     }
 
-    /**
-     * Creates a named itemstack from a material and name.
-     *
-     * @param material the material
-     * @param name the name with colour codes already applied
-     * @return a named item
-     */
-    private ItemStack makeNamedItem(Material material, String name) {
-        ItemStack is = new ItemStack(material);
-        if (!name.isEmpty()) {
-            ItemMeta meta = is.getItemMeta();
-            meta.setDisplayName(name);
-            is.setItemMeta(meta);
-        }
-        return is;
-    }
-
     private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
         if (pageIndex < (maxPages - 1)) {
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getForwardPageButtonName())), 51);
+            page.setItem(new GuiItem(Config.getButtonConfig().forwardButton.toItemStack(player, true)), this.GUI.getInventory().getSize() - 3);
         }
         GUIShop.debugLog("Applying buttons with pageIndex: " + pageIndex + " maxPages: " + maxPages);
         if (pageIndex > 0) {
-            GUIShop.debugLog("Adding Back Button");
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, Config.getBackwardPageButtonName())), 47);
+            GUIShop.debugLog("Adding back button");
+            page.setItem(new GuiItem(Config.getButtonConfig().backwardButton.toItemStack(player, true)), this.GUI.getInventory().getSize() - 7);
         }
         if (!Config.isDisableBackButton()) {
-
-            ItemStack backButtonItem = new ItemStack(
-                    Objects.requireNonNull(XMaterial.matchXMaterial(Config.getBackButtonItem()).get().parseMaterial()));
-
-            ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-            assert backButtonMeta != null;
-            backButtonMeta.setDisplayName(Config.getBackButtonText());
-
-            backButtonItem.setItemMeta(backButtonMeta);
+            ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, true);
 
             GuiItem item = new GuiItem(backButtonItem);
 
@@ -193,24 +166,22 @@ public final class Menu {
     /**
      * Opens the GUI in this {@link Menu}.
      *
-     * @param player - The player the GUI will display to
+     * @param player The player the GUI will display to
      */
     public void open(Player player) {
         if (!player.hasPermission("guishop.use") && !player.isOp()) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    Config.getPrefix() + " " + Config.getNoPermission()));
+            GUIShop.sendPrefix(player, "no-permission");
             return;
         }
 
         if (GUIShop.getINSTANCE().getMainConfig().getStringList("disabled-worlds").contains(player.getWorld().getName())) {
-            player.sendMessage(ChatColor.translateAlternateColorCodes('&',
-                    Config.getPrefix() + " " + Objects.requireNonNull(GUIShop.getINSTANCE().getMainConfig().getString("disabled-world"))));
+            GUIShop.sendPrefix(player, "disabled-world");
             return;
         }
 
         loadItems(false);
 
-        if (!GUIShop.getCREATOR().contains(player.getName())) {
+        if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
             GUI.setOnTopClick(this::onShopClick);
             GUI.setOnBottomClick((e) -> {
                 e.setCancelled(true);
@@ -233,7 +204,7 @@ public final class Menu {
         e.setCancelled(true);
 
         // Next Button
-        if (e.getSlot() == GUIShop.getINSTANCE().getMenuConfig().getInt("Menu.nextButtonSlot")) {
+        if (e.getSlot() == this.GUI.getInventory().getSize() - 3) {
             hasClicked = true;
             if (hasMultiplePages() && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
 
@@ -243,14 +214,14 @@ public final class Menu {
                 currentPane.setPage(currentPane.getPage() + 1);
 
                 int currentPage = currentPane.getPage() + 1;
-                GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getMenuTitle().replace("{page-number}", Config.getMenuShopPageNumber().replace("{number}", Integer.toString(currentPage)))));
+                GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("{page-number}", Config.getTitlesConfig().getMenuShopPageNumber().replace("{number}", Integer.toString(currentPage)))));
 
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
                 GUIShop.debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
                 GUI.update();
             }
             // Backward Button
-        } else if (e.getSlot() == GUIShop.getINSTANCE().getMenuConfig().getInt("Menu.backButtonSlot")) {
+        } else if (e.getSlot() == this.GUI.getInventory().getSize() - 7) {
             if (currentPane.getPage() != 0) {
                 hasClicked = true;
 
@@ -259,7 +230,7 @@ public final class Menu {
 
                 if (hasMultiplePages()) {
                     int currentPage = currentPane.getPage() + 1;
-                    GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getMenuTitle().replace("{page-number}", Config.getMenuShopPageNumber().replace("{number}", Integer.toString(currentPage)))));
+                    GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("{page-number}", Config.getTitlesConfig().getMenuShopPageNumber().replace("{number}", Integer.toString(currentPage)))));
                 }
 
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
@@ -279,10 +250,10 @@ public final class Menu {
                         if (!clickedItem.isResolveFailed()) {
                             openShop(pl, shopName);
                         } else {
-                            pl.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&cCannot open shop. Reason: " +clickedItem.getResolveReason()));
+                            GUIShop.sendPrefix(pl, "open-shop-error", clickedItem.getResolveReason());
                          }
                     } else {
-                        pl.sendMessage(Config.getPrefix() + " " + ChatColor.translateAlternateColorCodes('&', "&cYou do not have permission to use this shop."));
+                        GUIShop.sendPrefix(pl, "no-permission");
                     }
                 }
             }
@@ -388,11 +359,9 @@ public final class Menu {
         }
     }
 
-    private void onClose(InventoryCloseEvent e) {
-        Player p = (Player) e.getPlayer();
-
+    private void onClose(InventoryCloseEvent event) {
         if (!hasClicked) {
-            GUIShop.getCREATOR().remove(p.getName());
+            GUIShop.getCREATOR().remove(event.getPlayer().getUniqueId());
         }
     }
 }

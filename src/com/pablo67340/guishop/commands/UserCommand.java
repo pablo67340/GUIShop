@@ -8,23 +8,19 @@ import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.Config;
-import net.md_5.bungee.api.ChatColor;
-
-import java.util.Objects;
+import com.pablo67340.guishop.config.Config;
 
 public class UserCommand implements CommandExecutor {
 
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (GUIShop.isNoEconomySystem()) {
-            GUIShop.sendMessage(commandSender, Config.getPrefix() + " " + "&4The plugin didn't detect an economy system! \n" +
-                    "&7Please contact a server administrator or setup an economy system.");
+            GUIShop.sendPrefix(commandSender, "no-economy-system");
             return true;
         }
 
         if (!(commandSender instanceof Player)) {
-            GUIShop.sendMessage(commandSender, Config.getPrefix() + " " + "&4You can only run this command as a player!");
+            GUIShop.sendPrefix(commandSender, "only-player");
             return true;
         }
         
@@ -33,21 +29,23 @@ public class UserCommand implements CommandExecutor {
         if (args.length >= 1) {
             if (Config.getDisabledWorlds().contains(player.getWorld().getName())) {
                 if (GUIShop.BUY_COMMANDS.contains(args[0].toLowerCase())) {
+                    if (Config.isSignsOnly()) {
+                        GUIShop.sendPrefix(commandSender, "signs-only", Config.getTitlesConfig().getSignTitle());
+                        return true;
+                    }
 
                     buyCommand(player, (args.length >= 2) ? args[1] : null);
                     return true;
-
                 } else if (GUIShop.SELL_COMMANDS.contains(args[0].toLowerCase())) {
-
                     sellCommand(player);
                     return true;
                 }
             } else {
-                player.sendMessage(ChatColor.translateAlternateColorCodes('&', Config.getPrefix() + " " + Objects.requireNonNull(GUIShop.getINSTANCE().getMainConfig().getString("disabled-world"))));
+                GUIShop.sendPrefix(player, "disabled-world");
                 return false;
             }
         }
-        GUIShop.sendMessage(player, Config.getPrefix() + " " + "&cUnknown command.");
+        GUIShop.sendPrefix(commandSender, "unknown-command");
         return true;
     }
 
@@ -60,22 +58,19 @@ public class UserCommand implements CommandExecutor {
      */
     public void buyCommand(Player player, String shop) {
         if (player.hasPermission("guishop.use") || player.isOp()) {
-
             if (shop == null) {
-                PlayerListener.INSTANCE.openShop(player);
-
+                PlayerListener.INSTANCE.openMenu(player);
             } else {
-
                 if (player.hasPermission("guishop.shop." + shop.toLowerCase())
                         || player.hasPermission("guishop.shop.*") || player.isOp()) {
                     new Menu(player).openShop(player, shop);
                 } else {
-                    player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
+                    GUIShop.sendPrefix(player, "no-permission");
                 }
             }
 
         } else {
-            player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
+            GUIShop.sendPrefix(player, "no-permission");
         }
     }
 
@@ -89,8 +84,7 @@ public class UserCommand implements CommandExecutor {
         if (player.hasPermission("guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
-            player.sendMessage(Config.getPrefix() + " " + Config.getNoPermission());
+            GUIShop.sendPrefix(player, "no-permission");
         }
     }
-
 }

@@ -1,7 +1,6 @@
 package com.pablo67340.guishop.commands;
 
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.util.Config;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
@@ -19,13 +18,12 @@ public class SellCommand extends BukkitCommand {
     @Override
     public boolean execute(CommandSender commandSender, String label, String[] args) {
         if (GUIShop.isNoEconomySystem()) {
-            GUIShop.sendMessage(commandSender, Config.getPrefix() + " " + "&4The plugin didn't detect an economy system! \n" +
-                    "&7Please contact a server administrator or setup an economy system.");
+            GUIShop.sendPrefix(commandSender, "no-economy-system");
             return true;
         }
 
         if (!(commandSender instanceof Player)) {
-            GUIShop.sendMessage(commandSender, Config.getPrefix() + " " + "&4You can only run this command as a player!");
+            GUIShop.sendPrefix(commandSender, "only-player");
             return true;
         }
 

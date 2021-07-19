@@ -4,6 +4,7 @@ import com.cryptomorin.xseries.XMaterial;
 import java.util.*;
 
 import com.cryptomorin.xseries.XSound;
+import com.pablo67340.guishop.definition.*;
 import org.bukkit.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -19,12 +20,7 @@ import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 
-import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.ItemType;
-import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.definition.ShopItem;
-import com.pablo67340.guishop.definition.ShopPage;
 import com.pablo67340.guishop.config.Config;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -181,34 +177,19 @@ public class Shop {
         }
     }
 
-    /**
-     * Creates a named item stack from a material and name.
-     *
-     * @param material the material
-     * @param name the name with colour codes already applied
-     * @return a named item
-     */
-    private ItemStack makeNamedItem(Material material, String name) {
-        ItemStack is = new ItemStack(material);
-        if (!name.isEmpty()) {
-            ItemMeta meta = is.getItemMeta();
-            meta.setDisplayName(name);
-            is.setItemMeta(meta);
-        }
-        return is;
-    }
-
     private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
         if (pageIndex < (maxPages - 1)) {
-            page.setItem(new GuiItem(Config.getButtonConfig().forwardButton.toItemStack(player, true)), this.GUI.getInventory().getSize() - 3);
+            GUIShop.debugLog("Adding forward button");
+            page.setItem(new GuiItem(Config.getButtonConfig().forwardButton.toItemStack(player, false)), this.GUI.getInventory().getSize() - 3);
         }
         GUIShop.debugLog("Applying buttons with pageIndex: " + pageIndex + " maxPages: " + maxPages);
         if (pageIndex > 0) {
-            GUIShop.debugLog("Adding back button");
-            page.setItem(new GuiItem(Config.getButtonConfig().backwardButton.toItemStack(player, true)), this.GUI.getInventory().getSize() - 7);
+            GUIShop.debugLog("Adding backward button");
+            page.setItem(new GuiItem(Config.getButtonConfig().backwardButton.toItemStack(player, false)), this.GUI.getInventory().getSize() - 7);
         }
         if (!Config.isDisableBackButton()) {
-            ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, true);
+            GUIShop.debugLog("Adding back button");
+            ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, false);
 
             GuiItem item = new GuiItem(backButtonItem);
 
@@ -298,7 +279,7 @@ public class Shop {
         /*
          * If the player has enough money to purchase the item, then allow them to.
          */
-        GUIShop.debugLog("Creator status:" + GUIShop.getCREATOR().contains(player.getUniqueId()));
+        GUIShop.debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
 
         Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(e.getSlot()));
 
@@ -313,6 +294,14 @@ public class Shop {
         }
 
         if (item.getItemType() == ItemType.SHOP) {
+            if (item.hasPermission()) {
+                Permission permission = item.getPermission();
+                if (!permission.hasPermission(player)) {
+                    GUIShop.sendPrefix(player, "no-item-permission");
+                    return;
+                }
+            }
+
             hasClicked = true;
             if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
                 hasClicked = true;
@@ -330,6 +319,14 @@ public class Shop {
                 }
             }
         } else if (item.getItemType() == ItemType.COMMAND) {
+            if (item.hasPermission()) {
+                Permission permission = item.getPermission();
+                if (!permission.hasPermission(player)) {
+                    GUIShop.sendPrefix(player, "no-item-permission");
+                    return;
+                }
+            }
+
             BigDecimal priceToPay;
 
             Runnable dynamicPricingUpdate = null;
@@ -358,8 +355,8 @@ public class Shop {
 
                 GUIShop.transactionLog("Player " + player.getName() + " bought command " + item.getMaterial() + " in shop " + getShop() + " for " + priceToPay.toPlainString() + " money!");
             } else {
-                String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("currency-prefix");
-                String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("currency-suffix");
+                String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix");
+                String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
                 String amount = currencyPrefix + priceToPay + currencySuffix;
 
                 GUIShop.sendPrefix(player, "not-enough-money", amount);
@@ -447,8 +444,6 @@ public class Shop {
             if (!Config.isDisableEscapeBack() && !hasClicked) {
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
                 scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> menuInstance.open(player), 1L);
-            } else {
-                hasClicked = false;
             }
         } else if (!hasClicked) {
             GUIShop.getCREATOR().remove(player.getUniqueId());

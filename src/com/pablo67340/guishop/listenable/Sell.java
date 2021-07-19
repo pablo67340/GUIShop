@@ -10,9 +10,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import java.math.BigDecimal;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -36,7 +34,7 @@ public final class Sell {
     /**
      * Sell items inside the {@link Sell} GUI.
      *
-     * @param player - The player selling items
+     * @param player The player selling items
      */
     public void sell(Player player) {
         sellItems(player, GUI.getInventory().getContents());
@@ -50,17 +48,14 @@ public final class Sell {
      * @param items the items
      */
     public static void sellItems(Player player, ItemStack[] items) {
+        List<ItemStack> checkedItems = Arrays.stream(items).filter(Objects::nonNull).collect(Collectors.toList());
         BigDecimal moneyToGive = BigDecimal.valueOf(0);
         boolean couldntSell = false;
         int countSell = 0;
 
         ConcurrentHashMap<Material, Integer> itemMap = new ConcurrentHashMap<>();
 
-        for (ItemStack item : items) {
-            if (item == null) {
-                continue;
-            }
-
+        for (ItemStack item : checkedItems) {
             Item shopItem = null;
 
             GUIShop.debugLog("Checking if " + item.getType() + " is sellable");
@@ -76,7 +71,7 @@ public final class Sell {
             }
 
             if (shopItem == null || !shopItem.hasSellPrice() || !player.hasPermission("guishop.shop." + shopItem.getShop())) {
-                countSell += 1;
+                countSell++;
                 couldntSell = true;
                 player.getInventory().addItem(item);
                 continue;
@@ -104,11 +99,11 @@ public final class Sell {
 
         if (couldntSell) {
             GUIShop.sendPrefix(player, "cant-sell", countSell);
-            return;
         }
+
         roundAndGiveMoney(player, moneyToGive);
 
-        String materialsString = Arrays.stream(items).map(item -> item.getType().toString()).collect(Collectors.joining(", "));
+        String materialsString = checkedItems.stream().map(item -> item.getType().toString()).collect(Collectors.joining(", "));
 
         int itemAmount = 0;
 
@@ -130,8 +125,8 @@ public final class Sell {
         if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
             GUIShop.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
-            String amount = GUIShop.getINSTANCE().messageSystem.translate("currency-prefix") +
-                    moneyToGive.toPlainString() + GUIShop.getINSTANCE().messageSystem.translate("currency-suffix");
+            String amount = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix") +
+                    moneyToGive.toPlainString() + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
 
             GUIShop.sendPrefix(player, "sell", amount);
         }

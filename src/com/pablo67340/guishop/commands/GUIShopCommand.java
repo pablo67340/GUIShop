@@ -102,8 +102,8 @@ public class GUIShopCommand implements CommandExecutor {
                     }
 
                     GUIShop.sendPrefix(player, "parsemob.return", args[1],
-                            isValid ? GUIShop.getINSTANCE().messageSystem.translate("messages.parsemob.return.valid") :
-                                    GUIShop.getINSTANCE().messageSystem.translate("messages.parsemob.return.invalid"));
+                            isValid ? GUIShop.getINSTANCE().messageSystem.translate("messages.parsemob.valid") :
+                                    GUIShop.getINSTANCE().messageSystem.translate("messages.parsemob.invalid"));
                 } else {
                     GUIShop.sendPrefix(player, "parsemob.usage");
                 }

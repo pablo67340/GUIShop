@@ -214,7 +214,7 @@ public final class Menu {
                 currentPane.setPage(currentPane.getPage() + 1);
 
                 int currentPage = currentPane.getPage() + 1;
-                GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("{page-number}", Config.getTitlesConfig().getMenuShopPageNumber().replace("{number}", Integer.toString(currentPage)))));
+                GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("%page-number%", Config.getTitlesConfig().getMenuShopPageNumber().replace("%number%", Integer.toString(currentPage)))));
 
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
                 GUIShop.debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
@@ -230,7 +230,7 @@ public final class Menu {
 
                 if (hasMultiplePages()) {
                     int currentPage = currentPane.getPage() + 1;
-                    GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("{page-number}", Config.getTitlesConfig().getMenuShopPageNumber().replace("{number}", Integer.toString(currentPage)))));
+                    GUI.setTitle(ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("%page-number%", Config.getTitlesConfig().getMenuShopPageNumber().replace("%number%", Integer.toString(currentPage)))));
                 }
 
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
@@ -246,7 +246,7 @@ public final class Menu {
 
                 if (clickedItem.hasTargetShop()) {
                     String shopName = clickedItem.getTargetShop();
-                    if (pl.hasPermission("guishop.shop." + shopName)) {
+                    if (pl.hasPermission("guishop.shop." + shopName.toLowerCase()) || pl.hasPermission("guishop.shop.*")) {
                         if (!clickedItem.isResolveFailed()) {
                             openShop(pl, shopName);
                         } else {

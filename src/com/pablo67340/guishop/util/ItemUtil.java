@@ -70,7 +70,7 @@ public final class ItemUtil {
                     } else {
                         lore.set(index, Config.getLoreConfig().lores.get("buy")
                                 .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                        + price + GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")));
+                                        + price + GUIShop.getINSTANCE().messageSystem.translate("currency-suffix")));
                     }
                 }
                 hasReplaced = true;
@@ -86,8 +86,8 @@ public final class ItemUtil {
                     lore.add(Config.getLoreConfig().lores.get("free"));
                 } else {
                     lore.add(Config.getLoreConfig().lores.get("buy")
-                            .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                    + price + GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")));
+                            .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")
+                                    + price + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix")));
                 }
             }
         }
@@ -102,7 +102,7 @@ public final class ItemUtil {
         }
 
         GUIShop.sendPrefix(player, "buy-price.successful", price instanceof Boolean ?
-                GUIShop.getINSTANCE().messageSystem.translate("buy-price.removed") : ((BigDecimal) price).toPlainString());
+                GUIShop.getINSTANCE().messageSystem.translate("messages.buy-price.removed") : ((BigDecimal) price).toPlainString());
     }
 
     /**
@@ -151,7 +151,7 @@ public final class ItemUtil {
                 } else {
                     lore.set(index, Config.getLoreConfig().lores.get("sell")
                             .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                    + price + GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")));
+                                    + price + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")));
                 }
                 hasReplaced = true;
                 break;
@@ -164,7 +164,7 @@ public final class ItemUtil {
             } else {
                 lore.add(Config.getLoreConfig().lores.get("sell")
                         .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                + price + GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")));
+                                + price + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")));
             }
         }
 
@@ -179,7 +179,7 @@ public final class ItemUtil {
         }
 
         GUIShop.sendPrefix(player, "sell-price.successful", price instanceof Boolean ?
-                GUIShop.getINSTANCE().messageSystem.translate("sell-price.removed") : ((BigDecimal) price).toPlainString());
+                GUIShop.getINSTANCE().messageSystem.translate("messages.sell-price.removed") : ((BigDecimal) price).toPlainString());
     }
 
     /**
@@ -310,7 +310,7 @@ public final class ItemUtil {
         }
 
         GUIShop.sendPrefix(player, "shop-name.successful", name instanceof Boolean ?
-                GUIShop.getINSTANCE().messageSystem.translate("shop-name.removed") : name);
+                GUIShop.getINSTANCE().messageSystem.translate("messages.shop-name.removed") : name);
     }
 
     /**
@@ -376,7 +376,7 @@ public final class ItemUtil {
         }
 
         GUIShop.sendPrefix(player, "name.successful", name instanceof Boolean ?
-                GUIShop.getINSTANCE().messageSystem.translate("name.removed") : name);
+                GUIShop.getINSTANCE().messageSystem.translate("messages.name.removed") : name);
     }
 
     /**
@@ -442,7 +442,7 @@ public final class ItemUtil {
         }
 
         GUIShop.sendPrefix(player, "buy-name.successful", name instanceof Boolean ?
-                GUIShop.getINSTANCE().messageSystem.translate("buy-name.removed") : name);
+                GUIShop.getINSTANCE().messageSystem.translate("messages.buy-name.removed") : name);
     }
 
     /**
@@ -535,7 +535,7 @@ public final class ItemUtil {
         }
 
         GUIShop.sendPrefix(player, "enchant.successful", enchantments instanceof Boolean || enchantmentMap.isEmpty() ?
-                GUIShop.getINSTANCE().messageSystem.translate("enchant.removed") : enchantments);
+                GUIShop.getINSTANCE().messageSystem.translate("messages.enchant.removed") : enchantments);
     }
 
     /**

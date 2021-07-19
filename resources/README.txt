@@ -7,6 +7,8 @@ Files:
   Data = Here is important data stored that has nothing to do with the configuration.
          Deleting this may cause damage to player inventories or longer loading times!
 
+  Logs = Here are all log files saved,
+
   config.yml = Change things that you want. Messages have moved to messages.yml
 
   messages.yml = Edit almost every message for this plugin.

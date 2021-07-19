@@ -86,13 +86,11 @@ class Quantity {
         int multiplier = 1;
         ShopPane page = new ShopPane(9, 5);
         for (int x = 19; x <= 25; x++) {
-
             ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 
             if (item.hasPotion()) {
                 PotionInfo pi = item.getPotionInfo();
                 if (XMaterial.isNewVersion()) {
-
                     if (pi.getSplash()) {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
                     }
@@ -291,8 +289,8 @@ class Quantity {
 
         priceToPay = priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
 
-        String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("currency-prefix");
-        String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("currency-suffix");
+        String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix");
+        String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
         String amount = currencyPrefix + priceToPay + currencySuffix;
 
         // Check if the transition was successful

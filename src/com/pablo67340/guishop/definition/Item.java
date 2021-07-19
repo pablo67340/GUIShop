@@ -6,6 +6,7 @@ import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NbtApiException;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.listenable.Shop;
@@ -124,6 +125,10 @@ public final class Item implements ConfigurationSerializable {
     @Setter
     private PotionInfo potionInfo;
 
+    @Getter
+    @Setter
+    private Permission permission;
+
     private static final String SPAWNER_MATERIAL = XMaterial.SPAWNER.parseMaterial().name();
 
     /**
@@ -174,6 +179,10 @@ public final class Item implements ConfigurationSerializable {
 
     public boolean hasBuyLore() {
         return (buyLore != null) && !buyLore.isEmpty();
+    }
+
+    public boolean hasPermission() {
+        return permission != null;
     }
 
     public boolean hasEnchantments() {
@@ -291,7 +300,6 @@ public final class Item implements ConfigurationSerializable {
     public BigDecimal calculateBuyPrice(int quantity) {
         // sell price must be defined and nonzero for dynamic pricing to work
         if (Config.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
-
             return GUIShop.getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
                     getSellPriceAsDecimal());
         }
@@ -336,9 +344,9 @@ public final class Item implements ConfigurationSerializable {
             BigDecimal buyPriceAsDouble = getBuyPriceAsDecimal();
             if (buyPriceAsDouble.compareTo(BigDecimal.ZERO) > 0) {
                 return Config.getLoreConfig().lores.get("buy").replace("%amount%",
-                        GUIShop.getINSTANCE().messageSystem.translate("currency-prefix") +
+                        GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix") +
                                 GUIShop.economyFormat(calculateBuyPrice(quantity)) +
-                                GUIShop.getINSTANCE().messageSystem.translate("currency-suffix"));
+                                GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix"));
             }
             return Config.getLoreConfig().lores.get("free");
         }
@@ -358,9 +366,9 @@ public final class Item implements ConfigurationSerializable {
     public String getSellLore(int quantity) {
         if (hasSellPrice()) {
             return Config.getLoreConfig().lores.get("sell").replace("%amount%",
-                    GUIShop.getINSTANCE().messageSystem.translate("currency-prefix") +
+                    GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix") +
                             GUIShop.economyFormat(calculateSellPrice(quantity)) +
-                            GUIShop.getINSTANCE().messageSystem.translate("currency-suffix"));
+                            GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix"));
         }
         return Config.getLoreConfig().lores.get("cannot-sell");
     }
@@ -487,9 +495,13 @@ public final class Item implements ConfigurationSerializable {
             if (comp.hasKey("itemType")) {
                 item.setItemType(ItemType.valueOf(comp.getString("itemType")));
             }
+
+            if (comp.hasKey("permission")) {
+                item.setPermission(new Permission(comp.getString("permission")));
+            }
+
             if (comp.hasKey("buyPrice")) {
                 Object buyPrice = getBuyPrice(itemStack);
-                GUIShop.debugLog("Had buyPrice comp: " + buyPrice);
                 item.setBuyPrice(buyPrice);
             }
 
@@ -690,6 +702,9 @@ public final class Item implements ConfigurationSerializable {
                     if (!itemLore.isEmpty()) {
                         itemMeta.setLore(itemLore);
                     }
+                    if (hasPermission()) {
+                        itemLore.add(Config.getLoreConfig().lores.get("permission").replace("%permission%", getPermission().permission()));
+                    }
 
                     itemStack.setItemMeta(itemMeta);
                     NBTItem comp = new NBTItem(itemStack);
@@ -780,6 +795,9 @@ public final class Item implements ConfigurationSerializable {
                         String[] values = {getPotionInfo().getType(), getPotionInfo().getSplash().toString(), getPotionInfo().getExtended().toString(), getPotionInfo().getUpgraded().toString()};
                         comp.setString("potion", String.join("::", values));
                     }
+                    if (hasPermission()) {
+                        comp.setString("permission", getPermission().permission());
+                    }
                     comp.setString("itemType", getItemType().toString());
                     itemStack = comp.getItem();
                 }
@@ -790,6 +808,7 @@ public final class Item implements ConfigurationSerializable {
                     itemMeta.addItemFlags(ItemFlag.valueOf(flag));
                 }
             }
+
             if (hasCustomModelID()) {
                 itemMeta.setCustomModelData(getCustomModelData());
             }
@@ -816,18 +835,23 @@ public final class Item implements ConfigurationSerializable {
             itemStack.setItemMeta(itemMeta);
 
             if (hasNBT()) {
-                ItemStack tempItem = itemStack.clone();
-                NBTContainer container = new NBTContainer(getNBT());
-                NBTItem nbti = new NBTItem(tempItem);
-                nbti.mergeCompound(container);
-                tempItem = nbti.getItem();
+                try {
+                    ItemStack tempItem = itemStack.clone();
+                    NBTContainer container = new NBTContainer(getNBT());
+                    NBTItem nbti = new NBTItem(tempItem);
+                    nbti.mergeCompound(container);
+                    tempItem = nbti.getItem();
 
-                if (tempItem == null) {
+                    if (tempItem == null) {
+                        GUIShop.log("Error parsing custom NBT for item: " + getMaterial() + " in shop: " + getShop() + ". Please fix or remove custom-nbt value.");
+                        setResolveFailed("Item has Invalid Custom NBT");
+                        return getErrorStack();
+                    } else {
+                        itemStack = nbti.getItem();
+                    }
+                } catch (NbtApiException exception) {
                     GUIShop.log("Error parsing custom NBT for item: " + getMaterial() + " in shop: " + getShop() + ". Please fix or remove custom-nbt value.");
                     setResolveFailed("Item has Invalid Custom NBT");
-                    return getErrorStack();
-                } else {
-                    itemStack = nbti.getItem();
                 }
             }
 
@@ -967,8 +991,7 @@ public final class Item implements ConfigurationSerializable {
         return true;
     }
 
-    public ItemStack toBuyItemStack(Integer quantity, Player player, Shop currentShop) {
-
+    public ItemStack toBuyItemStack(int quantity, Player player, Shop currentShop) {
         ItemStack itemStack = null;
 
         try {
@@ -1187,10 +1210,14 @@ public final class Item implements ConfigurationSerializable {
                 }
             } else if (entry.getKey().equalsIgnoreCase("commands")) {
                 item.setItemType(ItemType.COMMAND);
-                item.setCommands((List<String>) entry.getValue());
+                if (entry.getValue() instanceof List) {
+                    item.setCommands((List<String>) entry.getValue());
+                } else {
+                    item.setCommands(Collections.singletonList(entry.getValue().toString()));
+                }
             } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
                 item.setItemType(ItemType.ITEM);
-                item.setTargetShop((String) entry.getValue());
+                item.setTargetShop(entry.getValue().toString());
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 item.setEnchantments(Arrays.stream(((String) entry.getValue()).split(" ")).filter(enchant -> {
                     try {
@@ -1202,9 +1229,9 @@ public final class Item implements ConfigurationSerializable {
                     }
                 }).toArray(String[]::new));
             } else if (entry.getKey().equalsIgnoreCase("custom-nbt")) {
-                item.setNBT((String) entry.getValue());
+                item.setNBT(entry.getValue().toString());
             } else if (entry.getKey().equalsIgnoreCase("mob-type")) {
-                item.setMobType((String) entry.getValue());
+                item.setMobType(entry.getValue().toString());
             } else if (entry.getKey().equalsIgnoreCase("potion-info")) {
                 ConfigurationSection section = (ConfigurationSection) entry.getValue();
                 Map<String, Object> potionInfo = section.getValues(true);
@@ -1213,6 +1240,8 @@ public final class Item implements ConfigurationSerializable {
                         potionInfo.get("splash") != null && Boolean.parseBoolean(potionInfo.get("splash").toString()),
                         potionInfo.get("extended") != null && Boolean.parseBoolean(potionInfo.get("extended").toString()),
                         potionInfo.get("upgraded") != null && Boolean.parseBoolean(potionInfo.get("upgraded").toString())));
+            } else if (entry.getKey().equalsIgnoreCase("permission")) {
+                item.setPermission(new Permission(entry.getValue().toString()));
             }
         }
         return item;
@@ -1284,6 +1313,9 @@ public final class Item implements ConfigurationSerializable {
             pInfo.put("extended", this.potionInfo.getExtended());
             pInfo.put("upgraded", this.potionInfo.getUpgraded());
             serialized.put("potion-info", pInfo);
+        }
+        if (hasPermission()) {
+            serialized.put("permission", getPermission().permission());
         }
 
         return serialized;

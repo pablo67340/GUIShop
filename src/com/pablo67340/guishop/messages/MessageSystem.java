@@ -18,32 +18,19 @@ public class MessageSystem {
     /*
      * Copyright to https://github.com/Amejonah1200/simple-message-system
      */
+
     private final Map<String, Message> messages = new HashMap<>();
 
     /**
-     * Instantiates a new SimpleMessageSystem with default and custom messages.
+     * Instantiates a new SimpleMessageSystem with default messages.
      *
      * @param javaPlugin the java plugin
-     * @param messagesConfiguration the messages configuration
+     * @param stream the default message YAML stream
      */
-    public MessageSystem(JavaPlugin javaPlugin, ConfigurationSection messagesConfiguration) {
-        generateDefaults(javaPlugin.getResource("messages.yml"));
-        if (messagesConfiguration != null) loadCustomMessages(messagesConfiguration);
+    public MessageSystem(JavaPlugin javaPlugin, InputStream stream) {
+        if (stream != null) generateDefaults(stream);
+        else generateDefaults(javaPlugin.getResource("messages.yml"));
     }
-
-    /**
-     * Instantiates a new SimpleMessageSystem with loading defaults but not custom messages.
-     *
-     * @param javaPlugin the java plugin
-     */
-    public MessageSystem(JavaPlugin javaPlugin) {
-        this(javaPlugin, null);
-    }
-
-    /**
-     * Instantiates a new SimpleMessageSystem without loading defaults or custom messages.
-     */
-    public MessageSystem() {}
 
     /**
      * Generate defaults using internal file given as parameter.
@@ -91,42 +78,20 @@ public class MessageSystem {
     }
 
     /**
-     * Save default messages and return if it was changed.
-     *
-     * @param configuration the configuration to apply to
-     * @param override if it should override
-     *
-     * @return if changed
-     */
-    public boolean saveDefaultMessages(@NotNull final ConfigurationSection configuration, boolean override) {
-        Objects.requireNonNull(configuration, "Configuration cannot be null!");
-        boolean changed = false;
-        synchronized (this.messages) {
-            for (Message message : this.messages.values()) {
-                if (!configuration.isSet(message.getPath()) || override) {
-                    configuration.set(message.getPath(), message.getDefaultMessage().replace('§', '&'));
-                    changed = true;
-                }
-            }
-        }
-        return changed;
-    }
-
-    /**
      * Translate the message (path to it) with given parameters.
      *
-     * @param message the path to message
+     * @param path the path to message
      * @param params the parameters
      *
      * @return translated message
      */
     @NotNull
-    public String translate(@NotNull String message, @Nullable Object... params) {
+    public String translate(@NotNull String path, @Nullable Object... params) {
         Message simpleMessage;
         synchronized (messages) {
-            simpleMessage = messages.get(Objects.requireNonNull(message, "Message cannot be null!"));
+            simpleMessage = messages.get(Objects.requireNonNull(path, "Path cannot be null!"));
         }
-        if (simpleMessage == null) return "Message cannot be null!";
+        if (simpleMessage == null) return path + " cannot be null!";
         if (simpleMessage instanceof PlaceholderMessage) return ((PlaceholderMessage) simpleMessage).translate(params);
         return simpleMessage.getRawMessage();
     }

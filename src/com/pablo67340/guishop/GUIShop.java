@@ -39,9 +39,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.math.BigDecimal;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.Map.Entry;
@@ -123,6 +122,18 @@ public final class GUIShop extends JavaPlugin {
 
     public static final RowChart rowChart = new RowChart();
 
+    @Getter
+    @Setter
+    public static ArrayList<String> debugLogCache = new ArrayList<>();
+
+    @Getter
+    @Setter
+    public static ArrayList<String> transactionLogCache = new ArrayList<>();
+
+    @Getter
+    @Setter
+    public static ArrayList<String> mainLogCache = new ArrayList<>();
+
     public MessageSystem messageSystem;
 
     private BuyCommand buyCommand = null;
@@ -132,9 +143,10 @@ public final class GUIShop extends JavaPlugin {
     @Override
     public void onEnable() {
         INSTANCE = this;
-        messageSystem = new MessageSystem(this);
-        messageSystem.generateDefaults(getClassLoader().getResourceAsStream("messages.yml"));
+        messageSystem = new MessageSystem(this, getResource("internal_messages.yml"));
         createFiles();
+
+        initWriteCache();
 
         if (!setupEconomy()) {
             getLogger().log(Level.WARNING, "Vault could not detect an economy plugin!");
@@ -573,7 +585,7 @@ public final class GUIShop extends JavaPlugin {
             }
         }
         long estimatedTime = System.currentTimeMillis() - startTime;
-        debugLog("Item warming completed in: {0}ms" + estimatedTime);
+        debugLog("Item warming completed in: " + estimatedTime + "ms");
     }
 
     public void reload(CommandSender sender, Boolean ignoreCreator) {
@@ -649,6 +661,72 @@ public final class GUIShop extends JavaPlugin {
         }
     }
 
+    public void initWriteCache() {
+        File mainLog = new File(getDataFolder().getPath(), "/Logs/main.log");
+        File debugLog = new File(getDataFolder().getPath(), "/Logs/debug.log");
+        File transactionLog = new File(getDataFolder().getPath(), "/Logs/transaction.log");
+
+        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            try {
+                if (!mainLog.exists()) {
+                    mainLog.getParentFile().mkdirs();
+                    mainLog.createNewFile();
+                } else {
+                    if (Files.size(mainLog.toPath()) >= 52428800) {
+                        mainLog.delete();
+                        mainLog.createNewFile();
+                    }
+                }
+
+                if (!debugLog.exists()) {
+                    transactionLog.getParentFile().mkdirs();
+                    transactionLog.createNewFile();
+                } else {
+                    if (Files.size(debugLog.toPath()) >= 52428800) {
+                        debugLog.delete();
+                        debugLog.createNewFile();
+                    }
+                }
+
+                if (!transactionLog.exists()) {
+                    transactionLog.getParentFile().mkdirs();
+                    transactionLog.createNewFile();
+                } else {
+                    if (Files.size(transactionLog.toPath()) >= 52428800) {
+                        transactionLog.delete();
+                        transactionLog.createNewFile();
+                    }
+                }
+            } catch (IOException exception) {
+                Bukkit.getLogger().warning("An error occurred while trying to crete/delete a log file!");
+                exception.printStackTrace();
+            }
+
+            write(mainLog.toPath(), getMainLogCache());
+            setMainLogCache(new ArrayList<>());
+
+            write(debugLog.toPath(), getDebugLogCache());
+            setDebugLogCache(new ArrayList<>());
+
+            write(transactionLog.toPath(), getTransactionLogCache());
+            setTransactionLogCache(new ArrayList<>());
+        }, 0, 20);
+    }
+
+    public void write(Path path, List<String> write) {
+        try {
+            Files.write(
+                    path,
+                    write,
+                    StandardCharsets.UTF_8,
+                    Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE
+            );
+        } catch (IOException exception) {
+            Bukkit.getLogger().warning("An error occurred while trying to write to a logging file! (" + path.toString() + ")");
+            exception.printStackTrace();
+        }
+    }
+
     /**
      * Formats money using the economy plugin's significant digits. <br>
      * <i>Does not add currency prefixes or suffixes. </i> <br>
@@ -687,8 +765,8 @@ public final class GUIShop extends JavaPlugin {
             string = string.replace("%sell_price%", item.calculateSellPrice(1).toPlainString());
         }
         
-        string = string.replace("%currency_symbol%", getINSTANCE().messageSystem.translate("currency-prefix"));
-        string = string.replace("%currency_suffix%", getINSTANCE().messageSystem.translate("currency-suffix"));
+        string = string.replace("%currency_symbol%", getINSTANCE().messageSystem.translate("messages.currency-prefix"));
+        string = string.replace("%currency_suffix%", getINSTANCE().messageSystem.translate("messages.currency-suffix"));
 
         if (player != null) {
             string = string.replace("%player_name%", player.getName());
@@ -706,17 +784,10 @@ public final class GUIShop extends JavaPlugin {
     public static void log(String input) {
         GUIShop.getINSTANCE().getLogger().log(Level.INFO, "LOG: {0}", input);
 
-        File file = new File("logs/main.log");
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-            try {
-                file.createNewFile();
-                write(file.getPath(), "LOG", input);
-            } catch (IOException exception) {
-                Bukkit.getLogger().warning("An error occurred while creating the main.log file!");
-                exception.printStackTrace();
-            }
-        }
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_NOW);
+
+        getMainLogCache().add("[" + simpleDateFormat.format(calendar.getTime()) + "] LOG: " + input);
     }
 
     public static void debugLog(String input) {
@@ -724,17 +795,10 @@ public final class GUIShop extends JavaPlugin {
             GUIShop.getINSTANCE().getLogger().log(Level.INFO, "DEBUG: {0}", input);
         }
 
-        File file = new File("logs/debug.log");
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-            try {
-                file.createNewFile();
-                write(file.getPath(), "DEBUG", input);
-            } catch (IOException exception) {
-                Bukkit.getLogger().warning("An error occurred while creating the debug.log file!");
-                exception.printStackTrace();
-            }
-        }
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_NOW);
+
+        getDebugLogCache().add("[" + simpleDateFormat.format(calendar.getTime()) + "] DEBUG: " + input);
     }
 
     public static void transactionLog(String input) {
@@ -742,54 +806,10 @@ public final class GUIShop extends JavaPlugin {
             GUIShop.getINSTANCE().getLogger().log(Level.INFO, "TRANSACTION: {0}", input);
         }
 
-        File file = new File("logs/transactions.log");
-        if (!file.exists()) {
-            file.getParentFile().mkdirs();
-            try {
-                file.createNewFile();
-                write(file.getPath(), "TRANSACTION", input);
-            } catch (IOException exception) {
-                Bukkit.getLogger().warning("An error occurred while creating the debug.log file!");
-                exception.printStackTrace();
-            }
-        }
-    }
+        Calendar calendar = Calendar.getInstance();
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_NOW);
 
-    /**
-     * Writes to the given log file with the current date
-     *
-     * @param filePath The path to the file
-     * @param prefix The prefix for the log
-     * @param message The log message
-     */
-    public static void write(String filePath, String prefix, String message) {
-        Bukkit.getScheduler().runTaskAsynchronously(GUIShop.getINSTANCE(), () -> {
-            FileWriter writer;
-            try {
-                writer = new FileWriter(filePath);
-            } catch (IOException exception) {
-                Bukkit.getLogger().warning("An error occurred while trying to write to a logging file!");
-                exception.printStackTrace();
-                return;
-            }
-
-            Calendar calendar = Calendar.getInstance();
-            SimpleDateFormat simpleDateFormat = new SimpleDateFormat(DATE_FORMAT_NOW);
-
-            try {
-                writer.write("[" + simpleDateFormat.format(calendar.getTime()) + "] " + prefix + ": " + message);
-            } catch (IOException exception) {
-                Bukkit.getLogger().warning("An error occurred while trying to write to a logging file!");
-                exception.printStackTrace();
-                return;
-            }
-
-            try {
-                writer.close();
-            } catch (IOException exception) {
-                Bukkit.getLogger().warning("An error occurred while trying to close the logging writer!");
-            }
-        });
+        getTransactionLogCache().add("[" + simpleDateFormat.format(calendar.getTime()) + "] TRANSACTION: " + input);
     }
 
     /**
@@ -800,7 +820,7 @@ public final class GUIShop extends JavaPlugin {
      * @param params Optional, the placeholder replacements
      */
     public static void sendPrefix(CommandSender sender, String path, Object... params) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', getINSTANCE().messageSystem.translate("messages.prefix") + " " + getINSTANCE().messageSystem.translate("messages" + path, params)));
+        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', getINSTANCE().messageSystem.translate("messages.prefix") + " " + getINSTANCE().messageSystem.translate("messages." + path, params)));
     }
 
     /**

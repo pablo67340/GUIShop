@@ -22,12 +22,10 @@ public class SellCommand extends BukkitCommand {
             return true;
         }
 
-        if (!(commandSender instanceof Player)) {
+        if (!(commandSender instanceof Player player)) {
             GUIShop.sendPrefix(commandSender, "only-player");
             return true;
         }
-
-        Player player = (Player) commandSender;
 
         GUIShop.getINSTANCE().getUserCommands().sellCommand(player);
 

@@ -209,6 +209,9 @@ lores:
 
     # The lore when disable quantity is set
     disable-quantity: '&fDisable quantity: &c%disable%'
+
+    # The lore when there is a permission
+    permission: '&fPermission: &c%permission%'
     
 # Enable if you want to separate each head by UUID when determining sell price.
 # Setting to false will make all heads worth the same amount. 

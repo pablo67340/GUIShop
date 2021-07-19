@@ -10,6 +10,7 @@ public class Message {
     /*
      * Copyright to https://github.com/Amejonah1200/simple-message-system
      */
+
     protected final String path;
     protected final String defaultMessage;
     protected String customMessage;
@@ -24,7 +25,7 @@ public class Message {
     public Message(@NotNull String path, @NotNull String defaultMessage, @Nullable String customMessage) {
         this.path = Objects.requireNonNull(path, "Path cannot be null!");
         this.defaultMessage = ChatColor
-                .translateAlternateColorCodes('&', Objects.requireNonNull(defaultMessage, "DefaultMessage cannot be null!"));
+                .translateAlternateColorCodes('&', Objects.requireNonNull(defaultMessage, "Default " + path + " cannot be null!"));
         this.customMessage = customMessage != null ? ChatColor.translateAlternateColorCodes('&', customMessage) : null;
     }
 

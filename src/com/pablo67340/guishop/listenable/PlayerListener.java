@@ -80,7 +80,7 @@ public final class PlayerListener implements Listener {
      */
     public void printUsage(CommandSender sender) {
         GUIShop.sendMessagePrefix(sender, String.join("\n", GUIShop.getINSTANCE().getMessagesConfig().getStringList("messages.list"))
-                .replace("%list%", Arrays.stream(commandsEntryList).map(entry -> GUIShop.getINSTANCE().messageSystem.translate("messages." + entry + ".entry"))
+                .replace("%list%", Arrays.stream(commandsEntryList).map(entry -> GUIShop.getINSTANCE().messageSystem.translate("messages." + entry + ".entry") + "§r")
                         .collect(Collectors.joining("\n"))));
     }
 

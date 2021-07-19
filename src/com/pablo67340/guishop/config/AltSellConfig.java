@@ -10,7 +10,6 @@ public class AltSellConfig {
     
     @Getter
     @Setter
-    public String
-            addMaterial, removeMaterial, indicatorMaterial, confirmMaterial, cancelMaterial,
+    public String addMaterial, removeMaterial, indicatorMaterial, confirmMaterial, cancelMaterial,
             confirmName, cancelName, notEnough, increaseTitle, decreaseTitle, title;
 }

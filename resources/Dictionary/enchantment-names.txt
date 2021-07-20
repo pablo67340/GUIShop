@@ -1,0 +1,47 @@
+This is the list of available enchantment names as of 1.17.1. If you are using an older
+server version, some of these names won't work as the enchantment you may be using
+may not exist for your older version.
+
+Example Config Format:
+
+enchantments: 'POWER:2 FLAME:1 KB:3'
+
+Available Enchantments:
+    ARROW_DAMAGE
+    ARROW_FIRE
+    ARROW_INFINITE
+    ARROW_KNOCKBACK
+    BINDING_CURSE
+    CHANNELING
+    SHARPNESS
+    DAMAGE_ARTHROPODS
+    DAMAGE_UNDEAD
+    DEPTH_STRIDER
+    DIG_SPEED
+    DURABILITY
+    FIRE_ASPECT
+    FROST_WALKER
+    IMPALING
+    SOUL_SPEED
+    KNOCKBACK
+    FORTUNE
+    LOOTING
+    LOYALTY
+    LUCK
+    LURE
+    MENDING
+    MULTISHOT
+    OXYGEN
+    PIERCING
+    PROTECTION
+    BLAST_PROTECTION
+    FEATHER_FALLING
+    FIRE_PROTECTION
+    PROJECTILE_PROTECTION
+    QUICK_CHARGE
+    RIPTIDE
+    SILK_TOUCH
+    SWEEPING_EDGE
+    THORNS
+    VANISHING_CURSE
+    AQUA_AFFINITY

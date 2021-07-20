@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.commands;
 
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.defaults.BukkitCommand;
 import org.bukkit.entity.Player;
@@ -17,10 +17,17 @@ public class SellCommand extends BukkitCommand {
 
     @Override
     public boolean execute(CommandSender commandSender, String label, String[] args) {
+        if (GUIShop.isNoEconomySystem()) {
+            GUIShop.sendPrefix(commandSender, "no-economy-system");
+            return true;
+        }
 
-        Player player = (Player) commandSender;
+        if (!(commandSender instanceof Player player)) {
+            GUIShop.sendPrefix(commandSender, "only-player");
+            return true;
+        }
 
-        Main.getINSTANCE().getUserCommands().sellCommand(player);
+        GUIShop.getINSTANCE().getUserCommands().sellCommand(player);
 
         return true;
     }

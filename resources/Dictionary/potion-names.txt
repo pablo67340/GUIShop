@@ -1,0 +1,45 @@
+This is the list of available potion names as of 1.17.1. If you are using an older
+server version, some of these names won't work as the potion you may be using
+may not exist for your older version. 
+
+Example Config Format:
+
+potion-info:
+  type: INSTANT_HEAL
+  splash: false
+  extended: false
+  upgraded: false
+
+Available Potion Types:
+    ABSORPTION
+    BAD_OMEN
+    BLINDNESS
+    CONDUIT_POWER
+    CONFUSION
+    DAMAGE_RESISTANCE
+    DOLPHINS_GRACE
+    FAST_DIGGING
+    FIRE_RESISTANCE
+    GLOWING
+    HARM
+    HEAL
+    HEALTH_BOOST
+    HERO_OF_THE_VILLAGE
+    HUNGER
+    INCREASE_DAMAGE
+    INVISIBILITY
+    JUMP
+    LEVITATION
+    LUCK
+    NIGHT_VISION
+    POISON
+    REGENERATION
+    SATURATION
+    SLOW
+    SLOW_DIGGING
+    SLOW_FALLING
+    SPEED
+    UNLUCK
+    WATER_BREATHING
+    WEAKNESS
+    WITHER

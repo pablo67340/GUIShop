@@ -1,15 +1,18 @@
 package com.pablo67340.guishop.listenable;
 
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.*;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.config.Config;
 import java.math.BigDecimal;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public final class Sell {
 
@@ -18,10 +21,10 @@ public final class Sell {
     /**
      * Open the {@link Sell} GUI.
      *
-     * @param player - The player the GUI will display to
+     * @param player The player the GUI will display to
      */
     public void open(Player player) {
-        GUI = new Gui(Main.getINSTANCE(), 6, ConfigUtil.getSellTitle());
+        GUI = new Gui(GUIShop.getINSTANCE(), 6, Config.getTitlesConfig().getSellTitle());
         GUI.setOnClose(this::onSellClose);
         StaticPane pane = new StaticPane(0, 0, 9, 6);
         GUI.addPane(pane);
@@ -31,7 +34,7 @@ public final class Sell {
     /**
      * Sell items inside the {@link Sell} GUI.
      *
-     * @param player - The player selling items
+     * @param player The player selling items
      */
     public void sell(Player player) {
         sellItems(player, GUI.getInventory().getContents());
@@ -45,20 +48,19 @@ public final class Sell {
      * @param items the items
      */
     public static void sellItems(Player player, ItemStack[] items) {
+        List<ItemStack> checkedItems = Arrays.stream(items).filter(Objects::nonNull).collect(Collectors.toList());
         BigDecimal moneyToGive = BigDecimal.valueOf(0);
         boolean couldntSell = false;
         int countSell = 0;
-        for (ItemStack item : items) {
 
-            if (item == null) {
-                continue;
-            }
+        ConcurrentHashMap<Material, Integer> itemMap = new ConcurrentHashMap<>();
 
+        for (ItemStack item : checkedItems) {
             Item shopItem = null;
 
-            Main.debugLog("Checking if " + item.getType().toString() + " is sellable");
+            GUIShop.debugLog("Checking if " + item.getType() + " is sellable");
 
-            List<Item> itemList = Main.getINSTANCE().getITEMTABLE().get(item.getType().toString());
+            List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(item.getType().toString());
 
             if (itemList != null) {
                 for (Item itm : itemList) {
@@ -69,29 +71,48 @@ public final class Sell {
             }
 
             if (shopItem == null || !shopItem.hasSellPrice() || !player.hasPermission("guishop.shop." + shopItem.getShop())) {
-                countSell += 1;
+                countSell++;
                 couldntSell = true;
                 player.getInventory().addItem(item);
                 continue;
             }
 
+            if (itemMap.containsKey(item.getType())) {
+                int oldAmount = itemMap.get(item.getType());
+
+                itemMap.put(item.getType(), oldAmount + item.getAmount());
+            } else {
+                itemMap.put(item.getType(), item.getAmount());
+            }
+
             int quantity = item.getAmount();
 
             // buy price must be defined for dynamic pricing to work
-            if (ConfigUtil.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
-                moneyToGive = moneyToGive.add(Main.getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
+            if (Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
+                moneyToGive = moneyToGive.add(GUIShop.getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
                         shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal()));
-                Main.getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
+                GUIShop.getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
             } else {
                 moneyToGive = moneyToGive.add(shopItem.getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity)));
             }
-
         }
 
         if (couldntSell) {
-            player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getCantSell().replace("{count}", countSell + ""));
+            GUIShop.sendPrefix(player, "cant-sell", countSell);
         }
+
         roundAndGiveMoney(player, moneyToGive);
+
+        String materialsString = checkedItems.stream().map(item -> item.getType().toString()).collect(Collectors.joining(", "));
+
+        int itemAmount = 0;
+
+        for (Map.Entry<Material, Integer> entry : itemMap.entrySet()) {
+            itemAmount += entry.getValue();
+        }
+
+        GUIShop.transactionLog(
+                "Player " + player.getName() + " sold " + itemAmount + " items (" + itemMap.size() + " different) for " + moneyToGive.toPlainString() + ". Items: \n" + materialsString);
     }
 
     /**
@@ -101,11 +122,13 @@ public final class Sell {
      * @param moneyToGive the amount to give
      */
     public static void roundAndGiveMoney(Player player, BigDecimal moneyToGive) {
-
         if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
-            Main.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
+            GUIShop.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
-            player.sendMessage(ConfigUtil.getSold() + moneyToGive.toPlainString() + ConfigUtil.getAdded());
+            String amount = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix") +
+                    moneyToGive.toPlainString() + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
+
+            GUIShop.sendPrefix(player, "sell", amount);
         }
     }
 
@@ -113,5 +136,4 @@ public final class Sell {
         Player player = (Player) event.getPlayer();
         sell(player);
     }
-
 }

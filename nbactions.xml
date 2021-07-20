@@ -8,7 +8,6 @@
             <goals>
                 <goal>clean</goal>
                 <goal>install</goal>
-                
             </goals>
         </action>
         <action>
@@ -19,10 +18,6 @@
                 <goal>-P</goal>
                 <goal>with-server</goal>
                 <goal>minecraft-server:server-start</goal>
-                
-                
-                
-                
             </goals>
         </action>
         <action>

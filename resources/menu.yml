@@ -1,9 +1,4 @@
 ###########################################################################
-#                           Looking for Item Names?                       #
-###########################################################################
-#                          https://tinyurl.com/okqdcvo                    #
-###########################################################################
-###########################################################################
 #                    Available Item Fields & Their Purpose:               #
 #                      REQ = REQUIRED, OPT = OPTIONAL.                    #
 #                                                                         #
@@ -13,10 +8,13 @@
 # lore ~ OPT ~ Custom lore to display only on the shop item.              #
 # target-shop ~ OPT ~ Shop to open when clicking the item.                #
 # skull-uuid ~ OPT ~ Set the UUID of a skull skin.                        #
-# #########################################################################
+###########################################################################
+#                        Looking for Item Names?                          #
+###########################################################################
+#                     See in the Dictionary folder                        #
+###########################################################################
+
 Menu:
-    backButtonSlot: 47
-    nextButtonSlot: 51
     pages:
         Page0:
             items:
@@ -410,3 +408,9 @@ Menu:
                 '53':
                   id: RED_STAINED_GLASS_PANE
                   name: ' '
+
+  ################################
+  ##  Developed by pablo67340   ##
+  ##  If you need any support:  ##
+  ##  discord.gg/XQb2Y2jBCa     ##
+  ################################

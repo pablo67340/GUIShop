@@ -1,0 +1,77 @@
+This is the list of official Spigot Mob Names. You MUST use names from this list.
+If you are using an older server version, and the item you are trying to use
+doesn't exist, the item obviously will not work.
+
+Example Config Format:
+
+mob-type: BAT
+
+Available Mob Types:
+    ELDER_GUARDIAN
+    WITHER_SKELETON
+    STRAY
+    HUSK
+    ZOMBIE_VILLAGER
+    SKELETON_HORSE
+    ZOMBIE_HORSE
+    DONKEY
+    MULE
+    EVOKER
+    VEX
+    VINDICATOR
+    ILLUSIONER
+    CREEPER
+    SKELETON
+    SPIDER
+    GIANT
+    ZOMBIE
+    SLIME
+    GHAST
+    ZOMBIFIED_PIGLIN
+    ENDERMAN
+    CAVE_SPIDER
+    SILVERFISH
+    BLAZE
+    MAGMA_CUBE
+    ENDER_DRAGON
+    WITHER
+    BAT
+    WITCH
+    ENDERMITE
+    GUARDIAN
+    PIG
+    SHEEP
+    COW
+    CHICKEN
+    SQUID
+    WOLF
+    MUSHROOM_COW
+    OCELOT
+    HORSE
+    RABBIT
+    POLAR_BEAR
+    LLAMA
+    PARROT
+    VILLAGER
+    TURTLE
+    PHANTOM
+    COD
+    SALMON
+    PUFFERFISH
+    TROPICAL_FISH
+    DROWNED
+    DOLPHIN
+    CAT
+    PANDA
+    PILLAGER
+    RAVAGER
+    FOX
+    BEE
+    HOGLIN
+    PIGLIN
+    STRIDER
+    ZOGLIN
+    PIGLIN_BRUTE
+    AXOLOTL
+    GLOW_SQUID
+    GOAT

@@ -1,16 +1,12 @@
 package com.pablo67340.guishop.util;
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import lombok.Getter;
 
-/**
- *
- * @author Bryce
- */
-public final class RowChart {
-
+public class RowChart {
     @Getter
     public static final List<List<Integer>> rowChart = new ArrayList<>();
 
@@ -35,5 +31,4 @@ public final class RowChart {
         }
         return 6;
     }
-
 }

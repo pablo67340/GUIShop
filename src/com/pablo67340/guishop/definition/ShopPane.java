@@ -14,14 +14,13 @@ import org.bukkit.inventory.PlayerInventory;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.GuiItem;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 
 import lombok.Getter;
 
 import org.jetbrains.annotations.NotNull;
 
 public class ShopPane extends Pane {
-
     private final Map<Integer, GuiItem> items;
     @Getter
     private final Map<Integer, ItemStack> dummies;
@@ -39,9 +38,9 @@ public class ShopPane extends Pane {
         items.put(items.size() + increment, item);
     }
 
-    public void setItem(GuiItem item, Integer slot) {
+    public void setItem(GuiItem item, int slot) {
         if (slot > 53) {
-            Main.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is 53. Item Ignored. Please Delete this item from shops.yml!");
+            GUIShop.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is lower than that. Item ignored. Please delete this item from shops.yml!");
         } else {
             items.put(slot, item);
         }
@@ -58,21 +57,11 @@ public class ShopPane extends Pane {
         return false;
     }
 
-    public void setDummy(Integer slot, ItemStack item) {
-        dummies.put(slot, item);
-    }
-
     @Override
     public void display(@NotNull Gui gui, @NotNull Inventory inventory, @NotNull PlayerInventory playerInventory,
             int paneOffsetX, int paneOffsetY, int maxLength, int maxHeight) {
-        items.entrySet().forEach(entry -> {
-            inventory.setItem(entry.getKey(), entry.getValue().getItem());
-        });
-        dummies.entrySet().stream().map(entry -> {
-            return entry;
-        }).forEachOrdered(entry -> {
-            inventory.setItem(entry.getKey(), entry.getValue());
-        });
+        items.forEach((key, value) -> inventory.setItem(key, value.getItem()));
+        dummies.forEach(inventory::setItem);
     }
 
     @NotNull
@@ -94,5 +83,4 @@ public class ShopPane extends Pane {
     public ShopPane getINSTANCE() {
         return INSTANCE;
     }
-
 }

@@ -6,7 +6,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
 
 /**
  * Listener when the commands mode is
@@ -24,7 +24,7 @@ public class CommandsInterceptor implements Listener {
     public static void register() {
         if (inst == null) {
             inst = new CommandsInterceptor();
-            Bukkit.getPluginManager().registerEvents(inst, Main.getINSTANCE());
+            Bukkit.getPluginManager().registerEvents(inst, GUIShop.getINSTANCE());
         }
     }
 
@@ -47,16 +47,15 @@ public class CommandsInterceptor implements Listener {
     public void onCommand(PlayerCommandPreprocessEvent evt) {
 
         String[] cut = evt.getMessage().substring(1).split(" ");
-        GuishopUserCommand userCmds = Main.getINSTANCE().getUserCommands();
+        UserCommand userCommands = GUIShop.getINSTANCE().getUserCommands();
 
-        if (Main.BUY_COMMANDS.contains(cut[0])) {
-            userCmds.buyCommand(evt.getPlayer(), (cut.length >= 2) ? cut[1] : null);
+        if (GUIShop.BUY_COMMANDS.contains(cut[0])) {
+            userCommands.buyCommand(evt.getPlayer(), (cut.length >= 2) ? cut[1] : null);
             evt.setCancelled(true);
 
-        } else if (Main.SELL_COMMANDS.contains(cut[0])) {
-            userCmds.sellCommand(evt.getPlayer());
+        } else if (GUIShop.SELL_COMMANDS.contains(cut[0])) {
+            userCommands.sellCommand(evt.getPlayer());
             evt.setCancelled(true);
         }
     }
-
 }

@@ -1,8 +1,8 @@
 name: GUIShop
-main: com.pablo67340.guishop.Main
+main: com.pablo67340.guishop.GUIShop
 version: ${project.version}
 author: pablo67340
-description: Shop Plugin for any server.
+description: Shop plugin for any server.
 depend: [Vault]
 api-version: 1.13
 permissions:
@@ -17,7 +17,7 @@ permissions:
         description: Grants access to reload shops
     guishop.creator:
         default: op
-        description: Grants access to GUIShop Creator
+        description: Grants access to the GUIShop Creator
 commands:
   guishop:
     description: Base GUIShop command. Displays help.
@@ -27,6 +27,6 @@ commands:
     description: GUIShop alias for buy and sell commands.
     permission: guishop.use
   value:
-    description: View an Item's Buy or Sell Value.
+    description: View an item's Buy or Sell Value.
     permission: guishop.value
     aliases: [val, gvalue]

@@ -1,9 +1,6 @@
 package com.pablo67340.guishop.definition;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
@@ -26,9 +23,7 @@ public class AltSellPane extends Pane {
     public AltSellPane(GuiItem subjectItem, GuiItem[] addRemoveItems, GuiItem indicatorItem, GuiItem confirmItem, GuiItem cancelItem) {
         super(9, 6);
         items.add(subjectItem);
-        for (int n = 0; n < 6; n++) {
-            items.add(addRemoveItems[n]);
-        }
+        items.addAll(Arrays.asList(addRemoveItems).subList(0, 6));
         items.add(indicatorItem);
         items.add(confirmItem);
         items.add(cancelItem);
@@ -84,5 +79,4 @@ public class AltSellPane extends Pane {
     public void clear() {
         items.clear();
     }
-
 }

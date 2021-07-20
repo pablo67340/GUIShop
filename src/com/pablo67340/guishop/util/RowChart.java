@@ -29,7 +29,7 @@ public final class RowChart {
         for (List<Integer> row : rowChart) {
             for (int slotNum : row) {
                 if (slotNum == slot) {
-                    return rowChart.indexOf(row)+1;
+                    return rowChart.indexOf(row) + 1;
                 }
             }
         }

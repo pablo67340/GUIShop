@@ -45,24 +45,22 @@ public class Shop {
      * The list of {@link Page}'s in this {@link Shop}.
      */
     private Gui GUI;
-    
+
     private final Menu menuInstance;
-    
-    private Boolean hasClicked = false;
-    
+
+    private Boolean hasClicked = false, clickOverride = false;
+
     private PaginatedPane currentPane;
-    
+
     private ShopItem shopItem;
-    
+
     private ShopPane shopPage = new ShopPane(9, 6);
-    
+
     private final Player player;
-    
+
     private Boolean shopMissing = false;
-    
+
     private Integer pageIndex = 0;
-    
-    private Boolean loadFailed = false;
 
     /**
      * The constructor for a {@link Shop}.
@@ -76,7 +74,7 @@ public class Shop {
         this.menuInstance = menuInstance;
         this.player = player;
     }
-    
+
     public Shop(String shop) {
         this.shop = shop;
         this.menuInstance = null;
@@ -106,6 +104,7 @@ public class Shop {
                 Main.debugLog("Loading items for shop: " + shop);
                 config.getKeys(false).stream().map(str -> {
                     ShopPage page = new ShopPage();
+
                     ConfigurationSection shopItems = config.getConfigurationSection(str + ".items");
                     Main.debugLog("Reading Shop Page: " + str);
                     shopItems.getKeys(false).stream().map(key -> {
@@ -120,12 +119,12 @@ public class Shop {
                                 items = new ArrayList<>();
                             }
                             items.add(item);
-                            
+
                             if (item.hasPotion() && item.getPotionInfo().getSplash()) {
                                 Main.debugLog("Making item: SPLASH_POTION sellable.");
                                 Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString(), items);
                             } else {
-                                
+
                                 try {
                                     Main.debugLog("Making item: " + item.getMaterial() + " sellable.");
                                     Main.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
@@ -141,6 +140,7 @@ public class Shop {
                     Main.debugLog("Adding page: " + "Page" + Integer.toString(shopItem.getPages().size()) + " to pages.");
                     shopItem.getPages().put("Page" + Integer.toString(shopItem.getPages().size()), page);
                 });
+                shopItem.determineHighestSlots();
                 Main.debugLog("Shop items added to loaded shops");
                 Main.getINSTANCE().getLoadedShops().put(shop, shopItem);
                 if (!preLoad) {
@@ -156,44 +156,42 @@ public class Shop {
             }
         }
     }
-    
+
     private void loadShop() {
         if (this.GUI == null || this.GUI.getItems().isEmpty()) {
-            if (this.hasMultiplePages()) {
-                this.GUI = new Gui(Main.getINSTANCE(), 6,
-                        ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
-            } else {
-                int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
-                if (rows == 0) {
-                    rows = 1;
-                }
-                
-            }
             PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
             for (Entry<String, ShopPage> entry : shopItem.getPages().entrySet()) {
+
                 if (this.GUI == null) {
-                    this.GUI = new Gui(Main.getINSTANCE(), Main.rowchart.getRowsFromHighestSlot(shopItem.getHighestPageSlot(entry.getKey())),
-                            ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
+                    int rows = Main.rowchart.getRowsFromHighestSlot(entry.getValue().getHighestSlot());
+                    if (rows != 6 && this.hasMultiplePages()) {
+                        this.GUI = new Gui(Main.getINSTANCE(), rows + 1,
+                                ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
+                    } else {
+                        this.GUI = new Gui(Main.getINSTANCE(), rows,
+                                ChatColor.translateAlternateColorCodes('&', ConfigUtil.getShopTitle().replace("{shopname}", title)));
+                    }
+
                 }
                 shopPage = new ShopPane(9, 6);
                 for (Item item : entry.getValue().getItems().values()) {
-                    
+
                     GuiItem gItem = new GuiItem(item.toItemStack(player, false));
                     shopPage.setItem(gItem, item.getSlot());
-                    
+
                 }
-                
-                applyButtons(shopPage, pageIndex, shopItem.getPages().size());
+
+                applyButtons(shopPage, pageIndex, shopItem.getPages().size(), entry.getValue());
                 pane.addPane(pageIndex, shopPage);
                 pageIndex += 1;
-                
+
             }
-            
+
             GUI.addPane(pane);
             this.currentPane = pane;
         }
     }
-    
+
     public Boolean hasMultiplePages() {
         return this.shopItem.getPages().size() > 1;
     }
@@ -214,30 +212,34 @@ public class Shop {
         }
         return is;
     }
-    
-    private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
+
+    private void applyButtons(ShopPane page, int pageIndex, int maxPages, ShopPage shopPage) {
+
+        int nextSlot = ((Main.rowchart.getRowsFromHighestSlot(shopPage.getHighestSlot()) + 1) * 9) - 3;
+        int prevSlot = ((Main.rowchart.getRowsFromHighestSlot(shopPage.getHighestSlot()) + 1) * 9) - 7;
+
         if (pageIndex < (maxPages - 1)) {
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getForwardPageButtonName())), 51);
+            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getForwardPageButtonName())), nextSlot);
         }
         Main.debugLog("Applying buttons with pageIndex: " + pageIndex + " maxPages: " + maxPages);
         if (pageIndex > 0) {
             Main.debugLog("Adding Back Button");
-            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getBackwardPageButtonName())), 47);
+            page.setItem(new GuiItem(makeNamedItem(Material.ARROW, ConfigUtil.getBackwardPageButtonName())), prevSlot);
         }
         if (!ConfigUtil.isDisableBackButton()) {
-            
+
             ItemStack backButtonItem = new ItemStack(
                     Objects.requireNonNull(XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseMaterial()));
-            
+
             ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-            
+
             assert backButtonMeta != null;
             backButtonMeta.setDisplayName(ConfigUtil.getBackButtonText());
-            
+
             backButtonItem.setItemMeta(backButtonMeta);
-            
+
             GuiItem item = new GuiItem(backButtonItem);
-            
+
             page.setItem(item, this.GUI.getInventory().getSize() - 1);
         }
     }
@@ -267,43 +269,59 @@ public class Shop {
         } catch (Exception ex) {
             Main.debugLog("An error occured opening shop: " + ex.getMessage());
         }
-        
+
     }
-    
+
     private void onShopClick(InventoryClickEvent e) {
         e.setCancelled(true);
-        
+
         if (e.getClickedInventory() == null) {
             return;
         }
-        
+
         if (e.getClickedInventory().getType() == InventoryType.PLAYER) {
             return;
         }
 
         // Forward Button
         Main.debugLog("Clicked: " + e.getSlot());
-        if (e.getSlot() == 51) {
+        if (e.getSlot() == this.GUI.getInventory().getSize() - 3) {
             if (shopItem.getPages().size() > 1 && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
                 hasClicked = true;
-                
+                clickOverride = true;
+
                 Main.debugLog("Setting page " + currentPane.getPage() + " to not visible");
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
                 Main.debugLog("Setting page to: " + (currentPane.getPage() + 1));
                 currentPane.setPage(currentPane.getPage() + 1);
-                
+
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
                 Main.debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
+                int rows = Main.rowchart.getRowsFromHighestSlot(shopItem.getHighestPageSlot("Page" + currentPane.getPage()));
+                if (rows != 6 && this.hasMultiplePages()) {
+                    this.GUI.setRows(rows + 1);
+                } else {
+                    this.GUI.setRows(rows);
+                }
+
                 GUI.update();
             }
             return;
             // Backward Button
-        } else if (e.getSlot() == 47) {
+        } else if (e.getSlot() == this.GUI.getInventory().getSize() - 7) {
             if (currentPane.getPage() != 0 && currentPane.getPages() > 0) {
                 hasClicked = true;
+                clickOverride = true;
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
                 currentPane.setPage(currentPane.getPage() - 1);
-                
+
+                int rows = Main.rowchart.getRowsFromHighestSlot(shopItem.getHighestPageSlot("Page" + currentPane.getPage()));
+                if (rows != 6 && this.hasMultiplePages()) {
+                    this.GUI.setRows(rows + 1);
+                } else {
+                    this.GUI.setRows(rows);
+                }
+
                 ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
                 GUI.update();
             }
@@ -320,14 +338,14 @@ public class Shop {
          * If the player has enough money to purchase the item, then allow them to.
          */
         Main.debugLog("Creator Status:" + Main.getCREATOR().contains(player.getName()));
-        
+
         Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(e.getSlot()));
-        
+
         if (item == null) {
             return;
-            
+
         } else if (!item.hasBuyPrice()) {
-            
+
             if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice()) {
                 hasClicked = true;
                 new AltSell(item).open(player);
@@ -340,7 +358,7 @@ public class Shop {
             }
             return;
         }
-        
+
         if (item.getItemType() == ItemType.SHOP) {
             hasClicked = true;
             if (ConfigUtil.isAlternateSellEnabled() && item.hasSellPrice() && (e.getClick() == ClickType.RIGHT || e.getClick() == ClickType.SHIFT_RIGHT)) {
@@ -355,28 +373,29 @@ public class Shop {
                         new Quantity(item, this, player).loadInventory().open();
                     } else {
                         new Quantity(item, this, player).buy(item, 1, e);
+                        System.out.println("hasClicked 1");
                         hasClicked = false;
                     }
                 }
-                
+
             }
         } else if (item.getItemType() == ItemType.COMMAND) {
-            
+
             BigDecimal priceToPay;
-            
+
             Runnable dynamicPricingUpdate = null;
 
             // sell price must be defined and nonzero for dynamic pricing to work
             if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
-                
+
                 String itemString = item.getItemString();
                 dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, 1);
-                
+
                 priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, 1, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
             } else {
                 priceToPay = item.getBuyPriceAsDecimal();
             }
-            
+
             if (Main.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
                 item.getCommands().forEach(str -> {
                     Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(),
@@ -390,9 +409,9 @@ public class Shop {
                         + ConfigUtil.getNotEnoughPost());
             }
         }
-        
+
     }
-    
+
     private void creatorPlayerInventoryClick(InventoryClickEvent e) {
         if (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT) {
 
@@ -413,7 +432,7 @@ public class Shop {
             }, 5L);
         }
     }
-    
+
     private void creatorTopInventoryClick(InventoryClickEvent e) {
         if (e.getCurrentItem() != null || e.getClick() == ClickType.SHIFT_RIGHT || e.getClick() == ClickType.SHIFT_LEFT) {
             Main.debugLog("Cursor: " + e.getCursor());
@@ -433,7 +452,7 @@ public class Shop {
             }, 5L);
         }
     }
-    
+
     private void deleteShopItem(Integer slot) {
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().remove(Integer.toString(slot));
         ConfigurationSection config = Main.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
@@ -446,16 +465,16 @@ public class Shop {
             Main.debugLog("Error saving Shops: " + ex.getMessage());
         }
     }
-    
+
     public void editShopItem(ItemStack itemStack, Integer slot) {
-        
+
         Item item = Item.parse(itemStack, slot, shop);
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
-        
+
         ConfigurationSection config = Main.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
                 ? Main.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
                 : Main.getINSTANCE().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
-        
+
         config.set(slot.toString(), item.serialize());
         Main.debugLog("Player Edited Item: " + item.getMaterial() + " slot: " + slot);
         try {
@@ -463,6 +482,7 @@ public class Shop {
         } catch (IOException ex) {
             Main.debugLog("Error saving Shops: " + ex.getMessage());
         }
+        System.out.println("hasClicked 2");
         hasClicked = false;
     }
 
@@ -472,19 +492,24 @@ public class Shop {
     private void onClose(InventoryCloseEvent e) {
         if (!Main.CREATOR.contains(player.getName())) {
             if (!ConfigUtil.isDisableEscapeBack() && !hasClicked) {
+                System.out.println("Has Clicked = false Returning to Menu");
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
                 scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> menuInstance.open(player), 1L);
+            } else if (clickOverride) {
+                System.out.println("hasClicked 3");
+                clickOverride = false;
             } else {
+                System.out.println("hasClicked 5");
                 hasClicked = false;
             }
         } else if (!hasClicked) {
             Main.CREATOR.remove(player.getName());
         }
-        
+
     }
-    
+
     public Boolean isShopMissing() {
         return this.shopMissing == true;
     }
-    
+
 }

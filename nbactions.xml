@@ -1,45 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <actions>
-        <action>
-            <actionName>rebuild</actionName>
-            <packagings>
-                <packaging>*</packaging>
-            </packagings>
-            <goals>
-                <goal>clean</goal>
-                <goal>install</goal>
-                
-            </goals>
-        </action>
-        <action>
-            <actionName>CUSTOM-Build and Run Server</actionName>
-            <displayName>Build and Run Server</displayName>
-            <goals>
-                <goal>install</goal>
-                <goal>-P</goal>
-                <goal>with-server</goal>
-                <goal>minecraft-server:server-start</goal>
-                
-                
-                
-                
-            </goals>
-        </action>
-        <action>
-            <actionName>CUSTOM-Build Plugin</actionName>
-            <displayName>Build Plugin</displayName>
-            <goals>
-                <goal>clean</goal>
-                <goal>install</goal>
-                <goal>-P</goal>
-                <goal>default</goal>
-            </goals>
-        </action>
-        <action>
-            <actionName>CUSTOM-Install Minecraft Server</actionName>
-            <displayName>Install Minecraft Server</displayName>
-            <goals>
-                <goal>minecraft-server:server-install</goal>
-            </goals>
-        </action>
-    </actions>
+    <action>
+        <actionName>rebuild</actionName>
+        <packagings>
+            <packaging>*</packaging>
+        </packagings>
+        <goals>
+            <goal>clean</goal>
+            <goal>install</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-Build and Run Server</actionName>
+        <displayName>Build and Run Server</displayName>
+        <goals>
+            <goal>install</goal>
+            <goal>-P</goal>
+            <goal>with-server</goal>
+            <goal>minecraft-server:server-start</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-Build Plugin</actionName>
+        <displayName>Build Plugin</displayName>
+        <goals>
+            <goal>clean</goal>
+            <goal>install</goal>
+            <goal>-P</goal>
+            <goal>default</goal>
+        </goals>
+    </action>
+    <action>
+        <actionName>CUSTOM-Install Minecraft Server</actionName>
+        <displayName>Install Minecraft Server</displayName>
+        <goals>
+            <goal>minecraft-server:server-install</goal>
+        </goals>
+    </action>
+</actions>

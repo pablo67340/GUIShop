@@ -1,0 +1,3475 @@
+###########################################################################
+#                              EXAMPLE CONFIG                             #
+#     This config is only an EXAMPLE of everything GUIShop can do.        #
+#    The economy is NOT balanced whatsoever, and WILL need price changes  #
+#            to make it safe for use on a public live server!!            #
+###########################################################################
+#                               Placeholders                              #
+#               Placeholders are available to you for item                #
+#                options such as: shop-name, buy-name,                    #
+#                   shop-lore, buy-lore and commands.                     #
+#                                                                         #
+#  %item_shop_name% - The declared shop-name.                             #
+#  %item_buy_name% - The declared buy-name.                               #
+#  %player_name% - Name of player who clicks shop item. Only Supports     #
+#  buy-lore, buy-name, commands.                                          #
+#  %player_uuid% - UUID of player who clicks shop item. Only Supports     #
+#  buy-lore, buy-name, commands.                                          #
+#  %player_world% - World name of player who clicks shop item.            #
+#  Only Supports buy-lore, buy-name, commands.                            #
+#  %buy_price% - The declared buy-price of the item.                      #
+#  %sell_price% - The declared sell-price of the item.                    #
+#  %currency_symbol% - The declared symbol in messages.yml                #
+#  %currency_suffix% - The declared suffix in messages.yml                #
+###########################################################################
+#                    Available Item Fields & Their Purpose:               #
+#                      REQ = REQUIRED, OPT = OPTIONAL.                    #
+#                                                                         #
+# id ~ REQ ~ Material name of the Item. Use names from the link above.    #
+# type ~ OPT ~ SHOP, COMMAND, BLANK, DUMMY, Default: DUMMY.               #
+# shop-name ~ OPT ~ Custom name of item only inside the shop.             #
+# buy-name ~ OPT ~ Custom name of item only on purchased item.            #
+# buy-price ~ REQ ~ Cost of the item, false to prevent buying.            #
+# sell-price ~ REQ ~ Sell value of item. false to prevent selling.        #
+# enchantments ~ OPT ~ Enchantments of an item. E.G 'DURA:1 SHARP:2'      #
+# shop-lore ~ OPT ~ Custom lore to display only on the shop item.         #
+# buy-lore ~ OPT ~ Custom lore to display on purchased item.              #
+# skull-uuid ~ OPT ~ Set the UUID of a skull skin.                        #
+# potion-info ~ OPT ~ Set the potion information.                         #
+# item-flags ~ OPT ~ Set Item Flags of the current item.                  #
+# custom-nbt ~ OPT ~ Set custom NBT that will be merged with the item.    #
+# custom-model ~ OPT ~ Set custom Model ID of item for Resource Packs.    #
+# quantity ~ OPT ~ True/False or a number for the quantity. False is 1    #
+# commands ~ Required only if type is COMMAND ~ List of commands to run.  #
+# permission ~ OPT ~ The permission a player needs to buy/sell the item   #
+###########################################################################
+#                        Looking for Item Names?                          #
+###########################################################################
+#                     See in the Dictionary folder                        #
+###########################################################################
+
+Raiding:
+  title: '&4Raiding &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: COMMAND
+          id: PISTON
+          shop-name: '&4Example command item (Kill)'
+          buy-price: 100.0
+          sell-price: 50.2
+          commands:
+            - 'kill %player_name%'
+            - 'broadcast %player_name% Tested the Suicide Item'
+        '20':
+          type: SHOP
+          id: REDSTONE_BLOCK
+          buy-price: 150
+        '21':
+          type: SHOP
+          id: DISPENSER
+          buy-price: 135.0
+        '22':
+          type: SHOP
+          id: LEVER
+          buy-price: 5.0
+        '23':
+          type: SHOP
+          id: STONE_BUTTON
+          buy-price: 5.0
+        '24':
+          type: SHOP
+          id: STONE_PRESSURE_PLATE
+          buy-price: 5.0
+        '25':
+          type: SHOP
+          id: REDSTONE_TORCH
+          buy-price: 2.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: REDSTONE
+          buy-price: 1.0
+          sell-price: 1.0
+        '29':
+          type: SHOP
+          id: WATER_BUCKET
+          buy-price: 150.0
+        '30':
+          type: SHOP
+          id: LAVA_BUCKET
+          buy-price: 150.0
+        '31':
+          type: SHOP
+          id: STONE_SLAB
+          buy-price: 3.0
+        '32':
+          type: SHOP
+          id: TNT
+          buy-price: 50.0
+        '33':
+          type: SHOP
+          id: FIRE_CHARGE
+          buy-price: 50.0
+        '34':
+          type: SHOP
+          id: CREEPER_SPAWN_EGG
+          buy-price: 50.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Ores:
+  title: '&4Ores/Ingot &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: EMERALD
+          buy-price: 150.0
+          sell-price: 50.0
+        '20':
+          type: SHOP
+          id: DIAMOND
+          buy-price: 375.0
+          sell-price: 75.0
+        '21':
+          type: SHOP
+          id: GOLD_INGOT
+          buy-price: 30.0
+          sell-price: 10.0
+        '22':
+          type: SHOP
+          id: IRON_INGOT
+          buy-price: 8.0
+          sell-price: 5.0
+        '23':
+          type: SHOP
+          id: COAL
+          buy-price: 4.0
+          sell-price: 1.0
+        '24':
+          type: SHOP
+          id: QUARTZ
+          buy-price: 8.0
+          sell-price: 1.0
+        '25':
+          type: SHOP
+          id: LAPIS_LAZULI
+          buy-price: 1.0
+          sell-price: 1.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: EMERALD_ORE
+          buy-price: 150.0
+          sell-price: 50.0
+        '29':
+          type: SHOP
+          id: DIAMOND_ORE
+          buy-price: 375.0
+          sell-price: 75.0
+        '30':
+          type: SHOP
+          id: GOLD_ORE
+          buy-price: 30.0
+          sell-price: 10.0
+        '31':
+          type: SHOP
+          id: IRON_ORE
+          buy-price: 8.0
+          sell-price: 5.0
+        '32':
+          type: SHOP
+          id: COAL_ORE
+          buy-price: 4.0
+          sell-price: 1.0
+        '33':
+          type: SHOP
+          id: NETHER_QUARTZ_ORE
+          buy-price: 8.0
+          sell-price: 1.0
+        '34':
+          type: SHOP
+          id: LAPIS_ORE
+          buy-price: 1.0
+          sell-price: 1.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+EnchantedBooks:
+  title: '&4Enchanted Books &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          sell-price: 500
+          enchantments: 'DURA:1'
+        '20':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          sell-price: 600
+          enchantments: 'SHARP:1'
+        '21':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          sell-price: 700
+          enchantments: 'KNOCKBACK:1'
+        '22':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          enchantments: 'FIRE_ASPECT:1'
+        '23':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          enchantments: 'PROTECTION:1'
+        '24':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          enchantments: 'THORNS:1'
+        '25':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1000
+          enchantments: 'SILK_TOUCH:1'
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'DURA:2'
+        '29':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'SHARP:2'
+        '30':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'KNOCKBACK:3'
+          sell-price: 1000
+        '31':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'FIRE_ASPECT:2'
+        '32':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'PROTECTION:2'
+        '33':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'THORNS:2'
+        '34':
+          type: SHOP
+          id: ENCHANTED_BOOK
+          buy-price: 1200
+          enchantments: 'SILK_TOUCH:2'
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Farming:
+  title: '&4Farming &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: OAK_SAPLING
+          buy-price: 3.0
+        '20':
+          type: SHOP
+          id: SPRUCE_SAPLING
+          buy-price: 3.0
+        '21':
+          type: SHOP
+          id: BIRCH_SAPLING
+          buy-price: 3.0
+        '22':
+          type: SHOP
+          id: JUNGLE_SAPLING
+          buy-price: 3.0
+        '23':
+          type: SHOP
+          id: ACACIA_SAPLING
+          buy-price: 3.0
+        '24':
+          type: SHOP
+          id: DARK_OAK_SAPLING
+          buy-price: 3.0
+        '25':
+          type: SHOP
+          id: FERN
+          buy-price: 3.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: WHEAT_SEEDS
+          buy-price: 3.0
+        '29':
+          type: SHOP
+          id: PUMPKIN_SEEDS
+          buy-price: 31.0
+        '30':
+          type: SHOP
+          id: MELON_SEEDS
+          buy-price: 31.0
+        '31':
+          type: SHOP
+          id: BEETROOT_SEEDS
+          buy-price: 31.0
+        '32':
+          type: SHOP
+          id: SUGAR_CANE
+          buy-price: 12.0
+          sell-price: 4.0
+        '33':
+          type: SHOP
+          id: CACTUS
+          buy-price: 20.0
+          sell-price: 2.0
+        '34':
+          type: SHOP
+          id: RED_MUSHROOM
+          buy-price: 75.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Shulker:
+  title: '&4Heads &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: BLACK_SHULKER_BOX
+          buy-price: 5000.0
+        '20':
+          type: SHOP
+          id: WHITE_SHULKER_BOX
+          buy-price: 5000.0
+        '21':
+          type: SHOP
+          id: BLUE_SHULKER_BOX
+          buy-price: 5000.0
+        '22':
+          type: SHOP
+          id: BROWN_SHULKER_BOX
+          buy-price: 5000.0
+        '23':
+          type: SHOP
+          id: CYAN_SHULKER_BOX
+          buy-price: 5000.0
+        '24':
+          type: SHOP
+          id: GRAY_SHULKER_BOX
+          buy-price: 5000.0
+        '25':
+          type: SHOP
+          id: GREEN_SHULKER_BOX
+          buy-price: 5000.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: LIGHT_BLUE_SHULKER_BOX
+          buy-price: 5000.0
+        '29':
+          type: SHOP
+          id: LIGHT_GRAY_SHULKER_BOX
+          buy-price: 5000.0
+        '30':
+          type: SHOP
+          id: LIME_SHULKER_BOX
+          buy-price: 5000.0
+        '31':
+          type: SHOP
+          id: MAGENTA_SHULKER_BOX
+          buy-price: 5000.0
+        '32':
+          type: SHOP
+          id: ORANGE_SHULKER_BOX
+          buy-price: 5000.0
+        '33':
+          type: SHOP
+          id: PINK_SHULKER_BOX
+          buy-price: 5000.0
+        '34':
+          type: SHOP
+          id: PURPLE_SHULKER_BOX
+          buy-price: 5000.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Brewing:
+  title: '&4Brewing &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: GHAST_TEAR
+          buy-price: 100.0
+          sell-price: 20.0
+        '20':
+          type: SHOP
+          id: SPIDER_EYE
+          buy-price: 2.0
+        '21':
+          type: SHOP
+          id: FERMENTED_SPIDER_EYE
+          buy-price: 100.0
+        '22':
+          type: SHOP
+          id: GOLDEN_CARROT
+          buy-price: 25.0
+        '23':
+          type: SHOP
+          id: GLISTERING_MELON_SLICE
+          buy-price: 50.0
+        '24':
+          type: SHOP
+          id: BLAZE_POWDER
+          buy-price: 7.0
+          sell-price: 2.0
+        '25':
+          type: SHOP
+          id: NETHER_WART
+          buy-price: 12.0
+          sell-price: 3.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: MAGMA_CREAM
+          buy-price: 20.0
+          sell-price: 10.0
+        '29':
+          type: SHOP
+          id: BREWING_STAND
+          buy-price: 20.0
+          sell-price: 10.0
+        '30':
+          type: SHOP
+          id: CAULDRON
+          buy-price: 20.0
+          sell-price: 10.0
+        '31':
+          type: SHOP
+          id: GLASS_BOTTLE
+          buy-price: 20.0
+          sell-price: 10.0
+        '32':
+          type: SHOP
+          id: RABBIT_FOOT
+          buy-price: 20.0
+          sell-price: 10.0
+        '33':
+          type: SHOP
+          id: PHANTOM_MEMBRANE
+          buy-price: 20.0
+          sell-price: 10.0
+        '34':
+          type: SHOP
+          id: PUFFERFISH
+          buy-price: 20.0
+          sell-price: 10.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Gear:
+  title: '&4Gear &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          type: SHOP
+          id: LEATHER_HELMET
+          buy-price: 50.0
+          quantity: false
+        '11':
+          type: SHOP
+          id: CHAINMAIL_HELMET
+          buy-price: 100.0
+          quantity: false
+        '12':
+          type: SHOP
+          id: IRON_HELMET
+          buy-price: 150.0
+          quantity: false
+        '13':
+          type: SHOP
+          id: GOLDEN_HELMET
+          buy-price: 150.0
+          quantity: false
+        '14':
+          type: SHOP
+          id: DIAMOND_HELMET
+          buy-price: 200.0
+          quantity: false
+        '15':
+          type: SHOP
+          id: NETHERITE_HELMET
+          buy-price: 250.0
+          quantity: false
+        '16':
+          type: SHOP
+          id: IRON_SWORD
+          buy-price: 100.0
+          quantity: false
+          enchantments: 'SHARP:1 UNBREAKING:1'
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: LEATHER_CHESTPLATE
+          buy-price: 50.0
+          quantity: false
+        '20':
+          type: SHOP
+          id: CHAINMAIL_CHESTPLATE
+          buy-price: 100.0
+          quantity: false
+        '21':
+          type: SHOP
+          id: IRON_CHESTPLATE
+          buy-price: 150.0
+          quantity: false
+        '22':
+          type: SHOP
+          id: GOLDEN_CHESTPLATE
+          buy-price: 150.0
+          quantity: false
+        '23':
+          type: SHOP
+          id: DIAMOND_CHESTPLATE
+          buy-price: 200.0
+          quantity: false
+        '24':
+          type: SHOP
+          id: NETHERITE_CHESTPLATE
+          buy-price: 250.0
+          quantity: false
+        '25':
+          type: SHOP
+          id: GOLDEN_SWORD
+          buy-price: 100.0
+          quantity: false
+          enchantments: 'SHARP:1 UNBREAKING:1'
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: LEATHER_LEGGINGS
+          buy-price: 50.0
+          quantity: false
+        '29':
+          type: SHOP
+          id: CHAINMAIL_LEGGINGS
+          buy-price: 100.0
+          quantity: false
+        '30':
+          type: SHOP
+          id: IRON_LEGGINGS
+          buy-price: 150.0
+          quantity: false
+        '31':
+          type: SHOP
+          id: GOLDEN_LEGGINGS
+          buy-price: 150.0
+          quantity: false
+        '32':
+          type: SHOP
+          id: DIAMOND_LEGGINGS
+          buy-price: 200.0
+          quantity: false
+        '33':
+          type: SHOP
+          id: NETHERITE_LEGGINGS
+          buy-price: 250.0
+          quantity: false
+        '34':
+          type: SHOP
+          id: DIAMOND_SWORD
+          buy-price: 100.0
+          quantity: false
+          enchantments: 'SHARP:1 UNBREAKING:1'
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          type: SHOP
+          id: LEATHER_BOOTS
+          buy-price: 50.0
+          quantity: false
+        '38':
+          type: SHOP
+          id: CHAINMAIL_BOOTS
+          buy-price: 100.0
+          quantity: false
+        '39':
+          type: SHOP
+          id: IRON_BOOTS
+          buy-price: 150.0
+          quantity: false
+        '40':
+          type: SHOP
+          id: GOLDEN_BOOTS
+          buy-price: 150.0
+          quantity: false
+        '41':
+          type: SHOP
+          id: DIAMOND_BOOTS
+          buy-price: 200.0
+          quantity: false
+        '42':
+          type: SHOP
+          id: NETHERITE_BOOTS
+          buy-price: 250.0
+          quantity: false
+        '43':
+          type: SHOP
+          id: NETHERITE_SWORD
+          buy-price: 100.0
+          quantity: false
+          enchantments: 'SHARP:1 UNBREAKING:1'
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Spawners:
+  title: '&4Spawners &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 75000.0
+          shop-name: Creeper Spawner
+          mob-type: 'CREEPER'
+          sell-price: 50000.0
+        '20':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 100000.0
+          shop-name: Skeleton Spawner
+          mob-type: 'SKELETON'
+          sell-price: 60000.0
+        '21':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 140000.0
+          shop-name: Spider Spawner
+          mob-type: 'SPIDER'
+          sell-price: 70000.0
+        '22':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 140000.0
+          shop-name: Giant Zombie Spawner
+          mob-type: 'GIANT'
+        '23':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 140000.0
+          shop-name: Zombie Spawner
+          mob-type: 'ZOMBIE'
+        '24':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 140000.0
+          shop-name: Slime Spawner
+          mob-type: 'SLIME'
+        '25':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 180000.0
+          shop-name: Ghast Spawner
+          mob-type: 'GHAST'
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 180000.0
+          shop-name: Zombie Pigman Spawner
+          mob-type: 'ZOMBIE_PIGMAN'
+        '29':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 350000.0
+          shop-name: Enderman Spawner
+          mob-type: 'ENDERMAN'
+        '30':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 150000.0
+          shop-name: Cave Spider Spawner
+          mob-type: 'CAVE_SPIDER'
+        '31':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 150000.0
+          shop-name: Ocelot Spawner
+          mob-type: 'OCELOT'
+        '32':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 150000.0
+          shop-name: Wolf Spawner
+          mob-type: 'WOLF'
+        '33':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 150000.0
+          shop-name: Bat Spawner
+          mob-type: 'BAT'
+        '34':
+          type: SHOP
+          id: SPAWNER
+          buy-price: 150000.0
+          shop-name: Fox Spawner
+          mob-type: 'FOX'
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Blocks:
+  title: '&4Blocks &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          type: SHOP
+          id: STONE_BRICKS
+          buy-price: 100.0
+        '1':
+          type: SHOP
+          id: MOSSY_STONE_BRICKS
+          buy-price: 110.0
+        '2':
+          type: SHOP
+          id: CRACKED_STONE_BRICKS
+          buy-price: 120.0
+        '3':
+          type: SHOP
+          id: CHISELED_STONE_BRICKS
+          buy-price: 130.0
+        '4':
+          type: SHOP
+          id: STONE
+          buy-price: 140.0
+        '5':
+          type: SHOP
+          id: COBBLESTONE
+          buy-price: 150.0
+        '6':
+          type: SHOP
+          id: MOSSY_COBBLESTONE
+          buy-price: 160.0
+        '7':
+          type: SHOP
+          id: MYCELIUM
+          buy-price: 170.0
+        '8':
+          type: SHOP
+          id: GRASS
+          buy-price: 180.0
+        '9':
+          type: SHOP
+          id: DIRT
+          buy-price: 190.0
+        '10':
+          type: SHOP
+          id: OAK_LOG
+          buy-price: 200.0
+        '11':
+          type: SHOP
+          id: SPRUCE_LOG
+          buy-price: 210.0
+        '12':
+          type: SHOP
+          id: BIRCH_LOG
+          buy-price: 220.0
+        '13':
+          type: SHOP
+          id: JUNGLE_LOG
+          buy-price: 230.0
+        '14':
+          type: SHOP
+          id: ACACIA_LOG
+          buy-price: 240.0
+        '15':
+          type: SHOP
+          id: DARK_OAK_LOG
+          buy-price: 250.0
+        '16':
+          type: SHOP
+          id: SPONGE
+          buy-price: 260.0
+        '17':
+          type: SHOP
+          id: BRICKS
+          buy-price: 270.0
+        '18':
+          type: SHOP
+          id: BIRCH_WOOD
+          buy-price: 280.0
+        '19':
+          type: SHOP
+          id: JUNGLE_WOOD
+          buy-price: 290.0
+        '20':
+          type: SHOP
+          id: ACACIA_WOOD
+          buy-price: 300.0
+        '21':
+          type: SHOP
+          id: DARK_OAK_WOOD
+          buy-price: 310.0
+        '22':
+          type: SHOP
+          id: WHITE_WOOL
+          buy-price: 320.0
+        '23':
+          type: SHOP
+          id: CLAY
+          buy-price: 330.0
+        '24':
+          type: SHOP
+          id: LIGHT_BLUE_TERRACOTTA
+          buy-price: 340.0
+        '25':
+          type: SHOP
+          id: OBSIDIAN
+          buy-price: 350.0
+        '26':
+          type: SHOP
+          id: SANDSTONE
+          buy-price: 360.0
+        '27':
+          type: SHOP
+          id: SAND
+          buy-price: 370.0
+        '28':
+          type: SHOP
+          id: RED_SAND
+          buy-price: 380.0
+        '29':
+          type: SHOP
+          id: GLASS
+          buy-price: 390.0
+        '30':
+          type: SHOP
+          id: GRAVEL
+          buy-price: 101.0
+        '31':
+          type: SHOP
+          id: QUARTZ_BLOCK
+          buy-price: 102.0
+        '32':
+          type: SHOP
+          id: CHISELED_QUARTZ_BLOCK
+          buy-price: 103.0
+        '33':
+          type: SHOP
+          id: QUARTZ_PILLAR
+          buy-price: 104.0
+        '34':
+          type: SHOP
+          id: NETHER_BRICK
+          buy-price: 105.0
+        '35':
+          type: SHOP
+          id: NETHERRACK
+          buy-price: 106.0
+        '36':
+          type: SHOP
+          id: SOUL_SAND
+          buy-price: 107.0
+        '37':
+          type: SHOP
+          id: GLOWSTONE
+          buy-price: 108.0
+        '38':
+          type: SHOP
+          id: ENCHANTING_TABLE
+          buy-price: 100.0
+        '39':
+          type: SHOP
+          id: BOOKSHELF
+          buy-price: 109.0
+        '40':
+          type: SHOP
+          id: SNOW_BLOCK
+          buy-price: 110.0
+        '41':
+          type: SHOP
+          id: ICE
+          buy-price: 111.0
+        '42':
+          type: SHOP
+          id: PACKED_ICE
+          buy-price: 112.0
+        '43':
+          type: SHOP
+          id: END_STONE
+          buy-price: 113.0
+        '44':
+          type: SHOP
+          id: BEACON
+          buy-price: 114.0
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+    Page1:
+      items:
+        '0':
+          type: SHOP
+          id: WHITE_WOOL
+          buy-price: 115.0
+        '1':
+          type: SHOP
+          id: ORANGE_WOOL
+          buy-price: 116.0
+        '2':
+          type: SHOP
+          id: MAGENTA_WOOL
+          buy-price: 117.0
+        '3':
+          type: SHOP
+          id: LIGHT_BLUE_WOOL
+          buy-price: 118.0
+        '4':
+          type: SHOP
+          id: YELLOW_WOOL
+          buy-price: 119.0
+        '5':
+          type: SHOP
+          id: LIME_WOOL
+          buy-price: 120.0
+        '6':
+          type: SHOP
+          id: PINK_WOOL
+          buy-price: 121.0
+        '7':
+          type: SHOP
+          id: GRAY_WOOL
+          buy-price: 122.0
+        '8':
+          type: SHOP
+          id: LIGHT_GRAY_WOOL
+          buy-price: 123.0
+        '9':
+          type: SHOP
+          id: CYAN_WOOL
+          buy-price: 124.0
+        '10':
+          type: SHOP
+          id: PURPLE_WOOL
+          buy-price: 125.0
+        '11':
+          type: SHOP
+          id: BLUE_WOOL
+          buy-price: 126.0
+        '12':
+          type: SHOP
+          id: BROWN_WOOL
+          buy-price: 127.0
+        '13':
+          type: SHOP
+          id: GREEN_WOOL
+          buy-price: 128.0
+        '14':
+          type: SHOP
+          id: RED_WOOL
+          buy-price: 129.0
+        '15':
+          type: SHOP
+          id: WHITE_STAINED_GLASS
+          buy-price: 131.0
+        '16':
+          type: SHOP
+          id: ORANGE_STAINED_GLASS
+          buy-price: 132.0
+        '17':
+          type: SHOP
+          id: MAGENTA_STAINED_GLASS
+          buy-price: 133.0
+        '18':
+          type: SHOP
+          id: LIGHT_BLUE_STAINED_GLASS
+          buy-price: 134.0
+        '19':
+          type: SHOP
+          id: YELLOW_STAINED_GLASS
+          buy-price: 135.0
+        '20':
+          type: SHOP
+          id: LIME_STAINED_GLASS
+          buy-price: 136.0
+        '21':
+          type: SHOP
+          id: PINK_STAINED_GLASS
+          buy-price: 137.0
+        '22':
+          type: SHOP
+          id: GRAY_STAINED_GLASS
+          buy-price: 138.0
+        '23':
+          type: SHOP
+          id: LIGHT_GRAY_STAINED_GLASS
+          buy-price: 139.0
+        '24':
+          type: SHOP
+          id: CYAN_STAINED_GLASS
+          buy-price: 140.0
+        '25':
+          type: SHOP
+          id: PURPLE_STAINED_GLASS
+          buy-price: 141.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '29':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '30':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '31':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '32':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '33':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '34':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Heads:
+  title: '&4Heads &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '3711f92c-4212-4356-934d-fcc59083ca50'
+          buy-price: 10000.0
+          sell-price: 5000.0
+          shop-name: Bryces Head
+          buy-name: Bryces Head
+        '20':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: 'bb6bccb6-cd90-4844-9b1b-60722b1823ae'
+          buy-price: 100000.0
+          sell-price: 6000.0
+          shop-name: Vajoners Head
+          buy-name: Vajoners Head
+        '21':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: 'ed5f12cd-6007-45d9-a4b9-940524ddaecf'
+          buy-price: 10000.0
+          sell-price: 7000.0
+          shop-name: A248s Head
+          buy-name: A248s Head
+        '22':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '069a79f4-44e9-4726-a5be-fca90e38aaf5'
+          buy-price: 10000.0
+          shop-name: Notchs Head
+          buy-name: Notchs Head
+        '23':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '853c80ef-3c37-49fd-aa49-938b674adae6'
+          buy-price: 10000.0
+          shop-name: Jeb_s Head
+          buy-name: Jeb_s Head
+        '24':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: 'f84c6a79-0a4e-45e0-879b-cd49ebd4c4e2'
+          buy-price: 10000.0
+          shop-name: Herobrines Head
+          buy-name: Herobrines Head
+        '25':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '5a609df0-6f84-49db-b6a1-6611c45f9a9f'
+          buy-price: 10000.0
+          shop-name: Wookies Head
+          buy-name: Wookies Head
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '2cec9e03-ae37-43ba-b95f-a396d10091c4'
+          buy-price: 10000.0
+          shop-name: SpongeBobs Head
+          buy-name: SpongeBobs Head
+        '29':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '34dccaa9-853c-413d-8156-786056aa3bb7'
+          buy-price: 10000.0
+          shop-name: Squidwards Head
+          buy-name: Squidwards Head
+        '30':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '64e57200-4023-48fa-a197-784601febb25'
+          buy-price: 10000.0
+          shop-name: Zoidbergs Head
+          buy-name: Zoidbergs Head
+        '31':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '97fa390e-2ca1-49a8-a7dd-33dec5f41a1e'
+          buy-price: 10000.0
+          shop-name: Farnsworths Head
+          buy-name: Farnsworths Head
+        '32':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: 'e4cfa992-ba39-4a2d-87dc-2cfcd90c8263'
+          buy-price: 10000.0
+          shop-name: Darth Vaders Head
+          buy-name: Darth Vaders Head
+        '33':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: '288a1026-fc1c-430b-a0cc-1e8c782c2a02'
+          buy-price: 10000.0
+          shop-name: Anakins Head
+          buy-name: Anakins Head
+        '34':
+          type: SHOP
+          id: PLAYER_HEAD
+          skull-uuid: 'f141191a-0001-465a-9ebf-f142378b6c59'
+          buy-price: 10000.0
+          shop-name: R2D2s Head
+          buy-name: R2D2s Head
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Potions:
+  title: '&4Potions &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: INSTANT_HEAL
+            splash: false
+            extended: false
+            upgraded: true
+        '20':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: INSTANT_DAMAGE
+            splash: false
+            extended: false
+            upgraded: true
+        '21':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: FIRE_RESISTANCE
+            splash: false
+            extended: false
+            upgraded: true
+        '22':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: REGEN
+            splash: false
+            extended: false
+            upgraded: true
+        '23':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: STRENGTH
+            splash: false
+            extended: false
+            upgraded: true
+        '24':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: SPEED
+            splash: false
+            extended: false
+            upgraded: true
+        '25':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: NIGHT_VISION
+            splash: false
+            extended: false
+            upgraded: true
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: INSTANT_HEAL
+            splash: true
+            extended: true
+            upgraded: false
+        '29':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: INSTANT_DAMAGE
+            splash: true
+            extended: true
+            upgraded: false
+        '30':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: FIRE_RESISTANCE
+            splash: true
+            extended: true
+            upgraded: false
+        '31':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: REGEN
+            splash: true
+            extended: true
+            upgraded: false
+        '32':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: STRENGTH
+            splash: true
+            extended: true
+            upgraded: false
+        '33':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: SPEED
+            splash: true
+            extended: true
+            upgraded: false
+        '34':
+          type: SHOP
+          id: POTION
+          buy-price: 500
+          potion-info:
+            type: NIGHT_VISION
+            splash: true
+            extended: true
+            upgraded: false
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Fireworks:
+  title: '&4Firework &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          sell-price: 500.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;11743532,2437522],FadeColors:[I;1973019,15790320]}]}}'
+        '20':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          sell-price: 600.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;3887386,14188952],FadeColors:[I;8073150,6719955]}]}}'
+        '21':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          sell-price: 700.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;1973019,2651799,14188952,4312372],FadeColors:[I;4312372,14602026,15790320]}]}}'
+        '22':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;8073150,14188952],FadeColors:[I;12801229,15435844]}]}}'
+        '23':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;11743532,2437522,2651799,4312372,12801229,15435844],FadeColors:[I;3887386,5320730,2437522,11250603,15790320]}]}}'
+        '24':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;11743532,5320730,14188952,15790320],FadeColors:[I;11743532,2437522,14188952,4312372]}]}}'
+        '25':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:0,Flicker:1,Trail:1,Colors:[I;11743532,3887386,2437522,8073150,2651799,4408131,14188952,4312372,14602026,12801229,15435844],FadeColors:[I;11743532,3887386,2437522,8073150,2651799,4408131,14188952,4312372,14602026,12801229,15435844]}]}}'
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;11743532,2437522],FadeColors:[I;1973019,15790320]}]}}'
+        '29':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;3887386,14188952],FadeColors:[I;8073150,6719955]}]}}'
+        '30':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;1973019,2651799,14188952,4312372],FadeColors:[I;4312372,14602026,15790320]}]}}'
+        '31':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;8073150,14188952],FadeColors:[I;12801229,15435844]}]}}'
+        '32':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;11743532,2437522,2651799,4312372,12801229,15435844],FadeColors:[I;3887386,5320730,2437522,11250603,15790320]}]}}'
+        '33':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;11743532,5320730,14188952,15790320],FadeColors:[I;11743532,2437522,14188952,4312372]}]}}'
+        '34':
+          type: SHOP
+          id: FIREWORK_ROCKET
+          buy-price: 1000.0
+          custom-nbt: '{Fireworks:{Flight:2,Explosions:[{Type:1,Flicker:1,Trail:1,Colors:[I;11743532,3887386,2437522,8073150,2651799,4408131,14188952,4312372,14602026,12801229,15435844],FadeColors:[I;11743532,3887386,2437522,8073150,2651799,4408131,14188952,4312372,14602026,12801229,15435844]}]}}'
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Chests:
+  title: '&4Pre-Filled Chest &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: CHEST
+          buy-price: 25000
+          shop-name: "&6Golden Apple &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"golden_apple",Count:64}]}}'
+        '20':
+          type: SHOP
+          id: CHEST
+          buy-price: 10000
+          shop-name: "&fDirt &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"dirt",Count:64}]}}'
+        '21':
+          type: SHOP
+          id: CHEST
+          buy-price: 10000
+          shop-name: "&7Stone &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"stone",Count:64}]}}'
+        '22':
+          type: SHOP
+          id: CHEST
+          buy-price: 10000
+          shop-name: "&eWood &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"oak_planks",Count:64}]}}'
+        '23':
+          type: SHOP
+          id: CHEST
+          buy-price: 20000
+          shop-name: "&9Obsidian &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"obsidian",Count:64}]}}'
+        '24':
+          type: SHOP
+          id: CHEST
+          buy-price: 25000
+          shop-name: "&4TNT &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"tnt",Count:64}]}}'
+        '25':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&4Redstone Block &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"redstone_block",Count:64},{Slot:1,id:"redstone_block",Count:64}]}}'
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&eOak Log &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"oak_log",Count:64},{Slot:1,id:"oak_log",Count:64}]}}'
+        '29':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&eSand &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"sand",Count:64}]}}'
+        '30':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&2Grass &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"grass_block",Count:64}]}}'
+        '31':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&2Cactus &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"cactus",Count:64}]}}'
+        '32':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&8Cobweb &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"cobweb",Count:64}]}}'
+        '33':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&bCake &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"cake",Count:64}]}}'
+        '34':
+          type: SHOP
+          id: CHEST
+          buy-price: 15000
+          shop-name: "&6Carrot &rPre-Filled Chest"
+          custom-nbt: '{BlockEntityTag:{Items:[{Slot:0,id:"carrot",Count:64}]}}'
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Bow:
+  title: '&4Bow &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: BOW
+          buy-price: 100
+        '20':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          sell-price: 10
+          custom-nbt: '{Potion: "minecraft:night_vision"}'
+        '21':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          sell-price: 15
+          custom-nbt: '{Potion: "minecraft:slowness"}'
+        '22':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:harming"}'
+        '23':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:poison"}'
+        '24':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:slow_falling"}'
+        '25':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:weakness"}'
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:invisibility"}'
+        '29':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:leaping"}'
+        '30':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:swiftness"}'
+        '31':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:fire_resistance"}'
+        '32':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:water_breathing"}'
+        '33':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:healing"}'
+        '34':
+          type: SHOP
+          id: TIPPED_ARROW
+          buy-price: 20
+          custom-nbt: '{Potion: "minecraft:regeneration"}'
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Eggs:
+  title: '&4Egg &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: SILVERFISH_SPAWN_EGG
+          buy-price: 75000.0
+        '20':
+          type: SHOP
+          id: SKELETON_SPAWN_EGG
+          buy-price: 75000.0
+        '21':
+          type: SHOP
+          id: SPIDER_SPAWN_EGG
+          buy-price: 75000.0
+        '22':
+          type: SHOP
+          id: VILLAGER_SPAWN_EGG
+          buy-price: 75000.0
+        '23':
+          type: SHOP
+          id: ZOMBIE_SPAWN_EGG
+          buy-price: 75000.0
+        '24':
+          type: SHOP
+          id: SLIME_SPAWN_EGG
+          buy-price: 75000.0
+        '25':
+          type: SHOP
+          id: GHAST_SPAWN_EGG
+          buy-price: 75000.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: ZOMBIE_PIGMAN_SPAWN_EGG
+          buy-price: 75000.0
+        '29':
+          type: SHOP
+          id: ENDERMAN_SPAWN_EGG
+          buy-price: 75000.0
+        '30':
+          type: SHOP
+          id: CAVE_SPIDER_SPAWN_EGG
+          buy-price: 75000.0
+        '31':
+          type: SHOP
+          id: OCELOT_SPAWN_EGG
+          buy-price: 75000.0
+        '32':
+          type: SHOP
+          id: WOLF_SPAWN_EGG
+          buy-price: 75000.0
+        '33':
+          type: SHOP
+          id: BAT_SPAWN_EGG
+          buy-price: 75000.0
+        '34':
+          type: SHOP
+          id: FOX_SPAWN_EGG
+          buy-price: 75000.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+Flowers:
+  title: '&4Egg &bShop'
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '13':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '19':
+          type: SHOP
+          id: POPPY
+          buy-price: 75.0
+        '20':
+          type: SHOP
+          id: DANDELION
+          buy-price: 75.0
+        '21':
+          type: SHOP
+          id: BLUE_ORCHID
+          buy-price: 75.0
+        '22':
+          type: SHOP
+          id: ALLIUM
+          buy-price: 75.0
+        '23':
+          type: SHOP
+          id: AZURE_BLUET
+          buy-price: 75.0
+        '24':
+          type: SHOP
+          id: RED_TULIP
+          buy-price: 75.0
+        '25':
+          type: SHOP
+          id: ORANGE_TULIP
+          buy-price: 75.0
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '28':
+          type: SHOP
+          id: WHITE_TULIP
+          buy-price: 75.0
+        '29':
+          type: SHOP
+          id: PINK_TULIP
+          buy-price: 75.0
+        '30':
+          type: SHOP
+          id: OXEYE_DAISY
+          buy-price: 75.0
+        '31':
+          type: SHOP
+          id: CORNFLOWER
+          buy-price: 75.0
+        '32':
+          type: SHOP
+          id: LILY_OF_THE_VALLEY
+          buy-price: 75.0
+        '33':
+          type: SHOP
+          id: BROWN_MUSHROOM
+          buy-price: 75.0
+        '34':
+          type: SHOP
+          id: CRIMSON_FUNGUS
+          buy-price: 75.0
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          shop-name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          shop-name: ' '
+
+################################
+##  Developed by pablo67340   ##
+##  If you need any support:  ##
+##  discord.gg/XQb2Y2jBCa     ##
+################################

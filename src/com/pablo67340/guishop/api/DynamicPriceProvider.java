@@ -1,5 +1,8 @@
 package com.pablo67340.guishop.api;
 
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+
 import java.math.BigDecimal;
 
 /**
@@ -7,7 +10,6 @@ import java.math.BigDecimal;
  * <br>
  * Implementations must be registered with the Bukkit registration system in
  * order for GUIShop to detect and use them.
- *
  */
 public interface DynamicPriceProvider {
 

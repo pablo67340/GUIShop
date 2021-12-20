@@ -1,10 +1,12 @@
-<p>Welcome to GUIShop! This plugin is the ultimate solution to all the signs, the chests, the glitches. This plugin will put a stop to all
-those head aches. I present to you, GUI shop. This plugin uses a sleek new way of making shops easy,
+<p>Welcome to GUIShop! This plugin is the ultimate solution to all the signs, the chests and the glitches. This plugin will put a stop to all
+those head aches. I present to you, GUIShop. This plugin uses a sleek new way of making shops easy,
 comfortable, and fun!</p>
 <p>This plugin was designed to act like a large chest. You can simply click an item in the chest to buy it, or dump items in a blank inventory to sell them. It does not use a physical chest however. It is a complete Virtual shop that will use any economy plugin you choose, so long you have Vault installed.
 
-This plugin has a simple <strong>easy-to-read</strong> configuration that allows you to customize your shop, and tweak anything you like!</p>
-<h2><a id="user-content-why-you-should-use-it" class="anchor" href="#why-you-should-use-it" aria-hidden="true"></a>Features</h2>
+This plugin has a simple <strong>easy-to-read</strong> configuration that allows you to customize your shop, and tweak
+anything you like!</p>
+<h2><a id="user-content-why-you-should-use-it" class="anchor" href="#why-you-should-use-it" aria-hidden="true"></a>
+Features</h2>
 <p><strong>Overall Features</strong></p>
 <ul>
     <li><p>Multi-Economy Support.</p></li>
@@ -61,7 +63,7 @@ This plugin has a simple <strong>easy-to-read</strong> configuration that allows
         <p><strong>GUIShop requires&nbsp;<a href="http://dev.bukkit.org/bukkit-plugins/vault/">Vault</a>&nbsp;to enable the plugin to hook into your economy so it can withdraw/deposit cash into your player's accounts.&nbsp;</strong></p>
     </li>
     <li>
-        <p><strong>GUIShop requires Java 8+.</strong></p>
+        <p><strong>GUIShop requires Java 16+.</strong></p>
     </li>
 </ul>
 <h2><a id="user-content-building" class="anchor" href="#building" aria-hidden="true"></a>Building</h2>

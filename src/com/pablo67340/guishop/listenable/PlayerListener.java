@@ -1,25 +1,28 @@
 package com.pablo67340.guishop.listenable;
 
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
 import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
-import java.util.Objects;
-
-import org.bukkit.*;
+import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.config.Config;
+import com.pablo67340.guishop.definition.Item;
+import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
 import org.bukkit.block.Sign;
-
-import org.bukkit.event.*;
-
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.*;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.util.ConfigUtil;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public final class PlayerListener implements Listener {
 
@@ -30,40 +33,58 @@ public final class PlayerListener implements Listener {
      */
     public static final PlayerListener INSTANCE = new PlayerListener();
 
-    public void openShop(Player player) {
+    private final String[] commandsEntryList = {
+            "reload",
+            "parsemob",
+            "edit",
+            "buy-price",
+            "sell-price",
+            "shop-name",
+            "buy-name",
+            "name",
+            "enchant",
+            "add-shop-lore",
+            "edit-shop-lore",
+            "delete-shop-lore",
+            "add-buy-lore",
+            "edit-buy-lore",
+            "delete-buy-lore",
+            "add-lore",
+            "edit-lore",
+            "delete-lore",
+            "type",
+            "add-command",
+            "edit-command",
+            "delete-command",
+            "mob-type",
+            "target-shop",
+            "nbt",
+            "printnbt",
+            "list-shops",
+            "list-commands",
+            "potion-info",
+            "quantity",
+            "skull-uuid",
+            "value",
+            "permission"};
+
+    public Menu openMenu(Player player) {
         Menu menu = new Menu(player);
         menu.open(player);
+        return menu;
     }
 
     /**
      * Print the usage of the plugin to the player.
      *
-     * @param player - The player the help text will be sent to
+     * @param sender The player the help text will be sent to
      */
-    public void printUsage(Player player) {
-        Main.sendMessage(player, "&dG&9U&8I&3S&dh&9o&8p &3C&do&9m&8m&3a&dn&8d&3s&d:");
-        Main.sendMessage(player, "&7/guishop &eedit/e &0- &aOpens in Editor Mode");
-        Main.sendMessage(player, "&7/guishop &eprice/p {price} &0- &aSet item in hand's buy price");
-        Main.sendMessage(player, "&7/guishop &esell/s {price} &0- &aSet item in hand's sell price");
-        Main.sendMessage(player, "&7/guishop &eshopname/sn {name} &0- &aSet item in hand's Shop-Name");
-        Main.sendMessage(player, "&7/guishop &ebuyname/bn {name} &0- &aSet item in hand's Buy-Name");
-        Main.sendMessage(player, "&7/guishop &en {name} &0- &aSet an item's Menu Name. Used for items in menu.");
-        Main.sendMessage(player, "&7/guishop &ets {target_shop} &0- &aSet an item's Target Shop. Used for items in menu.");
-        Main.sendMessage(player, "&7/guishop &eenchant/e {enchants} &0- &aSet item in hand's Enchantments");
-        Main.sendMessage(player, "&7/guishop &easll {line} &0- &aAdd Shop Lore Line");
-        Main.sendMessage(player, "&7/guishop &edsll {lineNumber} &0- &aDelete Shop Lore Line. Starts at 0");
-        Main.sendMessage(player, "&7/guishop &eesll {lineNumber} {line} &0- &aEdit Shop Lore Line. Starts at 0");
-        Main.sendMessage(player, "&7/guishop &eabll {line} &0- &aAdd Buy Lore Line");
-        Main.sendMessage(player, "&7/guishop &edbll {lineNumber} &0- &aDelete Buy Lore Line. Starts at 0");
-        Main.sendMessage(player, "&7/guishop &eebll {lineNumber} {line} &0- &aEdit Buy Lore Line. Starts at 0");
-        Main.sendMessage(player, "&7/guishop &eac {command} &0- &aAdd Command to item");
-        Main.sendMessage(player, "&7/guishop &edc {lineNumber} &0- &aDelete Command by line. Starts at 0");
-        Main.sendMessage(player, "&7/guishop &eec {lineNumber} {cmd} &0- &aEdit Command by line. Starts at 0");
-        Main.sendMessage(player, "&7/guishop &emt {type} &0- &aSet an item's mob type. Used for Spawners/Eggs.");
-        Main.sendMessage(player, "&7/guishop &et {type} &0- &aSet an item's type. BLANK, SHOP, COMMAND, DUMMY");
+    public void printUsage(CommandSender sender) {
+        GUIShop.sendMessagePrefix(sender, String.join("\n", GUIShop.getINSTANCE().getMessagesConfig().getStringList("messages.list"))
+                .replace("%list%", Arrays.stream(commandsEntryList).map(entry -> GUIShop.getINSTANCE().messageSystem.translate("messages." + entry + ".entry") + "§r")
+                        .collect(Collectors.joining("\n"))));
     }
 
-    // When the inventory closes
     // When the player clicks a sign
     @EventHandler
     public void onInteract(PlayerInteractEvent e) {
@@ -72,15 +93,13 @@ public final class PlayerListener implements Listener {
 
         // If the block exists
         if (block != null) {
-            // If the block has a state
-            block.getState();
             // If the block state is a Sign
             if (block.getState() instanceof Sign) {
                 Sign sign = (Sign) block.getState();
                 String line1 = ChatColor.translateAlternateColorCodes('&', sign.getLine(0));
                 // Check if the sign is a GUIShop sign
                 if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',
-                        Objects.requireNonNull(Main.INSTANCE.getMainConfig().getString("sign-title"))))) {
+                        Config.getTitlesConfig().getSignTitle()))) {
                     // If the player has Permission to use sign
                     if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use")
                             || player.isOp()) {
@@ -89,9 +108,8 @@ public final class PlayerListener implements Listener {
                         menu.open(player);
                     } else {
                         e.setCancelled(true);
-                        player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getNoPermission());
+                        GUIShop.sendPrefix(player, "no-permission");
                     }
-
                 }
             }
         }
@@ -100,41 +118,36 @@ public final class PlayerListener implements Listener {
     /**
      * Custom MobSpawner placement method.
      *
-     * @param event - The event type we're listening to
+     * @param event The event type we're listening to
      */
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBlockPlace(BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
         if (Item.isSpawnerItem(item)) {
-
-            NBTItem cmp = new NBTItem(item);
+            NBTCompound cmp = new NBTItem(item);
             if (cmp.hasKey("GUIShopSpawner")) {
-
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> {
-
+                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
                     String mobId = cmp.getString("GUIShopSpawner");
                     Block block = event.getBlockPlaced();
                     CreatureSpawner cs = (CreatureSpawner) block.getState();
 
-                    Main.debugLog("Applying mob type " + mobId);
+                    GUIShop.debugLog("Applying mob type " + mobId);
 
                     /*
-		    * Although valueOf is almost always safe here because
-		    * we used EntityType.name() when setting the NBT tag,
-		    * it's possible the user might change server versions,
-		    * in which case the EntityType enum may have changed.
+                     * Although valueOf is almost always safe here because
+                     * we used EntityType.name() when setting the NBT tag,
+                     * it's possible the user might change server versions,
+                     * in which case the EntityType enum may have changed.
                      */
                     try {
                         cs.setSpawnedType(EntityType.valueOf(mobId));
                         cs.update();
                     } catch (IllegalArgumentException veryRareException) {
-                        Main.log("Detected outdated mob spawner ID: " + mobId + " placed by " + event.getPlayer());
+                        GUIShop.log("Detected outdated mob spawner ID: " + mobId + " placed by " + event.getPlayer());
                     }
-
                 }, 1L);
             }
         }
     }
-
 }

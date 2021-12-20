@@ -1,17 +1,17 @@
 {
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "maven.terminal.favorites": [
-        {
-            "alias": "Build and Run Server",
-            "command": "install -P with-server minecraft-server:server-start"
-        },
-        {
-            "alias": "Build Plugin",
-            "command": "clean install -P default"
-        },
-        {
-            "alias": "Install Server",
-            "command": "minecraft-server:server-install"
-        }
-    ]
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "maven.terminal.favorites": [
+    {
+      "alias": "Build and Run Server",
+      "command": "install -P with-server minecraft-server:server-start"
+    },
+    {
+      "alias": "Build Plugin",
+      "command": "clean install -P default"
+    },
+    {
+      "alias": "Install Server",
+      "command": "minecraft-server:server-install"
+    }
+  ]
 }

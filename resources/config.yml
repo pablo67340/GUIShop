@@ -1,0 +1,232 @@
+##################################################
+##                                              ##
+##  _____ _    _ _____  _____ _                 ##
+## / ____| |  | |_   _|/ ____| |                ##
+##| |  __| |  | | | | | (___ | |__   ___  _ __  ##
+##| | |_ | |  | | | |  \___ \| '_ \ / _ \| '_ \ ##
+##| |__| | |__| |_| |_ ____) | | | | (_) | |_) |##
+## \_____|\____/|_____|_____/|_| |_|\___/| .__/ ##
+##                                       | |    ##
+##                                       |_|    ##
+##################################################
+# Command used to open shop, DON'T PUT A /
+buy-commands:
+  - 'buy'
+  - 'shop'
+
+# Command to open sell inventory, DON'T PUT A /
+sell-commands:
+  - 'sell'
+
+## Command registration options
+##
+## If 'INTERCEPT', the commands will be intercepted and executed.
+##     Will not conflict with other plugins' commands, but does not support tab completion.
+##
+## If 'REGISTER', the commands will be registered with the server and will be formally recognised.
+##     Tab completion supported. Possibility of conflicts with plugins with the same commands.
+##
+## If 'NONE', neither of the above will happen. Intended for users who wish to use the commands.yml.
+##     Of course, the /guishopuser commands will still work.
+commands-mode: 'REGISTER'
+
+# Disables the physical back button that appears in the shop inventory.
+disable-back-button: true
+
+# Disables the escape to go back functionality.
+disable-escape-back: false
+
+# Disables the escape to go back for the quantity inventory. (If the upper one is disabled, this is disabled too)
+disable-escape-back-quantity: true
+
+# Right-click an item in the shop to open an alternate sell GUI
+alternate-sell-enable: true
+
+# Enable sound on purchase
+enable-sound: true
+
+# Enable in-game creator.
+ingame-config: true
+
+# Enable dynamic pricing
+dynamic-pricing: false
+
+# Enable DEBUG mode
+debug-mode: false
+
+# Enable transaction log mode (Logs buy/sell transactions into the console)
+transaction-log: false
+
+# Do want players to be able to access the shop ONLY using the sign?
+signs-only: false
+
+# The title of a sign that players can click to open shop
+sign-title: '&f[&cGUIShop&f]'
+
+# Purchase sound effect (You can find them here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Sound.html)
+purchase-sound: 'ENTITY_PLAYER_LEVELUP'
+
+# Item name when the type is a spawner with a mob type (is overwritten by anything else)
+spawner-name: '&c%type% &fSpawner'
+
+# All the buttons
+buttons:
+  # The back button
+  back:
+    id: 'RED_STAINED_GLASS_PANE'
+    shop-name: '&cBack'
+    name: '&cBack'
+    shop-lore: '&fGo back to the menu'
+    lore: '&fClose the menu'
+    slot: 54
+
+  # The forward button
+  forward:
+    id: 'ARROW'
+    shop-name: '&cNext page'
+    name: '&cNext page'
+    shop-lore: '&fGo to the next page'
+    lore: '&fGo to the next page'
+    slot: 52
+
+  # The backward button
+  backward:
+    id: 'ARROW'
+    shop-name: '&cPrevious page'
+    name: '&cPrevious page'
+    shop-lore: '&fGo to the previous page'
+    lore: '&fGo to the previous page'
+    slot: 48
+
+# The titles for the GUIs
+titles:
+  # The overall shop menu title.
+  menu: 'Menu %page-number%'
+
+  # The text displayed where %page-number% appears.
+  menu-shop-pagenumber: '&f> Page: &e%number%'
+
+  # The title of a specific shop inventory
+  shop: 'Menu &f> &r%shopname%'
+
+  # he title of the sell inventory
+  sell: 'Menu &f> &rSell'
+
+  # The title of the quantity inventory.
+  qty: '&4Select amount'
+
+  # The title of the alternate sell GUI, if enabled
+  alt-sell: 'Menu &f> &rSell'
+
+  # The title of the /gs value inventory
+  value: '&2Item values'
+
+# Alt sell settings
+alt-sell:
+  # Used in the alternate sell GUI
+  indicator-material: 'GOLD_INGOT'
+
+  # Item materials for the add and remove buttons
+  add-material: 'GREEN_STAINED_GLASS_PANE'
+  remove-material: 'RED_STAINED_GLASS_PANE'
+
+  # The 3 different quantities for the buttons
+  quantity-1: 1
+  quantity-2: 10
+  quantity-3: 64
+
+  # The item names for the increase/decrease buttons. Use %amount% for the amount placeholder
+  increase-title: '&aIncrease quantity by %amount%'
+  decrease-title: '&cDecrease quantity by %amount%'
+
+  # Materials for the confirm and cancel buttons
+  confirm-material: 'EMERALD_BLOCK'
+  cancel-material: 'REDSTONE_BLOCK'
+
+  # Item names for the confirm and cancel buttons
+  confirm-name: '&a&lConfirm'
+  cancel-name: '&c&lCancel'
+
+  # If you don't have enough items to sell
+  not-enough: '&cYou do not have %amount% such items to sell.'
+
+# Disabled worlds users cannot use GUIShop
+disabled-worlds:
+  - 'SomeDisabledWorld'
+  - 'AnotherDisabledWorld'
+
+# Lores for the GUIs and commands
+lores:
+  # The buy lore for an item
+  buy: '&fBuy: &c%amount%'
+
+  # The sell lore for an item
+  sell: '&fSell: &c%amount%'
+
+  # The buy lore when an item is free
+  free: '&fBuy: &aFREE'
+
+  # The lore when you can't buy something
+  cannot-buy: '&cCannot buy'
+
+  # The lore when you can't sell something
+  cannot-sell: '&cCannot sell'
+
+  # The lore when there is nbt set
+  nbt: '&fNBT: &c%nbt%'
+
+  # The lore when there is a shop name set
+  shop-name: '&fShop-name: &c%name%'
+
+  # The lore when there is a name set
+  name: '&fName: &c%name%'
+
+  # The lore when there is a buy name set
+  buy-name: '&fBuy-name: &c%name%'
+
+  # The lore when there are enchantments set
+  enchantments: '&fEnchantments: &c%enchantments%'
+
+  # The lore when there is a shop lore
+  shop-lore: '&fShop-lore:'
+
+  # The lore when there is a buy lore
+  buy-lore: '&fBuy-lore:'
+
+  # The lore when there is a given lore
+  lore: '&fLore:'
+
+  # The lore when there is a type set
+  type: '&fItem-type: &c%type%'
+
+  # The lore when there are commands
+  commands: '&fCommands:'
+
+  # The lore when there is a mob type
+  mob-type: '&fMob-type: &c%type%'
+
+  # The lore when there is a target shop
+  target-shop: '&fTarget-shop: &c%shop%'
+
+  # The lore when there is potion info
+  potion-info: '&fPotion info: &c%info%'
+
+  # The lore when there is a skull uuid
+  skull-uuid: '&fSkull-uuid: &c%uuid%'
+
+  # The lore when a quantity is set
+  quantity: '&fQuantity: &c%quantity%'
+
+  # The lore when a permission is set
+  permission: '&fPermission: &c%permission%'
+
+# Enable if you want to separate each head by UUID when determining sell price.
+# Setting to false will make all heads worth the same amount.
+# You must have at least 1 head in your shops to set the sell price of all heads.
+skull-uuid-selling: true
+
+  ################################
+  ##  Developed by pablo67340   ##
+  ##  If you need any support:  ##
+##  discord.gg/XQb2Y2jBCa     ##
+################################

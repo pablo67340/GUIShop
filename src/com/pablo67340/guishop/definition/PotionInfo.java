@@ -4,12 +4,11 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- *
  * @author Bryce
  */
 public class PotionInfo {
 
-    public PotionInfo(String type, Boolean splash, Boolean extended, Boolean upgraded) {
+    public PotionInfo(String type, boolean splash, boolean extended, boolean upgraded) {
         this.type = type;
         this.upgraded = upgraded;
         this.extended = extended;
@@ -23,5 +22,4 @@ public class PotionInfo {
     @Getter
     @Setter
     private Boolean extended, splash, upgraded;
-
 }

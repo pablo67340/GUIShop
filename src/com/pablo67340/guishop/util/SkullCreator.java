@@ -2,24 +2,23 @@ package com.pablo67340.guishop.util;
 
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
-import com.pablo67340.guishop.Main;
+import com.pablo67340.guishop.GUIShop;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+import org.json.simple.parser.ParseException;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.SkullMeta;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
-
 import java.util.UUID;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-import org.json.simple.parser.ParseException;
 
 /**
  * A library for the Bukkit API to create player skulls from uuid.
@@ -31,9 +30,6 @@ import org.json.simple.parser.ParseException;
  */
 public class SkullCreator {
 
-    private SkullCreator() {
-    }
-
     // some reflection stuff to be used when setting a skull's profile
     private static Method metaSetProfileMethod;
     private static Field metaProfileField;
@@ -41,11 +37,11 @@ public class SkullCreator {
     /**
      * Modifies a skull to use the skin based on the given base64 string.
      *
-     * @param item The ItemStack to put the base64 onto. Must be a player skull.
+     * @param item   The ItemStack to put the base64 onto. Must be a player skull.
      * @param base64 The base64 string containing the texture.
      * @return The head with a custom texture.
      */
-    public static ItemStack itemFromBase64(ItemStack item, String base64, String UUID) {
+    public static ItemStack itemFromBase64(ItemStack item, String base64, String uuid) {
         notNull(item, "item");
         notNull(base64, "base64");
 
@@ -53,7 +49,7 @@ public class SkullCreator {
             return null;
         }
         SkullMeta meta = (SkullMeta) item.getItemMeta();
-        mutateItemMeta(meta, base64, UUID);
+        mutateItemMeta(meta, base64, uuid);
         item.setItemMeta(meta);
 
         return item;
@@ -90,19 +86,19 @@ public class SkullCreator {
                 metaProfileField.set(meta, makeProfile(UUID, b64));
 
             } catch (NoSuchFieldException | IllegalAccessException ex2) {
-                Main.debugLog("Error making profile when loading player head: " + ex2.getMessage());
+                GUIShop.debugLog("Error making profile when loading player head: " + ex2.getMessage());
             }
         }
     }
 
     public static String getBase64FromUUID(String uuid) {
-        String base64 = Main.getINSTANCE().getCachedHeads().get(uuid);
+        String base64 = GUIShop.getINSTANCE().getCachedHeads().get(uuid);
         if (base64 != null) {
-            Main.debugLog("Loaded PlayerHead: " + uuid + " From Cache.");
+            GUIShop.debugLog("Loaded player: " + uuid + " from cache.");
             return base64;
         } else {
             try {
-                Main.debugLog("PlayerHead: " + uuid + " not cached. Grabbing skin and caching.");
+                GUIShop.debugLog("PlayerHead: " + uuid + " not cached. Grabbing skin and caching.");
                 URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
@@ -124,21 +120,21 @@ public class SkullCreator {
                     JSONObject default_props = (JSONObject) properties.get(0);
                     String skin_base64 = (String) default_props.get("value");
 
-                    Main.getINSTANCE().getCacheConfig().set("player-heads." + uuid, skin_base64);
+                    GUIShop.getINSTANCE().getCacheConfig().set("player-heads." + uuid, skin_base64);
 
-                    Thread t1 = new Thread(() -> {
+                    Thread thread = new Thread(() -> {
                         try {
-                            Main.getINSTANCE().getCacheConfig().save(Main.getINSTANCE().getCachef());
+                            GUIShop.getINSTANCE().getCacheConfig().save(GUIShop.getINSTANCE().getCacheFile());
                         } catch (IOException ex) {
-                            Main.debugLog("Error saving player-heads to cache: " + ex.getMessage());
+                            GUIShop.debugLog("Error saving player-heads to cache: " + ex.getMessage());
                         }
                     });
-                    t1.start();
+                    thread.start();
 
                     return skin_base64;
                 }
             } catch (IOException | ParseException ex) {
-                Main.debugLog("Error grabbing skin base64 from Mojang: " + ex.getMessage());
+                GUIShop.debugLog("Error grabbing skin base64 from Mojang: " + ex.getMessage());
             }
         }
         return "";

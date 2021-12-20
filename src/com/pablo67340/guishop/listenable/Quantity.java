@@ -3,40 +3,36 @@ package com.pablo67340.guishop.listenable;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
-import java.util.*;
-
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
+import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
+import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.config.Config;
+import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.definition.PotionInfo;
+import com.pablo67340.guishop.definition.ShopPane;
+import com.pablo67340.guishop.util.SkullCreator;
+import lombok.Getter;
 import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitScheduler;
-
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
-import com.pablo67340.guishop.definition.Item;
-import com.pablo67340.guishop.definition.ShopPane;
-import com.pablo67340.guishop.Main;
-import com.pablo67340.guishop.definition.PotionInfo;
-import com.pablo67340.guishop.util.ConfigUtil;
-import com.pablo67340.guishop.util.SkullCreator;
-import java.math.BigDecimal;
-
-import lombok.Getter;
-import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.potion.Potion;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionType;
+import org.bukkit.scheduler.BukkitScheduler;
+
+import java.math.BigDecimal;
+import java.util.*;
 
 class Quantity {
 
@@ -75,9 +71,7 @@ class Quantity {
     void open() {
         GUI.setOnClose(this::onClose);
         GUI.setOnTopClick(this::onQuantityClick);
-        GUI.setOnBottomClick(event -> {
-            event.setCancelled(true);
-        });
+        GUI.setOnBottomClick(event -> event.setCancelled(true));
         GUI.show(player);
     }
 
@@ -85,17 +79,15 @@ class Quantity {
      * Preloads the inventory to display items.
      */
     public Quantity loadInventory() {
-        GUI = new Gui(Main.getINSTANCE(), 6, ConfigUtil.getQtyTitle());
+        GUI = new Gui(GUIShop.getINSTANCE(), 5, Config.getTitlesConfig().getQtyTitle());
         int multiplier = 1;
-        ShopPane page = new ShopPane(9, 6);
+        ShopPane page = new ShopPane(9, 5);
         for (int x = 19; x <= 25; x++) {
-
             ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 
             if (item.hasPotion()) {
                 PotionInfo pi = item.getPotionInfo();
                 if (XMaterial.isNewVersion()) {
-
                     if (pi.getSplash()) {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
                     }
@@ -107,12 +99,12 @@ class Quantity {
                         pm.setBasePotionData(pd);
                     } catch (IllegalArgumentException ex) {
                         if (ex.getMessage().contains("upgradable")) {
-                            Main.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setUpgraded(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
                         } else if (ex.getMessage().contains("extended")) {
-                            Main.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setExtended(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
@@ -120,7 +112,7 @@ class Quantity {
                     }
                     itemStack.setItemMeta(pm);
                 } else {
-                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() == true ? 2 : 1, pi.getSplash(), pi.getExtended());
+                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());
                     potion.apply(itemStack);
                 }
             }
@@ -138,10 +130,9 @@ class Quantity {
                 });
             }
 
-            assert itemMeta != null;
             itemMeta.setLore(lore);
 
-            if (item.isDisableQty() && x >= 20) {
+            if ((item.getQuantityValue() != null && item.getQuantityValue().getQuantity() > -1) && x >= 20) {
                 break;
             }
 
@@ -189,14 +180,17 @@ class Quantity {
             }
 
             if (item.hasNBT()) {
+                ItemStack tempItem = itemStack.clone();
                 NBTContainer container = new NBTContainer(item.getNBT());
-                NBTItem nbti = new NBTItem(itemStack);
+                NBTItem nbti = new NBTItem(tempItem);
                 nbti.mergeCompound(container);
-                itemStack = nbti.getItem();
-                if (itemStack == null) {
-                    Main.log("Error Parsing Custom NBT for Item: " + item.getMaterial() + " in Shop: " + item.getShop() + ". Please fix or remove custom-nbt value.");
-                }
+                tempItem = nbti.getItem();
 
+                if (tempItem == null) {
+                    GUIShop.log("Error parsing custom NBT for item: " + item.getMaterial() + " in shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+                } else {
+                    itemStack = nbti.getItem();
+                }
             }
 
             GuiItem gItem = new GuiItem(itemStack);
@@ -205,24 +199,12 @@ class Quantity {
             multiplier *= 2;
         }
 
-        if (!ConfigUtil.isDisableBackButton()) {
-
-            ItemStack backButtonItem = XMaterial.matchXMaterial(ConfigUtil.getBackButtonItem()).get().parseItem();
-
-            ItemMeta backButtonMeta = backButtonItem.getItemMeta();
-
-            assert backButtonMeta != null;
-            backButtonMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
-                    Objects.requireNonNull(Main.INSTANCE.getConfig().getString("back"))));
-
-            backButtonItem.setItemMeta(backButtonMeta);
-
-            GuiItem gItem = new GuiItem(backButtonItem, this::onQuantityClick);
-            page.setItem(gItem, 53);
-
+        if (!Config.isDisableBackButton()) {
+            GuiItem gItem = new GuiItem(Config.getButtonConfig().getBackButton().toItemStack(player, false), this::onQuantityClick);
+            page.setItem(gItem, 44);
         }
-        GUI.addPane(page);
 
+        GUI.addPane(page);
         return this;
     }
 
@@ -231,8 +213,8 @@ class Quantity {
      */
     private void onQuantityClick(InventoryClickEvent e) {
         e.setCancelled(true);
-        if (!ConfigUtil.isDisableBackButton()) {
-            if (e.getSlot() == 53) {
+        if (!Config.isDisableBackButton()) {
+            if (e.getSlot() == 44) {
                 currentShop.open(player);
                 return;
             }
@@ -247,80 +229,99 @@ class Quantity {
         }
 
         if (player.getInventory().firstEmpty() == -1) {
-            player.sendMessage(ConfigUtil.getFull());
+            GUIShop.sendPrefix(player, "full-inventory");
             return;
         }
 
-        buy(item, qty.get(e.getSlot()), e);
-
+        buy(item, qty.get(e.getSlot()));
     }
 
     /**
      * The inventory closeEvent handling for the Menu.
      */
     private void onClose(InventoryCloseEvent e) {
-        if (!ConfigUtil.isDisableEscapeBack()) {
-            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(Main.getINSTANCE(), () -> currentShop.open(player), 1L);
-
+        if ((!Config.isDisableEscapeBack() || !Config.isDisableEscapeBackQuantity()) && !GUIShop.getINSTANCE().isReload) {
+            BukkitScheduler scheduler = Bukkit.getScheduler();
+            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> currentShop.open(player), 1L);
         }
     }
 
-    public void buy(Item item, Integer quantity, InventoryClickEvent e) {
+    public void buy(Item item, int quantity) {
         if (!item.hasBuyPrice()) {
-            player.sendMessage(ConfigUtil.getCantBuy());
+            GUIShop.sendPrefix(player, "cant-buy");
             return;
         }
 
         // If the quantity is 0
         if (quantity == 0) {
-            player.sendMessage(ConfigUtil.getPrefix() + " " + ConfigUtil.getNotEnoughPre() + item.calculateBuyPrice(1)
-                    + ConfigUtil.getNotEnoughPost());
-            player.setItemOnCursor(new ItemStack(Material.AIR));
+            quantity = 1;
+        }
+
+        boolean tooHighQuantity = false;
+        int maxStackSize = 64;
+
+        try {
+            Optional<XMaterial> material = XMaterial.matchXMaterial(item.getMaterial());
+
+            if (material.isPresent() && material.get().parseMaterial().getMaxStackSize() < quantity) {
+                tooHighQuantity = true;
+                maxStackSize = material.get().parseMaterial().getMaxStackSize();
+            }
+        } catch (NoSuchElementException | NullPointerException ignored) {
+        }
+
+        if (tooHighQuantity) {
+            GUIShop.sendPrefix(player, "too-high-quantity", maxStackSize);
             return;
         }
 
         BigDecimal priceToPay;
 
         /*
-	* If the map is empty, then the items purchased don't overflow the player's
-	* inventory. Otherwise, we need to reimburse the player (subtract it from
-	* priceToPay).
+         * If the map is empty, then the items purchased don't overflow the player's
+         * inventory. Otherwise, we need to reimburse the player (subtract it from
+         * priceToPay).
          */
         double priceToReimburse = 0D;
 
         Runnable dynamicPricingUpdate = null;
 
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (ConfigUtil.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
-
+        if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
             String itemString = item.getItemString();
-            dynamicPricingUpdate = () -> Main.getDYNAMICPRICING().buyItem(itemString, quantity);
+            int finalQuantity = quantity;
+            dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, finalQuantity);
 
-            priceToPay = Main.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+            priceToPay = GUIShop.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
             priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
         }
 
-        priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
+        priceToPay = priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
+
+        String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix");
+        String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
+        String amount = currencyPrefix + priceToPay + currencySuffix;
 
         // Check if the transition was successful
-        if (Main.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
-            // If the player has the sound enabled, play
-            // it!
-            if (ConfigUtil.isSoundEnabled()) {
-                player.playSound(player.getLocation(), XSound.matchXSound(ConfigUtil.getSound()).get().parseSound(), 1, 1);
+        if (GUIShop.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
+            // If the player has the sound enabled, play it
+            if (Config.isSoundEnabled()) {
+                player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
             }
-            player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getPurchased() + priceToPay + ConfigUtil.getTaken()
-                    + ConfigUtil.getCurrencySuffix());
+
+            GUIShop.sendPrefix(player, "purchase", amount);
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
             }
 
             player.getInventory().addItem(item.toBuyItemStack(quantity, player, currentShop));
+
+            GUIShop.transactionLog(
+                    "Player " + player.getName() + " bought item " + item.getMaterial() + " in shop " + currentShop.getShop() + " for " + priceToPay.toPlainString() + " money! Stacksize: " + quantity);
         } else {
-            player.sendMessage(ConfigUtil.getPrefix() + ConfigUtil.getNotEnoughPre() + priceToPay + ConfigUtil.getNotEnoughPost());
+            GUIShop.sendPrefix(player, "not-enough-money", amount);
         }
     }
 }

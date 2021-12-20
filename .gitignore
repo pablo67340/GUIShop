@@ -2,3 +2,8 @@
 **/*.swp
 .settings/
 dependency-reduced-pom.xml
+.github/
+.idea/
+.vscode/
+.classpath
+.project

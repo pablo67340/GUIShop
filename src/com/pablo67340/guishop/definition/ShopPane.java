@@ -1,24 +1,17 @@
 package com.pablo67340.guishop.definition;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
+import com.pablo67340.guishop.GUIShop;
+import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
-import com.pablo67340.guishop.Main;
-
-import lombok.Getter;
-
 import org.jetbrains.annotations.NotNull;
+
+import java.util.*;
 
 public class ShopPane extends Pane {
 
@@ -39,9 +32,9 @@ public class ShopPane extends Pane {
         items.put(items.size() + increment, item);
     }
 
-    public void setItem(GuiItem item, Integer slot) {
+    public void setItem(GuiItem item, int slot) {
         if (slot > 53) {
-            Main.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is 53. Item Ignored. Please Delete this item from shops.yml!");
+            GUIShop.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is lower than that. Item ignored. Please delete this item from shops.yml!");
         } else {
             items.put(slot, item);
         }
@@ -54,25 +47,17 @@ public class ShopPane extends Pane {
 
     @Override
     public boolean click(@NotNull Gui arg0, @NotNull InventoryClickEvent event, int arg2, int arg3, int arg4,
-            int arg5) {
+                         int arg5) {
         return false;
-    }
-
-    public void setDummy(Integer slot, ItemStack item) {
-        dummies.put(slot, item);
     }
 
     @Override
     public void display(@NotNull Gui gui, @NotNull Inventory inventory, @NotNull PlayerInventory playerInventory,
-            int paneOffsetX, int paneOffsetY, int maxLength, int maxHeight) {
-        items.entrySet().forEach(entry -> {
-            inventory.setItem(entry.getKey(), entry.getValue().getItem());
+                        int paneOffsetX, int paneOffsetY, int maxLength, int maxHeight) {
+        items.forEach((key, value) -> {
+            if (key >= 0) inventory.setItem(key, value.getItem());
         });
-        dummies.entrySet().stream().map(entry -> {
-            return entry;
-        }).forEachOrdered(entry -> {
-            inventory.setItem(entry.getKey(), entry.getValue());
-        });
+        dummies.forEach(inventory::setItem);
     }
 
     @NotNull
@@ -94,5 +79,4 @@ public class ShopPane extends Pane {
     public ShopPane getINSTANCE() {
         return INSTANCE;
     }
-
 }

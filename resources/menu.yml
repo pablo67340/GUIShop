@@ -1,0 +1,416 @@
+###########################################################################
+#                    Available Item Fields & Their Purpose:               #
+#                      REQ = REQUIRED, OPT = OPTIONAL.                    #
+#                                                                         #
+# id ~ REQ ~ Material name of the Item. Use names from the link above.    #
+# name ~ OPT ~ Custom name of item only inside the shop.                  #
+# enchantments ~ OPT ~ Enchantments of an item. E.G 'DURA:1 SHARP:2'      #
+# lore ~ OPT ~ Custom lore to display only on the shop item.              #
+# target-shop ~ OPT ~ Shop to open when clicking the item.                #
+# skull-uuid ~ OPT ~ Set the UUID of a skull skin.                        #
+###########################################################################
+#                        Looking for Item Names?                          #
+###########################################################################
+#                     See in the Dictionary folder                        #
+###########################################################################
+
+Menu:
+  pages:
+    Page0:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '13':
+          id: BREWING_STAND
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Brewing'
+          target-shop: 'Brewing'
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '19':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '20':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '21':
+          id: TNT
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Raiding &bShop'
+          target-shop: 'Raiding'
+        '22':
+          id: BEDROCK
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Blocks'
+          target-shop: 'Blocks'
+        '23':
+          id: EMERALD
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Ore/Ingot &bShop'
+          target-shop: 'Ores'
+        '24':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '25':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '28':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '29':
+          id: SPAWNER
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Spawners'
+          target-shop: 'Spawners'
+        '30':
+          id: ENCHANTED_BOOK
+          name: '&4Enchanted &bBooks'
+          target-shop: 'EnchantedBooks'
+        '31':
+          id: WHEAT_SEEDS
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Farming/Drops'
+          target-shop: 'Farming'
+        '32':
+          id: GREEN_SHULKER_BOX
+          name: '&4ShulkerBox &bShop'
+          target-shop: 'Shulker'
+        '33':
+          id: DIAMOND_HELMET
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Armor/Gear'
+          target-shop: 'Gear'
+        '34':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+    Page1:
+      items:
+        '0':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '1':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '2':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '3':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '4':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '5':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '6':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '7':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '8':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '9':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '10':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '11':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '12':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '13':
+          id: PLAYER_HEAD
+          skull-uuid: 'bb6bccb6-cd90-4844-9b1b-60722b1823ae'
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Head Shop'
+          target-shop: 'Heads'
+        '14':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '15':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '16':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '17':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '18':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '19':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '20':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '21':
+          id: POTION
+          potion-info:
+            type: INSTANT_DAMAGE
+            splash: true
+            extended: false
+            upgraded: true
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Potion &bShop'
+          target-shop: 'Potions'
+        '22':
+          id: FIREWORK_ROCKET
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Fireworks'
+          target-shop: 'Fireworks'
+        '23':
+          id: CHEST
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Pre-Filled Chest &bShop'
+          target-shop: 'Chests'
+        '24':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '25':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '26':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '27':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '28':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '29':
+          id: BOW
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Bow & Arrow Shop'
+          target-shop: 'Bow'
+        '30':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '31':
+          id: CREEPER_SPAWN_EGG
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Egg Shop'
+          target-shop: 'Eggs'
+        '32':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '33':
+          id: POPPY
+          lore:
+            - '&aLine 1'
+            - '&bLine 2'
+          name: '&4Flower / Decor Shop'
+          target-shop: 'Flowers'
+        '34':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '35':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '36':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '37':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '38':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '39':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '40':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '41':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '42':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '43':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '44':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '45':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '46':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '47':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '48':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '49':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '50':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '51':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+        '52':
+          id: BLUE_STAINED_GLASS_PANE
+          name: ' '
+        '53':
+          id: RED_STAINED_GLASS_PANE
+          name: ' '
+
+  ################################
+  ##  Developed by pablo67340   ##
+  ##  If you need any support:  ##
+  ##  discord.gg/XQb2Y2jBCa     ##
+  ################################

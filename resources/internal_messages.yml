@@ -1,0 +1,747 @@
+##################################################
+##                                              ##
+##  _____ _    _ _____  _____ _                 ##
+## / ____| |  | |_   _|/ ____| |                ##
+##| |  __| |  | | | | | (___ | |__   ___  _ __  ##
+##| | |_ | |  | | | |  \___ \| '_ \ / _ \| '_ \ ##
+##| |__| | |__| |_| |_ ____) | | | | (_) | |_) |##
+## \_____|\____/|_____|_____/|_| |_|\___/| .__/ ##
+##                                       | |    ##
+##                                       |_|    ##
+##################################################
+#     Here are almost all GUIShop messages       #
+##################################################
+
+messages:
+  # The prefix for all messages
+  prefix: '&f[&cGUIShop&f]'
+
+  # The no permission message
+  no-permission: '&cNo permission!'
+
+  # Disabled world messages
+  disabled-world: '&cYou cannot use the shop from this world!'
+
+  # Message when an error occurs while opening a shop
+  open-shop-error:
+    # Configure the message
+    message: '&cCannot open shop. &fReason: &c%reason%'
+    # Don't change that
+    placeholders: [ "reason" ]
+
+  # The message when a purchase was made
+  purchase:
+    # Configure the message
+    message: '&fA purchase was made, and &c%taken% &fwas taken from your account.'
+    # The placeholders, don't change that
+    placeholders: [ "taken" ]
+
+  # The message when a player doesn't have enough money to buy something
+  not-enough-money:
+    # Configure the message
+    message: '&fYou need &c%needed% &fto purchase this!'
+    # Don't change that
+    placeholders: [ "needed" ]
+
+  # The message when a player sold their items
+  sell:
+    # Configure the message
+    message: '&fYour items were sold, and &a%money% &fwas added to your account.'
+    # Don't change that
+    placeholders: [ "money" ]
+
+  # The message when something unexpected happened
+  something-wrong: '&cSomething went wrong, contact an admin.'
+
+  # The message when a player can't sell their things
+  cant-sell:
+    # Configure the message
+    message: '&c%count% item(s) of your items failed to sell &fand have been returned to your inventory.'
+    # Don't change that
+    placeholders: [ "count" ]
+
+  # The message when a player can't buy an item
+  cant-buy: '&cSorry, but you are not able to buy that item.'
+
+  # The message when the player has a full inventory
+  full-inventory: '&cPlease empty your inventory!'
+
+  # Message when something went wrong while parsing an item
+  went-wrong:
+    # Configure the message
+    message: '&cCannot buy an item that contains errors!\n&fError: &c%error%'
+    # Don't change that
+    placeholders: [ "error" ]
+
+  # The message when a player tries to buy more items in one stack than possible
+  too-high-quantity:
+    # Configure the message
+    message: '&fYou can''t buy more than &c%max% &fitems of that type!'
+    # Don't change that
+    placeholders: [ "max" ]
+
+  # The currency prefix displayed in front of every money count
+  currency-prefix: '$'
+
+  # The currency prefix displayed after every money count
+  currency-suffix: ''
+
+  # The message when a player tries to use the command while only signs is enabled
+  signs-only:
+    # Configure the message
+    message: '&cYou can only access the shop by clicking a %sign_title% sign!'
+    # Don't change that
+    placeholders: [ "sign_title" ]
+
+  # The message when a shop couldn't be found
+  shop-not-found:
+    # Configure the message
+    message: '&fCheck &cshops.yml &ffor shop &c%shop%. &fIt was not found.'
+    # Don't change that
+    placeholders: [ "shop" ]
+
+  # The message tries to sell more items than they have
+  alt-sell-not-enough:
+    # Configure the message
+    message: '&fYou do not have &c%amount% &fsuch items to sell.'
+    # Don't change that
+    placeholders: [ "amount" ]
+
+  # The message when there is no economy system
+  no-economy-system: '&cThe plugin didn''t detect an economy system! \n&fPlease contact a server administrator or setup an economy system.'
+
+  # The message for commands that can only be ran as a player
+  only-player: '&4You can only run this command as a player!'
+
+  # Message when a player runs an unknown command
+  unknown-command: '&cUnknown command.'
+
+  # When the player isn't holding an item while it is needed
+  need-item: '&cYou must be holding an item.'
+
+  # The message when an error occurs while saving a shop or menu
+  error-saving: '&cAn error occurred while saving the shops/menu! \n&fPlease check your console.'
+
+  # Message when a player tries to set a buy price for an item but enters invalid stuff
+  invalid-price-set: '&cPlease enter valid data. &fExample values: (0.0, 100.0, 100, false)'
+
+  # Message when the player doesn't have the required item permission
+  no-item-permission: '&cYou don''t have the required permission to buy this item!'
+
+  ################################
+  #    - /guishop messages -     #
+  # No need to configure because #
+  #   a user doesn't see this    #
+  ################################
+
+  # Message for the commands list. Use %list% for the complete list of commands
+  list:
+    - '&l&aGUIShop &l&fcommands:'
+    - '&a{required} &7- &a[optional]'
+    - '&7---------------------------'
+    - '%list%'
+    - '&7---------------------------'
+
+  # Messages for /guishop reload
+  reload:
+    # Message when someone reloads
+    execute: '&aGUIShop reloaded!'
+
+    # The entry in the list
+    entry: '&7/guishop &ereload &7- &aReload the configurations of GUIShop'
+
+  # Messages for /guishop parsemob
+  parsemob:
+    # Return message
+    return:
+      # Configure the message
+      message: '&a%type% &fis %valid%&fa valid mob type.'
+      # Don't change that
+      placeholders: [ "type", "valid" ]
+
+    # Replacement for %valid% when the type is valid
+    valid: ''
+
+    # Replacement for %valid% when the type is invalid
+    invalid: '&cNOT '
+
+    # Message when there aren't enough arguments
+    usage: '&cPlease specify a mob.'
+
+    # The entry in the list
+    entry: '&7/guishop &eparsemob {mob} &7- &aCheck if the given mob type is valid'
+
+  # Messages for /guishop edit
+  edit:
+    # Message when the needed input is a number but the given input isn't
+    no-number: '&cYour input must be a number!'
+
+    # Message when a player enters an invalid page number
+    invalid-page:
+      # Configure the message
+      message: '&fYour input &cmust be &fa number between &c1 and %pages%!'
+      # Don't change that
+      placeholders: [ "pages" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eedit/e [shop name] [page] &7- &aOpens in editor mode'
+
+  # Messages for /guishop buy
+  buy-price:
+    # Message when the player enters an invalid input
+    invalid-input: '&cPlease enter a valid value! &fExamples: 100, 100.0, 0, false'
+
+    # Message when the needed input is a number but the given input isn't
+    no-number: '&cYour input must be a number!'
+
+    # Message when the price got set
+    successful:
+      # Configure the message
+      message: '&fBuy-price set: &a%price%'
+      # Don't change that
+      placeholders: [ "price" ]
+
+    # Replacement for %price% when it got removed
+    removed: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &ebuy/p {price} &7- &aSet item in hand''s buy price'
+
+  # Messages for /guishop sell
+  sell-price:
+    # Message when the player enters an invalid input
+    invalid-input: '&cPlease enter a valid value! &fExamples: 100, 100.0, 0, false'
+
+    # Message when the needed input is a number but the given input isn't
+    no-number: '&cYour input must be a number!'
+
+    # Message when the price got set
+    successful:
+      # Configure the message
+      message: '&fSell-price set: &a%price%'
+      # Don't change that
+      placeholders: [ "price" ]
+
+    # Replacement for %price% when it got removed
+    removed: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &esell/s {price} &7- &aSet item in hand''s sell price'
+
+  # Messages for /guishop shopname
+  shop-name:
+    # Message when a player doesn't specify the shop name
+    usage: '&fPlease specify &ca custom shop-name!'
+
+    # Message when the name got set
+    successful:
+      # Configure the message
+      message: '&fShop-name set: &a%name%'
+      # Don't change that
+      placeholders: [ "name" ]
+
+    # Replacement for %name% when it got removed
+    removed: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &eshopname/sn {name} &7- &aSet item in hand''s shop name'
+
+  # Messages for /guishop buypname
+  buy-name:
+    # Message when a player doesn't specify the buy name
+    usage: '&fPlease specify &ca custom buy-name!'
+
+    # Message when the name got set
+    successful:
+      # Configure the message
+      message: '&fBuy-name set: &a%name%'
+      # Don't change that
+      placeholders: [ "name" ]
+
+    # Replacement for %name% when it got removed
+    removed: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &ebuyname/bn {name} &7- &aSet item in hand''s buy name'
+
+  # Messages for /guishop buypname
+  name:
+    # Message when a player doesn't specify the buy name
+    usage: '&fPlease specify &ca custom name!'
+
+    # Message when the name got set
+    successful:
+      # Configure the message
+      message: '&fName set: &a%name%'
+      # Don't change that
+      placeholders: [ "name" ]
+
+    # Replacement for %name% when it got removed
+    removed: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &ename {name} &7- &aSet an item'' s menu name. Used for items in menu.'
+
+  # Messages for /guishop enchant
+  enchant:
+    # Message when a player doesn't specify enchantments
+    usage: '&cPlease specify enchantments. &fE.G. "dura:1 sharp:2"'
+
+    # Message when the name got set
+    successful:
+      # Configure the message
+      message: '&fEnchantments set: &a%enchantments%'
+      # Don't change that
+      placeholders: [ "enchantments" ]
+
+    # Replacement for %name% when it got removed
+    removed: '&cnone'
+
+    # Message when the player inputs a invalid number
+    no-number: '&cYour input must be a number!'
+
+    # Message when one ore more of the given enchantments don't exist
+    invalid-enchantment:
+      # Configure the message
+      message: '&fOne or more of your &cgiven enchantments are invalid! &fCurrent: &c%enchantment%'
+      # Don't change that
+      placeholders: [ "enchantment" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eenchant/en {enchants} &7- &aSet item in hand''s enchantments'
+
+  # Messages for /guishop asll
+  add-shop-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line!'
+
+    # Message when the lore got added
+    successful:
+      # Configure the message
+      message: '&fShop-lore added: &a%lore%'
+      # Don't change that
+      placeholders: [ "lore" ]
+
+    # The entry in the list
+    entry: '&7/guishop &easll {line} &7- &aAdd a shop lore line'
+
+  # Messages for /guishop esll
+  edit-shop-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line and a new lore!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour lore line input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the lore got edited
+    successful:
+      # Configure the message
+      message: '&fShop-lore edited: &a%index% to %lore%'
+      # Don't change that
+      placeholders: [ "index", "lore" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eesll {lineNumber} {line} &7- &aEdit shop lore line. Starts at 0'
+
+  # Messages for /guishop dsll
+  delete-shop-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the lore got deleted
+    successful:
+      # Configure the message
+      message: '&fShop-lore removed: &a%index%'
+      # Don't change that
+      placeholders: [ "index" ]
+
+    # The entry in the list
+    entry: '&7/guishop &edsll {lineNumber} &7- &aDelete shop lore line. Starts at 0'
+
+  # Messages for /guishop all
+  add-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line!'
+
+    # Message when the lore got added
+    successful:
+      # Configure the message
+      message: '&fLore added: &a%lore%'
+      # Don't change that
+      placeholders: [ "lore" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eall {line} &7- &aAdd a lore line'
+
+  # Messages for /guishop ell
+  edit-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line and a new lore!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour lore line input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the lore got edited
+    successful:
+      # Configure the message
+      message: '&fLore edited: &a%index% to %lore%'
+      # Don't change that
+      placeholders: [ "index", "lore" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eell {lineNumber} {line} &7- &aEdit lore line. Starts at 0'
+
+  # Messages for /guishop dll
+  delete-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the lore got deleted
+    successful:
+      # Configure the message
+      message: '&fSLore removed: &a%index%'
+      # Don't change that
+      placeholders: [ "index" ]
+
+    # The entry in the list
+    entry: '&7/guishop &edll {lineNumber} &7- &aDelete lore line. Starts at 0'
+
+  # Messages for /guishop abll
+  add-buy-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line!'
+
+    # Message when the lore got added
+    successful:
+      # Configure the message
+      message: '&fBuy-lore added: &a%lore%'
+      # Don't change that
+      placeholders: [ "lore" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eabll {line} &7- &aAdd buy lore line'
+
+  # Messages for /guishop ebll
+  edit-buy-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line and a new lore!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour lore line input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the lore got edited
+    successful:
+      # Configure the message
+      message: '&fBuy-lore edited: &a%index% to %lore%'
+      # Don't change that
+      placeholders: [ "index", "lore" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eebll {lineNumber} {line} &7- &aEdit buy lore line. Starts at 0'
+
+  # Messages for /guishop dbll
+  delete-buy-lore:
+    # Message when the player doesn't specify a lore
+    usage: '&fPlease specify &ca lore line!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the lore got deleted
+    successful:
+      # Configure the message
+      message: '&fBuy-lore removed: &a%index%'
+      # Don't change that
+      placeholders: [ "index" ]
+
+    # The entry in the list
+    entry: '&7/guishop &edbll {lineNumber} &7- &aDelete buy lore line. Starts at 0'
+
+  # Messages for /guishop type
+  type:
+    # Message when a player doesn't specify a type
+    usage: '&fPlease specify &ca type. &fAllowed: &cCOMMAND, DUMMY, SHOP, ITEM, BLANK'
+
+    # Message when the type got set
+    successful:
+      # Configure the messagge
+      message: '&fItem type set: &a%type%'
+      # Don't change that
+      placeholders: [ "type" ]
+
+    # The entry in the list
+    entry: '&7/guishop &et {type} &7- &aSet an item''s type. Allowed: COMMAND, DUMMY, SHOP, ITEM, BLANK'
+
+  # Messages for /guishop ac
+  add-command:
+    # Message when the player doesn't specify a command
+    usage: '&fPlease specify &ca command!'
+
+    # Message when the command got added
+    successful:
+      # Configure the message
+      message: '&fCommand added: &a%command%'
+      # Don't change that
+      placeholders: [ "command" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eac {command} &7- &aAdd a command to item'
+
+  # Messages for /guishop ec
+  edit-command:
+    # Message when the player doesn't specify a command and a command line
+    usage: '&fPlease specify &ca command line and a new command!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour command line input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the command got edited
+    successful:
+      # Configure the message
+      message: '&fCommand edited: &a%index% to %command%'
+      # Don't change that
+      placeholders: [ "index", "command" ]
+
+    # The entry in the list
+    entry: '&7/guishop &edc {lineNumber} &7- &aDelete a command by line. Starts at 0'
+
+  # Messages for /guishop dc
+  delete-command:
+    # Message when the player doesn't specify a command number
+    usage: '&fPlease specify &ca command line!'
+
+    # The message when the given number isn't a number
+    invalid-number:
+      # Configure the message
+      message: '&cYour input must be a number! &fYour input: &c%input%'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the command got deleted
+    successful:
+      # Configure the message
+      message: '&fCommand removed: &a%index%'
+      # Don't change that
+      placeholders: [ "index" ]
+
+    # The entry in the list
+    entry: '&7/guishop &edc {lineNumber} &7- &aDelete a command by line. Starts at 0'
+
+  # Messages for /guishop mt
+  mob-type:
+    # Message when a player doesn't specify a mob type
+    usage: '&fPlease specify &ca mob type!'
+
+    # Message when the player sets the mob type
+    successful:
+      # Configure the message
+      message: '&fMob type set: &a%type%'
+      # Don't change that
+      placeholders: [ "type" ]
+
+    # The entry in the list
+    entry: '&7/guishop &emt {type} &7- &aSet an item''s mob type. Used for spawners/eggs.'
+
+  # Messages for /guishop ts
+  target-shop:
+    # Message when the player doesn't specify a shop
+    usage: '&fPlease specfiy &ca target shop!'
+
+    # Message when the shop doesn't exist
+    invalid-shop:
+      # Configure the message
+      message: '&fYour shop input &c%input% doesn''t exist!'
+      # Don't change that
+      placeholders: [ "input" ]
+
+    # Message when the target shop got set
+    successful:
+      # Configure the message
+      message: '&fTarget shop set: &c%shop%'
+      # Don't change that
+      placeholders: [ "shop" ]
+
+    # The entry in the list
+    entry: '&7/guishop &ets {target shop} &7- &aSet an item''s target shop. Used for items in menu.'
+
+  # Message for /guishop nbt
+  nbt:
+    # Message when the player doesn't specify a custom nbt
+    usage: '&fPlease specify &ca custom NBT!'
+
+    # Message when the nbt got set
+    successful:
+      # Configure the message
+      message: '&fCustom NBT set: &a%nbt%'
+      # Don't change that
+      placeholders: [ "nbt" ]
+
+    # Replacement when the NBT got removed
+    none: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &enbt {nbt} &7- &aSet an item''s NBT. Must be a valid one!'
+
+  # Message for /guishop printnbt
+  printnbt:
+    # The nbt that got printed
+    print:
+      # Configure the message
+      message: '&7NBT data: &a%nbt%'
+      # Don't change that
+      placeholders: [ "nbt" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eprintnbt &7- &aPrints the NBT of the item you are holding. Useful for custom items.'
+
+  # Messages for /guishop ls
+  list-shops:
+    # The shops list that got printed
+    print:
+      # Configure the message
+      message: '&fLoaded shops: &a%shops%'
+      # Don't change that
+      placeholders: [ "shops" ]
+
+    # Replacement for %shops% when no shop is loaded
+    none: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &els &7- &aList all currently loaded shops'
+
+  # Messages for /guishop lc
+  list-commands:
+    # The shops list that got printed
+    print:
+      # Configure the message
+      message: '&fItem commands: &a%commands%'
+      # Don't change that
+      placeholders: [ "commands" ]
+
+    # The message for one command
+    command:
+      # Configure the message
+      message: '&f%index%: &a%command%'
+      # Don't change that
+      placeholders: [ "index", "commands" ]
+
+    # Replacement for %commands% when no shop is loaded
+    none: '&cnone'
+
+    # The entry in the list
+    entry: '&7/guishop &elc &7- &aList all commands of an item'
+
+  # Messages for /guishop pi
+  potion-info:
+    # Message when the player doesn't use the command correctly
+    usage: '&fPlease specify &ca potion type, if the potion is a splash potion, if the potion is extended and if the potion is upgraded'
+
+    # Message when the type is invalid
+    invalid:
+      # Configure the message
+      message: '&fYour potion type &c%type% &fis &cinvalid!'
+      # Don't change that
+      placeholders: [ "type" ]
+
+    # Message when the potion info got set
+    successful:
+      # Configure the message
+      message: '&fPotion info set: &aType: %type%, Splash: %splash%, Extended: %extended%, Upgraded: %upgraded%'
+      # Don't change that
+      placeholders: [ "type", "splash", "extended", "upgraded" ]
+
+    # The entry in the list
+    entry: '&7/guishop &epi {type} {splash} {extended} {upgraded} &7- &aSets the potion type'
+
+  # Messages for /guishop q
+  quantity:
+    # Message when the player doesn't use the command correctly
+    usage: '&fPlease specify &cthe quantity. &fPossible values: &c true, false and any integer in between 64 and 1 (both included)'
+
+    # Message when the quantity got set
+    successful:
+      # Configure the message
+      message: '&fQuantity: %quantity%'
+      # Don't change that
+      placeholders: [ "quantity" ]
+
+    # The entry in the list
+    entry: '&7/guishop &eq {quantity} &7- &aSet the quantity, false is 1'
+
+  # Messages for /guishop su
+  skull-uuid:
+    # Message when the player doesn't use the command correctly
+    usage: '&fPlease specify &ca skull uuid!'
+
+    # Message when the skull uuid got set
+    successful:
+      # Configure the message
+      message: '&fSkull uuid set: %uuid%'
+      # Don't change that
+      placeholders: [ "uuid" ]
+
+    # The entry in the list
+    entry: '&7/guishop &esu {uuid} &7- &aSet an item''s skull uuid'
+
+  # Messages for /guishop value
+  value:
+    # Message when a player tries to get the value that doesn't exist
+    doesnt-exist: '&cThis item doesn''t exist in any of the shops.'
+
+    # The entry in the list
+    entry: '&7/guishop &evalue &7- &aGets the highest sell price for the item you are holding'
+
+  # Messages for /guishop p
+  permission:
+    # Message when the player doesn't use the command correctly
+    usage: '&fPlease specify &ca permission!'
+
+    # Message when the permission got set
+    successful:
+      # Configure the message
+      message: '&fPermission set: %permission%'
+      # Don't change that
+      placeholders: [ "permission" ]
+
+    # The entry in the list
+    entry: '&7/guishop &ep {permission} &7- &aSet an item''s permission'
+
+################################
+##  Developed by pablo67340   ##
+##  If you need any support:  ##
+##  discord.gg/XQb2Y2jBCa     ##
+################################

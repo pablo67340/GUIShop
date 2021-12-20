@@ -1,20 +1,15 @@
 package com.pablo67340.guishop.definition;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-
+import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.pane.Pane;
+import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.pane.Pane;
-
-import lombok.Getter;
+import java.util.*;
 
 public class AltSellPane extends Pane {
 
@@ -26,9 +21,7 @@ public class AltSellPane extends Pane {
     public AltSellPane(GuiItem subjectItem, GuiItem[] addRemoveItems, GuiItem indicatorItem, GuiItem confirmItem, GuiItem cancelItem) {
         super(9, 6);
         items.add(subjectItem);
-        for (int n = 0; n < 6; n++) {
-            items.add(addRemoveItems[n]);
-        }
+        items.addAll(Arrays.asList(addRemoveItems).subList(0, 6));
         items.add(indicatorItem);
         items.add(confirmItem);
         items.add(cancelItem);
@@ -51,7 +44,7 @@ public class AltSellPane extends Pane {
 
     @Override
     public void display(Gui gui, Inventory inventory, PlayerInventory playerInventory, int paneOffsetX, int paneOffsetY,
-            int maxLength, int maxHeight) {
+                        int maxLength, int maxHeight) {
         inventory.setItem(13, items.get(0).getItem());
         inventory.setItem(18, items.get(1).getItem());
         inventory.setItem(19, items.get(2).getItem());
@@ -66,7 +59,7 @@ public class AltSellPane extends Pane {
 
     @Override
     public boolean click(Gui gui, InventoryClickEvent event, int paneOffsetX, int paneOffsetY, int maxLength,
-            int maxHeight) {
+                         int maxHeight) {
         return false;
     }
 
@@ -84,5 +77,4 @@ public class AltSellPane extends Pane {
     public void clear() {
         items.clear();
     }
-
 }

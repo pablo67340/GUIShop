@@ -29,7 +29,7 @@ import org.jetbrains.annotations.NotNull;
 import java.math.BigDecimal;
 import java.util.*;
 
-public class GUIShopCommand implements CommandExecutor {
+public class GuishopCommand implements CommandExecutor {
 
     /**
      * Gets the permission corresponding to a subcommand of /guishop
@@ -490,7 +490,7 @@ public class GUIShopCommand implements CommandExecutor {
                 if (args.length >= 5) {
                     String name = args[1];
                     try {
-                        XPotion.matchXPotion(name).get().parsePotionEffectType();
+                        XPotion.matchXPotion(name).get().getPotionEffectType();
                     } catch (NoSuchElementException | NullPointerException exception) {
                         GUIShop.sendPrefix(player, "potion-info.invalid", name);
                         return true;

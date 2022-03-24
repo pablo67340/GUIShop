@@ -478,7 +478,7 @@ public final class ItemUtil {
                 String enchantment = StringUtils.substringBefore(str, ":");
                 String level = StringUtils.substringAfter(str, ":");
                 try {
-                    enchantmentMap.put(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level));
+                    enchantmentMap.put(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level));
                 } catch (NoSuchElementException | NullPointerException exception) {
                     GUIShop.sendPrefix(player, "enchant.invalid-enchantment", str);
                 } catch (NumberFormatException exception) {

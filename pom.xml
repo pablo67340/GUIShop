@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.1.5</version>
+    <version>9.1.6</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -113,7 +113,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.18.1-R0.1-SNAPSHOT</version>
+            <version>1.18.2-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!--Bukkit API -->
@@ -126,18 +126,18 @@
         <dependency>
             <groupId>com.github.stefvanschie</groupId>
             <artifactId>inventoryframework</artifactId>
-            <version>1.4</version>
+            <version>1.5</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.20</version>
+            <version>1.18.22</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>com.github.cryptomorin</groupId>
             <artifactId>XSeries</artifactId>
-            <version>8.5.0.1</version>
+            <version>8.7.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -195,10 +195,10 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.1</version>
+                        <version>3.8.2-SNAPSHOT</version>
                         <configuration>
-                            <source>16</source>
-                            <target>16</target>
+                            <source>17</source>
+                            <target>17</target>
                             <fork>true</fork>
                             <compilerArgs>
                                 <arg>-J--add-opens=jdk.compiler/com.sun.tools.javac.code=ALL-UNNAMED</arg>
@@ -216,7 +216,7 @@
                                 <path>
                                     <groupId>org.projectlombok</groupId>
                                     <artifactId>lombok</artifactId>
-                                    <version>1.18.20</version>
+                                    <version>1.18.22</version>
                                 </path>
                             </annotationProcessorPaths>
                         </configuration>
@@ -326,10 +326,10 @@
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.1</version>
+                        <version>3.8.2-SNAPSHOT</version>
                         <configuration>
-                            <source>16</source>
-                            <target>16</target>
+                            <source>17</source>
+                            <target>17</target>
                         </configuration>
                     </plugin>
                     <plugin>
@@ -423,7 +423,7 @@
                         <artifactId>minecraft-server-plugin</artifactId>
                         <version>1.0.4-SNAPSHOT</version>
                         <configuration>
-                            <serverVersion>1.18.1</serverVersion>
+                            <serverVersion>1.18.2</serverVersion>
                             <createEula>true</createEula>
                             <gui>true</gui>
                         </configuration>

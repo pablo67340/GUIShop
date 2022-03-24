@@ -45,6 +45,7 @@ public final class Item implements ConfigurationSerializable {
     @Getter
     @Setter
     private String shopName, buyName, shop, targetShop, name, skullUUID, NBT;
+    
 
     @Getter
     @Setter
@@ -828,14 +829,14 @@ public final class Item implements ConfigurationSerializable {
                     for (String enc : getEnchantments()) {
                         String enchantment = StringUtils.substringBefore(enc, ":");
                         String level = StringUtils.substringAfter(enc, ":");
-                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(meta);
                     }
                 } else {
                     for (String enc : getEnchantments()) {
                         String enchantment = StringUtils.substringBefore(enc, ":");
                         String level = StringUtils.substringAfter(enc, ":");
-                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(itemMeta);
                     }
                 }
@@ -866,6 +867,7 @@ public final class Item implements ConfigurationSerializable {
 
             if (hasPotion()) {
                 PotionInfo potionInfo = getPotionInfo();
+                
                 if (XMaterial.isNewVersion()) {
                     if (potionInfo.getSplash()) {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
@@ -926,7 +928,7 @@ public final class Item implements ConfigurationSerializable {
                 for (String enc : getEnchantments()) {
                     String enchantment = StringUtils.substringBefore(enc, ":");
                     Integer level = Integer.parseInt(StringUtils.substringAfter(enc, ":"));
-                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment();
+                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
                     if (!input.getEnchantments().containsKey(targetEnchantment)) {
                         return false;
                     } else {
@@ -941,7 +943,7 @@ public final class Item implements ConfigurationSerializable {
                 for (String enc : getEnchantments()) {
                     String enchantment = StringUtils.substringBefore(enc, ":");
                     Integer level = Integer.parseInt(StringUtils.substringAfter(enc, ":"));
-                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment();
+                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
                     if (!meta.getStoredEnchants().containsKey(targetEnchantment)) {
                         return false;
                     } else {
@@ -1078,7 +1080,7 @@ public final class Item implements ConfigurationSerializable {
                     try {
                         String enchantment = StringUtils.substringBefore(enc, ":");
                         String level = StringUtils.substringAfter(enc, ":");
-                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(meta);
                     } catch (NoSuchElementException | NullPointerException ignored) {
                     }
@@ -1088,7 +1090,7 @@ public final class Item implements ConfigurationSerializable {
                     try {
                         String enchantment = StringUtils.substringBefore(enc, ":");
                         String level = StringUtils.substringAfter(enc, ":");
-                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(itemMeta);
                     } catch (NoSuchElementException | NullPointerException ignored) {
                     }
@@ -1170,8 +1172,8 @@ public final class Item implements ConfigurationSerializable {
             } else if (entry.getKey().equalsIgnoreCase("quantity")) {
                 QuantityValue quantityValue = new QuantityValue();
 
-                if (entry.getValue() instanceof Integer) {
-                    quantityValue.setQuantity((Integer) entry.getValue());
+                if (entry.getValue() instanceof Integer integer) {
+                    quantityValue.setQuantity(integer);
                 } else {
                     String quantity = entry.getKey();
 
@@ -1221,16 +1223,14 @@ public final class Item implements ConfigurationSerializable {
                     item.setLore(Arrays.asList(((String) entry.getValue()).split("\n")));
                 }
             } else if (entry.getKey().equalsIgnoreCase("buy-price")) {
-                if (entry.getValue() instanceof Double) {
-                    Double buyPrice = (Double) entry.getValue();
+                if (entry.getValue() instanceof Double buyPrice) {
                     BigDecimal buyPrice2 = BigDecimal.valueOf(buyPrice);
                     item.setBuyPrice(buyPrice2);
                 } else if (entry.getValue() instanceof Integer) {
                     item.setBuyPrice(entry.getValue());
                 }
             } else if (entry.getKey().equalsIgnoreCase("sell-price")) {
-                if (entry.getValue() instanceof Double) {
-                    Double sellPrice = (Double) entry.getValue();
+                if (entry.getValue() instanceof Double sellPrice) {
                     BigDecimal sellPrice2 = BigDecimal.valueOf(sellPrice);
                     item.setSellPrice(sellPrice2);
                 } else if (entry.getValue() instanceof Integer) {
@@ -1249,7 +1249,7 @@ public final class Item implements ConfigurationSerializable {
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 item.setEnchantments(Arrays.stream(((String) entry.getValue()).split(" ")).filter(enchant -> {
                     try {
-                        XEnchantment.matchXEnchantment(enchant).get().parseEnchantment();
+                        XEnchantment.matchXEnchantment(enchant).get().getEnchant();
                         return true;
                     } catch (NoSuchElementException | NullPointerException exception) {
                         GUIShop.log("&cInvalid enchantment found: " + enchant + "&c! Skipping enchantment.");

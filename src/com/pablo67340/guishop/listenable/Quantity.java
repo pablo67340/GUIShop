@@ -160,14 +160,14 @@ class Quantity {
                         String enchantment = StringUtils.substringBefore(enc, ":");
                         String level = StringUtils.substringAfter(enc, ":");
                         assert meta != null;
-                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(meta);
                     }
                 } else {
                     for (String enc : item.getEnchantments()) {
                         String enchantment = StringUtils.substringBefore(enc, ":");
                         String level = StringUtils.substringAfter(enc, ":");
-                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().parseEnchantment(), Integer.parseInt(level), true);
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(itemMeta);
                     }
                 }

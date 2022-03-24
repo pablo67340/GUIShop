@@ -53,7 +53,7 @@ public class GuishopUserCommand implements CommandExecutor {
         if (player.hasPermission("guishop.use") || player.isOp()) {
 
             if (shop == null) {
-                PlayerListener.INSTANCE.openShop(player);
+                PlayerListener.INSTANCE.openMenu(player);
 
             } else {
 

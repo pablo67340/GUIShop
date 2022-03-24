@@ -157,7 +157,7 @@ public final class GUIShop extends JavaPlugin {
         }
 
         getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
-        getServer().getPluginCommand("guishop").setExecutor(new GUIShopCommand());
+        getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new UserCommand());
     }
 

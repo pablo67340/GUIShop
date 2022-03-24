@@ -399,7 +399,7 @@ public class Shop {
                 } catch (NoSuchElementException | NullPointerException ignored) {
                 }
 
-                int quantityCount = 1;
+                int quantityCount;
 
                 if (item.getQuantityValue() == null) {
                     quantityCount = maxStackSize;

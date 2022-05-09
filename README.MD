@@ -1,4 +1,4 @@
-<a href="https://jenkins.synthetic-gaming.com/job/GUIShop"><img src="http://jenkins.synthetic-gaming.com/job/GUIShop/badge/icon" /></a>
+<a href='https://jenkins.synthetic-gaming.com/job/GUIShop/'><img src='https://jenkins.synthetic-gaming.com/job/GUIShop/badge/icon'></a>
 
 
 <p>Welcome to GUIShop! This plugin is the ultimate solution to all the signs, the chests and the glitches. This plugin will put a stop to all

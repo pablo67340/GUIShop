@@ -1,3 +1,6 @@
+<a href="https://jenkins.synthetic-gaming.com/job/GUIShop"><img src="http://jenkins.synthetic-gaming.com/job/GUIShop/badge/icon" /></a>
+
+
 <p>Welcome to GUIShop! This plugin is the ultimate solution to all the signs, the chests and the glitches. This plugin will put a stop to all
 those head aches. I present to you, GUIShop. This plugin uses a sleek new way of making shops easy,
 comfortable, and fun!</p>

@@ -10,7 +10,7 @@
 <!-- Project information -->
 <groupId>com.pablo67340.GUIShop</groupId>
 <artifactId>GUIShop</artifactId>
-<version>9.1.6</version>
+<version>9.1.7</version>
 <name>GUIShop</name>
 <url>https://www.spigotmc.org/resources/guishop.2451/</url>
 <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -84,10 +84,6 @@
         <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
     </repository>
     <repository>
-        <id>abstract-repo</id>
-        <url>https://abstract.support/repo/</url>
-    </repository>
-    <repository>
         <id>codemc-repo</id>
         <url>https://repo.codemc.org/repository/maven-public/</url>
         <layout>default</layout>
@@ -121,7 +117,7 @@
     <dependency>
         <groupId>com.github.stefvanschie</groupId>
         <artifactId>inventoryframework</artifactId>
-        <version>1.5</version>
+        <version>1.6</version>
     </dependency>
     <dependency>
         <groupId>org.projectlombok</groupId>

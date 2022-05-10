@@ -21,6 +21,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.util.Map;
 import java.util.NoSuchElementException;
+import org.bukkit.event.inventory.ClickType;
 
 public class AltSell {
 
@@ -74,7 +75,7 @@ public class AltSell {
     }
 
     public void open(Player player) {
-        if (!player.hasPermission("guishop.sell")) {
+        if (!GUIShop.getPerms().playerHas(player, "guishop.sell")) {
             GUIShop.sendPrefix(player, "no-permission");
             return;
         }
@@ -116,9 +117,16 @@ public class AltSell {
             gui.setOnTopClick(this::onClick);
             gui.setOnBottomClick(event -> event.setCancelled(true));
             gui.setOnClose(this::onClose);
+            gui.setOnGlobalClick(this::onGlobalClick);
             gui.show(player);
         } else {
             GUIShop.log("One or more of the materials you defined in the alt sell GUI are not valid.");
+        }
+    }
+    
+    private void onGlobalClick(InventoryClickEvent event){
+        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            event.setCancelled(true);
         }
     }
 

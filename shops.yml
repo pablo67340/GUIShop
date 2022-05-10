@@ -9,22 +9,26 @@
 #                options such as: shop-name, buy-name,                    #
 #                   shop-lore, buy-lore and commands.                     #
 #                                                                         #
-#  {ITEM_SHOP_NAME} - The declared shop-name.                             #
-#  {ITEM_BUY_NAME} - The declared buy-name.                               #
-#  {PLAYER_NAME} - Name of player who clicks shop item. Only Supports     #
+#  %item_shop_name% - The declared shop-name.                             #
+#  %item_buy_name% - The declared buy-name.                               #
+#  %player_name% - Name of player who clicks shop item. Only Supports     #
 #  buy-lore, buy-name, commands.                                          #
-#  {PLAYER_UUID} - UUID of player who clicks shop item. Only Supports     #
+#  %player_uuid% - UUID of player who clicks shop item. Only Supports     #
 #  buy-lore, buy-name, commands.                                          #
-#  {BUY_PRICE} - The declared buy-price of the item.                      #
-#  {SELL_PRICE} - The declared sell-price of the item.                    #
-#  {CURRENCY_SYMBOL} - The declared symbol in config.yml                   #
-#  {CURRENCY_SUFFIX} - The declared suffix in config.yml                  #
+#  %player_world% - World name of player who clicks shop item.            #
+#  %player_balance% - The current balance of the player.                  #
+#  Only Supports buy-lore, buy-name, commands.                            #
+#  %buy_price% - The declared buy-price of the item.                      #
+#  %sell_price% - The declared sell-price of the item.                    #
+#  %currency_symbol% - The declared symbol in messages.yml                #
+#  %currency_suffix% - The declared suffix in messages.yml                #
 ###########################################################################
 #                    Available Item Fields & Their Purpose:               #
 #                      REQ = REQUIRED, OPT = OPTIONAL.                    #
 #                                                                         #
 # id ~ REQ ~ Material name of the Item. Use names from the link above.    #
-# type ~ OPT ~ SHOP, COMMAND, BLANK, DUMMY, Default: DUMMY.               #
+# type ~ OPT ~ SHOP, COMMAND, BLANK, DUMMY, SHOP_SHORTCUT, Default: DUMMY.#
+# target-shop ~ OPT ~ Shop to open when clicking the item.                #
 # shop-name ~ OPT ~ Custom name of item only inside the shop.             #
 # buy-name ~ OPT ~ Custom name of item only on purchased item.            #
 # buy-price ~ REQ ~ Cost of the item, false to prevent buying.            #

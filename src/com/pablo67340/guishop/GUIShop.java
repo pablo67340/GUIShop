@@ -46,6 +46,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
+import net.milkbowl.vault.permission.Permission;
 
 public final class GUIShop extends JavaPlugin {
 
@@ -66,6 +67,9 @@ public final class GUIShop extends JavaPlugin {
      */
     @Getter
     private static Economy ECONOMY;
+    
+    @Getter
+    private static Permission perms;
 
     /**
      * the instance of the dynamic price provider, if dynamic pricing is used
@@ -225,14 +229,15 @@ public final class GUIShop extends JavaPlugin {
         }
 
         RegisteredServiceProvider<Economy> rsp = getServer().getServicesManager().getRegistration(Economy.class);
+        RegisteredServiceProvider<Permission> rsp2 = getServer().getServicesManager().getRegistration(Permission.class);
+        
 
-        if (rsp == null) {
+        if (rsp == null || rsp2 == null) {
             return false;
-        } else {
-            rsp.getProvider();
-        }
+        } 
 
         ECONOMY = rsp.getProvider();
+        perms = rsp2.getProvider();
 
         return true;
     }
@@ -803,6 +808,7 @@ public final class GUIShop extends JavaPlugin {
             string = string.replace("%player_name%", player.getName());
             string = string.replace("%player_uuid%", player.getUniqueId().toString());
             string = string.replace("%player_world%", player.getLocation().getWorld().getName());
+            string = string.replace("%player_balance%", GUIShop.getECONOMY().format(GUIShop.getECONOMY().getBalance(player)));
 
             if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
                 string = PlaceholderAPI.setPlaceholders(player, string);

@@ -182,7 +182,7 @@ public final class Menu {
      * @param player The player the GUI will display to
      */
     public void open(Player player) {
-        if (!player.hasPermission("guishop.use") && !player.isOp()) {
+        if (!GUIShop.getPerms().playerHas(player, "guishop.use") && !player.isOp()) {
             GUIShop.sendPrefix(player, "no-permission");
             return;
         }
@@ -202,7 +202,14 @@ public final class Menu {
             GUI.setOnTopClick(this::creatorTopInventoryClick);
             GUI.setOnClose(this::onClose);
         }
+        GUI.setOnGlobalClick(this::onGlobalClick);
         GUI.show(player);
+    }
+    
+    private void onGlobalClick(InventoryClickEvent event){
+        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            event.setCancelled(true);
+        }
     }
 
     /**
@@ -216,13 +223,13 @@ public final class Menu {
 
         // Next Button
         GUIShop.debugLog("Clicked: " + event.getSlot());
-        if (event.getSlot() == (GUI.getRows() * 9) - 3) {
+        if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getForwardSlot(), GUI.getRows() * 9) - 1)) {
             handleForwardButton(clickingPlayer, event);
             // Backward Button
-        } else if (event.getSlot() == (GUI.getRows() * 9) - 7) {
+        } else if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getBackwardSlot(), GUI.getRows() * 9) - 1)) {
             handleBackwardButton(player, event);
             // Back Button
-        } else if (event.getSlot() == menuItem.getHighestPageSlot("Page" + currentPane.getPage()) - 1 && !Config.isDisableBackButton()) {
+        } else if (event.getSlot() == calculateSlot(Config.getButtonConfig().getBackSlot(), GUI.getRows() * 9) - 1 && !Config.isDisableBackButton()) {
             clickingPlayer.closeInventory();
         } else {
             handleItemClick(clickingPlayer, event);
@@ -301,7 +308,7 @@ public final class Menu {
 
             if (clickedItem.hasTargetShop()) {
                 String shopName = clickedItem.getTargetShop();
-                if (clickingPlayer.hasPermission("guishop.shop." + shopName.toLowerCase()) || clickingPlayer.hasPermission("guishop.shop.*")) {
+                if (GUIShop.getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
                     if (!clickedItem.isResolveFailed()) {
                         openShop(clickingPlayer, shopName);
                     } else {

@@ -1244,7 +1244,7 @@ public final class Item implements ConfigurationSerializable {
                     item.setCommands(Collections.singletonList(entry.getValue().toString()));
                 }
             } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
-                item.setItemType(ItemType.ITEM);
+                item.setItemType(ItemType.SHOP_SHORTCUT);
                 item.setTargetShop(entry.getValue().toString());
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 item.setEnchantments(Arrays.stream(((String) entry.getValue()).split(" ")).filter(enchant -> {
@@ -1374,5 +1374,37 @@ public final class Item implements ConfigurationSerializable {
         im.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c" + resolveReason));
         itemStack.setItemMeta(im);
         return itemStack;
+    }
+    
+    @Override
+    public String toString(){
+        StringBuilder builder = new StringBuilder();
+        builder.append("Buy Name: ");
+        builder.append(this.getBuyName());
+        builder.append(" Buy Price: ");
+        builder.append(this.buyPrice);
+        builder.append(" Config Slot: ");
+        builder.append(this.configSlot);
+        builder.append(" Custom Model Data: ");
+        builder.append(this.customModelData);
+        builder.append(" Item Type: ");
+        builder.append(this.itemType);
+        builder.append(" Material: ");
+        builder.append(this.material);
+        builder.append(" MobType: ");
+        builder.append(this.mobType);
+        builder.append(" Name: ");
+        builder.append(this.name);
+        builder.append(" Resolve Failed: ");
+        builder.append(this.resolveFailed);
+        builder.append(" Shop Name: ");
+        builder.append(this.shopName);
+        builder.append(" Skull UUID: ");
+        builder.append(this.skullUUID);
+        builder.append(" Slot: ");
+        builder.append(this.slot);
+        builder.append(" Target Shop: ");
+        builder.append(this.targetShop);
+        return builder.toString();
     }
 }

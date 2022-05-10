@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.definition;
 
+import com.pablo67340.guishop.GUIShop;
 import lombok.Getter;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -28,6 +29,6 @@ public class Permission {
             return false;
         }
 
-        return !player.hasPermission(permission);
+        return !GUIShop.getPerms().playerHas(player, permission);
     }
 }

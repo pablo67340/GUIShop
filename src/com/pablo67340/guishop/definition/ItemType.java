@@ -5,5 +5,6 @@ public enum ItemType {
     COMMAND,
     DUMMY,
     SHOP,
-    BLANK
+    BLANK,
+    SHOP_SHORTCUT
 }

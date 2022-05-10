@@ -101,7 +101,7 @@ public final class PlayerListener implements Listener {
                 if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',
                         Config.getTitlesConfig().getSignTitle()))) {
                     // If the player has Permission to use sign
-                    if (player.hasPermission("guishop.use") && player.hasPermission("guishop.sign.use")
+                    if (GUIShop.getPerms().playerHas(player, "guishop.use") && GUIShop.getPerms().playerHas(player, "guishop.sign.use")
                             || player.isOp()) {
                         e.setCancelled(true);
                         Menu menu = new Menu(player);

@@ -86,7 +86,7 @@ public final class Sell {
                 }
             }
 
-            if (shopItem == null || !shopItem.hasSellPrice() || (!player.hasPermission("guishop.shop." + shopItem.getShop()) && !player.hasPermission("guishop.shop.*")) || (shopItem.hasPermission() && shopItem.getPermission().doesntHavePermission(player))) {
+            if (shopItem == null || !shopItem.hasSellPrice() || (!GUIShop.getPerms().playerHas(player, "guishop.shop." + shopItem.getShop()) && !GUIShop.getPerms().playerHas(player, "guishop.shop.*")) || (shopItem.hasPermission() && shopItem.getPermission().doesntHavePermission(player))) {
                 countSell++;
                 couldntSell = true;
                 unsellableItems.add(item);

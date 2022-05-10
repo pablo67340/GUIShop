@@ -61,8 +61,8 @@ public class Shop {
     /**
      * The constructor for a {@link Shop}.
      *
-     * @param player       Thep layer using the shop.
-     * @param shop         The name of the shop.
+     * @param player Thep layer using the shop.
+     * @param shop The name of the shop.
      * @param menuInstance The instance of the menu that opened this shop.
      */
     public Shop(Player player, String shop, Menu menuInstance) {
@@ -249,8 +249,15 @@ public class Shop {
             GUI.setOnBottomClick(this::creatorPlayerInventoryClick);
             GUI.setOnTopClick(this::creatorTopInventoryClick);
         }
+        GUI.setOnGlobalClick(this::onGlobalClick);
         GUI.setOnClose(this::onClose);
         return true;
+    }
+    
+    private void onGlobalClick(InventoryClickEvent event){
+        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            event.setCancelled(true);
+        }
     }
 
     private void onShopClick(InventoryClickEvent event) {
@@ -266,13 +273,13 @@ public class Shop {
 
         // Forward Button
         GUIShop.debugLog("Clicked: " + event.getSlot());
-        if (event.getSlot() == (GUI.getRows() * 9) - 3) {
+        if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getForwardSlot(), GUI.getRows() * 9) - 1)) {
             handleForwardButton(event);
             // Backward Button
-        } else if (event.getSlot() == (GUI.getRows() * 9) - 7) {
+        } else if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getBackwardSlot(), GUI.getRows() * 9) - 1)) {
             handleBackwardButton(event);
             // Back Button
-        } else if (event.getSlot() == (shopItem.getHighestPageSlot("Page" + currentPane.getPage()) - 1) && !Config.isDisableBackButton()) {
+        } else if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getBackSlot(), GUI.getRows() * 9) - 1) && !Config.isDisableBackButton()) {
             if (menuInstance != null && !GUIShop.getCREATOR().contains(player.getUniqueId())) {
                 menuInstance.open(player);
             }
@@ -468,22 +475,60 @@ public class Shop {
          */
         GUIShop.debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
 
+        System.out.println("before item");
         Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(event.getSlot()));
+        System.out.println("after item");
 
         if (item == null) {
+            System.out.println("Item was null?");
             return;
-        } else if (!item.hasBuyPrice()) {
+        } else if (!item.hasBuyPrice() && item.getItemType() == ItemType.SHOP) {
+            System.out.println("shop line");
             if (Config.isAlternateSellEnabled() && item.hasSellPrice() && item.getItemType() == ItemType.SHOP) {
                 hasClicked = true;
                 new AltSell(item, this).open(player);
             }
+            System.out.println("hit return");
             return;
         }
 
-        if (item.getItemType() == ItemType.SHOP) {
-            shopItem(item, event);
-        } else if (item.getItemType() == ItemType.COMMAND) {
-            commandItem(item);
+        if (null != item.getItemType()) {
+            System.out.println("type was not null: ");
+            System.out.println(item.toString());
+            switch (item.getItemType()) {
+                case SHOP ->
+                    shopItem(item, event);
+                case COMMAND ->
+                    commandItem(item);
+                case SHOP_SHORTCUT ->
+                    shopShortcut(item, event);
+                default -> {
+                    System.out.println("default");
+                }
+            }
+        }
+    }
+
+    public void shopShortcut(Item item, InventoryClickEvent event) {
+        System.out.println("ShopShortcut");
+        Player clickingPlayer = (Player) event.getWhoClicked();
+        if (item.hasTargetShop()) {
+            System.out.println("hasTargetShop");
+            String shopName = item.getTargetShop();
+            if (GUIShop.getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
+                System.out.println("Player has permissions");
+                if (!item.isResolveFailed()) {
+                    hasClicked = true;
+                    BukkitScheduler scheduler = Bukkit.getScheduler();
+                    scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
+
+                    System.out.println("openShop");
+                } else {
+                    GUIShop.sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());
+                }
+            } else {
+                GUIShop.sendPrefix(clickingPlayer, "no-permission");
+            }
         }
     }
 

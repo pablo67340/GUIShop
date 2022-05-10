@@ -33,6 +33,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.math.BigDecimal;
 import java.util.*;
+import org.bukkit.event.inventory.ClickType;
 
 class Quantity {
 
@@ -71,6 +72,7 @@ class Quantity {
     void open() {
         GUI.setOnClose(this::onClose);
         GUI.setOnTopClick(this::onQuantityClick);
+        GUI.setOnGlobalClick(this::onGlobalClick);
         GUI.setOnBottomClick(event -> event.setCancelled(true));
         GUI.show(player);
     }
@@ -206,6 +208,12 @@ class Quantity {
 
         GUI.addPane(page);
         return this;
+    }
+    
+    private void onGlobalClick(InventoryClickEvent event){
+        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            event.setCancelled(true);
+        }
     }
 
     /**

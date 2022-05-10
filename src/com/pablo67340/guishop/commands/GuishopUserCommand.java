@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.commands;
 
+import com.pablo67340.guishop.GUIShop;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -50,15 +51,15 @@ public class GuishopUserCommand implements CommandExecutor {
      * @param shop the command argument for a specific shop, can be null
      */
     void buyCommand(Player player, String shop) {
-        if (player.hasPermission("guishop.use") || player.isOp()) {
+        if (GUIShop.getPerms().playerHas(player, "guishop.use") || player.isOp()) {
 
             if (shop == null) {
                 PlayerListener.INSTANCE.openMenu(player);
 
             } else {
 
-                if (player.hasPermission("guishop.shop." + shop.toLowerCase())
-                        || player.hasPermission("guishop.shop.*") || player.isOp()) {
+                if (GUIShop.getPerms().playerHas(player, "guishop.shop." + shop.toLowerCase())
+                        || GUIShop.getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
                     new Menu(player).openShop(player, shop);
                 } else {
                     player.sendMessage(ConfigUtil.getNoPermission());
@@ -77,7 +78,7 @@ public class GuishopUserCommand implements CommandExecutor {
      * @param player the player
      */
     void sellCommand(Player player) {
-        if (player.hasPermission("guishop.sell") || player.isOp()) {
+        if (GUIShop.getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
             player.sendMessage(ConfigUtil.getNoPermission());

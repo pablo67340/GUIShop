@@ -57,12 +57,12 @@ public class UserCommand implements CommandExecutor {
      * @param shop   the command argument for a specific shop, can be null
      */
     public void buyCommand(Player player, String shop) {
-        if (player.hasPermission("guishop.use") || player.isOp()) {
+        if (GUIShop.getPerms().playerHas(player, "guishop.use") || player.isOp()) {
             if (shop == null) {
                 PlayerListener.INSTANCE.openMenu(player);
             } else {
-                if (player.hasPermission("guishop.shop." + shop.toLowerCase())
-                        || player.hasPermission("guishop.shop.*") || player.isOp()) {
+                if (GUIShop.getPerms().playerHas(player, "guishop.shop." + shop.toLowerCase())
+                        || GUIShop.getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
                     new Menu(player).openShop(player, shop);
                 } else {
                     GUIShop.sendPrefix(player, "no-permission");
@@ -81,7 +81,7 @@ public class UserCommand implements CommandExecutor {
      * @param player the player
      */
     public void sellCommand(Player player) {
-        if (player.hasPermission("guishop.sell") || player.isOp()) {
+        if (GUIShop.getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
             GUIShop.sendPrefix(player, "no-permission");

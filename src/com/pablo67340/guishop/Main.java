@@ -621,7 +621,7 @@ public final class Main extends JavaPlugin implements CommandExecutor {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             if (cmd.getName().equalsIgnoreCase("value")) {
-                if (player.hasPermission("guishop.value")) {
+                if (GUIShop.getPerms().playerHas(player, "guishop.value")) {
                     if (player.getItemInHand() != null) {
                         ItemStack target = player.getItemInHand();
                         String targetMaterial = target.getType().toString();

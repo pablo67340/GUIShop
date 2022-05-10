@@ -14,6 +14,8 @@ import lombok.Setter;
 import org.bukkit.entity.Player;
 
 import java.util.Collection;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryClickEvent;
 
 public class Value {
 
@@ -110,5 +112,12 @@ public class Value {
         GUI.show(player);
         GUI.setOnTopClick((e) -> e.setCancelled(true));
         GUI.setOnBottomClick((e) -> e.setCancelled(true));
+        GUI.setOnGlobalClick(this::onGlobalClick);
+    }
+    
+    private void onGlobalClick(InventoryClickEvent event){
+        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            event.setCancelled(true);
+        }
     }
 }

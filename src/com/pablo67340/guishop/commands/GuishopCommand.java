@@ -57,7 +57,7 @@ public class GuishopCommand implements CommandExecutor {
      */
     private boolean hasRequiredPermission(CommandSender commandSender, String subCommand) {
         GUIShop.debugLog("commandSender is op: " + commandSender.isOp());
-        return commandSender.hasPermission(getRequiredPermission(subCommand)) || commandSender.isOp();
+        return GUIShop.getPerms().has(commandSender, getRequiredPermission(subCommand)) || commandSender.isOp();
     }
 
     @Override

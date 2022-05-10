@@ -10,7 +10,7 @@
 <!-- Project information -->
 <groupId>com.pablo67340.GUIShop</groupId>
 <artifactId>GUIShop</artifactId>
-<version>9.1.7</version>
+<version>9.1.8</version>
 <name>GUIShop</name>
 <url>https://www.spigotmc.org/resources/guishop.2451/</url>
 <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -117,7 +117,7 @@
     <dependency>
         <groupId>com.github.stefvanschie</groupId>
         <artifactId>inventoryframework</artifactId>
-        <version>1.6</version>
+        <version>1.7</version>
     </dependency>
     <dependency>
         <groupId>org.projectlombok</groupId>

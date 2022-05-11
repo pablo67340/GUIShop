@@ -900,9 +900,9 @@ public final class Item implements ConfigurationSerializable {
             }
         } else {
             if (hasName()) {
-                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getName()));
+                itemMeta.setDisplayName(GUIShop.placeholderIfy(getName(), player, this));
             } else if (hasShopName()) {
-                itemMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', getShopName()));
+                itemMeta.setDisplayName(GUIShop.placeholderIfy(getShopName(), player, this));
             }
             itemStack.setItemMeta(itemMeta);
         }

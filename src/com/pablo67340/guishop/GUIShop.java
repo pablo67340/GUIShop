@@ -19,7 +19,6 @@ import lombok.Getter;
 import lombok.Setter;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.milkbowl.vault.economy.Economy;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -47,6 +46,7 @@ import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.logging.Level;
 import net.milkbowl.vault.permission.Permission;
+import org.apache.commons.lang3.StringUtils;
 
 public final class GUIShop extends JavaPlugin {
 
@@ -163,6 +163,8 @@ public final class GUIShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
         getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new UserCommand());
+        
+        System.out.println("XSeries: "+XMaterial.getVersion());
     }
 
     /**
@@ -878,7 +880,7 @@ public final class GUIShop extends JavaPlugin {
      * @return If the main hand is null
      */
     public static boolean isMainHandNull(Player player) {
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.supports(0)) {
             if (player.getEquipment() != null) {
                 return player.getEquipment().getItemInMainHand().getType() == Material.AIR;
             }

@@ -6,7 +6,6 @@ import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.PotionInfo;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -17,6 +16,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public final class ItemUtil {
 
@@ -35,7 +35,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -95,7 +95,7 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -119,7 +119,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -171,7 +171,7 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -195,7 +195,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -237,7 +237,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -260,7 +260,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -302,7 +302,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -326,7 +326,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -368,7 +368,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -392,7 +392,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -434,7 +434,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -458,7 +458,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -527,7 +527,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -551,7 +551,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -601,7 +601,7 @@ public final class ItemUtil {
         comp.setString("shopLoreLines", line);
         ItemStack fnl = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(fnl);
         } else {
             player.setItemInHand(fnl);
@@ -625,7 +625,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -685,7 +685,7 @@ public final class ItemUtil {
         comp.setString("shopLoreLines", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -708,7 +708,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -764,7 +764,7 @@ public final class ItemUtil {
         comp.setString("shopLoreLines", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -787,7 +787,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -838,7 +838,7 @@ public final class ItemUtil {
         comp.setString("buyLoreLines", line);
         ItemStack fnl = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(fnl);
         } else {
             player.setItemInHand(fnl);
@@ -862,7 +862,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -920,7 +920,7 @@ public final class ItemUtil {
         comp.setString("buyLoreLines", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -943,7 +943,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1001,7 +1001,7 @@ public final class ItemUtil {
         comp.setString("buyLoreLines", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1022,7 +1022,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1055,7 +1055,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1076,7 +1076,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1126,7 +1126,7 @@ public final class ItemUtil {
         comp.setString("commands", line);
         ItemStack fnl = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(fnl);
         } else {
             player.setItemInHand(fnl);
@@ -1148,7 +1148,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1206,7 +1206,7 @@ public final class ItemUtil {
         comp.setString("commands", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1227,7 +1227,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1284,7 +1284,7 @@ public final class ItemUtil {
         comp.setString("commands", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1305,7 +1305,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1340,7 +1340,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1361,7 +1361,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1395,7 +1395,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1418,7 +1418,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getEquipment().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1454,7 +1454,7 @@ public final class ItemUtil {
 
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1477,7 +1477,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1528,7 +1528,7 @@ public final class ItemUtil {
         comp.setString("loreLines", line);
         ItemStack fnl = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(fnl);
         } else {
             player.setItemInHand(fnl);
@@ -1552,7 +1552,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1610,7 +1610,7 @@ public final class ItemUtil {
         comp.setString("loreLines", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);
@@ -1633,7 +1633,7 @@ public final class ItemUtil {
             return;
         }
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             item = player.getInventory().getItemInMainHand();
         } else {
             item = player.getItemInHand();
@@ -1691,7 +1691,7 @@ public final class ItemUtil {
         comp.setString("loreLines", fnl);
         item = comp.getItem();
 
-        if (XMaterial.isNewVersion()) {
+        if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
         } else {
             player.setItemInHand(item);

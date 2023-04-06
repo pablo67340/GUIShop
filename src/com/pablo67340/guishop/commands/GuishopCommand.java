@@ -15,7 +15,6 @@ import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -28,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 
 public class GuishopCommand implements CommandExecutor {
 
@@ -428,7 +428,7 @@ public class GuishopCommand implements CommandExecutor {
                 if (!GUIShop.isMainHandNull(player)) {
                     ItemStack item;
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         item = player.getEquipment().getItemInMainHand();
                     } else {
                         item = player.getItemInHand();
@@ -466,7 +466,7 @@ public class GuishopCommand implements CommandExecutor {
                     return true;
                 }
 
-                if (XMaterial.isNewVersion()) {
+                if (XMaterial.getVersion() > 18) {
                     item = player.getEquipment().getItemInMainHand();
                 } else {
                     item = player.getItemInHand();
@@ -524,7 +524,7 @@ public class GuishopCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         item = player.getEquipment().getItemInMainHand();
                     } else {
                         item = player.getItemInHand();
@@ -557,7 +557,7 @@ public class GuishopCommand implements CommandExecutor {
 
                     item = comp.getItem();
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         player.getInventory().setItemInMainHand(item);
                     } else {
                         player.setItemInHand(item);
@@ -579,7 +579,7 @@ public class GuishopCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         item = player.getEquipment().getItemInMainHand();
                     } else {
                         item = player.getItemInHand();
@@ -611,7 +611,7 @@ public class GuishopCommand implements CommandExecutor {
                     comp.setString("skullUUID", uuid);
 
                     item = comp.getItem();
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         player.getInventory().setItemInMainHand(item);
                     } else {
                         player.setItemInHand(item);
@@ -627,7 +627,7 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     ItemStack item;
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         item = player.getEquipment().getItemInMainHand();
                     } else {
                         item = player.getItemInHand();
@@ -648,7 +648,7 @@ public class GuishopCommand implements CommandExecutor {
                         return true;
                     }
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         item = player.getEquipment().getItemInMainHand();
                     } else {
                         item = player.getItemInHand();
@@ -681,7 +681,7 @@ public class GuishopCommand implements CommandExecutor {
 
                     item = comp.getItem();
 
-                    if (XMaterial.isNewVersion()) {
+                    if (XMaterial.getVersion() > 18) {
                         player.getInventory().setItemInMainHand(item);
                     } else {
                         player.setItemInHand(item);

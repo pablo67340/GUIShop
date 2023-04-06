@@ -105,7 +105,7 @@
     <dependency>
         <groupId>org.spigotmc</groupId>
         <artifactId>spigot-api</artifactId>
-        <version>1.18.2-R0.1-SNAPSHOT</version>
+        <version>1.19.4-R0.1-SNAPSHOT</version>
         <scope>provided</scope>
     </dependency>
     <!--Bukkit API -->
@@ -117,7 +117,7 @@
     <dependency>
         <groupId>com.github.stefvanschie</groupId>
         <artifactId>inventoryframework</artifactId>
-        <version>1.7</version>
+        <version>1.8</version>
     </dependency>
     <dependency>
         <groupId>org.projectlombok</groupId>
@@ -128,7 +128,7 @@
     <dependency>
         <groupId>com.github.cryptomorin</groupId>
         <artifactId>XSeries</artifactId>
-        <version>8.7.0</version>
+        <version>9.3.1</version>
     </dependency>
     <dependency>
         <groupId>com.google.code.findbugs</groupId>
@@ -439,7 +439,7 @@
                     <artifactId>minecraft-server-plugin</artifactId>
                     <version>1.0.4-SNAPSHOT</version>
                     <configuration>
-                        <serverVersion>1.18.2</serverVersion>
+                        <serverVersion>1.19.4</serverVersion>
                         <createEula>true</createEula>
                         <gui>true</gui>
                     </configuration>

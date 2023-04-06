@@ -14,7 +14,6 @@ import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.SkullCreator;
 import lombok.Getter;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -33,6 +32,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 
 import java.math.BigDecimal;
 import java.util.*;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.event.inventory.ClickType;
 
 class Quantity {
@@ -89,7 +89,7 @@ class Quantity {
 
             if (item.hasPotion()) {
                 PotionInfo pi = item.getPotionInfo();
-                if (XMaterial.isNewVersion()) {
+                if (XMaterial.getVersion() > 18) {
                     if (pi.getSplash()) {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
                     }

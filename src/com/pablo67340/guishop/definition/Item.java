@@ -13,7 +13,6 @@ import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.SkullCreator;
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang.StringUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -36,6 +35,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 
 public final class Item implements ConfigurationSerializable {
 
@@ -471,6 +471,7 @@ public final class Item implements ConfigurationSerializable {
         item.setItemMeta(itemMeta);
         return new GuiItem(item);
     }
+    
 
     public Boolean hasSkullUUID() {
         return this.skullUUID != null;
@@ -868,7 +869,7 @@ public final class Item implements ConfigurationSerializable {
             if (hasPotion()) {
                 PotionInfo potionInfo = getPotionInfo();
                 
-                if (XMaterial.isNewVersion()) {
+                if (XMaterial.getVersion() > 18) {
                     if (potionInfo.getSplash()) {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
                         itemStack.setItemMeta(itemMeta);
@@ -1018,7 +1019,7 @@ public final class Item implements ConfigurationSerializable {
 
         if (hasPotion()) {
             PotionInfo pi = getPotionInfo();
-            if (XMaterial.isNewVersion()) {
+            if (XMaterial.getVersion() > 18) {
                 if (pi.getSplash()) {
                     itemStack = new ItemStack(Material.SPLASH_POTION);
                 }

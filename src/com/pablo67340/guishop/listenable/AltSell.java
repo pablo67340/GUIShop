@@ -75,8 +75,8 @@ public class AltSell {
     }
 
     public void open(Player player) {
-        if (!GUIShop.getPerms().playerHas(player, "guishop.sell")) {
-            GUIShop.sendPrefix(player, "no-permission");
+        if (!GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.sell")) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-permission");
             return;
         }
 
@@ -95,7 +95,7 @@ public class AltSell {
             gConfirmItem = new GuiItem(XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem());
             gCancelItem = new GuiItem(XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem());
         } catch (NoSuchElementException | NullPointerException exception) {
-            GUIShop.log("One or more of the materials you defined in the alt sell GUI are not valid.");
+            GUIShop.getINSTANCE().getLogUtil().log("One or more of the materials you defined in the alt sell GUI are not valid.");
             return;
         }
 
@@ -120,7 +120,7 @@ public class AltSell {
             gui.setOnGlobalClick(this::onGlobalClick);
             gui.show(player);
         } else {
-            GUIShop.log("One or more of the materials you defined in the alt sell GUI are not valid.");
+            GUIShop.getINSTANCE().getLogUtil().log("One or more of the materials you defined in the alt sell GUI are not valid.");
         }
     }
     
@@ -149,7 +149,7 @@ public class AltSell {
         comp.removeKey("IF-uuid");
         itemStack = comp.getItem();
 
-        GUIShop.debugLog(itemStack.toString());
+        GUIShop.getINSTANCE().getLogUtil().log(itemStack.toString());
 
         int amount = itemStack.getAmount();
         Map<Integer, ItemStack> result = player.getInventory().removeItem(itemStack);
@@ -157,10 +157,10 @@ public class AltSell {
             Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
             // buy price must be defined for dynamic pricing to work
             if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
-                GUIShop.getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
+                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
             }
 
-            GUIShop.transactionLog(
+            GUIShop.getINSTANCE().getLogUtil().transactionLog(
                     "Player " + player.getName() + " sold " + amount + " items (1 different) for " + subjectItem.calculateSellPrice(amount) + ". Item: \n" + itemStack.getType());
         } else {
             ItemStack addBack = result.get(0).clone();
@@ -168,7 +168,7 @@ public class AltSell {
             if (addBack.getAmount() > 0) {
                 player.getInventory().addItem(addBack);
             }
-            GUIShop.sendPrefix(player, "alt-sell-not-enough", amount);
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "alt-sell-not-enough", amount);
         }
     }
 

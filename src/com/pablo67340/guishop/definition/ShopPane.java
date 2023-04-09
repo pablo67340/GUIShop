@@ -34,7 +34,7 @@ public class ShopPane extends Pane {
 
     public void setItem(GuiItem item, int slot) {
         if (slot > 53) {
-            GUIShop.log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is lower than that. Item ignored. Please delete this item from shops.yml!");
+            GUIShop.getINSTANCE().getLogUtil().log("Item: " + item.getItem().getType() + " was in slot " + slot + ". The max slot is lower than that. Item ignored. Please delete this item from shops.yml!");
         } else {
             items.put(slot, item);
         }

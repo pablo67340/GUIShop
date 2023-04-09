@@ -29,6 +29,6 @@ public class Permission {
             return false;
         }
 
-        return !GUIShop.getPerms().playerHas(player, permission);
+        return !GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, permission);
     }
 }

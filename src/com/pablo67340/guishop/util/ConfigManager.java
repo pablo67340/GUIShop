@@ -4,8 +4,6 @@ import com.cryptomorin.xseries.XSound;
 import com.pablo67340.guishop.GUIShop;
 import static com.pablo67340.guishop.GUIShop.BUY_COMMANDS;
 import static com.pablo67340.guishop.GUIShop.SELL_COMMANDS;
-import static com.pablo67340.guishop.GUIShop.debugLog;
-import static com.pablo67340.guishop.GUIShop.log;
 import com.pablo67340.guishop.commands.CommandsInterceptor;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.CommandsMode;
@@ -13,9 +11,13 @@ import com.pablo67340.guishop.messages.MessageSystem;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -37,7 +39,7 @@ public final class ConfigManager {
      */
     @Getter
     @Setter
-    private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled,
+    private boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled,
             dynamicPricing, debugMode, sellSkullUUID;
 
     /**
@@ -47,7 +49,7 @@ public final class ConfigManager {
      */
     @Getter
     @Setter
-    private static CommandsMode commandsMode;
+    private CommandsMode commandsMode;
 
     /**
      * Common Language strings set in configuration.
@@ -55,7 +57,7 @@ public final class ConfigManager {
      */
     @Getter
     @Setter
-    private static String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
+    private String added, cantSell, cantBuy, prefix, purchased, menuName, notEnoughPre, notEnoughPost, signTitle,
             sellCommand, menuTitle, shopTitle, sellTitle, altSellTitle, sold, taken, sound, full, currency,
             noPermission, qtyTitle, currencySuffix, backButtonItem, backButtonText, cannotSell, cannotBuy, buyLore,
             sellLore, freeLore, forwardPageButtonName, backwardPageButtonName, altSellAddMaterial,
@@ -72,22 +74,25 @@ public final class ConfigManager {
 
     @Getter
     @Setter
-    private static List<String> disabledWorlds;
+    private List<String> disabledWorlds;
 
     /**
      * The overridden config file objects.
      */
     @Getter
-    private static File configFile, shopFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile;
+    private File configFile, shopFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile;
 
     /**
      * The configs FileConfiguration object.
      */
     @Getter
-    private static FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig;
+    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig;
 
-    @Getter    
+    @Getter
     public MessageSystem messageSystem;
+    
+    @Getter
+    private final Map<String, String> cachedHeads = new HashMap<>();
 
     @Getter
     public File dataFolder;
@@ -150,24 +155,22 @@ public final class ConfigManager {
             messageSystem.loadCustomMessages(messagesConfig);
             loadCache();
             loadDefaults();
-            warmup();
-            initWriteCache();
             initDictionary();
         } catch (IOException | InvalidConfigurationException e) {
-            log("Error Main config: " + e.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().log("Error Main config: " + e.getMessage());
         }
 
     }
 
     public void loadCache() {
-        debugLog("Loading Cache...");
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Loading Cache...");
         if (getCacheConfig().contains("player-heads")) {
             ConfigurationSection config = getCacheConfig().getConfigurationSection("player-heads");
             for (Map.Entry<String, Object> entry : config.getValues(false).entrySet()) {
                 cachedHeads.put(entry.getKey(), (String) entry.getValue());
             }
         }
-        debugLog("Cache loaded successfully!");
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Cache loaded successfully!");
     }
 
     public void reloadConfigs() {
@@ -176,7 +179,7 @@ public final class ConfigManager {
             cacheConfig.load(cacheFile);
             shopConfig.load(shopFile);
         } catch (IOException | InvalidConfigurationException e) {
-            log("Error loading custom config: " + e.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().log("Error loading custom config: " + e.getMessage());
         }
     }
 
@@ -185,7 +188,7 @@ public final class ConfigManager {
      */
     public void loadDefaults() {
         if (mainConfig == null) {
-            log("An error occurred while loading the config.yml! Please correct the errors and try again.");
+            GUIShop.getINSTANCE().getLogUtil().log("An error occurred while loading the config.yml! Please correct the errors and try again.");
             return;
         }
 
@@ -231,7 +234,7 @@ public final class ConfigManager {
             Config.setSound(mainConfig.getString("purchase-sound", "ENTITY_PLAYER_LEVELUP"));
         } catch (NoSuchElementException | NullPointerException exception) {
             Config.setSound("ENTITY_PLAYER_LEVELUP");
-            log("&cThe buy sound input in the config.yml is NOT valid! \n&fCurrent: &c"
+            GUIShop.getINSTANCE().getLogUtil().log("&cThe buy sound input in the config.yml is NOT valid! \n&fCurrent: &c"
                     + mainConfig.getString("purchase-sound", "ENTITY_PLAYER_LEVELUP") + " &f| Using default: &cENTITY_PLAYER_LEVELUP");
         }
 
@@ -307,8 +310,8 @@ public final class ConfigManager {
         Config.setSellSkullUUID(!mainConfig.contains("skull-uuid-selling") || mainConfig.getBoolean("skull-uuid-selling", true));
 
         // Disables dynamic pricing if no provider was found
-        if (Config.isDynamicPricing() && !setupDynamicPricing()) {
-            log("Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
+        if (Config.isDynamicPricing() && !GUIShop.getINSTANCE().getMiscUtils().setupDynamicPricing()) {
+            GUIShop.getINSTANCE().getLogUtil().log("Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
             Config.setDynamicPricing(false);
         }
 
@@ -346,8 +349,8 @@ public final class ConfigManager {
 
         Config.getLoreConfig().lores.putAll(lores);
     }
-    
-    public void handleDictionary() {
+
+    public void initDictionary() {
         dictionaryFile = new File(getDataFolder().getPath() + "/Dictionary");
         if (!dictionaryFile.exists()) {
             dictionaryFile.mkdirs();
@@ -388,12 +391,14 @@ public final class ConfigManager {
      * @param name the name of the file
      */
     public void copy(String name, InputStream source, String destination) {
-        debugLog("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/" + name);
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Extracting: " + name + " -> " + "/plugins/GUIShop/Dictionary/" + name);
         try {
             Files.copy(source, Paths.get(destination), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            log("Error extracting Dictionary files: " + ex.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().log("Error extracting Dictionary files: " + ex.getMessage());
         }
     }
+    
+    
 
 }

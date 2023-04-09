@@ -58,16 +58,16 @@ public class Value {
         ShopPage page = new ShopPage();
         int index = 0;
         if (!GUIShop.getINSTANCE().getITEMTABLE().containsKey(targetMaterial)) {
-            GUIShop.sendPrefix(player, "value.doesnt-exist");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "value.doesnt-exist");
             return;
         }
 
         for (Item item : GUIShop.getINSTANCE().getITEMTABLE().get(targetMaterial)) {
-            GUIShop.debugLog("Reading item value: " + item.getMaterial());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Reading item value: " + item.getMaterial());
             page.getItems().put(Integer.toString(index), item);
             index += 1;
         }
-        GUIShop.debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
         shopItem.getPages().put("Page" + shopItem.getPages().size(), page);
         loadShop();
     }
@@ -114,8 +114,8 @@ public class Value {
         GUI.setOnBottomClick((e) -> e.setCancelled(true));
         GUI.setOnGlobalClick(this::onGlobalClick);
     }
-    
-    private void onGlobalClick(InventoryClickEvent event){
+
+    private void onGlobalClick(InventoryClickEvent event) {
         if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
             event.setCancelled(true);
         }

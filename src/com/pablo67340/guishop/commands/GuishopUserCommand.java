@@ -22,7 +22,7 @@ public class GuishopUserCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (args.length >= 1) {
-            if (ConfigManager.getDisabledWorlds().contains(player.getWorld().getName())) {
+            if (GUIShop.getINSTANCE().getConfigManager().getDisabledWorlds().contains(player.getWorld().getName())) {
                 if (GUIShop.BUY_COMMANDS.contains(args[0].toLowerCase())) {
 
                     buyCommand(player, (args.length >= 2) ? args[1] : null);
@@ -50,23 +50,23 @@ public class GuishopUserCommand implements CommandExecutor {
      * @param shop the command argument for a specific shop, can be null
      */
     void buyCommand(Player player, String shop) {
-        if (GUIShop.getPerms().playerHas(player, "guishop.use") || player.isOp()) {
+        if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.use") || player.isOp()) {
 
             if (shop == null) {
                 PlayerListener.INSTANCE.openMenu(player);
 
             } else {
 
-                if (GUIShop.getPerms().playerHas(player, "guishop.shop." + shop.toLowerCase())
-                        || GUIShop.getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
+                if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop." + shop.toLowerCase())
+                        || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
                     new Menu(player).openShop(player, shop);
                 } else {
-                    player.sendMessage(ConfigManager.getNoPermission());
+                    player.sendMessage(GUIShop.getINSTANCE().getConfigManager().getNoPermission());
                 }
             }
 
         } else {
-            player.sendMessage(ConfigManager.getNoPermission());
+            player.sendMessage(GUIShop.getINSTANCE().getConfigManager().getNoPermission());
         }
     }
 
@@ -77,10 +77,10 @@ public class GuishopUserCommand implements CommandExecutor {
      * @param player the player
      */
     void sellCommand(Player player) {
-        if (GUIShop.getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
+        if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
-            player.sendMessage(ConfigManager.getNoPermission());
+            player.sendMessage(GUIShop.getINSTANCE().getConfigManager().getNoPermission());
         }
     }
 

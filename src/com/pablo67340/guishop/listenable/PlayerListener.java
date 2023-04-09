@@ -34,39 +34,39 @@ public final class PlayerListener implements Listener {
     public static final PlayerListener INSTANCE = new PlayerListener();
 
     private final String[] commandsEntryList = {
-            "reload",
-            "parsemob",
-            "edit",
-            "buy-price",
-            "sell-price",
-            "shop-name",
-            "buy-name",
-            "name",
-            "enchant",
-            "add-shop-lore",
-            "edit-shop-lore",
-            "delete-shop-lore",
-            "add-buy-lore",
-            "edit-buy-lore",
-            "delete-buy-lore",
-            "add-lore",
-            "edit-lore",
-            "delete-lore",
-            "type",
-            "add-command",
-            "edit-command",
-            "delete-command",
-            "mob-type",
-            "target-shop",
-            "nbt",
-            "printnbt",
-            "list-shops",
-            "list-commands",
-            "potion-info",
-            "quantity",
-            "skull-uuid",
-            "value",
-            "permission"};
+        "reload",
+        "parsemob",
+        "edit",
+        "buy-price",
+        "sell-price",
+        "shop-name",
+        "buy-name",
+        "name",
+        "enchant",
+        "add-shop-lore",
+        "edit-shop-lore",
+        "delete-shop-lore",
+        "add-buy-lore",
+        "edit-buy-lore",
+        "delete-buy-lore",
+        "add-lore",
+        "edit-lore",
+        "delete-lore",
+        "type",
+        "add-command",
+        "edit-command",
+        "delete-command",
+        "mob-type",
+        "target-shop",
+        "nbt",
+        "printnbt",
+        "list-shops",
+        "list-commands",
+        "potion-info",
+        "quantity",
+        "skull-uuid",
+        "value",
+        "permission"};
 
     public Menu openMenu(Player player) {
         Menu menu = new Menu(player);
@@ -80,8 +80,8 @@ public final class PlayerListener implements Listener {
      * @param sender The player the help text will be sent to
      */
     public void printUsage(CommandSender sender) {
-        GUIShop.sendMessagePrefix(sender, String.join("\n", GUIShop.getINSTANCE().getMessagesConfig().getStringList("messages.list"))
-                .replace("%list%", Arrays.stream(commandsEntryList).map(entry -> GUIShop.getINSTANCE().messageSystem.translate("messages." + entry + ".entry") + "§r")
+        GUIShop.getINSTANCE().getMiscUtils().sendMessagePrefix(sender, String.join("\n", GUIShop.getINSTANCE().getConfigManager().getMessagesConfig().getStringList("messages.list"))
+                .replace("%list%", Arrays.stream(commandsEntryList).map(entry -> GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages." + entry + ".entry") + "§r")
                         .collect(Collectors.joining("\n"))));
     }
 
@@ -101,14 +101,14 @@ public final class PlayerListener implements Listener {
                 if (line1.equalsIgnoreCase(ChatColor.translateAlternateColorCodes('&',
                         Config.getTitlesConfig().getSignTitle()))) {
                     // If the player has Permission to use sign
-                    if (GUIShop.getPerms().playerHas(player, "guishop.use") && GUIShop.getPerms().playerHas(player, "guishop.sign.use")
+                    if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.use") && GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.sign.use")
                             || player.isOp()) {
                         e.setCancelled(true);
                         Menu menu = new Menu(player);
                         menu.open(player);
                     } else {
                         e.setCancelled(true);
-                        GUIShop.sendPrefix(player, "no-permission");
+                        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-permission");
                     }
                 }
             }
@@ -132,7 +132,7 @@ public final class PlayerListener implements Listener {
                     Block block = event.getBlockPlaced();
                     CreatureSpawner cs = (CreatureSpawner) block.getState();
 
-                    GUIShop.debugLog("Applying mob type " + mobId);
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Applying mob type " + mobId);
 
                     /*
                      * Although valueOf is almost always safe here because
@@ -144,7 +144,7 @@ public final class PlayerListener implements Listener {
                         cs.setSpawnedType(EntityType.valueOf(mobId));
                         cs.update();
                     } catch (IllegalArgumentException veryRareException) {
-                        GUIShop.log("Detected outdated mob spawner ID: " + mobId + " placed by " + event.getPlayer());
+                        GUIShop.getINSTANCE().getLogUtil().log("Detected outdated mob spawner ID: " + mobId + " placed by " + event.getPlayer());
                     }
                 }, 1L);
             }

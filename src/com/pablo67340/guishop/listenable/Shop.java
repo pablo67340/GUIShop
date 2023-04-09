@@ -88,23 +88,23 @@ public class Shop {
         }
 
         if (!GUIShop.getINSTANCE().getLoadedShops().containsKey(shop)) {
-            this.setTitle(GUIShop.getINSTANCE().getShopConfig().getString(shop + ".title"));
+            this.setTitle(GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title"));
             shopItem = new ShopItem();
-            ConfigurationSection config = GUIShop.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages");
+            ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages");
             if (config == null) {
-                GUIShop.log("Check shops.yml for shop " + shop + ". It was not found.");
+                GUIShop.getINSTANCE().getLogUtil().log("Check shops.yml for shop " + shop + ". It was not found.");
                 if (this.player != null) {
-                    GUIShop.sendPrefix(player, "shop-not-found", shop);
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "shop-not-found", shop);
                 }
                 shopMissing = true;
             } else {
-                GUIShop.debugLog("Loading items for shop: " + shop);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Loading items for shop: " + shop);
                 config.getKeys(false).stream().map(str -> {
                     ShopPage page = new ShopPage();
                     ConfigurationSection shopItems = config.getConfigurationSection(str + ".items");
-                    GUIShop.debugLog("Reading Shop Page: " + str);
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Reading Shop Page: " + str);
                     shopItems.getKeys(false).stream().map(key -> {
-                        GUIShop.debugLog("Reading item: " + key + " in page " + str);
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("Reading item: " + key + " in page " + str);
                         ConfigurationSection section = shopItems.getConfigurationSection(key);
                         return Item.deserialize(section.getValues(true), Integer.parseInt(key), shop);
                     }).forEachOrdered(item -> {
@@ -116,14 +116,14 @@ public class Shop {
                             items.add(item);
 
                             if (item.hasPotion() && item.getPotionInfo().getSplash()) {
-                                GUIShop.debugLog("Making item: SPLASH_POTION sellable.");
+                                GUIShop.getINSTANCE().getLogUtil().debugLog("Making item: SPLASH_POTION sellable.");
                                 GUIShop.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString(), items);
                             } else {
                                 try {
-                                    GUIShop.debugLog("Making item: " + item.getMaterial() + " sellable.");
+                                    GUIShop.getINSTANCE().getLogUtil().debugLog("Making item: " + item.getMaterial() + " sellable.");
                                     GUIShop.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
                                 } catch (Exception ex) {
-                                    GUIShop.log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name or item does not exist for this server version.");
+                                    GUIShop.getINSTANCE().getLogUtil().log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name or item does not exist for this server version.");
                                 }
                             }
                         }
@@ -131,13 +131,13 @@ public class Shop {
                     });
                     return page;
                 }).forEachOrdered(page -> {
-                    GUIShop.debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
                     shopItem.getPages().put("Page" + shopItem.getPages().size(), page);
                 });
 
                 shopItem.determineHighestSlots();
 
-                GUIShop.debugLog("Shop items added to loaded shops");
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Shop items added to loaded shops");
                 GUIShop.getINSTANCE().getLoadedShops().put(shop, shopItem);
                 if (!preLoad) {
                     loadShop();
@@ -145,7 +145,7 @@ public class Shop {
             }
         } else {
             shopItem = (ShopItem) GUIShop.getINSTANCE().getLoadedShops().get(shop);
-            this.setTitle(GUIShop.getINSTANCE().getShopConfig().getString(shop + ".title"));
+            this.setTitle(GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title"));
             //Re-Check for preload here in case they have multiple item's leading to one shop.
             if (!preLoad) {
                 loadShop();
@@ -191,24 +191,24 @@ public class Shop {
     }
 
     private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
-        GUIShop.debugLog("Applying buttons with page index: " + pageIndex + " max pages: " + maxPages);
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Applying buttons with page index: " + pageIndex + " max pages: " + maxPages);
 
         int nextSlot = calculateSlot(Config.getButtonConfig().getForwardSlot(), GUI.getRows() * 9) - 1;
         int prevSlot = calculateSlot(Config.getButtonConfig().getBackwardSlot(), GUI.getRows() * 9) - 1;
         int backSlot = calculateSlot(Config.getButtonConfig().getBackSlot(), GUI.getRows() * 9) - 1;
 
         if (pageIndex < (maxPages - 1)) {
-            GUIShop.debugLog("Adding forward button");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button");
             page.setItem(new GuiItem(Config.getButtonConfig().forwardButton.toItemStack(player, false)), nextSlot);
         }
 
         if (pageIndex > 0) {
-            GUIShop.debugLog("Adding backward button");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button");
             page.setItem(new GuiItem(Config.getButtonConfig().backwardButton.toItemStack(player, false)), prevSlot);
         }
 
         if (!Config.isDisableBackButton()) {
-            GUIShop.debugLog("Adding back button");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button");
             ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, false);
 
             GuiItem item = new GuiItem(backButtonItem);
@@ -253,8 +253,8 @@ public class Shop {
         GUI.setOnClose(this::onClose);
         return true;
     }
-    
-    private void onGlobalClick(InventoryClickEvent event){
+
+    private void onGlobalClick(InventoryClickEvent event) {
         if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
             event.setCancelled(true);
         }
@@ -272,7 +272,7 @@ public class Shop {
         }
 
         // Forward Button
-        GUIShop.debugLog("Clicked: " + event.getSlot());
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Clicked: " + event.getSlot());
         if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getForwardSlot(), GUI.getRows() * 9) - 1)) {
             handleForwardButton(event);
             // Backward Button
@@ -302,7 +302,7 @@ public class Shop {
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
                 ItemStack item = e.getInventory().getItem(slot);
                 if (item != null) {
-                    GUIShop.debugLog("New item: " + item.getType());
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("New item: " + item.getType());
                     editShopItem(item, slot);
                 }
             }, 5L);
@@ -311,7 +311,7 @@ public class Shop {
 
     private void creatorTopInventoryClick(InventoryClickEvent e) {
         if (e.getCurrentItem() != null || e.getClick() == ClickType.SHIFT_RIGHT || e.getClick() == ClickType.SHIFT_LEFT) {
-            GUIShop.debugLog("Cursor: " + e.getCursor());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Cursor: " + e.getCursor());
             deleteShopItem(e.getSlot());
 
             // When an item is dropped into the slot, it's not null. This is a new item.
@@ -322,7 +322,7 @@ public class Shop {
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
                 ItemStack item = e.getInventory().getItem(e.getSlot());
                 if (item != null) {
-                    GUIShop.debugLog("New item: " + item.getType());
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("New item: " + item.getType());
                     editShopItem(item, e.getSlot());
                 }
             }, 5L);
@@ -331,14 +331,14 @@ public class Shop {
 
     private void deleteShopItem(Integer slot) {
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().remove(Integer.toString(slot));
-        ConfigurationSection config = GUIShop.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
-                ? GUIShop.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
-                : GUIShop.getINSTANCE().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
+        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
+                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
+                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
         config.set(slot.toString(), null);
         try {
-            GUIShop.getINSTANCE().getShopConfig().save(GUIShop.getINSTANCE().getShopFile());
+            GUIShop.getINSTANCE().getConfigManager().getShopConfig().save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
         } catch (IOException ex) {
-            GUIShop.debugLog("Error saving shops: " + ex.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Error saving shops: " + ex.getMessage());
         }
     }
 
@@ -346,17 +346,17 @@ public class Shop {
         Item item = Item.parse(itemStack, slot, shop);
         shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
 
-        ConfigurationSection config = GUIShop.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
-                ? GUIShop.getINSTANCE().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
-                : GUIShop.getINSTANCE().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
+        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
+                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
+                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
 
         config.set(slot.toString(), item.serialize());
 
-        GUIShop.debugLog("Player edited item: " + item.getMaterial() + " slot: " + slot);
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Player edited item: " + item.getMaterial() + " slot: " + slot);
         try {
-            GUIShop.getINSTANCE().getShopConfig().save(GUIShop.getINSTANCE().getShopFile());
+            GUIShop.getINSTANCE().getConfigManager().getShopConfig().save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
         } catch (IOException ex) {
-            GUIShop.log("Error saving shops: " + ex.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().log("Error saving shops: " + ex.getMessage());
         }
 
         hasClicked = false;
@@ -384,7 +384,7 @@ public class Shop {
         if (item.hasPermission()) {
             Permission permission = item.getPermission();
             if (permission.doesntHavePermission(player)) {
-                GUIShop.sendPrefix(player, "no-item-permission");
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-item-permission");
                 return;
             }
         }
@@ -395,7 +395,7 @@ public class Shop {
             new AltSell(item, this).open(player);
         } else {
             if (item.isResolveFailed()) {
-                GUIShop.sendPrefix(player, "went-wrong", item.getResolveReason());
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "went-wrong", item.getResolveReason());
             } else {
                 boolean quantityDisabled = item.getQuantityValue() == null || item.getQuantityValue().isDisabled();
 
@@ -428,7 +428,7 @@ public class Shop {
         if (item.hasPermission()) {
             Permission permission = item.getPermission();
             if (permission.doesntHavePermission(player)) {
-                GUIShop.sendPrefix(player, "no-item-permission");
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-item-permission");
                 return;
             }
         }
@@ -440,17 +440,17 @@ public class Shop {
         // sell price must be defined and nonzero for dynamic pricing to work
         if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
             String itemString = item.getItemString();
-            dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, 1);
+            dynamicPricingUpdate = () -> GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().buyItem(itemString, 1);
 
-            priceToPay = GUIShop.getDYNAMICPRICING().calculateBuyPrice(itemString, 1, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+            priceToPay = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateBuyPrice(itemString, 1, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
             priceToPay = item.getBuyPriceAsDecimal();
         }
 
-        if (GUIShop.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
+        if (GUIShop.getINSTANCE().getMiscUtils().getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
             item.getCommands().forEach(str -> {
                 Bukkit.getServer().dispatchCommand(str.startsWith("sudo=") ? player : Bukkit.getConsoleSender(),
-                        GUIShop.placeholderIfy(str.startsWith("sudo=") ? str.substring(5).trim() : str.trim(), player, item));
+                        GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(str.startsWith("sudo=") ? str.substring(5).trim() : str.trim(), player, item));
             });
             if (Config.isSoundEnabled()) {
                 player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
@@ -459,13 +459,13 @@ public class Shop {
                 dynamicPricingUpdate.run();
             }
 
-            GUIShop.transactionLog("Player " + player.getName() + " bought command " + item.getMaterial() + " in shop " + getShop() + " for " + priceToPay.toPlainString() + " money!");
+            GUIShop.getINSTANCE().getLogUtil().transactionLog("Player " + player.getName() + " bought command " + item.getMaterial() + " in shop " + getShop() + " for " + priceToPay.toPlainString() + " money!");
         } else {
-            String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix");
-            String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
+            String currencyPrefix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix");
+            String currencySuffix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
             String amount = currencyPrefix + priceToPay + currencySuffix;
 
-            GUIShop.sendPrefix(player, "not-enough-money", amount);
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-enough-money", amount);
         }
     }
 
@@ -473,7 +473,7 @@ public class Shop {
         /*
          * If the player has enough money to purchase the item, then allow them to.
          */
-        GUIShop.debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
 
         System.out.println("before item");
         Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(event.getSlot()));
@@ -515,7 +515,7 @@ public class Shop {
         if (item.hasTargetShop()) {
             System.out.println("hasTargetShop");
             String shopName = item.getTargetShop();
-            if (GUIShop.getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
+            if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
                 System.out.println("Player has permissions");
                 if (!item.isResolveFailed()) {
                     hasClicked = true;
@@ -524,10 +524,10 @@ public class Shop {
 
                     System.out.println("openShop");
                 } else {
-                    GUIShop.sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());
                 }
             } else {
-                GUIShop.sendPrefix(clickingPlayer, "no-permission");
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "no-permission");
             }
         }
     }
@@ -537,21 +537,21 @@ public class Shop {
             hasClicked = true;
             clickOverride = true;
 
-            GUIShop.debugLog("Setting page " + currentPane.getPage() + " to not visible");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page " + currentPane.getPage() + " to not visible");
             ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
 
-            GUIShop.debugLog("Setting page to: " + (currentPane.getPage() - 1));
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page to: " + (currentPane.getPage() - 1));
             currentPane.setPage(currentPane.getPage() - 1);
 
             ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
-            GUIShop.debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
 
             int rows = GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot("Page" + (currentPane.getPage())));
             if (rows != 6) {
                 rows += 1;
             }
             GUI.setRows(rows);
-            GUIShop.debugLog("Resizing GUI to the next pane.");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Resizing GUI to the next pane.");
 
             GUI.update();
         } else {
@@ -564,21 +564,21 @@ public class Shop {
             hasClicked = true;
             clickOverride = true;
 
-            GUIShop.debugLog("Setting page " + currentPane.getPage() + " to not visible");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page " + currentPane.getPage() + " to not visible");
             ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
 
-            GUIShop.debugLog("Setting page to: " + (currentPane.getPage() + 1));
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page to: " + (currentPane.getPage() + 1));
             currentPane.setPage(currentPane.getPage() + 1);
 
             ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
-            GUIShop.debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
 
             int rows = GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot("Page" + (currentPane.getPage())));
             if (rows != 6) {
                 rows += 1;
             }
             GUI.setRows(rows);
-            GUIShop.debugLog("Resizing GUI to the next pane.");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Resizing GUI to the next pane.");
 
             GUI.update();
         } else {

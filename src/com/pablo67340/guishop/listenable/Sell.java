@@ -3,7 +3,6 @@ package com.pablo67340.guishop.listenable;
 import com.github.stefvanschie.inventoryframework.Gui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.api.GUIShopAPI;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemSellReturn;
@@ -12,7 +11,6 @@ import com.pablo67340.guishop.util.MathUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.BigDecimal;
@@ -48,7 +46,7 @@ public final class Sell {
         result.getNotSold().forEach(player.getInventory()::addItem);
 
         if (result.getCouldntSell()) {
-            GUIShop.sendPrefix(player, "cant-sell", result.getColdntSellCount());
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "cant-sell", result.getColdntSellCount());
         }
 
         GUI.getInventory().clear();
@@ -74,7 +72,7 @@ public final class Sell {
         for (ItemStack item : checkedItems) {
             Item shopItem = null;
 
-            GUIShop.debugLog("Checking if " + item.getType() + " is sellable");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Checking if " + item.getType() + " is sellable");
 
             List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(item.getType().toString());
 
@@ -86,7 +84,7 @@ public final class Sell {
                 }
             }
 
-            if (shopItem == null || !shopItem.hasSellPrice() || (!GUIShop.getPerms().playerHas(player, "guishop.shop." + shopItem.getShop()) && !GUIShop.getPerms().playerHas(player, "guishop.shop.*")) || (shopItem.hasPermission() && shopItem.getPermission().doesntHavePermission(player))) {
+            if (shopItem == null || !shopItem.hasSellPrice() || (!GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop." + shopItem.getShop()) && !GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop.*")) || (shopItem.hasPermission() && shopItem.getPermission().doesntHavePermission(player))) {
                 countSell++;
                 couldntSell = true;
                 unsellableItems.add(item);
@@ -106,9 +104,9 @@ public final class Sell {
 
             // buy price must be defined for dynamic pricing to work
             if (Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()) {
-                moneyToGive = moneyToGive.add(GUIShop.getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
+                moneyToGive = moneyToGive.add(GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateSellPrice(item.getType().toString(), quantity,
                         shopItem.getBuyPriceAsDecimal(), shopItem.getSellPriceAsDecimal()));
-                GUIShop.getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
+                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(item.getType().toString(), quantity);
             } else {
                 moneyToGive = moneyToGive.add(shopItem.getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity)));
             }
@@ -124,7 +122,7 @@ public final class Sell {
             itemAmount += entry.getValue();
         }
 
-        GUIShop.transactionLog(
+        GUIShop.getINSTANCE().getLogUtil().transactionLog(
                 "Player " + player.getName() + " sold " + itemAmount + " items (" + itemMap.size() + " different) for " + moneyToGive.toPlainString() + ". Inventory type:" + type.name() + " Items: \n" + materialsString);
 
         return new ItemSellReturn(unsellableItems, soldItems, couldntSell, countSell, moneyToGive);
@@ -138,12 +136,12 @@ public final class Sell {
      */
     public static void roundAndGiveMoney(Player player, BigDecimal moneyToGive) {
         if (moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
-            GUIShop.getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
+            GUIShop.getINSTANCE().getMiscUtils().getECONOMY().depositPlayer(player, moneyToGive.doubleValue());
 
-            String amount = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")
-                    +  MathUtil.round(moneyToGive.doubleValue(), 2) + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
+            String amount = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
+                    + MathUtil.round(moneyToGive.doubleValue(), 2) + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
 
-            GUIShop.sendPrefix(player, "sell", amount);
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "sell", amount);
         }
     }
 

@@ -20,9 +20,10 @@ public class ButtonConfig {
     @Setter
     public int backwardSlot = 48, forwardSlot = 52, backSlot = 54;
 
-    private final FileConfiguration config = GUIShop.getINSTANCE().getMainConfig();
+    private FileConfiguration config;
 
     public void createButtons() {
+        config = GUIShop.getINSTANCE().getConfigManager().getMainConfig();
         createBackButton();
         createBackwardButton();
         createForwardButton();

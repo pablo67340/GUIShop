@@ -101,12 +101,12 @@ class Quantity {
                         pm.setBasePotionData(pd);
                     } catch (IllegalArgumentException ex) {
                         if (ex.getMessage().contains("upgradable")) {
-                            GUIShop.log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setUpgraded(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
                         } else if (ex.getMessage().contains("extended")) {
-                            GUIShop.log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                            GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
                             pi.setExtended(false);
                             pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
                             pm.setBasePotionData(pd);
@@ -189,7 +189,7 @@ class Quantity {
                 tempItem = nbti.getItem();
 
                 if (tempItem == null) {
-                    GUIShop.log("Error parsing custom NBT for item: " + item.getMaterial() + " in shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
+                    GUIShop.getINSTANCE().getLogUtil().log("Error parsing custom NBT for item: " + item.getMaterial() + " in shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
                 } else {
                     itemStack = nbti.getItem();
                 }
@@ -209,8 +209,8 @@ class Quantity {
         GUI.addPane(page);
         return this;
     }
-    
-    private void onGlobalClick(InventoryClickEvent event){
+
+    private void onGlobalClick(InventoryClickEvent event) {
         if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
             event.setCancelled(true);
         }
@@ -237,7 +237,7 @@ class Quantity {
         }
 
         if (player.getInventory().firstEmpty() == -1) {
-            GUIShop.sendPrefix(player, "full-inventory");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "full-inventory");
             return;
         }
 
@@ -256,7 +256,7 @@ class Quantity {
 
     public void buy(Item item, int quantity) {
         if (!item.hasBuyPrice()) {
-            GUIShop.sendPrefix(player, "cant-buy");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "cant-buy");
             return;
         }
 
@@ -279,7 +279,7 @@ class Quantity {
         }
 
         if (tooHighQuantity) {
-            GUIShop.sendPrefix(player, "too-high-quantity", maxStackSize);
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "too-high-quantity", maxStackSize);
             return;
         }
 
@@ -298,27 +298,27 @@ class Quantity {
         if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
             String itemString = item.getItemString();
             int finalQuantity = quantity;
-            dynamicPricingUpdate = () -> GUIShop.getDYNAMICPRICING().buyItem(itemString, finalQuantity);
+            dynamicPricingUpdate = () -> GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().buyItem(itemString, finalQuantity);
 
-            priceToPay = GUIShop.getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+            priceToPay = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
             priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
         }
 
         priceToPay = priceToPay.subtract(BigDecimal.valueOf(priceToReimburse));
 
-        String currencyPrefix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix");
-        String currencySuffix = GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix");
+        String currencyPrefix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix");
+        String currencySuffix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
         String amount = currencyPrefix + priceToPay + currencySuffix;
 
         // Check if the transition was successful
-        if (GUIShop.getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
+        if (GUIShop.getINSTANCE().getMiscUtils().getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
             // If the player has the sound enabled, play it
             if (Config.isSoundEnabled()) {
                 player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
             }
 
-            GUIShop.sendPrefix(player, "purchase", amount);
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "purchase", amount);
 
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
@@ -326,10 +326,10 @@ class Quantity {
 
             player.getInventory().addItem(item.toBuyItemStack(quantity, player, currentShop));
 
-            GUIShop.transactionLog(
+            GUIShop.getINSTANCE().getLogUtil().transactionLog(
                     "Player " + player.getName() + " bought item " + item.getMaterial() + " in shop " + currentShop.getShop() + " for " + priceToPay.toPlainString() + " money! Stacksize: " + quantity);
         } else {
-            GUIShop.sendPrefix(player, "not-enough-money", amount);
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-enough-money", amount);
         }
     }
 }

@@ -27,7 +27,7 @@ public enum CommandsMode {
     public static CommandsMode parseFromConfig(String cmdModeStr) {
         if (cmdModeStr == null) {
             // Fallback to legacy option register-commands
-            return (GUIShop.getINSTANCE().getMainConfig().getBoolean("register-commands", true)) ? REGISTER : NONE;
+            return (GUIShop.getINSTANCE().getConfigManager().getMainConfig().getBoolean("register-commands", true)) ? REGISTER : NONE;
         }
         switch (cmdModeStr) {
             case "INTERCEPT":

@@ -15,12 +15,12 @@ public class UserCommand implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender commandSender, Command command, String label, String[] args) {
         if (GUIShop.isNoEconomySystem()) {
-            GUIShop.sendPrefix(commandSender, "no-economy-system");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "no-economy-system");
             return true;
         }
 
         if (!(commandSender instanceof Player)) {
-            GUIShop.sendPrefix(commandSender, "only-player");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "only-player");
             return true;
         }
 
@@ -30,7 +30,7 @@ public class UserCommand implements CommandExecutor {
             if (Config.getDisabledWorlds().contains(player.getWorld().getName())) {
                 if (GUIShop.BUY_COMMANDS.contains(args[0].toLowerCase())) {
                     if (Config.isSignsOnly()) {
-                        GUIShop.sendPrefix(commandSender, "signs-only", Config.getTitlesConfig().getSignTitle());
+                        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "signs-only", Config.getTitlesConfig().getSignTitle());
                         return true;
                     }
 
@@ -41,11 +41,11 @@ public class UserCommand implements CommandExecutor {
                     return true;
                 }
             } else {
-                GUIShop.sendPrefix(player, "disabled-world");
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "disabled-world");
                 return false;
             }
         }
-        GUIShop.sendPrefix(commandSender, "unknown-command");
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "unknown-command");
         return true;
     }
 
@@ -54,23 +54,23 @@ public class UserCommand implements CommandExecutor {
      * Includes permission checks
      *
      * @param player the player
-     * @param shop   the command argument for a specific shop, can be null
+     * @param shop the command argument for a specific shop, can be null
      */
     public void buyCommand(Player player, String shop) {
-        if (GUIShop.getPerms().playerHas(player, "guishop.use") || player.isOp()) {
+        if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.use") || player.isOp()) {
             if (shop == null) {
                 PlayerListener.INSTANCE.openMenu(player);
             } else {
-                if (GUIShop.getPerms().playerHas(player, "guishop.shop." + shop.toLowerCase())
-                        || GUIShop.getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
+                if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop." + shop.toLowerCase())
+                        || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
                     new Menu(player).openShop(player, shop);
                 } else {
-                    GUIShop.sendPrefix(player, "no-permission");
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-permission");
                 }
             }
 
         } else {
-            GUIShop.sendPrefix(player, "no-permission");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-permission");
         }
     }
 
@@ -81,10 +81,10 @@ public class UserCommand implements CommandExecutor {
      * @param player the player
      */
     public void sellCommand(Player player) {
-        if (GUIShop.getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
+        if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
-            GUIShop.sendPrefix(player, "no-permission");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-permission");
         }
     }
 }

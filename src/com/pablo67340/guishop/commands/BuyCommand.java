@@ -20,17 +20,17 @@ public class BuyCommand extends BukkitCommand {
     @Override
     public boolean execute(CommandSender commandSender, String label, String[] args) {
         if (GUIShop.isNoEconomySystem()) {
-            GUIShop.sendPrefix(commandSender, "no-economy-system");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "no-economy-system");
             return true;
         }
 
         if (!(commandSender instanceof Player)) {
-            GUIShop.sendPrefix(commandSender, "only-player");
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "only-player");
             return true;
         }
 
         if (Config.isSignsOnly()) {
-            GUIShop.sendPrefix(commandSender, "signs-only", Config.getTitlesConfig().getSignTitle());
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "signs-only", Config.getTitlesConfig().getSignTitle());
             return true;
         }
 

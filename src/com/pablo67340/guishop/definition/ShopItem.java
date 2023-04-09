@@ -28,7 +28,7 @@ public class ShopItem implements Cloneable {
 
             pages.put(entry.getKey(), shopPage);
 
-            GUIShop.debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
         }
     }
 }

@@ -30,8 +30,8 @@ public final class ItemUtil {
     public static void setBuyPrice(Object price, Player player) {
         ItemStack item;
 
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -43,10 +43,10 @@ public final class ItemUtil {
 
         NBTItem comp = new NBTItem(item);
 
-        if (price instanceof BigDecimal) {
-            comp.setDouble("buyPrice", ((BigDecimal) price).doubleValue());
-        } else if (price instanceof Integer) {
-            comp.setDouble("buyPrice", ((Integer) price).doubleValue());
+        if (price instanceof BigDecimal bigDecimal) {
+            comp.setDouble("buyPrice", bigDecimal.doubleValue());
+        } else if (price instanceof Integer integer) {
+            comp.setDouble("buyPrice", integer.doubleValue());
         } else if (price instanceof Boolean) {
             comp.removeKey("buyPrice");
         } else {
@@ -69,8 +69,8 @@ public final class ItemUtil {
                         lore.set(index, Config.getLoreConfig().lores.get("free"));
                     } else {
                         lore.set(index, Config.getLoreConfig().lores.get("buy")
-                                .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                        + price + GUIShop.getINSTANCE().messageSystem.translate("currency-suffix")));
+                                .replace("%amount%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("currency-prefix")
+                                        + price + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("currency-suffix")));
                     }
                 }
                 hasReplaced = true;
@@ -86,8 +86,8 @@ public final class ItemUtil {
                     lore.add(Config.getLoreConfig().lores.get("free"));
                 } else {
                     lore.add(Config.getLoreConfig().lores.get("buy")
-                            .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")
-                                    + price + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-suffix")));
+                            .replace("%amount%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
+                                    + price + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix")));
                 }
             }
         }
@@ -101,8 +101,8 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "buy-price.successful", price instanceof Boolean
-                ? GUIShop.getINSTANCE().messageSystem.translate("messages.buy-price.removed") : ((BigDecimal) price).toPlainString());
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "buy-price.successful", price instanceof Boolean
+                ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.buy-price.removed") : ((BigDecimal) price).toPlainString());
     }
 
     /**
@@ -114,8 +114,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setSellPrice(Object price, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -150,8 +150,8 @@ public final class ItemUtil {
                     lore.set(index, Config.getLoreConfig().lores.get("cannot-buy"));
                 } else {
                     lore.set(index, Config.getLoreConfig().lores.get("sell")
-                            .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                    + price + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")));
+                            .replace("%amount%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("currency-prefix")
+                                    + price + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")));
                 }
                 hasReplaced = true;
                 break;
@@ -163,8 +163,8 @@ public final class ItemUtil {
                 lore.add(Config.getLoreConfig().lores.get("cannot-buy"));
             } else {
                 lore.add(Config.getLoreConfig().lores.get("sell")
-                        .replace("%amount%", GUIShop.getINSTANCE().messageSystem.translate("currency-prefix")
-                                + price + GUIShop.getINSTANCE().messageSystem.translate("messages.currency-prefix")));
+                        .replace("%amount%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("currency-prefix")
+                                + price + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")));
             }
         }
 
@@ -177,8 +177,8 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "sell-price.successful", price instanceof Boolean
-                ? GUIShop.getINSTANCE().messageSystem.translate("messages.sell-price.removed") : ((BigDecimal) price).toPlainString());
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "sell-price.successful", price instanceof Boolean
+                ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.sell-price.removed") : ((BigDecimal) price).toPlainString());
     }
 
     /**
@@ -190,8 +190,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setNBT(Object name, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -243,7 +243,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "nbt.successful", name instanceof Boolean ? GUIShop.getINSTANCE().messageSystem.translate("messages.nbt.none") : name);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "nbt.successful", name instanceof Boolean ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.nbt.none") : name);
     }
 
     /**
@@ -255,8 +255,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setShopName(Object name, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -308,8 +308,8 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "shop-name.successful", name instanceof Boolean
-                ? GUIShop.getINSTANCE().messageSystem.translate("messages.shop-name.removed") : name);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "shop-name.successful", name instanceof Boolean
+                ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.shop-name.removed") : name);
     }
 
     /**
@@ -321,8 +321,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setName(Object name, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -374,8 +374,8 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "name.successful", name instanceof Boolean
-                ? GUIShop.getINSTANCE().messageSystem.translate("messages.name.removed") : name);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "name.successful", name instanceof Boolean
+                ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.name.removed") : name);
     }
 
     /**
@@ -387,8 +387,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setBuyName(Object name, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -440,8 +440,8 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "buy-name.successful", name instanceof Boolean
-                ? GUIShop.getINSTANCE().messageSystem.translate("messages.buy-name.removed") : name);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "buy-name.successful", name instanceof Boolean
+                ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.buy-name.removed") : name);
     }
 
     /**
@@ -453,8 +453,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setEnchantments(Object enchantments, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -480,9 +480,9 @@ public final class ItemUtil {
                 try {
                     enchantmentMap.put(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level));
                 } catch (NoSuchElementException | NullPointerException exception) {
-                    GUIShop.sendPrefix(player, "enchant.invalid-enchantment", str);
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "enchant.invalid-enchantment", str);
                 } catch (NumberFormatException exception) {
-                    GUIShop.sendPrefix(player, "enchant.no-number");
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "enchant.no-number");
                     return;
                 }
             }
@@ -533,8 +533,8 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "enchant.successful", enchantments instanceof Boolean || enchantmentMap.isEmpty()
-                ? GUIShop.getINSTANCE().messageSystem.translate("messages.enchant.removed") : enchantments);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "enchant.successful", enchantments instanceof Boolean || enchantmentMap.isEmpty()
+                ? GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.enchant.removed") : enchantments);
     }
 
     /**
@@ -546,8 +546,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void addToShopLore(String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -607,7 +607,7 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        GUIShop.sendPrefix(player, "add-shop-lore.successful", line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-shop-lore.successful", line);
     }
 
     /**
@@ -620,8 +620,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void editShopLore(int slot, String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -691,7 +691,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "edit-shop-lore.successful", slot, line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit-shop-lore.successful", slot, line);
     }
 
     /**
@@ -703,8 +703,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void deleteShopLore(int slot, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -770,7 +770,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "delete-shop-lore.successful", slot);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "delete-shop-lore.successful", slot);
     }
 
     /**
@@ -782,8 +782,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void addToBuyLore(String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -844,7 +844,7 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        GUIShop.sendPrefix(player, "add-buy-lore.successful", line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-buy-lore.successful", line);
     }
 
     /**
@@ -857,8 +857,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void editBuyLore(Integer slot, String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -926,7 +926,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "edit-buy-lore.successful", slot, ChatColor.translateAlternateColorCodes('&', line));
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit-buy-lore.successful", slot, ChatColor.translateAlternateColorCodes('&', line));
     }
 
     /**
@@ -938,8 +938,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void deleteBuyLore(int slot, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1007,7 +1007,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "delete-buy-lore.successful", slot);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "delete-buy-lore.successful", slot);
     }
 
     /**
@@ -1017,8 +1017,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setType(String type, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1061,7 +1061,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "type.successful", type.toUpperCase(Locale.ROOT));
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "type.successful", type.toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -1071,8 +1071,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void addCommand(String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1132,7 +1132,7 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        GUIShop.sendPrefix(player, "add-command.successful", line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-command.successful", line);
     }
 
     /**
@@ -1143,8 +1143,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void editCommand(Integer slot, String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1212,7 +1212,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "edit-command.successful", slot, line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit-command.successful", slot, line);
     }
 
     /**
@@ -1222,8 +1222,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void deleteCommand(int slot, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1290,7 +1290,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "delete-command.successful", slot);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "delete-command.successful", slot);
     }
 
     /**
@@ -1300,8 +1300,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setMobType(String type, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1346,7 +1346,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "mob-type.successful", type.toUpperCase(Locale.ROOT));
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "mob-type.successful", type.toUpperCase(Locale.ROOT));
     }
 
     /**
@@ -1356,8 +1356,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void setTargetShop(String shopName, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1401,7 +1401,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "target-shop.successful", shopName);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "target-shop.successful", shopName);
     }
 
     /**
@@ -1413,8 +1413,8 @@ public final class ItemUtil {
     public static void setPotionInfo(PotionInfo potionInfo, Player player) {
         ItemStack item;
 
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1460,7 +1460,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "potion-info.successful", potionInfo.getType(), potionInfo.getSplash(), potionInfo.getExtended(), potionInfo.getUpgraded());
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "potion-info.successful", potionInfo.getType(), potionInfo.getSplash(), potionInfo.getExtended(), potionInfo.getUpgraded());
     }
 
     /**
@@ -1472,8 +1472,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void addToLore(String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1534,7 +1534,7 @@ public final class ItemUtil {
             player.setItemInHand(fnl);
         }
 
-        GUIShop.sendPrefix(player, "add-lore.successful", line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-lore.successful", line);
     }
 
     /**
@@ -1547,8 +1547,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void editLore(Integer slot, String line, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1616,7 +1616,7 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "edit-lore.successful", slot, line);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit-lore.successful", slot, line);
     }
 
     /**
@@ -1628,8 +1628,8 @@ public final class ItemUtil {
     @SuppressWarnings("deprecation")
     public static void deleteLore(int slot, Player player) {
         ItemStack item;
-        if (GUIShop.isMainHandNull(player)) {
-            GUIShop.sendPrefix(player, "need-item");
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
             return;
         }
 
@@ -1697,6 +1697,6 @@ public final class ItemUtil {
             player.setItemInHand(item);
         }
 
-        GUIShop.sendPrefix(player, "delete-lore.successful", slot);
+        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "delete-lore.successful", slot);
     }
 }

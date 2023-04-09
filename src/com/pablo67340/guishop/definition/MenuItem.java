@@ -28,7 +28,7 @@ public class MenuItem implements Cloneable {
 
             pages.put(entry.getKey(), menuPage);
 
-            GUIShop.debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
         }
     }
 }

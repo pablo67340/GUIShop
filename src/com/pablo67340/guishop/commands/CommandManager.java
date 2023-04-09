@@ -1,7 +1,6 @@
 package com.pablo67340.guishop.commands;
 
 import com.pablo67340.guishop.GUIShop;
-import static com.pablo67340.guishop.GUIShop.debugLog;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandMap;
@@ -44,7 +43,7 @@ public class CommandManager {
             syncCommandsMethod = craftServer.getDeclaredMethod("syncCommands");
             syncCommandsMethod.setAccessible(true);
         } catch (NoSuchMethodException | SecurityException e) {
-            GUIShop.debugLog("Error registering Commands: " + e.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Error registering Commands: " + e.getMessage());
         }
     }
 
@@ -52,7 +51,7 @@ public class CommandManager {
      * Sync the commands to the server. Mainly used to make tab completer work
      * in 1.13+
      */
-    public void syncCommand() {
+    public void syncCommands() {
         if (syncCommandsMethod == null) {
             return;
         }
@@ -95,7 +94,7 @@ public class CommandManager {
     public final void register(@NotNull final Command command) {
         String name = command.getLabel();
         if (this.registered.containsKey(name)) {
-            GUIShop.log("ERROR: tried to register a command that is already in use by a different plugin! Command: " + name);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("ERROR: tried to register a command that is already in use by a different plugin! Command: " + name);
             return;
         }
 
@@ -113,7 +112,7 @@ public class CommandManager {
             unregisterFromKnownCommands(command);
             this.registered.remove(command.getLabel());
         } catch (ReflectiveOperationException e) {
-            GUIShop.debugLog("Error occured unregistering command: " + e.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Error occured unregistering command: " + e.getMessage());
         }
     }
 
@@ -136,7 +135,7 @@ public class CommandManager {
             try {
                 unregisterFromKnownCommands(command);
             } catch (ReflectiveOperationException e) {
-                GUIShop.debugLog("Error occured unregistering command: " + command.getLabel() + ": " + e.getMessage());
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Error occured unregistering command: " + command.getLabel() + ": " + e.getMessage());
             }
         });
         this.registered.clear();
@@ -155,16 +154,18 @@ public class CommandManager {
     public void registerCommands() {
         // Register buy commands if there are any
         if (!GUIShop.BUY_COMMANDS.isEmpty()) {
-            debugLog("Registering/unregistering shop commands: " + StringUtils.join(GUIShop.BUY_COMMANDS, ", "));
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering shop commands: " + StringUtils.join(GUIShop.BUY_COMMANDS, ", "));
             BuyCommand buyCommand = new BuyCommand(new ArrayList<>(GUIShop.BUY_COMMANDS));
             register(buyCommand);
         }
 
         // Register sell commands if there are any
         if (!GUIShop.SELL_COMMANDS.isEmpty()) {
-            debugLog("Registering/unregistering sell commands: " + StringUtils.join(GUIShop.SELL_COMMANDS, ", "));
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering sell commands: " + StringUtils.join(GUIShop.SELL_COMMANDS, ", "));
             SellCommand sellCommand = new SellCommand(new ArrayList<>(GUIShop.SELL_COMMANDS));
             register(sellCommand);
         }
+        
+        this.syncCommands();
     }
 }

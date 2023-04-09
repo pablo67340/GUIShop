@@ -19,9 +19,6 @@ import java.util.List;
  */
 public abstract class GUIShopAPI {
 
-    private GUIShopAPI() {
-    }
-
     /**
      * Sells the specified items for the player as if the player had used the
      * sell GUI and inserted the items there. <br>
@@ -173,7 +170,7 @@ public abstract class GUIShopAPI {
 
         if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
-            GUIShop.getDYNAMICPRICING().buyItem(itemString, quantity);
+            GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().buyItem(itemString, quantity);
         }
     }
 
@@ -206,7 +203,7 @@ public abstract class GUIShopAPI {
 
         if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
-            GUIShop.getDYNAMICPRICING().sellItem(itemString, quantity);
+            GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(itemString, quantity);
         }
     }
 

@@ -8,7 +8,7 @@ import org.bukkit.entity.Player;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
-import com.pablo67340.guishop.util.ConfigUtil;
+import com.pablo67340.guishop.util.ConfigManager;
 import net.md_5.bungee.api.ChatColor;
 
 public class GuishopUserCommand implements CommandExecutor {
@@ -22,7 +22,7 @@ public class GuishopUserCommand implements CommandExecutor {
         Player player = (Player) sender;
 
         if (args.length >= 1) {
-            if (ConfigUtil.getDisabledWorlds().contains(player.getWorld().getName())) {
+            if (ConfigManager.getDisabledWorlds().contains(player.getWorld().getName())) {
                 if (GUIShop.BUY_COMMANDS.contains(args[0].toLowerCase())) {
 
                     buyCommand(player, (args.length >= 2) ? args[1] : null);
@@ -61,12 +61,12 @@ public class GuishopUserCommand implements CommandExecutor {
                         || GUIShop.getPerms().playerHas(player, "guishop.shop.*") || player.isOp()) {
                     new Menu(player).openShop(player, shop);
                 } else {
-                    player.sendMessage(ConfigUtil.getNoPermission());
+                    player.sendMessage(ConfigManager.getNoPermission());
                 }
             }
 
         } else {
-            player.sendMessage(ConfigUtil.getNoPermission());
+            player.sendMessage(ConfigManager.getNoPermission());
         }
     }
 
@@ -80,7 +80,7 @@ public class GuishopUserCommand implements CommandExecutor {
         if (GUIShop.getPerms().playerHas(player, "guishop.sell") || player.isOp()) {
             new Sell().open(player);
         } else {
-            player.sendMessage(ConfigUtil.getNoPermission());
+            player.sendMessage(ConfigManager.getNoPermission());
         }
     }
 

@@ -1,9 +1,9 @@
 package com.pablo67340.guishop.messages;
 
+import com.pablo67340.guishop.GUIShop;
 import net.md_5.bungee.api.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -14,25 +14,20 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class MessageSystem {
-
-    /*
-     * Copyright to https://github.com/Amejonah1200/simple-message-system
-     */
+public final class MessageSystem {
 
     private final Map<String, Message> messages = new HashMap<>();
 
     /**
      * Instantiates a new SimpleMessageSystem with default messages.
      *
-     * @param javaPlugin the java plugin
-     * @param stream     the default message YAML stream
      */
-    public MessageSystem(JavaPlugin javaPlugin, InputStream stream) {
+    public MessageSystem() {
+        InputStream stream = GUIShop.getINSTANCE().getResource("internal_messages.yml");
         if (stream != null) {
             generateDefaults(stream);
         } else {
-            generateDefaults(javaPlugin.getResource("messages.yml"));
+            generateDefaults(GUIShop.getINSTANCE().getResource("messages.yml"));
         }
     }
 
@@ -45,7 +40,7 @@ public class MessageSystem {
         if (inputStream == null) {
             return;
         }
-        try (Reader reader = new InputStreamReader(inputStream)) {
+        try ( Reader reader = new InputStreamReader(inputStream)) {
             YamlConfiguration internalMessages = YamlConfiguration.loadConfiguration(reader);
             String message;
             synchronized (this.messages) {
@@ -89,7 +84,7 @@ public class MessageSystem {
     /**
      * Translate the message (path to it) with given parameters.
      *
-     * @param path   the path to message
+     * @param path the path to message
      * @param params the parameters
      * @return translated message
      */
@@ -102,8 +97,8 @@ public class MessageSystem {
         if (simpleMessage == null) {
             return path + " cannot be null!";
         }
-        if (simpleMessage instanceof PlaceholderMessage) {
-            return ((PlaceholderMessage) simpleMessage).translate(params).replace("\n", "\n");
+        if (simpleMessage instanceof PlaceholderMessage placeholderMessage) {
+            return placeholderMessage.translate(params).replace("\n", "\n");
         }
         return simpleMessage.getRawMessage();
     }

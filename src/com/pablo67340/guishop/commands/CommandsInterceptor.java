@@ -2,7 +2,6 @@ package com.pablo67340.guishop.commands;
 
 import com.pablo67340.guishop.GUIShop;
 import org.bukkit.Bukkit;
-import org.bukkit.Statistic;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;

@@ -94,7 +94,7 @@ public final class Item implements ConfigurationSerializable {
      */
     @Getter
     @Setter
-    private boolean useDynamicPricing;
+    private boolean useDynamicPricing = true;
 
     @Getter
     @Setter

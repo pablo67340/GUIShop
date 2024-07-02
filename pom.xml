@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.2.1</version>
+    <version>9.2.2</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -105,7 +105,7 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.6-R0.1-SNAPSHOT</version>
+            <version>1.21-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!--Bukkit API -->
@@ -128,7 +128,7 @@
         <dependency>
             <groupId>com.github.cryptomorin</groupId>
             <artifactId>XSeries</artifactId>
-            <version>10.0.0</version>
+            <version>11.2.0</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>

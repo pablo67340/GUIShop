@@ -1,7 +1,8 @@
 package com.pablo67340.guishop.listenable;
 
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
+
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
@@ -26,7 +27,7 @@ public final class Menu {
      * The GUI that is projected onto the screen when a {@link Player} opens the
      * {@link Menu}.
      */
-    public Gui GUI;
+    public ChestGui GUI;
 
     private Boolean hasClicked = false;
 
@@ -108,12 +109,12 @@ public final class Menu {
                     int rows = GUIShop.rowChart.getRowsFromHighestSlot(entry.getValue().getHighestSlot());
 
                     if (this.hasMultiplePages()) {
-                        this.GUI = new Gui(GUIShop.getINSTANCE(), rows,
+                        this.GUI = new ChestGui(rows,
                                 ChatColor.translateAlternateColorCodes('&',
                                         Config.getTitlesConfig().getMenuTitle().replace("%page-number%",
                                                 Config.getTitlesConfig().getMenuShopPageNumber().replace("%number%", "1"))));
                     } else {
-                        this.GUI = new Gui(GUIShop.getINSTANCE(), rows,
+                        this.GUI = new ChestGui(rows,
                                 ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getMenuTitle().replace("%page-number%", "")));
                     }
                 }
@@ -124,7 +125,8 @@ public final class Menu {
                     if (item.getItemType() == ItemType.BLANK) {
                         continue;
                     }
-                    GuiItem gItem = new GuiItem(item.toItemStack(player, true));
+                    ItemStack itemStack = item.toItemStack(player, true);
+                    GuiItem gItem = new GuiItem(itemStack);
                     menuPage.setItem(gItem, item.getSlot());
                 }
 

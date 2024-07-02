@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.listenable;
 
-import com.github.stefvanschie.inventoryframework.Gui;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 
 public final class Sell {
 
-    private Gui GUI;
+    private ChestGui GUI;
 
     /**
      * Open the {@link Sell} GUI.
@@ -28,7 +28,7 @@ public final class Sell {
      * @param player The player the GUI will display to
      */
     public void open(Player player) {
-        GUI = new Gui(GUIShop.getINSTANCE(), 6, Config.getTitlesConfig().getSellTitle());
+        GUI = new ChestGui(6, Config.getTitlesConfig().getSellTitle());
         GUI.setOnClose(this::onSellClose);
         StaticPane pane = new StaticPane(0, 0, 9, 6);
         GUI.addPane(pane);

@@ -2,8 +2,8 @@ package com.pablo67340.guishop.listenable;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
@@ -40,7 +40,7 @@ public class Shop {
     /**
      * The list of {@link ShopPage}'s in this {@link Shop}.
      */
-    public Gui GUI;
+    public ChestGui GUI;
 
     private final Menu menuInstance;
 
@@ -158,14 +158,14 @@ public class Shop {
             PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
             for (Map.Entry<String, ShopPage> entry : shopItem.getPages().entrySet()) {
                 if (this.GUI == null) {
-                    this.GUI = new Gui(GUIShop.getINSTANCE(), GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot(entry.getKey())),
+                    this.GUI = new ChestGui(GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot(entry.getKey())),
                             ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getShopTitle().replace("%shopname%", title)));
                     int rows = GUIShop.rowChart.getRowsFromHighestSlot(entry.getValue().getHighestSlot());
                     if (rows != 6 && this.hasMultiplePages()) {
-                        this.GUI = new Gui(GUIShop.getINSTANCE(), rows + 1,
+                        this.GUI = new ChestGui(rows + 1,
                                 ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getShopTitle().replace("%shopname%", title)));
                     } else {
-                        this.GUI = new Gui(GUIShop.getINSTANCE(), rows,
+                        this.GUI = new ChestGui(rows,
                                 ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getShopTitle().replace("%shopname%", title)));
                     }
                 }
@@ -474,27 +474,20 @@ public class Shop {
          * If the player has enough money to purchase the item, then allow them to.
          */
         GUIShop.getINSTANCE().getLogUtil().debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
-
-        System.out.println("before item");
+        
         Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(event.getSlot()));
-        System.out.println("after item");
 
         if (item == null) {
-            System.out.println("Item was null?");
             return;
         } else if (!item.hasBuyPrice() && item.getItemType() == ItemType.SHOP) {
-            System.out.println("shop line");
             if (Config.isAlternateSellEnabled() && item.hasSellPrice() && item.getItemType() == ItemType.SHOP) {
                 hasClicked = true;
                 new AltSell(item, this).open(player);
             }
-            System.out.println("hit return");
             return;
         }
 
         if (null != item.getItemType()) {
-            System.out.println("type was not null: ");
-            System.out.println(item.toString());
             switch (item.getItemType()) {
                 case SHOP ->
                     shopItem(item, event);
@@ -502,27 +495,20 @@ public class Shop {
                     commandItem(item);
                 case SHOP_SHORTCUT ->
                     shopShortcut(item, event);
-                default -> {
-                    System.out.println("default");
-                }
             }
         }
     }
 
     public void shopShortcut(Item item, InventoryClickEvent event) {
-        System.out.println("ShopShortcut");
         Player clickingPlayer = (Player) event.getWhoClicked();
         if (item.hasTargetShop()) {
-            System.out.println("hasTargetShop");
             String shopName = item.getTargetShop();
             if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
-                System.out.println("Player has permissions");
                 if (!item.isResolveFailed()) {
                     hasClicked = true;
                     BukkitScheduler scheduler = Bukkit.getScheduler();
                     scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
-
-                    System.out.println("openShop");
+                    
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());
                 }

@@ -2,7 +2,7 @@ package com.pablo67340.guishop.commands;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XPotion;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
+
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.ItemType;
@@ -15,6 +15,7 @@ import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
+import de.tr7zw.nbtapi.NBTItem;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;

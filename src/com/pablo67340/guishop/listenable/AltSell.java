@@ -1,17 +1,18 @@
 package com.pablo67340.guishop.listenable;
 
 import com.cryptomorin.xseries.XMaterial;
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
+
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.AltSellPane;
 import com.pablo67340.guishop.definition.Item;
+import de.tr7zw.nbtapi.NBTItem;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.OfflinePlayer;
+
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
@@ -26,7 +27,7 @@ import org.bukkit.event.inventory.ClickType;
 public class AltSell {
 
     private final Item subjectItem;
-    private final Gui gui;
+    private final ChestGui gui;
 
     private AltSellPane pane;
 
@@ -43,7 +44,7 @@ public class AltSell {
 
     public AltSell(Item subjectItem, Shop shop) {
         this.subjectItem = subjectItem;
-        gui = new Gui(GUIShop.getINSTANCE(), 6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellConfig().getTitle()));
+        gui = new ChestGui(6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellConfig().getTitle()));
         indicatorItem = new Item();
         indicatorItem.setMaterial(Config.getAltSellConfig().getIndicatorMaterial());
         addItem = new Item();

@@ -3,16 +3,17 @@ package com.pablo67340.guishop.listenable;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
+
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.util.SkullCreator;
+import de.tr7zw.nbtapi.NBTContainer;
+import de.tr7zw.nbtapi.NBTItem;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -25,13 +26,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionData;
+
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.math.BigDecimal;
 import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.event.inventory.ClickType;
 
@@ -45,7 +48,7 @@ class Quantity {
     /**
      * The GUI that will be displayed.
      */
-    private Gui GUI;
+    private ChestGui GUI;
 
     /**
      * The map containing the sell increments.
@@ -81,7 +84,7 @@ class Quantity {
      * Preloads the inventory to display items.
      */
     public Quantity loadInventory() {
-        GUI = new Gui(GUIShop.getINSTANCE(), 5, Config.getTitlesConfig().getQtyTitle());
+        GUI = new ChestGui(5, Config.getTitlesConfig().getQtyTitle());
         int multiplier = 1;
         ShopPane page = new ShopPane(9, 5);
         for (int x = 19; x <= 25; x++) {
@@ -89,34 +92,27 @@ class Quantity {
 
             if (item.hasPotion()) {
                 PotionInfo pi = item.getPotionInfo();
-                if (XMaterial.getVersion() > 18) {
-                    if (pi.getSplash()) {
-                        itemStack = new ItemStack(Material.SPLASH_POTION);
-                    }
-                    PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 
-                    PotionData pd;
-                    try {
-                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                        pm.setBasePotionData(pd);
-                    } catch (IllegalArgumentException ex) {
-                        if (ex.getMessage().contains("upgradable")) {
-                            GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                            pi.setUpgraded(false);
-                            pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                            pm.setBasePotionData(pd);
-                        } else if (ex.getMessage().contains("extended")) {
-                            GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                            pi.setExtended(false);
-                            pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                            pm.setBasePotionData(pd);
-                        }
-                    }
-                    itemStack.setItemMeta(pm);
-                } else {
-                    Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());
-                    potion.apply(itemStack);
+                if (pi.getSplash()) {
+                    itemStack = new ItemStack(Material.SPLASH_POTION);
                 }
+                PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+                try {
+                    pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
+                } catch (IllegalArgumentException ex) {
+                    if (ex.getMessage().contains("upgradable")) {
+                        GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                        pi.setUpgraded(false);
+                        pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
+                    } else if (ex.getMessage().contains("extended")) {
+                        GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                        pi.setExtended(false);
+                        pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
+                    }
+                }
+                itemStack.setItemMeta(pm);
+
             }
 
             itemStack.setAmount(multiplier);

@@ -1,7 +1,7 @@
 package com.pablo67340.guishop.listenable;
 
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
@@ -29,7 +29,7 @@ public class Value {
     /**
      * The list of {@link ShopPage}'s in this {@link Shop}.
      */
-    private Gui GUI;
+    private ChestGui GUI;
 
     private ShopItem shopItem;
 
@@ -75,13 +75,13 @@ public class Value {
     private void loadShop() {
         if (this.GUI == null || this.GUI.getItems().isEmpty()) {
             if (this.hasMultiplePages()) {
-                this.GUI = new Gui(GUIShop.getINSTANCE(), 6, Config.getTitlesConfig().getValueTitle());
+                this.GUI = new ChestGui(6, Config.getTitlesConfig().getValueTitle());
             } else {
                 int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
                 if (rows == 0) {
                     rows = 1;
                 }
-                this.GUI = new Gui(GUIShop.getINSTANCE(), rows, Config.getTitlesConfig().getValueTitle());
+                this.GUI = new ChestGui(rows, Config.getTitlesConfig().getValueTitle());
             }
 
             PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);

@@ -2,15 +2,15 @@ package com.pablo67340.guishop.definition;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
-import com.github.stefvanschie.inventoryframework.GuiItem;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTCompound;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTContainer;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NBTItem;
-import com.github.stefvanschie.inventoryframework.shade.nbtapi.NbtApiException;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.SkullCreator;
+import de.tr7zw.nbtapi.NBTCompound;
+import de.tr7zw.nbtapi.NBTContainer;
+import de.tr7zw.nbtapi.NBTItem;
+import de.tr7zw.nbtapi.NbtApiException;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
@@ -26,15 +26,18 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.potion.Potion;
-import org.bukkit.potion.PotionData;
-import org.bukkit.potion.PotionType;
+
+
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
+
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 
 public final class Item implements ConfigurationSerializable {
@@ -349,8 +352,8 @@ public final class Item implements ConfigurationSerializable {
             if (buyPriceAsDouble.compareTo(BigDecimal.ZERO) > 0) {
                 return Config.getLoreConfig().lores.get("buy").replace("%amount%",
                         GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
-                        + GUIShop.getINSTANCE().getMiscUtils().economyFormat(calculateBuyPrice(quantity))
-                        + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
+                                + GUIShop.getINSTANCE().getMiscUtils().economyFormat(calculateBuyPrice(quantity))
+                                + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
             }
             return Config.getLoreConfig().lores.get("free");
         }
@@ -371,8 +374,8 @@ public final class Item implements ConfigurationSerializable {
         if (hasSellPrice()) {
             return Config.getLoreConfig().lores.get("sell").replace("%amount%",
                     GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
-                    + GUIShop.getINSTANCE().getMiscUtils().economyFormat(calculateSellPrice(quantity))
-                    + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
+                            + GUIShop.getINSTANCE().getMiscUtils().economyFormat(calculateSellPrice(quantity))
+                            + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
         }
         return Config.getLoreConfig().lores.get("cannot-sell");
     }
@@ -460,7 +463,7 @@ public final class Item implements ConfigurationSerializable {
      * Renames a GuiItem
      *
      * @param gItem the gui item
-     * @param name the new name
+     * @param name  the new name
      * @return an updated gui item
      */
     public static GuiItem renameGuiItem(GuiItem gItem, String name) {
@@ -872,29 +875,14 @@ public final class Item implements ConfigurationSerializable {
                         itemStack = new ItemStack(Material.SPLASH_POTION);
                         itemStack.setItemMeta(itemMeta);
                     }
-                    PotionMeta potionMeta = (PotionMeta) itemStack.getItemMeta();
 
-                    PotionData potionData;
-                    try {
-                        potionData = new PotionData(PotionType.valueOf(potionInfo.getType()), potionInfo.getExtended(), potionInfo.getUpgraded());
-                        potionMeta.setBasePotionData(potionData);
-                    } catch (IllegalArgumentException ex) {
-                        if (ex.getMessage().contains("upgradable")) {
-                            GUIShop.getINSTANCE().getLogUtil().log("Potion: " + potionInfo.getType() + " Is not upgradable. Please fix this. Potion has automatically been downgraded.");
-                            potionInfo.setUpgraded(false);
-                            potionData = new PotionData(PotionType.valueOf(potionInfo.getType()), potionInfo.getExtended(), potionInfo.getUpgraded());
-                            potionMeta.setBasePotionData(potionData);
-                        } else if (ex.getMessage().contains("extended")) {
-                            GUIShop.getINSTANCE().getLogUtil().log("Potion: " + potionInfo.getType() + " Is not extendable. Please fix this. Potion has automatically been downgraded.");
-                            potionInfo.setExtended(false);
-                            potionData = new PotionData(PotionType.valueOf(potionInfo.getType()), potionInfo.getExtended(), potionInfo.getUpgraded());
-                            potionMeta.setBasePotionData(potionData);
-                        }
-                    }
-                    itemStack.setItemMeta(potionMeta);
+                    PotionMeta pMeta = (PotionMeta) itemStack.getItemMeta();
+                    pMeta.addCustomEffect(PotionEffectType.getByName(potionInfo.getType()).createEffect(potionInfo.getUpgraded() ? 2 : 1, potionInfo.getExtended() ? 1 : 0), potionInfo.getSplash());
+
+                    itemStack.setItemMeta(pMeta);
                 } else {
-                    Potion potion = new Potion(PotionType.valueOf(potionInfo.getType()), potionInfo.getUpgraded() ? 2 : 1, potionInfo.getSplash(), potionInfo.getExtended());
-                    potion.apply(itemStack);
+                    PotionMeta pMeta = (PotionMeta) itemStack.getItemMeta();
+                    pMeta.addCustomEffect(PotionEffectType.getByName(potionInfo.getType()).createEffect(potionInfo.getUpgraded() ? 2 : 1, potionInfo.getExtended() ? 1 : 0), potionInfo.getSplash());
                 }
             }
         } else {
@@ -908,6 +896,8 @@ public final class Item implements ConfigurationSerializable {
 
         // Create Page
         GUIShop.getINSTANCE().getLogUtil().debugLog("Setting item to slot: " + getSlot());
+
+        GUIShop.getINSTANCE().getLogUtil().debugLog("ITEMSTACK: "+itemStack.toString());
 
         return itemStack;
     }
@@ -955,14 +945,14 @@ public final class Item implements ConfigurationSerializable {
         }
         if (hasPotion()) {
             PotionMeta pm = (PotionMeta) input.getItemMeta();
-            PotionData pd = pm.getBasePotionData();
-            if (pd.isExtended() != getPotionInfo().getExtended()) {
+
+            if (pm.getBasePotionType().isExtendable() != getPotionInfo().getExtended()) {
                 return false;
             }
-            if (pd.isUpgraded() != getPotionInfo().getUpgraded()) {
+            if (pm.getBasePotionType().isUpgradeable() != getPotionInfo().getUpgraded()) {
                 return false;
             }
-            if (!pd.getType().toString().equals(getPotionInfo().getType())) {
+            if (!pm.getBasePotionType().toString().equals(getPotionInfo().getType())) {
                 return false;
             }
         }
@@ -1017,34 +1007,27 @@ public final class Item implements ConfigurationSerializable {
 
         if (hasPotion()) {
             PotionInfo pi = getPotionInfo();
-            if (XMaterial.getVersion() > 18) {
-                if (pi.getSplash()) {
-                    itemStack = new ItemStack(Material.SPLASH_POTION);
-                }
-                PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
 
-                PotionData pd;
-                try {
-                    pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                    pm.setBasePotionData(pd);
-                } catch (IllegalArgumentException ex) {
-                    if (ex.getMessage().contains("upgradable")) {
-                        GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                        pi.setUpgraded(false);
-                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                        pm.setBasePotionData(pd);
-                    } else if (ex.getMessage().contains("extended")) {
-                        GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                        pi.setExtended(false);
-                        pd = new PotionData(PotionType.valueOf(pi.getType()), pi.getExtended(), pi.getUpgraded());
-                        pm.setBasePotionData(pd);
-                    }
-                }
-                itemStack.setItemMeta(pm);
-            } else {
-                Potion potion = new Potion(PotionType.valueOf(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getSplash(), pi.getExtended());
-                potion.apply(itemStack);
+            if (pi.getSplash()) {
+                itemStack = new ItemStack(Material.SPLASH_POTION);
             }
+            PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
+
+            try {
+                pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
+            } catch (IllegalArgumentException ex) {
+                if (ex.getMessage().contains("upgradable")) {
+                    GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                    pi.setUpgraded(false);
+                } else if (ex.getMessage().contains("extended")) {
+                    GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
+                    pi.setExtended(false);
+                }
+
+                pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
+            }
+            itemStack.setItemMeta(pm);
+
         }
 
         ItemMeta itemMeta = itemStack.getItemMeta();

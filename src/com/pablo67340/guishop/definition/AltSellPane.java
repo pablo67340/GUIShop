@@ -1,13 +1,15 @@
 package com.pablo67340.guishop.definition;
 
-import com.github.stefvanschie.inventoryframework.Gui;
-import com.github.stefvanschie.inventoryframework.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.GuiItem;
+import com.github.stefvanschie.inventoryframework.gui.InventoryComponent;
+import com.github.stefvanschie.inventoryframework.gui.type.util.Gui;
 import com.github.stefvanschie.inventoryframework.pane.Pane;
 import lombok.Getter;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -43,23 +45,21 @@ public class AltSellPane extends Pane {
     }
 
     @Override
-    public void display(Gui gui, Inventory inventory, PlayerInventory playerInventory, int paneOffsetX, int paneOffsetY,
-                        int maxLength, int maxHeight) {
-        inventory.setItem(13, items.get(0).getItem());
-        inventory.setItem(18, items.get(1).getItem());
-        inventory.setItem(19, items.get(2).getItem());
-        inventory.setItem(20, items.get(3).getItem());
-        inventory.setItem(24, items.get(4).getItem());
-        inventory.setItem(25, items.get(5).getItem());
-        inventory.setItem(26, items.get(6).getItem());
-        inventory.setItem(31, items.get(7).getItem());
-        inventory.setItem(48, items.get(8).getItem());
-        inventory.setItem(50, items.get(9).getItem());
+    public void display(@NotNull InventoryComponent inventoryComponent, int i, int i1, int i2, int i3) {
+        inventoryComponent.setItem(items.get(0).getItem(), 4,2);
+        inventoryComponent.setItem(items.get(1).getItem(), 9, 2);
+        inventoryComponent.setItem(items.get(2).getItem(), 1, 3);
+        inventoryComponent.setItem(items.get(3).getItem(), 2, 3);
+        inventoryComponent.setItem(items.get(4).getItem(), 3, 3);
+        inventoryComponent.setItem(items.get(5).getItem(), 4, 3);
+        inventoryComponent.setItem(items.get(6).getItem(), 7, 3);
+        inventoryComponent.setItem(items.get(7).getItem(), 4, 4);
+        inventoryComponent.setItem(items.get(8).getItem(), 7, 5);
+        inventoryComponent.setItem(items.get(9).getItem(), 9, 5);
     }
 
     @Override
-    public boolean click(Gui gui, InventoryClickEvent event, int paneOffsetX, int paneOffsetY, int maxLength,
-                         int maxHeight) {
+    public boolean click(@NotNull Gui gui, @NotNull InventoryComponent inventoryComponent, @NotNull InventoryClickEvent inventoryClickEvent, int i, int i1, int i2, int i3, int i4) {
         return false;
     }
 

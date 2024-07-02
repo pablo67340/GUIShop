@@ -1,13 +1,9 @@
-<a href='https://jenkins.synthetic-gaming.com/job/GUIShop/'><img src='https://jenkins.synthetic-gaming.com/job/GUIShop/badge/icon'></a>
-
-
 <p>Welcome to GUIShop! This plugin is the ultimate solution to all the signs, the chests and the glitches. This plugin will put a stop to all
     those head aches. I present to you, GUIShop. This plugin uses a sleek new way of making shops easy,
 comfortable, and fun!</p>
-<p>This plugin was designed to act like a large chest. You can simply click an item in the chest to buy it, or dump items in a blank inventory to sell them. It does not use a physical chest however. It is a complete Virtual shop that will use any economy plugin you choose, so long you have Vault installed.
 
-    This plugin has a simple <strong>easy-to-read</strong> configuration that allows you to customize your shop, and tweak
-anything you like!</p>
+<p>This plugin was designed to act like a large chest. You can simply click an item in the chest to buy it, or dump items in a blank inventory to sell them. It does not use a physical chest however. It is a complete Virtual shop that will use any economy plugin you choose, so long you have Vault installed.
+This plugin has a simple <strong>easy-to-read</strong> configuration that allows you to customize your shop, and tweak anything you like!</p>
 
 <h2>Version Support:</h2>
 <p>Not sure which version of GUIShop to use for your server? No worries!</p>
@@ -98,3 +94,4 @@ anything you like!</p>
 <p>This is the official repository for GUIShop. It will be consistently updated with the latest Minecraft and Spigot versions. This means support for older Minecraft versions will be limited but still offered.</p>
 <h2><a id="user-content-support" class="anchor" href="#support" aria-hidden="true"></a>Support</h2>
 <p><a href="https://github.com/pablo67340/GUIShop/issues">Issue Tracker</a></p>
+<p><a href="https://discord.gg/KkzBEb5dwC">Discord</a></p>

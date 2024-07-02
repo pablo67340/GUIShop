@@ -75,16 +75,6 @@ This plugin has a simple <strong>easy-to-read</strong> configuration that allows
 </ul>
 <h2><a id="building" class="anchor" href="#building" aria-hidden="true"></a>Building</h2>
 
-<h2>Step 1: Clone Inventory Framework</h2>
-<p>GUIShop relies on a custom fork of a framework called IF. In order to build GUIShop, IF must be installed into your local maven repository.</p>
-<ul>
-<li><p>Clone the following repo: <a href="https://github.com/pablo67340/IF">https://github.com/pablo67340/IF</a></p></li>
-<li><p>Navigate to the folder where you have cloned IF.</p></li>
-<li><p>Run <code>mvn clean install</code> inside this folder. </p></li>
-<li><p>IF is now installed in your local respsitory, and ready to be used by GUIShop.</p></li>
-</ul>
-<p><strong>*NOTE:</strong> Usually when GUIShop is updated to account for newer Minecraft versions, you will need to re-clone/re-fetch IF, and re-install it to your local maven repo, as it will have updates too!</p>
-
 <h2>Clone & Build GUIShop</h2>
 <p>Now that you have IF installed, GUIShop can easily be compiled by cloning this repository to a folder, navigating to the folder in your command prompt/terminal and running:</p>
 <pre><code>mvn clean install</code></pre>

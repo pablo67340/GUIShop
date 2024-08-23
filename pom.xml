@@ -145,6 +145,12 @@
             <artifactId>item-nbt-api-plugin</artifactId>
             <version>2.13.1</version>
         </dependency>
+        <dependency>
+            <groupId>com.github.amnoah</groupId>
+            <artifactId>BetterReload</artifactId>
+            <version>API-v1.0.0</version>
+            <scope>provided</scope>
+        </dependency>
     </dependencies>
     <build>
         <defaultGoal>clean install</defaultGoal>

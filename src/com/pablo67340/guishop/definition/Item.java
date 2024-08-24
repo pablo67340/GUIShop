@@ -28,9 +28,11 @@ import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
 
 
-import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionData;
+
 import org.bukkit.potion.PotionEffectType;
 
+import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
@@ -877,7 +879,8 @@ public final class Item implements ConfigurationSerializable {
                     }
 
                     PotionMeta pMeta = (PotionMeta) itemStack.getItemMeta();
-                    pMeta.addCustomEffect(PotionEffectType.getByName(potionInfo.getType()).createEffect(potionInfo.getUpgraded() ? 2 : 1, potionInfo.getExtended() ? 1 : 0), potionInfo.getSplash());
+                    PotionType potionType = PotionType.valueOf(potionInfo.getType());
+                    pMeta.setBasePotionData(new PotionData(potionType, potionType.isExtendable() ? potionInfo.getExtended() : false, potionType.isUpgradeable() ? potionInfo.getUpgraded() : false));
 
                     itemStack.setItemMeta(pMeta);
                 } else {
@@ -1012,20 +1015,9 @@ public final class Item implements ConfigurationSerializable {
                 itemStack = new ItemStack(Material.SPLASH_POTION);
             }
             PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
-
-            try {
-                pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
-            } catch (IllegalArgumentException ex) {
-                if (ex.getMessage().contains("upgradable")) {
-                    GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not upgradable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                    pi.setUpgraded(false);
-                } else if (ex.getMessage().contains("extended")) {
-                    GUIShop.getINSTANCE().getLogUtil().log("Potion: " + pi.getType() + " Is not extendable. Please fix this in menu.yml. Potion has automatically been downgraded.");
-                    pi.setExtended(false);
-                }
-
-                pm.addCustomEffect(new PotionEffect(PotionEffectType.getByName(pi.getType()), pi.getUpgraded() ? 2 : 1, pi.getExtended() ? 1 : 0), pi.getSplash());
-            }
+            PotionType potionType = PotionType.valueOf(pi.getType());
+            pm.setBasePotionData(new PotionData(potionType, potionType.isExtendable() ? potionInfo.getExtended() : false, potionType.isUpgradeable() ? potionInfo.getUpgraded() : false));
+            
             itemStack.setItemMeta(pm);
 
         }

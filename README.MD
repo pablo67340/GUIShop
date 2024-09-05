@@ -84,4 +84,4 @@ This plugin has a simple <strong>easy-to-read</strong> configuration that allows
 <p>This is the official repository for GUIShop. It will be consistently updated with the latest Minecraft and Spigot versions. This means support for older Minecraft versions will be limited but still offered.</p>
 <h2><a id="user-content-support" class="anchor" href="#support" aria-hidden="true"></a>Support</h2>
 <p><a href="https://github.com/pablo67340/GUIShop/issues">Issue Tracker</a></p>
-<p><a href="https://discord.gg/KkzBEb5dwC">Discord</a></p>
+<p><a href="https://discord.gg/wm6zMzdBwf">Discord</a></p>

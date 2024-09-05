@@ -11,6 +11,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
+import com.pablo67340.guishop.listenable.ReloadListener;
 import com.pablo67340.guishop.util.ConfigManager;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.MiscUtils;
@@ -112,6 +113,10 @@ public final class GUIShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
         getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new UserCommand());
+
+        if (getServer().getPluginManager().getPlugin("BetterReload") != null) {
+            getServer().getPluginManager().registerEvents(ReloadListener.INSTANCE, this);
+        }
     }
 
     public UserCommand getUserCommands() {

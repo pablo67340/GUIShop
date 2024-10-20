@@ -3,8 +3,11 @@ package com.pablo67340.guishop.util;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import com.pablo67340.guishop.GUIShop;
+import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -18,21 +21,18 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.util.Base64;
 import java.util.UUID;
 
 /**
  * A library for the Bukkit API to create player skulls from uuid.
  * <p>
- * Does not use any NMS code, and should work across all versions.
  *
  * @author Dean B on 12/28/2016.
  * @author Bryce W, 4/8/2021.
+ * @author Bryce W, 10/20/2024
  */
 public class SkullCreator {
-
-    // some reflection stuff to be used when setting a skull's profile
-    private static Method metaSetProfileMethod;
-    private static Field metaProfileField;
 
     /**
      * Modifies a skull to use the skin based on the given base64 string.
@@ -61,34 +61,27 @@ public class SkullCreator {
         }
     }
 
-    private static GameProfile makeProfile(String uid, String b64) {
+    private static PlayerProfile makeProfile(String uid, String b64) {
         // random uuid based on the b64 string
-        GameProfile profile = new GameProfile(UUID.fromString(uid), "aaaaa");
-        profile.getProperties().put("textures", new Property("textures", b64));
-        return profile;
+        JSONParser parser = new JSONParser();
+        try {
+            String b64Decoded = new String(Base64.getDecoder().decode(b64));
+            JSONObject profileObj = (JSONObject)parser.parse(b64Decoded);
+            JSONObject textures = (JSONObject)profileObj.get("textures");
+            JSONObject skin = (JSONObject)textures.get("SKIN");
+            String url = (String)skin.get("url");
+            PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uid), "aaaa");
+            PlayerTextures playerTextures = profile.getTextures();
+            playerTextures.setSkin(new URL(url));
+            return profile;
+        }catch(Exception ex){
+            ex.printStackTrace();
+        }
+        return null;
     }
 
     public static void mutateItemMeta(SkullMeta meta, String b64, String UUID) {
-        try {
-            if (metaSetProfileMethod == null) {
-                metaSetProfileMethod = meta.getClass().getDeclaredMethod("setProfile", GameProfile.class);
-                metaSetProfileMethod.setAccessible(true);
-            }
-            metaSetProfileMethod.invoke(meta, makeProfile(UUID, b64));
-        } catch (NoSuchMethodException | IllegalAccessException | InvocationTargetException ex) {
-            // if in an older API where there is no setProfile method,
-            // we set the profile field directly.
-            try {
-                if (metaProfileField == null) {
-                    metaProfileField = meta.getClass().getDeclaredField("profile");
-                    metaProfileField.setAccessible(true);
-                }
-                metaProfileField.set(meta, makeProfile(UUID, b64));
-
-            } catch (NoSuchFieldException | IllegalAccessException ex2) {
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Error making profile when loading player head: " + ex2.getMessage());
-            }
-        }
+        meta.setOwnerProfile(makeProfile(UUID, b64));
     }
 
     public static String getBase64FromUUID(String uuid) {

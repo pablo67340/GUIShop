@@ -119,7 +119,10 @@ public class Shop {
                                 }
                             }
                         }
-                        page.getItems().put(Integer.toString(item.getSlot()), item);
+                        // Only add to GUI if item has a buy price, or hide-non-buyable is disabled
+                        if (!Config.isHideNonBuyable() || item.hasBuyPrice() || item.getItemType() != ItemType.SHOP) {
+                            page.getItems().put(Integer.toString(item.getSlot()), item);
+                        }
                     });
                     return page;
                 }).forEachOrdered(page -> {

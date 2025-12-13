@@ -29,8 +29,9 @@ public final class Sell {
     public void open(Player player) {
         GUI = new SimpleGui(6, Config.getTitlesConfig().getSellTitle());
         GUI.setCloseHandler(this::onSellClose);
-        // Allow players to place items in the sell GUI
+        // Allow players to move items between their inventory and the sell GUI
         GUI.setAllowTopInventoryClick(true);
+        GUI.setAllowBottomInventoryClick(true);
         GUI.show(player);
     }
 

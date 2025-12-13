@@ -5,6 +5,7 @@ import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.SellType;
 import com.pablo67340.guishop.listenable.Sell;
+import com.pablo67340.guishop.worth.WorthDisplayManager;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -205,6 +206,50 @@ public abstract class GUIShopAPI {
                 && shopItem.hasSellPrice()) {
             GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(itemString, quantity);
         }
+    }
+
+    /**
+     * Gets the worth (sell value) of a single item. <br>
+     * This is a convenience method that returns the sell price for quantity 1.
+     *
+     * @param item the itemstack to check
+     * @return the worth per item, or null if not sellable
+     */
+    public static BigDecimal getItemWorth(ItemStack item) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager != null) {
+            return manager.getItemWorth(item);
+        }
+        // Fallback if worth manager isn't initialized
+        BigDecimal price = getSellPrice(item, 1);
+        return price.compareTo(BigDecimal.valueOf(-1)) > 0 ? price : null;
+    }
+
+    /**
+     * Gets the total worth (sell value) of an item stack. <br>
+     * This accounts for the stack size and any dynamic pricing.
+     *
+     * @param item the itemstack to check (uses stack amount)
+     * @return the total worth for the stack, or null if not sellable
+     */
+    public static BigDecimal getStackWorth(ItemStack item) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager != null) {
+            return manager.getStackWorth(item);
+        }
+        // Fallback if worth manager isn't initialized
+        BigDecimal price = getSellPrice(item, item.getAmount());
+        return price.compareTo(BigDecimal.valueOf(-1)) > 0 ? price : null;
+    }
+
+    /**
+     * Check if the worth display system is enabled and active.
+     *
+     * @return true if the worth display system is running
+     */
+    public static boolean isWorthDisplayEnabled() {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        return manager != null && manager.isRegistered();
     }
 
 }

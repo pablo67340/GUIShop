@@ -250,11 +250,13 @@ public class SimpleGui implements GUIHolder {
 
     @Override
     public void handleDrag(InventoryDragEvent event) {
-        // Cancel drags that affect the top inventory
-        for (int slot : event.getRawSlots()) {
-            if (slot < inventory.getSize()) {
-                event.setCancelled(true);
-                return;
+        // Cancel drags that affect the top inventory, unless allowed
+        if (!allowTopInventoryClick) {
+            for (int slot : event.getRawSlots()) {
+                if (slot < inventory.getSize()) {
+                    event.setCancelled(true);
+                    return;
+                }
             }
         }
     }

@@ -57,6 +57,12 @@ debug-mode: false
 # Enable transaction log mode (Logs buy/sell transactions into the console)
 transaction-log: false
 
+# Hide items from the shop GUI that don't have a buy price (sell-only items)
+# When enabled, items with only a sell-price will NOT appear in the shop GUI,
+# but they will still be sellable, show worth in lore, and work with /value.
+# This is useful if you want to add sell prices to many items without cluttering the shop.
+hide-non-buyable: false
+
 # Do want players to be able to access the shop ONLY using the sign?
 signs-only: false
 

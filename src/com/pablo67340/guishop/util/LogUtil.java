@@ -24,26 +24,30 @@ public final class LogUtil {
 
     @Getter
     @Setter
-    public ArrayList<String> debugLogCache = new ArrayList<>();
+    private ArrayList<String> debugLogCache = new ArrayList<>();
 
     @Getter
     @Setter
-    public ArrayList<String> transactionLogCache = new ArrayList<>();
+    private ArrayList<String> transactionLogCache = new ArrayList<>();
 
     @Getter
     @Setter
-    public ArrayList<String> mainLogCache = new ArrayList<>();
+    private ArrayList<String> mainLogCache = new ArrayList<>();
 
-    public File mainLog = new File(GUIShop.getINSTANCE().getDataFolder().getPath(), "/Logs/main.log");
-    public File debugLog = new File(GUIShop.getINSTANCE().getDataFolder().getPath(), "/Logs/debug.log");
-    public File transactionLog = new File(GUIShop.getINSTANCE().getDataFolder().getPath(), "/Logs/transaction.log");
+    private File mainLog;
+    private File debugLog;
+    private File transactionLog;
 
     public final String DATE_FORMAT_NOW = "yyyy-MM-dd HH:mm:ss";
 
     public LogUtil() {
-        write(mainLog.toPath(), getMainLogCache());
-        write(debugLog.toPath(), getDebugLogCache());
-        write(transactionLog.toPath(), getTransactionLogCache());
+        // Initialize log files - delay file creation until first use
+        mainLog = new File(GUIShop.getINSTANCE().getDataFolder().getPath(), "/Logs/main.log");
+        debugLog = new File(GUIShop.getINSTANCE().getDataFolder().getPath(), "/Logs/debug.log");
+        transactionLog = new File(GUIShop.getINSTANCE().getDataFolder().getPath(), "/Logs/transaction.log");
+        
+        // Ensure log directory exists
+        mainLog.getParentFile().mkdirs();
     }
 
     public void transactionLog(String input) {
@@ -76,9 +80,62 @@ public final class LogUtil {
 
         getDebugLogCache().add("[" + simpleDateFormat.format(calendar.getTime()) + "] DEBUG: " + input);
     }
-    
-    public void write(Path path, List<String> write) {
+
+    /**
+     * Flush all cached logs to disk. Should be called periodically and on shutdown.
+     */
+    public void flushLogs() {
+        // Write main log cache
+        if (!mainLogCache.isEmpty()) {
+            write(mainLog.toPath(), new ArrayList<>(mainLogCache));
+            mainLogCache.clear();
+        }
+        
+        // Write debug log cache
+        if (!debugLogCache.isEmpty()) {
+            write(debugLog.toPath(), new ArrayList<>(debugLogCache));
+            debugLogCache.clear();
+        }
+        
+        // Write transaction log cache
+        if (!transactionLogCache.isEmpty()) {
+            write(transactionLog.toPath(), new ArrayList<>(transactionLogCache));
+            transactionLogCache.clear();
+        }
+    }
+
+    /**
+     * Check and rotate log files if they exceed the maximum size (50MB).
+     */
+    public void checkAndRotateLogs() {
         try {
+            final long MAX_SIZE = 52428800L; // 50MB
+            
+            if (mainLog.exists() && Files.size(mainLog.toPath()) >= MAX_SIZE) {
+                mainLog.delete();
+            }
+            if (debugLog.exists() && Files.size(debugLog.toPath()) >= MAX_SIZE) {
+                debugLog.delete();
+            }
+            if (transactionLog.exists() && Files.size(transactionLog.toPath()) >= MAX_SIZE) {
+                transactionLog.delete();
+            }
+        } catch (IOException e) {
+            GUIShop.getINSTANCE().getLogger().log(Level.WARNING, "Error checking log file sizes: " + e.getMessage());
+        }
+    }
+    
+    private void write(Path path, List<String> write) {
+        if (write == null || write.isEmpty()) {
+            return;
+        }
+        
+        try {
+            // Ensure parent directory exists
+            if (!Files.exists(path.getParent())) {
+                Files.createDirectories(path.getParent());
+            }
+            
             Files.write(
                     path,
                     write,
@@ -86,7 +143,8 @@ public final class LogUtil {
                     Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE
             );
         } catch (IOException exception) {
-            debugLog("An error occurred while trying to write to a logging file! (" + path + ")");
+            GUIShop.getINSTANCE().getLogger().log(Level.WARNING, 
+                    "An error occurred while trying to write to a logging file! (" + path + "): " + exception.getMessage());
         }
     }
 

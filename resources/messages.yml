@@ -561,10 +561,17 @@ messages:
     # The entry in the list
     entry: '&7/guishop &esu {uuid} &7- &aSet an item''s skull uuid'
 
-  # Messages for /guishop value
+  # Messages for /guishop value and /value command
   value:
     # Message when a player tries to get the value that doesn't exist
     doesnt-exist: '&cThis item doesn''t exist in any of the shops.'
+
+    # Message when the player doesn't use the command correctly
+    usage: '&fUsage: &e/value <material> &for hold an item and type &e/value'
+
+    # Message when the player enters an invalid material name
+    # Placeholders: %material%
+    invalid-material: '&cInvalid material: &f%material%&c. Please enter a valid material name.'
 
     # The entry in the list
     entry: '&7/guishop &evalue &7- &aGets the highest sell price for the item you are holding'

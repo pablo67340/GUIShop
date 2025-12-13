@@ -6,6 +6,7 @@ import static com.pablo67340.guishop.GUIShop.BUY_COMMANDS;
 import static com.pablo67340.guishop.GUIShop.SELL_COMMANDS;
 import com.pablo67340.guishop.commands.CommandsInterceptor;
 import com.pablo67340.guishop.config.Config;
+import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.CommandsMode;
 import com.pablo67340.guishop.messages.MessageSystem;
 import java.io.File;
@@ -80,13 +81,13 @@ public final class ConfigManager {
      * The overridden config file objects.
      */
     @Getter
-    private File configFile, shopFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile;
+    private File configFile, shopFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile, worthFile;
 
     /**
      * The configs FileConfiguration object.
      */
     @Getter
-    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig;
+    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig, worthConfig;
 
     @Getter
     public MessageSystem messageSystem;
@@ -109,6 +110,7 @@ public final class ConfigManager {
         cacheConfig = new YamlConfiguration();
         inventoryConfig = new YamlConfiguration();
         messagesConfig = new YamlConfiguration();
+        worthConfig = new YamlConfiguration();
 
         configFile = new File(this.dataFolder, "config.yml");
         shopFile = new File(this.dataFolder, "shops.yml");
@@ -116,6 +118,7 @@ public final class ConfigManager {
         cacheFile = new File(this.dataFolder, "/Data/cache.yml");
         inventoryFile = new File(this.dataFolder.getPath(), "/Data/inventories.yml");
         messagesFile = new File(getDataFolder(), "messages.yml");
+        worthFile = new File(getDataFolder(), "worth.yml");
 
         configFile.getParentFile().mkdirs();
 
@@ -145,6 +148,10 @@ public final class ConfigManager {
             GUIShop.getINSTANCE().saveResource("messages.yml", false);
         }
 
+        if (!worthFile.exists()) {
+            GUIShop.getINSTANCE().saveResource("worth.yml", false);
+        }
+
         try {
             mainConfig.load(configFile);
             shopConfig.load(shopFile);
@@ -152,9 +159,11 @@ public final class ConfigManager {
             cacheConfig.load(cacheFile);
             inventoryConfig.load(inventoryFile);
             messagesConfig.load(messagesFile);
+            worthConfig.load(worthFile);
             messageSystem.loadCustomMessages(messagesConfig);
             loadCache();
             loadDefaults();
+            loadWorthDefaults();
             initDictionary();
         } catch (IOException | InvalidConfigurationException e) {
             GUIShop.getINSTANCE().getLogUtil().log("Error Main config: " + e.getMessage());
@@ -178,6 +187,8 @@ public final class ConfigManager {
             menuConfig.load(menuFile);
             cacheConfig.load(cacheFile);
             shopConfig.load(shopFile);
+            worthConfig.load(worthFile);
+            loadWorthDefaults();
         } catch (IOException | InvalidConfigurationException e) {
             GUIShop.getINSTANCE().getLogUtil().log("Error loading custom config: " + e.getMessage());
         }
@@ -326,6 +337,9 @@ public final class ConfigManager {
         // If the transaction logging to the console should be enabled
         Config.setTransactionLog(mainConfig.getBoolean("transaction-log", false));
 
+        // Hide non-buyable items from shop GUI (sell-only items)
+        Config.setHideNonBuyable(mainConfig.getBoolean("hide-non-buyable", false));
+
         // Register commands
         if (Config.getCommandsMode() == CommandsMode.INTERCEPT) {
             CommandsInterceptor.register();
@@ -398,7 +412,41 @@ public final class ConfigManager {
             GUIShop.getINSTANCE().getLogUtil().log("Error extracting Dictionary files: " + ex.getMessage());
         }
     }
-    
-    
+
+    /**
+     * Load worth display configuration from worth.yml
+     */
+    public void loadWorthDefaults() {
+        if (worthConfig == null) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config is null, skipping worth defaults.");
+            return;
+        }
+
+        // Enable/disable worth display
+        WorthConfig.setEnabled(worthConfig.getBoolean("enabled", true));
+
+        // The format for the worth line
+        WorthConfig.setFormat(worthConfig.getString("format", "&7Worth: &a%worth%"));
+
+        // Position: TOP or BOTTOM
+        WorthConfig.setPosition(worthConfig.getString("position", "BOTTOM"));
+
+        // Add blank line before worth
+        WorthConfig.setAddBlankLine(worthConfig.getBoolean("add-blank-line", true));
+
+        // Only show worth for sellable items
+        WorthConfig.setOnlyShowSellable(worthConfig.getBoolean("only-show-sellable", true));
+
+        // Format for non-sellable items
+        WorthConfig.setNotSellableFormat(worthConfig.getString("not-sellable-format", "&7Worth: &cNot sellable"));
+
+        // Ignore list for lore containing certain strings
+        WorthConfig.setIgnoreLoreContaining(worthConfig.getStringList("ignore-lore-containing"));
+
+        // Debug mode for worth system
+        WorthConfig.setDebug(worthConfig.getBoolean("debug", false));
+
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config loaded. Enabled: " + WorthConfig.isEnabled());
+    }
 
 }

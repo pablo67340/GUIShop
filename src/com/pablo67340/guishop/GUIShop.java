@@ -1,6 +1,5 @@
 package com.pablo67340.guishop;
 
-import com.cryptomorin.xseries.XMaterial;
 import com.pablo67340.guishop.commands.*;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.CommandsMode;
@@ -16,6 +15,7 @@ import com.pablo67340.guishop.util.ConfigManager;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.MiscUtils;
 import com.pablo67340.guishop.util.RowChart;
+import com.pablo67340.guishop.worth.WorthDisplayManager;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -23,9 +23,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
 import java.util.*;
 
 public final class GUIShop extends JavaPlugin {
@@ -89,6 +86,15 @@ public final class GUIShop extends JavaPlugin {
     @Setter
     public LogUtil logUtil;
 
+    @Getter
+    @Setter
+    private WorthDisplayManager worthDisplayManager;
+
+    /**
+     * The scheduled task ID for log flushing, used to cancel on disable.
+     */
+    private int logFlushTaskId = -1;
+
     @Override
     public void onEnable() {
         INSTANCE = this;
@@ -114,6 +120,54 @@ public final class GUIShop extends JavaPlugin {
         getServer().getPluginManager().registerEvents(GuiListener.getInstance(), this);
         getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
         getServer().getPluginCommand("guishopuser").setExecutor(new UserCommand());
+        
+        // Register value command with tab completion
+        ValueCommand valueCommand = new ValueCommand();
+        getServer().getPluginCommand("value").setExecutor(valueCommand);
+        getServer().getPluginCommand("value").setTabCompleter(valueCommand);
+
+        // Initialize Worth Display System (requires ProtocolLib)
+        initWorthDisplay();
+    }
+
+    @Override
+    public void onDisable() {
+        // Cancel the log flush task
+        if (logFlushTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(logFlushTaskId);
+            logFlushTaskId = -1;
+        }
+
+        // Flush any remaining logs to disk
+        if (logUtil != null) {
+            logUtil.flushLogs();
+        }
+
+        // Unregister worth display system
+        if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
+            worthDisplayManager.unregister();
+        }
+    }
+
+    /**
+     * Initialize the Worth Display system if ProtocolLib is available.
+     */
+    private void initWorthDisplay() {
+        if (getServer().getPluginManager().getPlugin("ProtocolLib") == null) {
+            getLogUtil().log("ProtocolLib not found - Worth display feature disabled.");
+            getLogUtil().log("Install ProtocolLib to show item worth in lore.");
+            return;
+        }
+
+        try {
+            worthDisplayManager = new WorthDisplayManager(this);
+            worthDisplayManager.register();
+        } catch (Exception e) {
+            getLogUtil().log("Failed to initialize Worth Display: " + e.getMessage());
+            if (Config.isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
     }
 
     public UserCommand getUserCommands() {
@@ -180,52 +234,31 @@ public final class GUIShop extends JavaPlugin {
             CommandsInterceptor.unregister();
         }
 
+        // Reload worth display system
+        if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
+            worthDisplayManager.unregister();
+        }
+        initWorthDisplay();
+
         getMiscUtils().sendPrefix(sender, "reload.execute");
 
         this.setIsReload(false);
     }
 
     public void initWriteCache() {
-        File mainLog = new File(getDataFolder().getPath(), "/Logs/main.log");
-        File debugLog = new File(getDataFolder().getPath(), "/Logs/debug.log");
-        File transactionLog = new File(getDataFolder().getPath(), "/Logs/transaction.log");
+        // Cancel any existing task from a previous load/reload
+        if (logFlushTaskId != -1) {
+            Bukkit.getScheduler().cancelTask(logFlushTaskId);
+        }
 
-        Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-            try {
-                if (!mainLog.exists()) {
-                    mainLog.getParentFile().mkdirs();
-                    mainLog.createNewFile();
-                } else {
-                    if (Files.size(mainLog.toPath()) >= 52428800) {
-                        mainLog.delete();
-                        mainLog.createNewFile();
-                    }
-                }
-
-                if (!debugLog.exists()) {
-                    transactionLog.getParentFile().mkdirs();
-                    transactionLog.createNewFile();
-                } else {
-                    if (Files.size(debugLog.toPath()) >= 52428800) {
-                        debugLog.delete();
-                        debugLog.createNewFile();
-                    }
-                }
-
-                if (!transactionLog.exists()) {
-                    transactionLog.getParentFile().mkdirs();
-                    transactionLog.createNewFile();
-                } else {
-                    if (Files.size(transactionLog.toPath()) >= 52428800) {
-                        transactionLog.delete();
-                        transactionLog.createNewFile();
-                    }
-                }
-            } catch (IOException exception) {
-                getLogUtil().debugLog("An error occurred while trying to crete/delete a log file!");
-
+        // Schedule periodic log flushing and rotation (every 5 minutes = 6000 ticks)
+        logFlushTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+            if (logUtil != null) {
+                // Flush cached logs to disk
+                logUtil.flushLogs();
+                // Check and rotate oversized log files
+                logUtil.checkAndRotateLogs();
             }
-
-        }, 40, 20);
+        }, 6000, 6000).getTaskId();
     }
 }

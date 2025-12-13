@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.2.8</version>
+    <version>9.2.9</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -88,6 +88,10 @@
             <url>https://repo.codemc.org/repository/maven-public/</url>
             <layout>default</layout>
         </repository>
+        <repository>
+            <id>dmulloy2-repo</id>
+            <url>https://repo.dmulloy2.net/repository/public/</url>
+        </repository>
     </repositories>
     <dependencies>
         <!-- lang3 dependency -->
@@ -146,6 +150,12 @@
             <version>3.13.56</version>
             <scope>provided</scope>
         </dependency>
+        <dependency>
+            <groupId>net.dmulloy2</groupId>
+            <artifactId>ProtocolLib</artifactId>
+            <version>5.4.0</version>
+            <scope>provided</scope>
+          </dependency>
     </dependencies>
     <build>
         <defaultGoal>clean install</defaultGoal>
@@ -206,6 +216,7 @@
                             <include>README.txt</include>
                             <include>messages.yml</include>
                             <include>internal_messages.yml</include>
+                            <include>worth.yml</include>
                         </includes>
                     </resource>
                     <resource>

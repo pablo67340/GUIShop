@@ -1,0 +1,45 @@
+# ===============================================
+# GUIShop Worth Display Configuration
+# ===============================================
+# This feature displays the sell value of items directly in their lore.
+# Players can see at a glance what any item is worth without opening the shop.
+#
+# REQUIRES: ProtocolLib to be installed on the server.
+# If ProtocolLib is not present, this feature will be disabled automatically.
+# ===============================================
+
+# Enable or disable the worth display feature
+enabled: true
+
+# The format for the worth line added to item lore
+# Placeholders:
+#   %worth% - The total sell value of the stack (formatted with currency)
+#   %worth_single% - The sell value of a single item (formatted with currency)
+#   %amount% - The stack size
+#   %currency_prefix% - The currency prefix from messages.yml
+#   %currency_suffix% - The currency suffix from messages.yml
+format: "&7Worth: &a%worth%"
+
+# Where to add the worth line in the lore
+# Options: TOP, BOTTOM
+position: BOTTOM
+
+# Add a blank line before the worth line for visual separation
+add-blank-line: true
+
+# Only show worth if the item has a sell price > 0
+# If false, items without a sell price will show "Not sellable" or similar
+only-show-sellable: true
+
+# Text to show for items that cannot be sold (only used if only-show-sellable is false)
+not-sellable-format: "&7Worth: &cNot sellable"
+
+# Ignore items that already have lore containing these strings (case-insensitive)
+# This prevents duplicate worth lines or conflicts with other plugins
+ignore-lore-containing:
+  - "Worth:"
+  - "Sell Value:"
+
+# Debug mode - logs worth calculations to console (useful for troubleshooting)
+debug: false
+

@@ -4,7 +4,7 @@ version: ${project.version}
 author: pablo67340
 description: Shop plugin for any server.
 depend: [ Vault ]
-softdepend: [ PlaceholderAPI ]
+softdepend: [ PlaceholderAPI, ProtocolLib ]
 api-version: 1.13
 
 permissions:
@@ -20,6 +20,12 @@ permissions:
   guishop.creator:
     default: op
     description: Grants access to the GUIShop creator
+  guishop.value:
+    default: true
+    description: Grants access to the /value command to check item worth
+  guishop.sell:
+    default: true
+    description: Grants access to the sell command
 
 commands:
   guishop:

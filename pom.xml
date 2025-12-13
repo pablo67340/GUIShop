@@ -10,7 +10,7 @@
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.2.5</version>
+    <version>9.2.8</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -90,16 +90,22 @@
         </repository>
     </repositories>
     <dependencies>
+        <!-- lang3 dependency -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>3.12.0</version>
+        </dependency>
         <dependency>
             <groupId>me.clip</groupId>
             <artifactId>placeholderapi</artifactId>
-            <version>2.10.9</version>
+            <version>2.11.6</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.21.1-R0.1-SNAPSHOT</version>
+            <version>1.21.10-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
         <!--Bukkit API -->
@@ -107,11 +113,6 @@
             <groupId>com.github.milkbowl</groupId>
             <artifactId>vault</artifactId>
             <version>1.7.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.github.stefvanschie.inventoryframework</groupId>
-            <artifactId>IF</artifactId>
-            <version>0.10.17</version>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -122,7 +123,7 @@
         <dependency>
             <groupId>com.github.cryptomorin</groupId>
             <artifactId>XSeries</artifactId>
-            <version>11.3.0</version>
+            <version>13.5.1</version>
         </dependency>
         <dependency>
             <groupId>com.google.code.findbugs</groupId>
@@ -136,8 +137,14 @@
         </dependency>
         <dependency>
             <groupId>de.tr7zw</groupId>
-            <artifactId>item-nbt-api-plugin</artifactId>
-            <version>2.13.2</version>
+            <artifactId>item-nbt-api</artifactId>
+            <version>2.15.5</version>
+        </dependency>
+        <dependency>
+            <groupId>com.mojang</groupId>
+            <artifactId>authlib</artifactId>
+            <version>3.13.56</version>
+            <scope>provided</scope>
         </dependency>
     </dependencies>
     <build>
@@ -171,7 +178,7 @@
                                     <type>${project.packaging}</type>
                                 </artifactItem>
                             </artifactItems>
-                            <outputDirectory>C:/Users/bryce/OneDrive/Desktop/GUIShop/plugins</outputDirectory>
+                            <outputDirectory>G:\AstroCore-Labs\Repo\GUIShop</outputDirectory>
                         </configuration>
                     </execution>
                 </executions>
@@ -199,6 +206,14 @@
                             <include>README.txt</include>
                             <include>messages.yml</include>
                             <include>internal_messages.yml</include>
+                        </includes>
+                    </resource>
+                    <resource>
+                        <directory>${project.basedir}/resources/META-INF</directory>
+                        <targetPath>META-INF</targetPath>
+                        <filtering>false</filtering>
+                        <includes>
+                            <include>.mojang-mapped</include>
                         </includes>
                     </resource>
                     <resource>
@@ -262,19 +277,14 @@
                                     <shadedPattern>com.pablo67340.guishop.shade.xseries</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>com.github.stefvanschie.inventoryframework</pattern>
-                                    <shadedPattern>com.pablo67340.guishop.shade.inventoryframework</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>de.tr7zw</pattern>
+                                    <pattern>de.tr7zw.changeme.nbtapi</pattern>
                                     <shadedPattern>com.pablo67340.guishop.shade.nbtapi</shadedPattern>
                                 </relocation>
                             </relocations>
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
-                                    <include>com.github.stefvanschie.inventoryframework:IF:jar:</include>
-                                    <include>de.tr7zw:item-nbt-api-plugin:jar:</include>
+                                    <include>de.tr7zw:item-nbt-api:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                 </includes>

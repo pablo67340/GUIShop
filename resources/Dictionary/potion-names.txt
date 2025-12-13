@@ -1,45 +1,78 @@
-This is the list of available potion names as of 1.17.1. If you are using an older
+This is the list of available potion names as of 1.21. If you are using an older
 server version, some of these names won't work as the potion you may be using
-may not exist for your older version. 
+may not exist for your older version.
+
+Note: As of 1.20.5+, some potion names changed. The plugin supports both old
+and new names for backwards compatibility.
 
 Example Config Format:
 
 potion-info:
-  type: INSTANT_HEAL
+  type: HEALING
   splash: false
   extended: false
   upgraded: false
 
-Available Potion Types:
-    ABSORPTION
-    BAD_OMEN
-    BLINDNESS
-    CONDUIT_POWER
-    CONFUSION
-    DAMAGE_RESISTANCE
-    DOLPHINS_GRACE
-    FAST_DIGGING
+Available Potion Types (1.20.5+):
+    AWKWARD
     FIRE_RESISTANCE
-    GLOWING
-    HARM
-    HEAL
-    HEALTH_BOOST
-    HERO_OF_THE_VILLAGE
-    HUNGER
-    INCREASE_DAMAGE
+    HARMING
+    HEALING
+    INFESTED
     INVISIBILITY
-    JUMP
-    LEVITATION
+    LEAPING
+    LONG_FIRE_RESISTANCE
+    LONG_INVISIBILITY
+    LONG_LEAPING
+    LONG_NIGHT_VISION
+    LONG_POISON
+    LONG_REGENERATION
+    LONG_SLOW_FALLING
+    LONG_SLOWNESS
+    LONG_STRENGTH
+    LONG_SWIFTNESS
+    LONG_TURTLE_MASTER
+    LONG_WATER_BREATHING
+    LONG_WEAKNESS
     LUCK
+    MUNDANE
     NIGHT_VISION
+    OOZING
     POISON
     REGENERATION
-    SATURATION
-    SLOW
-    SLOW_DIGGING
     SLOW_FALLING
-    SPEED
-    UNLUCK
+    SLOWNESS
+    STRENGTH
+    STRONG_HARMING
+    STRONG_HEALING
+    STRONG_LEAPING
+    STRONG_POISON
+    STRONG_REGENERATION
+    STRONG_SLOWNESS
+    STRONG_STRENGTH
+    STRONG_SWIFTNESS
+    STRONG_TURTLE_MASTER
+    SWIFTNESS
+    THICK
+    TURTLE_MASTER
+    WATER
     WATER_BREATHING
     WEAKNESS
-    WITHER
+    WEAVING
+    WIND_CHARGED
+
+Legacy Name Mappings (old -> new):
+    INSTANT_HEAL  -> HEALING
+    INSTANT_DAMAGE -> HARMING
+    SPEED         -> SWIFTNESS
+    JUMP          -> LEAPING
+    REGEN         -> REGENERATION
+
+The plugin automatically converts old names to new ones, so both formats work.
+
+Extended/Upgraded Options:
+    extended: true  - Longer duration (adds LONG_ prefix internally)
+    upgraded: true  - Stronger effect (adds STRONG_ prefix internally)
+
+Note: Not all potions support extended or upgraded variants.
+For tipped arrows, use the same potion-info format with id: TIPPED_ARROW

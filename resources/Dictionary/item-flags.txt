@@ -1,15 +1,122 @@
-Item Flags are used to show/hide certain elements of an Item's information.
+Item Flags are used to show/hide certain elements of an Item's tooltip information.
+As of 1.21, there are many new experimental flags for the component system.
+
 Example config format:
 
 item-flags:
   - HIDE_ATTRIBUTES
   - HIDE_ENCHANTS
 
-Available Flags:
-    HIDE_ATTRIBUTES - Setting to show/hide Attributes like Damage
-    HIDE_DESTROYS - Setting to show/hide what the ItemStack can break/destroy
-    HIDE_DYE - Setting to show/hide dyes from coloured leather armour
-    HIDE_ENCHANTS - Setting to show/hide enchants
-    HIDE_PLACED_ON - Setting to show/hide where this ItemStack can be build/placed on
-    HIDE_POTION_EFFECTS - Setting to show/hide potion effects on this ItemStack
-    HIDE_UNBREAKABLE - Setting to show/hide the unbreakable State
+Common Item Flags:
+    HIDE_ENCHANTS              - Hide enchantments from tooltip
+    HIDE_ATTRIBUTES            - Hide attributes like Damage, Armor, etc.
+    HIDE_UNBREAKABLE           - Hide the "Unbreakable" text
+    HIDE_DESTROYS              - Hide what blocks the item can break
+    HIDE_PLACED_ON             - Hide where the item can be placed
+    HIDE_ADDITIONAL_TOOLTIP    - Hide potion effects, book info, firework info, map tooltips, banner patterns
+    HIDE_DYE                   - Hide dye color from leather armor
+    HIDE_ARMOR_TRIM            - Hide armor trim info
+
+Extended Item Flags (1.20.5+ component system, may be experimental):
+    HIDE_CUSTOM_DATA
+    HIDE_MAX_STACK_SIZE
+    HIDE_MAX_DAMAGE
+    HIDE_DAMAGE
+    HIDE_CUSTOM_NAME
+    HIDE_ITEM_NAME
+    HIDE_ITEM_MODEL
+    HIDE_LORE
+    HIDE_RARITY
+    HIDE_ENCHANTMENTS
+    HIDE_CAN_PLACE_ON
+    HIDE_CAN_BREAK
+    HIDE_ATTRIBUTE_MODIFIERS
+    HIDE_STORED_ENCHANTMENTS
+    HIDE_DYED_COLOR
+    HIDE_CHARGED_PROJECTILES
+    HIDE_BUNDLE_CONTENTS
+    HIDE_POTION_CONTENTS
+    HIDE_POTION_DURATION_SCALE
+    HIDE_SUSPICIOUS_STEW_EFFECTS
+    HIDE_WRITABLE_BOOK_CONTENT
+    HIDE_WRITTEN_BOOK_CONTENT
+    HIDE_TRIM
+    HIDE_DEBUG_STICK_STATE
+    HIDE_ENTITY_DATA
+    HIDE_BUCKET_ENTITY_DATA
+    HIDE_BLOCK_ENTITY_DATA
+    HIDE_INSTRUMENT
+    HIDE_PROVIDES_TRIM_MATERIAL
+    HIDE_OMINOUS_BOTTLE_AMPLIFIER
+    HIDE_JUKEBOX_PLAYABLE
+    HIDE_PROVIDES_BANNER_PATTERNS
+    HIDE_RECIPES
+    HIDE_LODESTONE_TRACKER
+    HIDE_FIREWORK_EXPLOSION
+    HIDE_FIREWORKS
+    HIDE_PROFILE
+    HIDE_NOTE_BLOCK_SOUND
+    HIDE_BANNER_PATTERNS
+    HIDE_BASE_COLOR
+    HIDE_POT_DECORATIONS
+    HIDE_CONTAINER
+    HIDE_BLOCK_STATE
+    HIDE_BEES
+    HIDE_LOCK
+    HIDE_CONTAINER_LOOT
+    HIDE_TOOL
+    HIDE_FOOD
+    HIDE_CONSUMABLE
+    HIDE_USE_REMAINDER
+    HIDE_USE_COOLDOWN
+    HIDE_ENCHANTABLE
+    HIDE_REPAIRABLE
+    HIDE_REPAIR_COST
+    HIDE_CREATIVE_SLOT_LOCK
+    HIDE_TOOLTIP_STYLE
+    HIDE_TOOLTIP_DISPLAY
+    HIDE_DEATH_PROTECTION
+    HIDE_EQUIPPABLE
+    HIDE_GLIDER
+    HIDE_DAMAGE_RESISTANT
+    HIDE_ENCHANTMENT_GLINT_OVERRIDE
+    HIDE_INTANGIBLE_PROJECTILE
+    HIDE_MAP_COLOR
+    HIDE_MAP_DECORATIONS
+    HIDE_MAP_ID
+    HIDE_MAP_POST_PROCESSING
+    HIDE_WEAPON
+    HIDE_BLOCKS_ATTACKS
+    HIDE_BREAK_SOUND
+
+Entity Variant Flags (for spawn eggs, etc.):
+    HIDE_VILLAGER_VARIANT
+    HIDE_WOLF_VARIANT
+    HIDE_WOLF_SOUND_VARIANT
+    HIDE_WOLF_COLLAR
+    HIDE_FOX_VARIANT
+    HIDE_SALMON_SIZE
+    HIDE_PARROT_VARIANT
+    HIDE_TROPICAL_FISH_PATTERN
+    HIDE_TROPICAL_FISH_BASE_COLOR
+    HIDE_TROPICAL_FISH_PATTERN_COLOR
+    HIDE_MOOSHROOM_VARIANT
+    HIDE_RABBIT_VARIANT
+    HIDE_PIG_VARIANT
+    HIDE_COW_VARIANT
+    HIDE_CHICKEN_VARIANT
+    HIDE_FROG_VARIANT
+    HIDE_HORSE_VARIANT
+    HIDE_PAINTING_VARIANT
+    HIDE_LLAMA_VARIANT
+    HIDE_AXOLOTL_VARIANT
+    HIDE_CAT_VARIANT
+    HIDE_CAT_COLLAR
+    HIDE_SHEEP_COLOR
+    HIDE_SHULKER_COLOR
+
+Legacy Flag Names (for older versions):
+    HIDE_POTION_EFFECTS        - Now HIDE_ADDITIONAL_TOOLTIP or HIDE_POTION_CONTENTS
+
+Note: Many extended flags are marked @Experimental in Spigot and may change.
+For most use cases, the common flags (HIDE_ENCHANTS, HIDE_ATTRIBUTES, etc.) are sufficient.

@@ -13,5 +13,6 @@
       "alias": "Install Server",
       "command": "minecraft-server:server-install"
     }
-  ]
+  ],
+  "java.compile.nullAnalysis.mode": "automatic"
 }

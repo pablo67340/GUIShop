@@ -2,12 +2,10 @@ package com.pablo67340.guishop.listenable;
 
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.*;
+import com.pablo67340.guishop.gui.PagedGui;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
@@ -38,31 +36,25 @@ public class Shop {
     private String shop, title;
 
     /**
-     * The list of {@link ShopPage}'s in this {@link Shop}.
+     * The GUI for this shop.
      */
-    public ChestGui GUI;
+    public PagedGui GUI;
 
     private final Menu menuInstance;
 
     private boolean hasClicked = false, clickOverride = false;
 
-    public PaginatedPane currentPane;
-
     private ShopItem shopItem;
-
-    private ShopPane shopPage = new ShopPane(9, 6);
 
     private final Player player;
 
     private Boolean shopMissing = false;
 
-    private Integer pageIndex = 0;
-
     /**
      * The constructor for a {@link Shop}.
      *
-     * @param player Thep layer using the shop.
-     * @param shop The name of the shop.
+     * @param player      The player using the shop.
+     * @param shop        The name of the shop.
      * @param menuInstance The instance of the menu that opened this shop.
      */
     public Shop(Player player, String shop, Menu menuInstance) {
@@ -154,66 +146,73 @@ public class Shop {
     }
 
     private void loadShop() {
-        if (this.GUI == null || this.GUI.getItems().isEmpty()) {
-            PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
-            for (Map.Entry<String, ShopPage> entry : shopItem.getPages().entrySet()) {
-                if (this.GUI == null) {
-                    this.GUI = new ChestGui(GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot(entry.getKey())),
-                            ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getShopTitle().replace("%shopname%", title)));
-                    int rows = GUIShop.rowChart.getRowsFromHighestSlot(entry.getValue().getHighestSlot());
-                    if (rows != 6 && this.hasMultiplePages()) {
-                        this.GUI = new ChestGui(rows + 1,
-                                ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getShopTitle().replace("%shopname%", title)));
-                    } else {
-                        this.GUI = new ChestGui(rows,
-                                ChatColor.translateAlternateColorCodes('&', Config.getTitlesConfig().getShopTitle().replace("%shopname%", title)));
-                    }
+        if (this.GUI == null) {
+            // Get initial rows from first page
+            int initialRows = 6;
+            if (!shopItem.getPages().isEmpty()) {
+                ShopPage firstPage = shopItem.getPages().values().iterator().next();
+                initialRows = GUIShop.rowChart.getRowsFromHighestSlot(firstPage.getHighestSlot());
+                if (hasMultiplePages() && initialRows != 6) {
+                    initialRows += 1; // Add row for navigation buttons
                 }
+            }
 
-                shopPage = new ShopPane(9, 6);
+            String guiTitle = ChatColor.translateAlternateColorCodes('&', 
+                    Config.getTitlesConfig().getShopTitle().replace("%shopname%", title));
 
+            this.GUI = new PagedGui(initialRows, guiTitle);
+            this.GUI.setDynamicRows(true);
+
+            int pageIndex = 0;
+            for (Map.Entry<String, ShopPage> entry : shopItem.getPages().entrySet()) {
+                // Add a new page
+                GUI.addPage();
+
+                // Calculate rows for this page
+                int rows = GUIShop.rowChart.getRowsFromHighestSlot(entry.getValue().getHighestSlot());
+                if (hasMultiplePages() && rows != 6) {
+                    rows += 1; // Add row for navigation buttons
+                }
+                GUI.setPageRows(pageIndex, rows);
+
+                // Add items to the page
                 for (Item item : entry.getValue().getItems().values()) {
                     if (item.getItemType() == ItemType.BLANK) {
                         continue;
                     }
-                    GuiItem gItem = new GuiItem(item.toItemStack(player, false));
-                    shopPage.setItem(gItem, item.getSlot());
+                    ItemStack itemStack = item.toItemStack(player, false);
+                    GUI.setItem(pageIndex, item.getSlot(), itemStack);
                 }
 
-                applyButtons(shopPage, pageIndex, shopItem.getPages().size());
-                pane.addPane(pageIndex, shopPage);
-                pageIndex += 1;
+                // Apply navigation buttons
+                applyButtons(pageIndex, shopItem.getPages().size(), rows);
+                pageIndex++;
             }
-
-            GUI.addPane(pane);
-            this.currentPane = pane;
         }
     }
 
-    private void applyButtons(ShopPane page, int pageIndex, int maxPages) {
+    private void applyButtons(int pageIndex, int maxPages, int rows) {
         GUIShop.getINSTANCE().getLogUtil().debugLog("Applying buttons with page index: " + pageIndex + " max pages: " + maxPages);
 
-        int nextSlot = calculateSlot(Config.getButtonConfig().getForwardSlot(), GUI.getRows() * 9) - 1;
-        int prevSlot = calculateSlot(Config.getButtonConfig().getBackwardSlot(), GUI.getRows() * 9) - 1;
-        int backSlot = calculateSlot(Config.getButtonConfig().getBackSlot(), GUI.getRows() * 9) - 1;
+        int inventorySize = rows * 9;
+        int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
+        int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+        int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
 
         if (pageIndex < (maxPages - 1)) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button");
-            page.setItem(new GuiItem(Config.getButtonConfig().forwardButton.toItemStack(player, false)), nextSlot);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button at slot " + nextSlot);
+            GUI.setItem(pageIndex, nextSlot, Config.getButtonConfig().forwardButton.toItemStack(player, false));
         }
 
         if (pageIndex > 0) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button");
-            page.setItem(new GuiItem(Config.getButtonConfig().backwardButton.toItemStack(player, false)), prevSlot);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button at slot " + prevSlot);
+            GUI.setItem(pageIndex, prevSlot, Config.getButtonConfig().backwardButton.toItemStack(player, false));
         }
 
         if (!Config.isDisableBackButton()) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button at slot " + backSlot);
             ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, false);
-
-            GuiItem item = new GuiItem(backButtonItem);
-
-            page.setItem(item, backSlot);
+            GUI.setItem(pageIndex, backSlot, backButtonItem);
         }
     }
 
@@ -240,24 +239,18 @@ public class Shop {
             return false;
         }
 
-        GUI.show(player);
-
         if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
-            GUI.setOnTopClick(this::onShopClick);
-            GUI.setOnBottomClick((e) -> e.setCancelled(true));
+            GUI.setTopClickHandler(this::onShopClick);
+            GUI.setBottomClickHandler((e) -> e.setCancelled(true));
         } else {
-            GUI.setOnBottomClick(this::creatorPlayerInventoryClick);
-            GUI.setOnTopClick(this::creatorTopInventoryClick);
+            GUI.setBottomClickHandler(this::creatorPlayerInventoryClick);
+            GUI.setTopClickHandler(this::creatorTopInventoryClick);
+            GUI.setAllowTopInventoryClick(true);
+            GUI.setAllowBottomInventoryClick(true);
         }
-        GUI.setOnGlobalClick(this::onGlobalClick);
-        GUI.setOnClose(this::onClose);
+        GUI.setCloseHandler(this::onClose);
+        GUI.show(player);
         return true;
-    }
-
-    private void onGlobalClick(InventoryClickEvent event) {
-        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
-            event.setCancelled(true);
-        }
     }
 
     private void onShopClick(InventoryClickEvent event) {
@@ -271,15 +264,20 @@ public class Shop {
             return;
         }
 
+        int inventorySize = GUI.getRows() * 9;
+        int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
+        int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+        int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+
         // Forward Button
         GUIShop.getINSTANCE().getLogUtil().debugLog("Clicked: " + event.getSlot());
-        if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getForwardSlot(), GUI.getRows() * 9) - 1)) {
-            handleForwardButton(event);
+        if (event.getSlot() == nextSlot) {
+            handleForwardButton();
             // Backward Button
-        } else if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getBackwardSlot(), GUI.getRows() * 9) - 1)) {
-            handleBackwardButton(event);
+        } else if (event.getSlot() == prevSlot) {
+            handleBackwardButton();
             // Back Button
-        } else if (event.getSlot() == (calculateSlot(Config.getButtonConfig().getBackSlot(), GUI.getRows() * 9) - 1) && !Config.isDisableBackButton()) {
+        } else if (event.getSlot() == backSlot && !Config.isDisableBackButton()) {
             if (menuInstance != null && !GUIShop.getCREATOR().contains(player.getUniqueId())) {
                 menuInstance.open(player);
             }
@@ -330,10 +328,11 @@ public class Shop {
     }
 
     private void deleteShopItem(Integer slot) {
-        shopItem.getPages().get("Page" + currentPane.getPage()).getItems().remove(Integer.toString(slot));
-        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
-                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
-                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
+        String pageKey = "Page" + GUI.getCurrentPage();
+        shopItem.getPages().get(pageKey).getItems().remove(Integer.toString(slot));
+        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items") != null
+                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items")
+                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages." + pageKey + ".items");
         config.set(slot.toString(), null);
         try {
             GUIShop.getINSTANCE().getConfigManager().getShopConfig().save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
@@ -343,12 +342,13 @@ public class Shop {
     }
 
     public void editShopItem(ItemStack itemStack, Integer slot) {
+        String pageKey = "Page" + GUI.getCurrentPage();
         Item item = Item.parse(itemStack, slot, shop);
-        shopItem.getPages().get("Page" + currentPane.getPage()).getItems().put(Integer.toString(item.getSlot()), item);
+        shopItem.getPages().get(pageKey).getItems().put(Integer.toString(item.getSlot()), item);
 
-        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items") != null
-                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages.Page" + currentPane.getPage() + ".items")
-                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages.Page" + currentPane.getPage() + ".items");
+        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items") != null
+                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items")
+                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages." + pageKey + ".items");
 
         config.set(slot.toString(), item.serialize());
 
@@ -474,8 +474,9 @@ public class Shop {
          * If the player has enough money to purchase the item, then allow them to.
          */
         GUIShop.getINSTANCE().getLogUtil().debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
-        
-        Item item = shopItem.getPages().get("Page" + currentPane.getPage()).getItems().get(Integer.toString(event.getSlot()));
+
+        String pageKey = "Page" + GUI.getCurrentPage();
+        Item item = shopItem.getPages().get(pageKey).getItems().get(Integer.toString(event.getSlot()));
 
         if (item == null) {
             return;
@@ -508,7 +509,7 @@ public class Shop {
                     hasClicked = true;
                     BukkitScheduler scheduler = Bukkit.getScheduler();
                     scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
-                    
+
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());
                 }
@@ -518,61 +519,36 @@ public class Shop {
         }
     }
 
-    private void handleBackwardButton(InventoryClickEvent event) {
-        if (currentPane.getPage() != 0 && currentPane.getPages() > 0) {
+    private void handleBackwardButton() {
+        if (GUI.hasPreviousPage()) {
             hasClicked = true;
             clickOverride = true;
 
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page " + currentPane.getPage() + " to not visible");
-            ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page to: " + (currentPane.getPage() - 1));
-            currentPane.setPage(currentPane.getPage() - 1);
-
-            ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
-
-            int rows = GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot("Page" + (currentPane.getPage())));
-            if (rows != 6) {
-                rows += 1;
-            }
-            GUI.setRows(rows);
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Resizing GUI to the next pane.");
-
-            GUI.update();
-        } else {
-            handleItemClick(event);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Going to previous page from " + GUI.getCurrentPage());
+            GUI.previousPage();
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Now on page " + GUI.getCurrentPage());
         }
     }
 
-    private void handleForwardButton(InventoryClickEvent event) {
-        if (shopItem.getPages().size() > 1 && this.currentPane.getPage() != (this.currentPane.getPages() - 1)) {
+    private void handleForwardButton() {
+        if (GUI.hasNextPage()) {
             hasClicked = true;
             clickOverride = true;
 
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page " + currentPane.getPage() + " to not visible");
-            ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(false);
-
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting page to: " + (currentPane.getPage() + 1));
-            currentPane.setPage(currentPane.getPage() + 1);
-
-            ((ShopPane) currentPane.getPanes().toArray()[currentPane.getPage()]).setVisible(true);
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Setting Page: " + currentPane.getPage() + " to visible.");
-
-            int rows = GUIShop.rowChart.getRowsFromHighestSlot(shopItem.getHighestPageSlot("Page" + (currentPane.getPage())));
-            if (rows != 6) {
-                rows += 1;
-            }
-            GUI.setRows(rows);
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Resizing GUI to the next pane.");
-
-            GUI.update();
-        } else {
-            handleItemClick(event);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Going to next page from " + GUI.getCurrentPage());
+            GUI.nextPage();
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Now on page " + GUI.getCurrentPage());
         }
     }
 
     public boolean isShopMissing() {
         return this.shopMissing;
+    }
+
+    /**
+     * Get the current page index (for compatibility with other classes).
+     */
+    public int getCurrentPage() {
+        return GUI != null ? GUI.getCurrentPage() : 0;
     }
 }

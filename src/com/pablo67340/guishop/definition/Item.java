@@ -2,15 +2,14 @@ package com.pablo67340.guishop.definition;
 
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.SkullCreator;
-import de.tr7zw.nbtapi.NBTCompound;
-import de.tr7zw.nbtapi.NBTContainer;
-import de.tr7zw.nbtapi.NBTItem;
-import de.tr7zw.nbtapi.NbtApiException;
+import de.tr7zw.changeme.nbtapi.NBTCompound;
+import de.tr7zw.changeme.nbtapi.NBTContainer;
+import de.tr7zw.changeme.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.NbtApiException;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
@@ -26,11 +25,10 @@ import org.bukkit.inventory.meta.EnchantmentStorageMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Color;
 
-
-import org.bukkit.potion.PotionData;
-
-import org.bukkit.potion.PotionEffectType;
 
 import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
@@ -136,6 +134,10 @@ public final class Item implements ConfigurationSerializable {
 
     @Getter
     @Setter
+    private FireworkInfo fireworkInfo;
+
+    @Getter
+    @Setter
     private Permission permission;
 
     private static final String SPAWNER_MATERIAL = XMaterial.SPAWNER.parseMaterial().name();
@@ -210,6 +212,15 @@ public final class Item implements ConfigurationSerializable {
      */
     public boolean hasPotion() {
         return potionInfo != null;
+    }
+
+    /**
+     * If this item has firework info.
+     *
+     * @return true if the item has firework info, false otherwise
+     */
+    public boolean hasFirework() {
+        return fireworkInfo != null;
     }
 
     /**
@@ -461,20 +472,6 @@ public final class Item implements ConfigurationSerializable {
         return null;
     }
 
-    /**
-     * Renames a GuiItem
-     *
-     * @param gItem the gui item
-     * @param name  the new name
-     * @return an updated gui item
-     */
-    public static GuiItem renameGuiItem(GuiItem gItem, String name) {
-        ItemStack item = gItem.getItem().clone();
-        ItemMeta itemMeta = item.getItemMeta();
-        itemMeta.setDisplayName(name);
-        item.setItemMeta(itemMeta);
-        return new GuiItem(item);
-    }
 
     public Boolean hasSkullUUID() {
         return this.skullUUID != null;
@@ -490,6 +487,83 @@ public final class Item implements ConfigurationSerializable {
 
     public Boolean hasNBT() {
         return NBT != null;
+    }
+
+    /**
+     * Resolves the PotionType from PotionInfo, handling the 1.20.5+ naming changes.
+     * In 1.20.5+, extended/upgraded potions are separate types (e.g., LONG_SWIFTNESS, STRONG_SWIFTNESS).
+     * This method also maps old names to new names (e.g., SPEED → SWIFTNESS).
+     */
+    private static PotionType resolvePotionType(PotionInfo info) {
+        if (info == null || info.getType() == null) {
+            return null;
+        }
+
+        String typeName = info.getType().toUpperCase();
+        
+        // Map old potion names to new 1.20.5+ names
+        switch (typeName) {
+            case "SPEED": typeName = "SWIFTNESS"; break;
+            case "INSTANT_HEAL": typeName = "HEALING"; break;
+            case "INSTANT_DAMAGE": typeName = "HARMING"; break;
+            case "JUMP": typeName = "LEAPING"; break;
+            case "REGEN": typeName = "REGENERATION"; break;
+        }
+
+        // Build the full type name with prefix for extended/upgraded variants
+        String fullTypeName = typeName;
+        if (info.getExtended() != null && info.getExtended()) {
+            fullTypeName = "LONG_" + typeName;
+        } else if (info.getUpgraded() != null && info.getUpgraded()) {
+            fullTypeName = "STRONG_" + typeName;
+        }
+
+        // Try to find the potion type
+        try {
+            return PotionType.valueOf(fullTypeName);
+        } catch (IllegalArgumentException e) {
+            // If the prefixed version doesn't exist, try the base name
+            try {
+                return PotionType.valueOf(typeName);
+            } catch (IllegalArgumentException e2) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Could not resolve potion type: " + info.getType() + 
+                    " (tried: " + fullTypeName + ", " + typeName + ")");
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Converts a shape string to a FireworkEffect.Type.
+     *
+     * @param shape the shape string (small_ball, large_ball, star, creeper, burst)
+     * @return the corresponding FireworkEffect.Type
+     */
+    private static FireworkEffect.Type getFireworkEffectType(String shape) {
+        if (shape == null) {
+            return FireworkEffect.Type.BALL;
+        }
+        switch (shape.toLowerCase()) {
+            case "small_ball":
+            case "ball":
+            case "0":
+                return FireworkEffect.Type.BALL;
+            case "large_ball":
+            case "ball_large":
+            case "1":
+                return FireworkEffect.Type.BALL_LARGE;
+            case "star":
+            case "2":
+                return FireworkEffect.Type.STAR;
+            case "creeper":
+            case "3":
+                return FireworkEffect.Type.CREEPER;
+            case "burst":
+            case "4":
+                return FireworkEffect.Type.BURST;
+            default:
+                return FireworkEffect.Type.BALL;
+        }
     }
 
     public static Item parse(ItemStack itemStack, Integer slot, String shop) {
@@ -872,20 +946,18 @@ public final class Item implements ConfigurationSerializable {
             if (hasPotion()) {
                 PotionInfo potionInfo = getPotionInfo();
 
-                if (XMaterial.getVersion() > 18) {
-                    if (potionInfo.getSplash()) {
-                        itemStack = new ItemStack(Material.SPLASH_POTION);
-                        itemStack.setItemMeta(itemMeta);
-                    }
+                if (potionInfo.getSplash()) {
+                    itemStack = new ItemStack(Material.SPLASH_POTION);
+                    itemStack.setItemMeta(itemMeta);
+                }
 
-                    PotionMeta pMeta = (PotionMeta) itemStack.getItemMeta();
-                    PotionType potionType = PotionType.valueOf(potionInfo.getType());
-                    pMeta.setBasePotionData(new PotionData(potionType, potionType.isExtendable() ? potionInfo.getExtended() : false, potionType.isUpgradeable() ? potionInfo.getUpgraded() : false));
-
+                PotionMeta pMeta = (PotionMeta) itemStack.getItemMeta();
+                PotionType potionType = resolvePotionType(potionInfo);
+                if (potionType != null) {
+                    pMeta.setBasePotionType(potionType);
                     itemStack.setItemMeta(pMeta);
                 } else {
-                    PotionMeta pMeta = (PotionMeta) itemStack.getItemMeta();
-                    pMeta.addCustomEffect(PotionEffectType.getByName(potionInfo.getType()).createEffect(potionInfo.getUpgraded() ? 2 : 1, potionInfo.getExtended() ? 1 : 0), potionInfo.getSplash());
+                    GUIShop.getINSTANCE().getLogUtil().log("Warning: Could not resolve potion type: " + potionInfo.getType());
                 }
             }
         } else {
@@ -895,6 +967,38 @@ public final class Item implements ConfigurationSerializable {
                 itemMeta.setDisplayName(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(getShopName(), player, this));
             }
             itemStack.setItemMeta(itemMeta);
+        }
+
+        // Apply firework info if present
+        if (hasFirework() && itemStack.getType() == Material.FIREWORK_ROCKET) {
+            FireworkMeta fMeta = (FireworkMeta) itemStack.getItemMeta();
+            fMeta.setPower(fireworkInfo.getFlight());
+            
+            for (FireworkInfo.ExplosionInfo explosion : fireworkInfo.getExplosions()) {
+                FireworkEffect.Builder effectBuilder = FireworkEffect.builder();
+                
+                // Set shape
+                FireworkEffect.Type effectType = getFireworkEffectType(explosion.getShape());
+                effectBuilder.with(effectType);
+                
+                // Set colors
+                for (Integer colorInt : explosion.getColors()) {
+                    effectBuilder.withColor(Color.fromRGB(colorInt));
+                }
+                
+                // Set fade colors
+                for (Integer fadeColorInt : explosion.getFadeColors()) {
+                    effectBuilder.withFade(Color.fromRGB(fadeColorInt));
+                }
+                
+                // Set flicker and trail
+                effectBuilder.flicker(explosion.isHasFlicker());
+                effectBuilder.trail(explosion.isHasTrail());
+                
+                fMeta.addEffect(effectBuilder.build());
+            }
+            
+            itemStack.setItemMeta(fMeta);
         }
 
         // Create Page
@@ -948,14 +1052,13 @@ public final class Item implements ConfigurationSerializable {
         }
         if (hasPotion()) {
             PotionMeta pm = (PotionMeta) input.getItemMeta();
-
-            if (pm.getBasePotionType().isExtendable() != getPotionInfo().getExtended()) {
+            PotionType inputType = pm.getBasePotionType();
+            PotionType expectedType = resolvePotionType(getPotionInfo());
+            
+            if (inputType == null || expectedType == null) {
                 return false;
             }
-            if (pm.getBasePotionType().isUpgradeable() != getPotionInfo().getUpgraded()) {
-                return false;
-            }
-            if (!pm.getBasePotionType().toString().equals(getPotionInfo().getType())) {
+            if (inputType != expectedType) {
                 return false;
             }
         }
@@ -1015,11 +1118,45 @@ public final class Item implements ConfigurationSerializable {
                 itemStack = new ItemStack(Material.SPLASH_POTION);
             }
             PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
-            PotionType potionType = PotionType.valueOf(pi.getType());
-            pm.setBasePotionData(new PotionData(potionType, potionType.isExtendable() ? potionInfo.getExtended() : false, potionType.isUpgradeable() ? potionInfo.getUpgraded() : false));
-            
-            itemStack.setItemMeta(pm);
+            PotionType potionType = resolvePotionType(pi);
+            if (potionType != null) {
+                pm.setBasePotionType(potionType);
+                itemStack.setItemMeta(pm);
+            } else {
+                GUIShop.getINSTANCE().getLogUtil().log("Warning: Could not resolve potion type: " + pi.getType());
+            }
+        }
 
+        // Apply firework info if present
+        if (hasFirework() && itemStack.getType() == Material.FIREWORK_ROCKET) {
+            FireworkMeta fMeta = (FireworkMeta) itemStack.getItemMeta();
+            fMeta.setPower(fireworkInfo.getFlight());
+            
+            for (FireworkInfo.ExplosionInfo explosion : fireworkInfo.getExplosions()) {
+                FireworkEffect.Builder effectBuilder = FireworkEffect.builder();
+                
+                // Set shape
+                FireworkEffect.Type effectType = getFireworkEffectType(explosion.getShape());
+                effectBuilder.with(effectType);
+                
+                // Set colors
+                for (Integer colorInt : explosion.getColors()) {
+                    effectBuilder.withColor(Color.fromRGB(colorInt));
+                }
+                
+                // Set fade colors
+                for (Integer fadeColorInt : explosion.getFadeColors()) {
+                    effectBuilder.withFade(Color.fromRGB(fadeColorInt));
+                }
+                
+                // Set flicker and trail
+                effectBuilder.flicker(explosion.isHasFlicker());
+                effectBuilder.trail(explosion.isHasTrail());
+                
+                fMeta.addEffect(effectBuilder.build());
+            }
+            
+            itemStack.setItemMeta(fMeta);
         }
 
         ItemMeta itemMeta = itemStack.getItemMeta();
@@ -1246,6 +1383,42 @@ public final class Item implements ConfigurationSerializable {
                         potionInfo.get("splash") != null && Boolean.parseBoolean(potionInfo.get("splash").toString()),
                         potionInfo.get("extended") != null && Boolean.parseBoolean(potionInfo.get("extended").toString()),
                         potionInfo.get("upgraded") != null && Boolean.parseBoolean(potionInfo.get("upgraded").toString())));
+            } else if (entry.getKey().equalsIgnoreCase("firework-info")) {
+                ConfigurationSection section = (ConfigurationSection) entry.getValue();
+                Map<String, Object> fireworkData = section.getValues(true);
+                
+                int flight = fireworkData.get("flight") != null ? Integer.parseInt(fireworkData.get("flight").toString()) : 1;
+                List<FireworkInfo.ExplosionInfo> explosions = new ArrayList<>();
+                
+                if (fireworkData.get("explosions") instanceof List) {
+                    List<?> explosionList = (List<?>) fireworkData.get("explosions");
+                    for (Object explosionObj : explosionList) {
+                        if (explosionObj instanceof Map) {
+                            Map<String, Object> expMap = (Map<String, Object>) explosionObj;
+                            String shape = expMap.get("shape") != null ? expMap.get("shape").toString() : "small_ball";
+                            boolean hasFlicker = expMap.get("flicker") != null && Boolean.parseBoolean(expMap.get("flicker").toString());
+                            boolean hasTrail = expMap.get("trail") != null && Boolean.parseBoolean(expMap.get("trail").toString());
+                            
+                            List<Integer> colors = new ArrayList<>();
+                            if (expMap.get("colors") instanceof List) {
+                                for (Object c : (List<?>) expMap.get("colors")) {
+                                    colors.add(Integer.parseInt(c.toString()));
+                                }
+                            }
+                            
+                            List<Integer> fadeColors = new ArrayList<>();
+                            if (expMap.get("fade-colors") instanceof List) {
+                                for (Object c : (List<?>) expMap.get("fade-colors")) {
+                                    fadeColors.add(Integer.parseInt(c.toString()));
+                                }
+                            }
+                            
+                            explosions.add(new FireworkInfo.ExplosionInfo(shape, colors, fadeColors, hasFlicker, hasTrail));
+                        }
+                    }
+                }
+                
+                item.setFireworkInfo(new FireworkInfo(flight, explosions));
             } else if (entry.getKey().equalsIgnoreCase("permission")) {
                 item.setPermission(new Permission(entry.getValue().toString()));
             } else if (entry.getKey().equalsIgnoreCase("custom-model-data")) {
@@ -1326,6 +1499,22 @@ public final class Item implements ConfigurationSerializable {
             pInfo.put("extended", this.potionInfo.getExtended());
             pInfo.put("upgraded", this.potionInfo.getUpgraded());
             serialized.put("potion-info", pInfo);
+        }
+        if (hasFirework()) {
+            Map<String, Object> fInfo = new HashMap<>();
+            fInfo.put("flight", this.fireworkInfo.getFlight());
+            List<Map<String, Object>> explosionsList = new ArrayList<>();
+            for (FireworkInfo.ExplosionInfo exp : this.fireworkInfo.getExplosions()) {
+                Map<String, Object> expMap = new HashMap<>();
+                expMap.put("shape", exp.getShape());
+                expMap.put("colors", exp.getColors());
+                expMap.put("fade-colors", exp.getFadeColors());
+                expMap.put("flicker", exp.isHasFlicker());
+                expMap.put("trail", exp.isHasTrail());
+                explosionsList.add(expMap);
+            }
+            fInfo.put("explosions", explosionsList);
+            serialized.put("firework-info", fInfo);
         }
         if (hasPermission()) {
             serialized.put("permission", getPermission().getPermission());

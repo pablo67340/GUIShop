@@ -1,19 +1,15 @@
 package com.pablo67340.guishop.listenable;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ShopItem;
 import com.pablo67340.guishop.definition.ShopPage;
-import com.pablo67340.guishop.definition.ShopPane;
+import com.pablo67340.guishop.gui.SimpleGui;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.entity.Player;
 
-import java.util.Collection;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 
@@ -27,22 +23,18 @@ public class Value {
     private String targetMaterial;
 
     /**
-     * The list of {@link ShopPage}'s in this {@link Shop}.
+     * The GUI for displaying values.
      */
-    private ChestGui GUI;
+    private SimpleGui GUI;
 
     private ShopItem shopItem;
 
-    private ShopPane shopPage = new ShopPane(9, 6);
-
     private final Player player;
-
-    private Integer pageIndex = 0;
 
     /**
      * The constructor for a {@link Shop}.
      *
-     * @param player The player using the shop.
+     * @param player         The player using the shop.
      * @param targetMaterial The item that is being valued.
      */
     public Value(Player player, String targetMaterial) {
@@ -73,30 +65,25 @@ public class Value {
     }
 
     private void loadShop() {
-        if (this.GUI == null || this.GUI.getItems().isEmpty()) {
-            if (this.hasMultiplePages()) {
-                this.GUI = new ChestGui(6, Config.getTitlesConfig().getValueTitle());
-            } else {
-                int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
-                if (rows == 0) {
-                    rows = 1;
+        if (this.GUI == null) {
+            int rows = (int) Math.ceil((double) shopItem.getPages().get("Page0").getItems().size() / 9);
+            if (rows == 0) {
+                rows = 1;
+            }
+            if (rows > 6) {
+                rows = 6;
+            }
+            this.GUI = new SimpleGui(rows, Config.getTitlesConfig().getValueTitle());
+
+            ShopPage page = shopItem.getPages().get("Page0");
+            int slot = 0;
+            for (Item item : page.getItems().values()) {
+                if (slot < GUI.getRows() * 9) {
+                    GUI.setItem(slot, item.toItemStack(player, false));
+                    slot++;
                 }
-                this.GUI = new ChestGui(rows, Config.getTitlesConfig().getValueTitle());
             }
 
-            PaginatedPane pane = new PaginatedPane(0, 0, 9, 6);
-            Collection<ShopPage> shopPages = shopItem.getPages().values();
-            for (ShopPage page : shopPages) {
-                shopPage = new ShopPane(9, 6);
-                for (Item item : page.getItems().values()) {
-                    GuiItem gItem = new GuiItem(item.toItemStack(player, false));
-                    shopPage.addItem(gItem);
-                }
-                pane.addPane(pageIndex, shopPage);
-                pageIndex += 1;
-            }
-
-            GUI.addPane(pane);
             open();
         }
     }
@@ -109,15 +96,15 @@ public class Value {
      * Open the player's shop
      */
     public void open() {
+        GUI.setTopClickHandler(this::onTopClick);
+        GUI.setBottomClickHandler((e) -> e.setCancelled(true));
         GUI.show(player);
-        GUI.setOnTopClick((e) -> e.setCancelled(true));
-        GUI.setOnBottomClick((e) -> e.setCancelled(true));
-        GUI.setOnGlobalClick(this::onGlobalClick);
     }
 
-    private void onGlobalClick(InventoryClickEvent event) {
+    private void onTopClick(InventoryClickEvent event) {
+        event.setCancelled(true);
         if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
-            event.setCancelled(true);
+            return;
         }
     }
 }

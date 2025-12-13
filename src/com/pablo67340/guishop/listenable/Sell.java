@@ -1,12 +1,11 @@
 package com.pablo67340.guishop.listenable;
 
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemSellReturn;
 import com.pablo67340.guishop.definition.SellType;
+import com.pablo67340.guishop.gui.SimpleGui;
 import com.pablo67340.guishop.util.MathUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -20,7 +19,7 @@ import java.util.stream.Collectors;
 
 public final class Sell {
 
-    private ChestGui GUI;
+    private SimpleGui GUI;
 
     /**
      * Open the {@link Sell} GUI.
@@ -28,10 +27,10 @@ public final class Sell {
      * @param player The player the GUI will display to
      */
     public void open(Player player) {
-        GUI = new ChestGui(6, Config.getTitlesConfig().getSellTitle());
-        GUI.setOnClose(this::onSellClose);
-        StaticPane pane = new StaticPane(0, 0, 9, 6);
-        GUI.addPane(pane);
+        GUI = new SimpleGui(6, Config.getTitlesConfig().getSellTitle());
+        GUI.setCloseHandler(this::onSellClose);
+        // Allow players to place items in the sell GUI
+        GUI.setAllowTopInventoryClick(true);
         GUI.show(player);
     }
 

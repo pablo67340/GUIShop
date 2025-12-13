@@ -1,14 +1,11 @@
 package com.pablo67340.guishop.listenable;
 
 import com.cryptomorin.xseries.XMaterial;
-
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
-import com.pablo67340.guishop.definition.AltSellPane;
 import com.pablo67340.guishop.definition.Item;
-import de.tr7zw.nbtapi.NBTItem;
+import com.pablo67340.guishop.gui.SimpleGui;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -27,9 +24,7 @@ import org.bukkit.event.inventory.ClickType;
 public class AltSell {
 
     private final Item subjectItem;
-    private final ChestGui gui;
-
-    private AltSellPane pane;
+    private final SimpleGui gui;
 
     private final Item indicatorItem;
     private final Item addItem;
@@ -39,12 +34,22 @@ public class AltSell {
 
     private boolean hasClicked = false;
 
+    private int subjectQuantity = 1;
+
+    // Slots for the alt sell GUI
+    private static final int SUBJECT_SLOT = 13;
+    private static final int INDICATOR_SLOT = 22;
+    private static final int[] ADD_SLOTS = {18, 19, 20};
+    private static final int[] REMOVE_SLOTS = {24, 25, 26};
+    private static final int CONFIRM_SLOT = 48;
+    private static final int CANCEL_SLOT = 50;
+
     @Getter
     private final Shop shop;
 
     public AltSell(Item subjectItem, Shop shop) {
         this.subjectItem = subjectItem;
-        gui = new ChestGui(6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellConfig().getTitle()));
+        gui = new SimpleGui(6, ChatColor.translateAlternateColorCodes('&', Config.getAltSellConfig().getTitle()));
         indicatorItem = new Item();
         indicatorItem.setMaterial(Config.getAltSellConfig().getIndicatorMaterial());
         addItem = new Item();
@@ -59,10 +64,11 @@ public class AltSell {
         this.shop = shop;
     }
 
-    private GuiItem setQuantityAndGet(ItemStack item, int quantity, boolean isDecrease) {
-        item.setAmount(quantity);
+    private ItemStack setQuantityAndGet(ItemStack item, int quantity, boolean isDecrease) {
+        ItemStack clone = item.clone();
+        clone.setAmount(quantity);
 
-        ItemMeta im = item.getItemMeta();
+        ItemMeta im = clone.getItemMeta();
 
         if (isDecrease) {
             im.setDisplayName(Config.getAltSellConfig().getDecreaseTitle().replace("%amount%", Integer.toString(quantity)));
@@ -70,9 +76,9 @@ public class AltSell {
             im.setDisplayName(Config.getAltSellConfig().getIncreaseTitle().replace("%amount%", Integer.toString(quantity)));
         }
 
-        item.setItemMeta(im);
+        clone.setItemMeta(im);
 
-        return new GuiItem(item);
+        return clone;
     }
 
     public void open(Player player) {
@@ -81,66 +87,100 @@ public class AltSell {
             return;
         }
 
-        GuiItem gItem;
-        GuiItem gIndicator;
-        GuiItem gAddItem;
-        GuiItem gRemoveItem;
-        GuiItem gConfirmItem;
-        GuiItem gCancelItem;
+        ItemStack subjectStack;
+        ItemStack indicatorStack;
+        ItemStack addStack;
+        ItemStack removeStack;
+        ItemStack confirmStack;
+        ItemStack cancelStack;
 
         try {
-            gItem = new GuiItem(XMaterial.matchXMaterial(subjectItem.getMaterial()).get().parseItem());
-            gIndicator = new GuiItem(XMaterial.matchXMaterial(indicatorItem.getMaterial()).get().parseItem());
-            gAddItem = new GuiItem(XMaterial.matchXMaterial(addItem.getMaterial()).get().parseItem());
-            gRemoveItem = new GuiItem(XMaterial.matchXMaterial(removeItem.getMaterial()).get().parseItem());
-            gConfirmItem = new GuiItem(XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem());
-            gCancelItem = new GuiItem(XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem());
+            subjectStack = XMaterial.matchXMaterial(subjectItem.getMaterial()).get().parseItem();
+            indicatorStack = XMaterial.matchXMaterial(indicatorItem.getMaterial()).get().parseItem();
+            addStack = XMaterial.matchXMaterial(addItem.getMaterial()).get().parseItem();
+            removeStack = XMaterial.matchXMaterial(removeItem.getMaterial()).get().parseItem();
+            confirmStack = XMaterial.matchXMaterial(confirmItem.getMaterial()).get().parseItem();
+            cancelStack = XMaterial.matchXMaterial(cancelItem.getMaterial()).get().parseItem();
         } catch (NoSuchElementException | NullPointerException exception) {
             GUIShop.getINSTANCE().getLogUtil().log("One or more of the materials you defined in the alt sell GUI are not valid.");
             return;
         }
 
-        if (gItem != null && gIndicator != null && gAddItem != null && gRemoveItem != null && gConfirmItem != null && gCancelItem != null) {
-            GuiItem[] addRemoveItems = new GuiItem[6];
-            ItemStack addItemstack = gAddItem.getItem();
-            addRemoveItems[0] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellConfig().getQuantity1(), false);
-            addRemoveItems[1] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellConfig().getQuantity2(), false);
-            addRemoveItems[2] = setQuantityAndGet(addItemstack.clone(), Config.getAltSellConfig().getQuantity3(), false);
-            ItemStack removeItemstack = gRemoveItem.getItem();
-            addRemoveItems[3] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellConfig().getQuantity1(), true);
-            addRemoveItems[4] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellConfig().getQuantity2(), true);
-            addRemoveItems[5] = setQuantityAndGet(removeItemstack.clone(), Config.getAltSellConfig().getQuantity3(), true);
-            pane = new AltSellPane(gItem, addRemoveItems, gIndicator,
-                    Item.renameGuiItem(gConfirmItem, Config.getAltSellConfig().getConfirmName()), Item.renameGuiItem(gCancelItem, Config.getAltSellConfig().getCancelName()));
-            pane.setSubjectQuantity(1);
-            pane.setIndicatorName(subjectItem.getSellLore(1));
-            gui.addPane(pane);
-            gui.setOnTopClick(this::onClick);
-            gui.setOnBottomClick(event -> event.setCancelled(true));
-            gui.setOnClose(this::onClose);
-            gui.setOnGlobalClick(this::onGlobalClick);
+        if (subjectStack != null && indicatorStack != null && addStack != null && removeStack != null && confirmStack != null && cancelStack != null) {
+            // Set up subject item
+            subjectStack.setAmount(subjectQuantity);
+            gui.setItem(SUBJECT_SLOT, subjectStack);
+
+            // Set up indicator
+            ItemMeta indicatorMeta = indicatorStack.getItemMeta();
+            indicatorMeta.setDisplayName(subjectItem.getSellLore(subjectQuantity));
+            indicatorStack.setItemMeta(indicatorMeta);
+            gui.setItem(INDICATOR_SLOT, indicatorStack);
+
+            // Set up add buttons
+            int[] quantities = {Config.getAltSellConfig().getQuantity1(), Config.getAltSellConfig().getQuantity2(), Config.getAltSellConfig().getQuantity3()};
+            for (int i = 0; i < ADD_SLOTS.length; i++) {
+                gui.setItem(ADD_SLOTS[i], setQuantityAndGet(addStack, quantities[i], false));
+            }
+
+            // Set up remove buttons
+            for (int i = 0; i < REMOVE_SLOTS.length; i++) {
+                gui.setItem(REMOVE_SLOTS[i], setQuantityAndGet(removeStack, quantities[i], true));
+            }
+
+            // Set up confirm button
+            ItemMeta confirmMeta = confirmStack.getItemMeta();
+            confirmMeta.setDisplayName(Config.getAltSellConfig().getConfirmName());
+            confirmStack.setItemMeta(confirmMeta);
+            gui.setItem(CONFIRM_SLOT, confirmStack);
+
+            // Set up cancel button
+            ItemMeta cancelMeta = cancelStack.getItemMeta();
+            cancelMeta.setDisplayName(Config.getAltSellConfig().getCancelName());
+            cancelStack.setItemMeta(cancelMeta);
+            gui.setItem(CANCEL_SLOT, cancelStack);
+
+            gui.setTopClickHandler(this::onClick);
+            gui.setBottomClickHandler(event -> event.setCancelled(true));
+            gui.setCloseHandler(this::onClose);
             gui.show(player);
         } else {
             GUIShop.getINSTANCE().getLogUtil().log("One or more of the materials you defined in the alt sell GUI are not valid.");
         }
     }
-    
-    private void onGlobalClick(InventoryClickEvent event){
-        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
-            event.setCancelled(true);
-        }
-    }
 
     private void changeQuantity(int delta) {
         hasClicked = true;
-        int previous = pane.getSubjectQuantity();
+        int previous = subjectQuantity;
         int update = previous + delta;
         if (update < 1) {
             update = 1;
         }
-        update = pane.setSubjectQuantity(update);
+        // Limit to max stack size
+        int maxStack = 64;
+        try {
+            maxStack = XMaterial.matchXMaterial(subjectItem.getMaterial()).get().parseMaterial().getMaxStackSize();
+        } catch (Exception ignored) {}
+        if (update > maxStack) {
+            update = maxStack;
+        }
+        subjectQuantity = update;
+
         if (update != previous) {
-            pane.setIndicatorName(subjectItem.getSellLore(pane.getSubjectQuantity()));
+            // Update the subject item amount
+            ItemStack subjectStack = gui.getItem(SUBJECT_SLOT);
+            if (subjectStack != null) {
+                subjectStack.setAmount(subjectQuantity);
+            }
+
+            // Update the indicator
+            ItemStack indicatorStack = gui.getItem(INDICATOR_SLOT);
+            if (indicatorStack != null) {
+                ItemMeta indicatorMeta = indicatorStack.getItemMeta();
+                indicatorMeta.setDisplayName(subjectItem.getSellLore(subjectQuantity));
+                indicatorStack.setItemMeta(indicatorMeta);
+            }
+
             gui.update();
         }
     }
@@ -189,36 +229,55 @@ public class AltSell {
     private void onClick(InventoryClickEvent event) {
         event.setCancelled(true);
 
-        switch (event.getSlot()) {
-            case 18:
-            case 19:
-            case 20:
-                changeQuantity(event.getCurrentItem().getAmount());
-                break;
-            case 24:
-            case 25:
-            case 26:
-                changeQuantity(-event.getCurrentItem().getAmount());
-                break;
-            case 48:
-                sell((Player) event.getWhoClicked(), event.getInventory().getItem(13));
-                break;
-            case 50:
-                hasClicked = true;
-                if (GUIShop.getINSTANCE().isReload) {
-                    event.getWhoClicked().closeInventory();
-                    break;
-                }
+        // Block off-hand swap
+        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            return;
+        }
 
-                BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                if (this.shop != null) {
-                    scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> shop.open((Player) event.getWhoClicked()), 1L);
-                } else {
-                    scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> PlayerListener.INSTANCE.openMenu((Player) event.getWhoClicked()), 1L);
+        int slot = event.getSlot();
+
+        // Check add slots
+        for (int i = 0; i < ADD_SLOTS.length; i++) {
+            if (slot == ADD_SLOTS[i]) {
+                ItemStack item = event.getCurrentItem();
+                if (item != null) {
+                    changeQuantity(item.getAmount());
                 }
-                break;
-            default:
-                break;
+                return;
+            }
+        }
+
+        // Check remove slots
+        for (int i = 0; i < REMOVE_SLOTS.length; i++) {
+            if (slot == REMOVE_SLOTS[i]) {
+                ItemStack item = event.getCurrentItem();
+                if (item != null) {
+                    changeQuantity(-item.getAmount());
+                }
+                return;
+            }
+        }
+
+        // Check confirm
+        if (slot == CONFIRM_SLOT) {
+            sell((Player) event.getWhoClicked(), gui.getItem(SUBJECT_SLOT));
+            return;
+        }
+
+        // Check cancel
+        if (slot == CANCEL_SLOT) {
+            hasClicked = true;
+            if (GUIShop.getINSTANCE().isReload) {
+                event.getWhoClicked().closeInventory();
+                return;
+            }
+
+            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            if (this.shop != null) {
+                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> shop.open((Player) event.getWhoClicked()), 1L);
+            } else {
+                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> PlayerListener.INSTANCE.openMenu((Player) event.getWhoClicked()), 1L);
+            }
         }
     }
 }

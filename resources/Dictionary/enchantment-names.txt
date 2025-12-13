@@ -1,47 +1,91 @@
-This is the list of available enchantment names as of 1.17.1. If you are using an older
+This is the list of available enchantment names as of 1.21. If you are using an older
 server version, some of these names won't work as the enchantment you may be using
 may not exist for your older version.
 
 Example Config Format:
 
-enchantments: 'POWER:2 FLAME:1 KB:3'
+enchantments: 'POWER:2 FLAME:1 KNOCKBACK:3'
 
 Available Enchantments:
-    ARROW_DAMAGE
-    ARROW_FIRE
-    ARROW_INFINITE
-    ARROW_KNOCKBACK
-    BINDING_CURSE
-    CHANNELING
-    SHARPNESS
-    DAMAGE_ARTHROPODS
-    DAMAGE_UNDEAD
-    DEPTH_STRIDER
-    DIG_SPEED
-    DURABILITY
-    FIRE_ASPECT
-    FROST_WALKER
-    IMPALING
-    SOUL_SPEED
-    KNOCKBACK
-    FORTUNE
-    LOOTING
-    LOYALTY
-    LUCK
-    LURE
-    MENDING
-    MULTISHOT
-    OXYGEN
-    PIERCING
-    PROTECTION
-    BLAST_PROTECTION
-    FEATHER_FALLING
-    FIRE_PROTECTION
-    PROJECTILE_PROTECTION
-    QUICK_CHARGE
-    RIPTIDE
-    SILK_TOUCH
-    SWEEPING_EDGE
-    THORNS
-    VANISHING_CURSE
-    AQUA_AFFINITY
+
+Armor Enchantments:
+    PROTECTION              - Reduces most types of damage
+    FIRE_PROTECTION         - Reduces fire damage and burn time
+    FEATHER_FALLING         - Reduces fall damage (boots only)
+    BLAST_PROTECTION        - Reduces explosion damage and knockback
+    PROJECTILE_PROTECTION   - Reduces projectile damage
+    RESPIRATION             - Extends underwater breathing time (helmet only)
+    AQUA_AFFINITY           - Increases underwater mining speed (helmet only)
+    THORNS                  - Reflects damage back to attackers
+    DEPTH_STRIDER           - Increases underwater movement speed (boots only)
+    FROST_WALKER            - Turns water to ice, prevents magma damage (boots only)
+    SOUL_SPEED              - Increases speed on soul sand/soil (boots only)
+    SWIFT_SNEAK             - Increases sneaking speed (leggings only)
+    BINDING_CURSE           - Prevents removal of item
+
+Weapon Enchantments:
+    SHARPNESS               - Increases melee damage
+    SMITE                   - Increases damage to undead mobs
+    BANE_OF_ARTHROPODS      - Increases damage to arthropods
+    KNOCKBACK               - Increases knockback dealt
+    FIRE_ASPECT             - Sets target on fire
+    LOOTING                 - Increases mob loot drops
+    SWEEPING_EDGE           - Increases sweeping attack damage (swords only)
+
+Bow Enchantments:
+    POWER                   - Increases arrow damage
+    PUNCH                   - Increases arrow knockback
+    FLAME                   - Arrows set target on fire
+    INFINITY                - Bow doesn't consume arrows
+
+Crossbow Enchantments:
+    MULTISHOT               - Shoots three arrows at once
+    PIERCING                - Arrows pass through multiple entities
+    QUICK_CHARGE            - Decreases loading time
+
+Trident Enchantments:
+    LOYALTY                 - Returns trident to player after throwing
+    IMPALING                - Deals extra damage to ocean mobs
+    RIPTIDE                 - Propels player when in water or rain
+    CHANNELING              - Summons lightning during thunderstorms
+
+Mace Enchantments (1.21+):
+    DENSITY                 - Increases damage based on fall distance
+    BREACH                  - Reduces target's armor effectiveness
+    WIND_BURST              - Emits wind burst on hit, launching player up
+
+Tool Enchantments:
+    EFFICIENCY              - Increases mining speed
+    SILK_TOUCH              - Mined blocks drop themselves
+    FORTUNE                 - Increases certain block drops
+    UNBREAKING              - Increases item durability
+
+Fishing Rod Enchantments:
+    LUCK_OF_THE_SEA         - Increases treasure catch rate
+    LURE                    - Decreases wait time for fish
+
+Universal Enchantments:
+    MENDING                 - Repairs items using experience
+    UNBREAKING              - Increases item durability
+    VANISHING_CURSE         - Item disappears on death
+
+Legacy/Alternate Names (for backwards compatibility):
+    ARROW_DAMAGE            = POWER
+    ARROW_FIRE              = FLAME
+    ARROW_INFINITE          = INFINITY
+    ARROW_KNOCKBACK         = PUNCH
+    DAMAGE_ALL              = SHARPNESS
+    DAMAGE_ARTHROPODS       = BANE_OF_ARTHROPODS
+    DAMAGE_UNDEAD           = SMITE
+    DIG_SPEED               = EFFICIENCY
+    DURABILITY              = UNBREAKING
+    LOOT_BONUS_BLOCKS       = FORTUNE
+    LOOT_BONUS_MOBS         = LOOTING
+    LUCK                    = LUCK_OF_THE_SEA
+    OXYGEN                  = RESPIRATION
+    PROTECTION_ENVIRONMENTAL = PROTECTION
+    PROTECTION_EXPLOSIONS   = BLAST_PROTECTION
+    PROTECTION_FALL         = FEATHER_FALLING
+    PROTECTION_FIRE         = FIRE_PROTECTION
+    PROTECTION_PROJECTILE   = PROJECTILE_PROTECTION
+    WATER_WORKER            = AQUA_AFFINITY

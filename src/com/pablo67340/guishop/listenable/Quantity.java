@@ -4,16 +4,14 @@ import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.cryptomorin.xseries.XSound;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.PotionInfo;
-import com.pablo67340.guishop.definition.ShopPane;
+import com.pablo67340.guishop.gui.SimpleGui;
 import com.pablo67340.guishop.util.SkullCreator;
-import de.tr7zw.nbtapi.NBTContainer;
-import de.tr7zw.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.NBTContainer;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -29,7 +27,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionType;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.math.BigDecimal;
@@ -48,7 +45,7 @@ class Quantity {
     /**
      * The GUI that will be displayed.
      */
-    private ChestGui GUI;
+    private SimpleGui GUI;
 
     /**
      * The map containing the sell increments.
@@ -73,10 +70,9 @@ class Quantity {
      * Opens the GUI to sell the items in.
      */
     void open() {
-        GUI.setOnClose(this::onClose);
-        GUI.setOnTopClick(this::onQuantityClick);
-        GUI.setOnGlobalClick(this::onGlobalClick);
-        GUI.setOnBottomClick(event -> event.setCancelled(true));
+        GUI.setCloseHandler(this::onClose);
+        GUI.setTopClickHandler(this::onQuantityClick);
+        GUI.setBottomClickHandler(event -> event.setCancelled(true));
         GUI.show(player);
     }
 
@@ -84,9 +80,9 @@ class Quantity {
      * Preloads the inventory to display items.
      */
     public Quantity loadInventory() {
-        GUI = new ChestGui(5, Config.getTitlesConfig().getQtyTitle());
+        GUI = new SimpleGui(5, Config.getTitlesConfig().getQtyTitle());
         int multiplier = 1;
-        ShopPane page = new ShopPane(9, 5);
+
         for (int x = 19; x <= 25; x++) {
             ItemStack itemStack = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
 
@@ -191,25 +187,16 @@ class Quantity {
                 }
             }
 
-            GuiItem gItem = new GuiItem(itemStack);
-            page.setItem(gItem, x);
+            GUI.setItem(x, itemStack);
             qty.put(x, multiplier);
             multiplier *= 2;
         }
 
         if (!Config.isDisableBackButton()) {
-            GuiItem gItem = new GuiItem(Config.getButtonConfig().getBackButton().toItemStack(player, false), this::onQuantityClick);
-            page.setItem(gItem, 44);
+            GUI.setItem(44, Config.getButtonConfig().getBackButton().toItemStack(player, false));
         }
 
-        GUI.addPane(page);
         return this;
-    }
-
-    private void onGlobalClick(InventoryClickEvent event) {
-        if (event.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
-            event.setCancelled(true);
-        }
     }
 
     /**
@@ -217,6 +204,12 @@ class Quantity {
      */
     private void onQuantityClick(InventoryClickEvent e) {
         e.setCancelled(true);
+
+        // Block off-hand swap
+        if (e.getClick() == ClickType.valueOf("SWAP_OFFHAND")) {
+            return;
+        }
+
         if (!Config.isDisableBackButton()) {
             if (e.getSlot() == 44) {
                 currentShop.open(player);

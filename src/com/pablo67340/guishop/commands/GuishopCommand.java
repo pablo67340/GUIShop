@@ -8,14 +8,14 @@ import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.definition.QuantityValue;
-import com.pablo67340.guishop.definition.ShopPane;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
-import de.tr7zw.nbtapi.NBTItem;
+import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.NBTItem;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -126,16 +126,14 @@ public class GuishopCommand implements CommandExecutor {
                         if (args.length >= 3) {
                             try {
                                 int page = Integer.parseInt(args[2]);
-                                ((ShopPane) openShop.currentPane.getPanes().toArray()[openShop.currentPane.getPage()]).setVisible(false);
-                                openShop.currentPane.setPage(page);
-                                ((ShopPane) openShop.currentPane.getPanes().toArray()[openShop.currentPane.getPage()]).setVisible(true);
-                                openShop.GUI.update();
-                                GUIShop.getCREATOR().add(player.getUniqueId());
-                                GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+                                if (openShop.GUI.goToPage(page)) {
+                                    GUIShop.getCREATOR().add(player.getUniqueId());
+                                    GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+                                } else {
+                                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.invalid-page", openShop.GUI.getPageCount());
+                                }
                             } catch (NumberFormatException numberFormatException) {
                                 GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.no-number");
-                            } catch (ArrayIndexOutOfBoundsException exception) {
-                                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.invalid-page", openShop.currentPane.getPages());
                             }
                         }
                     } else {
@@ -435,7 +433,15 @@ public class GuishopCommand implements CommandExecutor {
                         item = player.getItemInHand();
                     }
 
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "printnbt.print", new NBTItem(item).getCompound().toString());
+                    // Use NBT.itemStackToNBT() to get the FULL NBT of the item
+                    // This includes vanilla data like potion effects on tipped arrows
+                    String nbtString = NBT.itemStackToNBT(item).toString();
+                    if (nbtString == null || nbtString.isEmpty() || nbtString.equals("{}")) {
+                        nbtString = "No NBT data found";
+                    }
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "printnbt.print", nbtString);
+                    // Also log to console so it can be easily copied
+                    GUIShop.getINSTANCE().getLogUtil().log("PrintNBT for " + player.getName() + ": " + nbtString);
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
                 }
@@ -706,16 +712,14 @@ public class GuishopCommand implements CommandExecutor {
         if (menu.hasMultiplePages()) {
             try {
                 int page = Integer.parseInt(number);
-                ((ShopPane) menu.currentPane.getPanes().toArray()[menu.currentPane.getPage()]).setVisible(false);
-                menu.currentPane.setPage(page);
-                ((ShopPane) menu.currentPane.getPanes().toArray()[menu.currentPane.getPage()]).setVisible(true);
-                menu.GUI.update();
-                GUIShop.getCREATOR().add(player.getUniqueId());
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+                if (menu.GUI.goToPage(page)) {
+                    GUIShop.getCREATOR().add(player.getUniqueId());
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+                } else {
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.invalid-page", menu.GUI.getPageCount());
+                }
             } catch (NumberFormatException numberFormatException) {
                 GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.no-number");
-            } catch (ArrayIndexOutOfBoundsException exception) {
-                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.invalid-page", menu.currentPane.getPages());
             }
         }
     }

@@ -1,0 +1,70 @@
+This is the documentation for firework configuration. Use firework-info to create
+custom firework rockets with specific effects, colors, and flight duration.
+
+Example Config Format:
+
+firework-info:
+  flight: 2
+  explosions:
+    - shape: small_ball
+      flicker: true
+      trail: true
+      colors: [11743532, 2437522]
+      fade-colors: [1973019, 15790320]
+
+Multiple explosions example:
+
+firework-info:
+  flight: 3
+  explosions:
+    - shape: star
+      flicker: true
+      trail: false
+      colors: [16711680]
+      fade-colors: [16776960]
+    - shape: burst
+      flicker: false
+      trail: true
+      colors: [255, 65280]
+      fade-colors: [16711935]
+
+Available Options:
+
+Flight Duration:
+    1 - Short flight
+    2 - Medium flight
+    3 - Long flight
+
+Explosion Shapes:
+    small_ball  - Small spherical explosion (default)
+    large_ball  - Large spherical explosion
+    star        - Star-shaped explosion
+    creeper     - Creeper face shaped explosion
+    burst       - Burst explosion pattern
+
+Explosion Properties:
+    flicker     - true/false - Twinkle effect
+    trail       - true/false - Trail effect behind particles
+    colors      - List of RGB color integers for explosion colors
+    fade-colors - List of RGB color integers for fade colors
+
+Common Color Values (RGB as integers):
+    Red:        16711680
+    Green:      65280
+    Blue:       255
+    Yellow:     16776960
+    Magenta:    16711935
+    Cyan:       65535
+    White:      16777215
+    Black:      0
+    Orange:     16753920
+    Pink:       16761035
+    Purple:     8388736
+    Lime:       65280
+
+To get custom colors, use this formula:
+    RGB Integer = (Red * 65536) + (Green * 256) + Blue
+    Where Red, Green, Blue are values from 0-255
+
+Example: Orange (255, 165, 0) = (255 * 65536) + (165 * 256) + 0 = 16753920
+

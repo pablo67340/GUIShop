@@ -365,6 +365,9 @@ public class Shop {
             // Back Button
         } else if (event.getSlot() == backSlot && !Config.isDisableBackButton()) {
             if (menuInstance != null && !GUIShop.getCREATOR().contains(player.getUniqueId())) {
+                // Set hasClicked to prevent onClose from also scheduling menu.open()
+                hasClicked = true;
+                // Open menu directly - openInventory() will close current inventory
                 menuInstance.open(player);
             }
         } else {

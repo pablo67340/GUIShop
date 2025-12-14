@@ -961,12 +961,62 @@ public final class Item implements ConfigurationSerializable {
                 }
             }
         } else {
+            // DUMMY items (menu items) - apply name, enchantments, item-flags, custom model data
             if (hasName()) {
                 itemMeta.setDisplayName(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(getName(), player, this));
             } else if (hasShopName()) {
                 itemMeta.setDisplayName(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(getShopName(), player, this));
             }
-            itemStack.setItemMeta(itemMeta);
+            
+            // Apply lore for menu items
+            if (hasLore()) {
+                List<String> itemLore = new ArrayList<>();
+                getLore().forEach(str -> itemLore.add(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(str, player, this)));
+                itemMeta.setLore(itemLore);
+            }
+            
+            // Apply item flags for menu items
+            if (hasItemFlags()) {
+                for (String flag : itemFlags) {
+                    try {
+                        itemMeta.addItemFlags(ItemFlag.valueOf(flag));
+                    } catch (IllegalArgumentException ignored) {
+                    }
+                }
+            }
+            
+            // Apply custom model data for menu items
+            if (hasCustomModelID()) {
+                itemMeta.setCustomModelData(getCustomModelData());
+            }
+            
+            // Apply enchantments for menu items
+            if (hasEnchantments()) {
+                if (itemStack.getType() == Material.ENCHANTED_BOOK) {
+                    EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
+                    for (String enc : getEnchantments()) {
+                        try {
+                            String enchantment = StringUtils.substringBefore(enc, ":");
+                            String level = StringUtils.substringAfter(enc, ":");
+                            meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
+                        } catch (NoSuchElementException | NumberFormatException ignored) {
+                        }
+                    }
+                    itemStack.setItemMeta(meta);
+                } else {
+                    for (String enc : getEnchantments()) {
+                        try {
+                            String enchantment = StringUtils.substringBefore(enc, ":");
+                            String level = StringUtils.substringAfter(enc, ":");
+                            itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
+                        } catch (NoSuchElementException | NumberFormatException ignored) {
+                        }
+                    }
+                    itemStack.setItemMeta(itemMeta);
+                }
+            } else {
+                itemStack.setItemMeta(itemMeta);
+            }
         }
 
         // Apply firework info if present
@@ -1360,7 +1410,9 @@ public final class Item implements ConfigurationSerializable {
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 item.setEnchantments(Arrays.stream(((String) entry.getValue()).split(" ")).filter(enchant -> {
                     try {
-                        XEnchantment.matchXEnchantment(enchant).get().getEnchant();
+                        // Extract just the enchantment name (before the colon) for validation
+                        String enchantmentName = StringUtils.substringBefore(enchant, ":");
+                        XEnchantment.matchXEnchantment(enchantmentName).get().getEnchant();
                         return true;
                     } catch (NoSuchElementException | NullPointerException exception) {
                         GUIShop.getINSTANCE().getLogUtil().log("&cInvalid enchantment found: " + enchant + "&c! Skipping enchantment.");
@@ -1459,7 +1511,7 @@ public final class Item implements ConfigurationSerializable {
             serialized.put("buy-lore", buyLore);
         }
         if (hasItemFlags()) {
-            serialized.put("item-flags", itemFlags);
+            serialized.put("item-flags", String.join(" ", itemFlags));
         }
         if (hasLore()) {
             serialized.put("lore", lore);

@@ -60,6 +60,11 @@ class Quantity {
     @Getter
     private final Player player;
 
+    /**
+     * Flag to track if player clicked back button (to prevent onClose from reopening shop)
+     */
+    private boolean clickedBack = false;
+
     Quantity(Item item, Shop shop, Player input) {
         this.item = item;
         this.currentShop = shop;
@@ -212,6 +217,9 @@ class Quantity {
 
         if (!Config.isDisableBackButton()) {
             if (e.getSlot() == 44) {
+                // Set flag to prevent onClose from also opening shop
+                clickedBack = true;
+                // Open shop directly - openInventory() will close current inventory
                 currentShop.open(player);
                 return;
             }
@@ -237,6 +245,12 @@ class Quantity {
      * The inventory closeEvent handling for the Menu.
      */
     private void onClose(InventoryCloseEvent e) {
+        // Don't reopen shop if player clicked the back button (we handle that separately)
+        if (clickedBack) {
+            clickedBack = false;
+            return;
+        }
+        
         if ((!Config.isDisableEscapeBack() || !Config.isDisableEscapeBackQuantity()) && !GUIShop.getINSTANCE().isReload) {
             BukkitScheduler scheduler = Bukkit.getScheduler();
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> currentShop.open(player), 1L);

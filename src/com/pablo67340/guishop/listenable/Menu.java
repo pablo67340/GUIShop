@@ -395,8 +395,10 @@ public final class Menu {
         String nearestShop = NameUtil.nearestShop(shop);
 
         if (nearestShop != null) {
+            // Set hasClicked to prevent any close handlers from interfering
+            hasClicked = true;
+            
             Shop openShop = new Shop(player, nearestShop, this);
-
             openShop.loadItems(false);
 
             if (!openShop.open(player)) {

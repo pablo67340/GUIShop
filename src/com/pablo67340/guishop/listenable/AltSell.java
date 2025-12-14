@@ -272,11 +272,11 @@ public class AltSell {
                 return;
             }
 
-            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
+            // Open directly - openInventory() will close current inventory
             if (this.shop != null) {
-                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> shop.open((Player) event.getWhoClicked()), 1L);
+                shop.open((Player) event.getWhoClicked());
             } else {
-                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> PlayerListener.INSTANCE.openMenu((Player) event.getWhoClicked()), 1L);
+                PlayerListener.INSTANCE.openMenu((Player) event.getWhoClicked());
             }
         }
     }

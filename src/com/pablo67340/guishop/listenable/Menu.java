@@ -279,6 +279,9 @@ public final class Menu {
         if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
             GUI.setTopClickHandler(this::onShopClick);
             GUI.setBottomClickHandler((e) -> e.setCancelled(true));
+            // Explicitly reset allow flags to prevent item theft when GUI is reused
+            GUI.setAllowTopInventoryClick(false);
+            GUI.setAllowBottomInventoryClick(false);
         } else {
             GUI.setBottomClickHandler(this::creatorPlayerInventoryClick);
             GUI.setTopClickHandler(this::creatorTopInventoryClick);

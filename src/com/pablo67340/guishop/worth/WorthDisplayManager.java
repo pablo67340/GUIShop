@@ -12,9 +12,15 @@ import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.Item;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -36,6 +42,7 @@ public class WorthDisplayManager {
     private ProtocolManager protocolManager;
     private PacketAdapter setSlotListener;
     private PacketAdapter windowItemsListener;
+    private Listener inventoryClickListener;
 
     @Getter
     private boolean registered = false;
@@ -71,19 +78,53 @@ public class WorthDisplayManager {
                 Player player = event.getPlayer();
                 if (player == null) return;
 
-                // Check if worth should be displayed for this inventory
-                if (!shouldDisplayWorth(player)) {
+                PacketContainer packet = event.getPacket();
+                
+                // Read the item FIRST and clone immediately to get fresh data
+                ItemStack originalItem = packet.getItemModifier().read(0);
+                
+                if (originalItem == null || originalItem.getType() == Material.AIR) {
                     return;
                 }
-
-                PacketContainer packet = event.getPacket();
-                ItemStack item = packet.getItemModifier().read(0);
-
-                if (item != null && item.getType() != Material.AIR) {
-                    ItemStack modified = addWorthLore(item);
-                    if (modified != null) {
-                        packet.getItemModifier().write(0, modified);
+                
+                // Clone to ensure we have independent data
+                ItemStack item = originalItem.clone();
+                
+                // Get window ID - use bytes for older versions, integers for newer
+                int windowId;
+                try {
+                    // Try reading as integer first (1.17+)
+                    windowId = packet.getIntegers().read(0);
+                } catch (Exception e) {
+                    // Fall back to byte for older versions
+                    try {
+                        windowId = packet.getBytes().read(0).intValue();
+                    } catch (Exception e2) {
+                        windowId = 0; // Default to player inventory
                     }
+                }
+                
+                // Window ID 0 = player inventory, -1 or -2 = special slots (cursor, etc.)
+                // For player inventory and special slots, ALWAYS add worth lore
+                // For containers (windowId > 0), check if it's a GUIShop inventory
+                if (windowId > 0) {
+                    if (!shouldDisplayWorth(player)) {
+                        return;
+                    }
+                }
+
+                // Clone the item and add worth lore
+                ItemStack modified = addWorthLore(item);
+                if (modified != null) {
+                    packet.getItemModifier().write(0, modified);
+                    
+                    if (WorthConfig.isDebug()) {
+                        WorthDisplayManager.this.plugin.getLogUtil().debugLog("SET_SLOT: Modified " + item.getType() + 
+                            " amount=" + item.getAmount() + " windowId=" + windowId);
+                    }
+                } else if (WorthConfig.isDebug()) {
+                    WorthDisplayManager.this.plugin.getLogUtil().debugLog("SET_SLOT: No modification for " + item.getType() + 
+                        " amount=" + item.getAmount());
                 }
             }
         };
@@ -97,24 +138,48 @@ public class WorthDisplayManager {
                 Player player = event.getPlayer();
                 if (player == null) return;
 
-                // Check if worth should be displayed for this inventory
-                if (!shouldDisplayWorth(player)) {
-                    return;
-                }
-
                 PacketContainer packet = event.getPacket();
+                
+                // Get window ID
+                int windowId;
+                try {
+                    windowId = packet.getIntegers().read(0);
+                } catch (Exception e) {
+                    try {
+                        windowId = packet.getBytes().read(0).intValue();
+                    } catch (Exception e2) {
+                        windowId = 0;
+                    }
+                }
+                
+                // For player inventory (windowId 0), always add worth to all items
+                // For containers, check if it's a GUIShop inventory
+                boolean isPlayerInventory = (windowId == 0);
+                boolean shouldDisplayForContainer = isPlayerInventory || shouldDisplayWorth(player);
+
                 List<ItemStack> items = packet.getItemListModifier().read(0);
 
                 if (items != null && !items.isEmpty()) {
                     List<ItemStack> modifiedItems = new ArrayList<>();
                     boolean anyModified = false;
 
-                    for (ItemStack item : items) {
+                    for (int i = 0; i < items.size(); i++) {
+                        ItemStack item = items.get(i);
+                        
                         if (item != null && item.getType() != Material.AIR) {
-                            ItemStack modified = addWorthLore(item);
-                            if (modified != null) {
-                                modifiedItems.add(modified);
-                                anyModified = true;
+                            // For containers, player inventory slots start after container slots
+                            // Typically slot 36+ for single chests, 54+ for double chests, etc.
+                            boolean isPlayerSlot = isPlayerInventory || (i >= 36);
+                            boolean shouldAddWorth = isPlayerSlot || shouldDisplayForContainer;
+                            
+                            if (shouldAddWorth) {
+                                ItemStack modified = addWorthLore(item);
+                                if (modified != null) {
+                                    modifiedItems.add(modified);
+                                    anyModified = true;
+                                } else {
+                                    modifiedItems.add(item);
+                                }
                             } else {
                                 modifiedItems.add(item);
                             }
@@ -125,6 +190,11 @@ public class WorthDisplayManager {
 
                     if (anyModified) {
                         packet.getItemListModifier().write(0, modifiedItems);
+                        
+                        if (WorthConfig.isDebug()) {
+                            WorthDisplayManager.this.plugin.getLogUtil().debugLog("WINDOW_ITEMS: Modified " + modifiedItems.size() + 
+                                " items in windowId=" + windowId);
+                        }
                     }
                 }
             }
@@ -132,6 +202,27 @@ public class WorthDisplayManager {
 
         protocolManager.addPacketListener(setSlotListener);
         protocolManager.addPacketListener(windowItemsListener);
+        
+        // Register inventory click listener for player inventory operations
+        // This is needed because when players manipulate their own inventory (split stacks, etc.),
+        // Paper may not send SET_SLOT packets since the client handles it locally
+        // We manually send SET_SLOT packets with worth lore to update the display
+        inventoryClickListener = new Listener() {
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            public void onInventoryClick(InventoryClickEvent event) {
+                if (!(event.getWhoClicked() instanceof Player)) return;
+                
+                Player player = (Player) event.getWhoClicked();
+                
+                // Schedule after the click is processed to get updated slot contents
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (!player.isOnline()) return;
+                    refreshPlayerInventory(player);
+                }, 1L);
+            }
+        };
+        Bukkit.getPluginManager().registerEvents(inventoryClickListener, plugin);
+        
         registered = true;
 
         plugin.getLogUtil().log("Worth display system enabled (using ProtocolLib).");
@@ -225,8 +316,140 @@ public class WorthDisplayManager {
                 protocolManager.removePacketListener(windowItemsListener);
             }
         }
+        if (inventoryClickListener != null) {
+            HandlerList.unregisterAll(inventoryClickListener);
+        }
         registered = false;
         plugin.getLogUtil().debugLog("Worth display system disabled.");
+    }
+
+    /**
+     * Refresh all items in a player's inventory by sending SET_SLOT packets with worth lore.
+     * This ensures all items display their current worth based on stack size.
+     *
+     * @param player The player whose inventory to refresh
+     */
+    private void refreshPlayerInventory(Player player) {
+        if (protocolManager == null) return;
+        
+        // Update all slots in player inventory (0-40)
+        for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
+            ItemStack item = player.getInventory().getItem(slot);
+            if (item != null && item.getType() != Material.AIR) {
+                sendSlotUpdate(player, slot);
+            }
+        }
+        
+        // Update cursor if held
+        ItemStack cursor = player.getItemOnCursor();
+        if (cursor != null && cursor.getType() != Material.AIR) {
+            sendCursorUpdate(player, cursor);
+        }
+        
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("Refreshed inventory worth display for " + player.getName());
+        }
+    }
+
+    /**
+     * Send a SET_SLOT packet for a specific inventory slot to update the client's view.
+     * This adds worth lore to the item and sends it directly to the player.
+     *
+     * @param player The player to send the update to
+     * @param slot The inventory slot to update
+     */
+    private void sendSlotUpdate(Player player, int slot) {
+        if (protocolManager == null) return;
+        
+        ItemStack item = player.getInventory().getItem(slot);
+        if (item == null || item.getType() == Material.AIR) return;
+        
+        ItemStack modified = addWorthLore(item);
+        if (modified == null) return;
+        
+        try {
+            // Create SET_SLOT packet
+            // Window ID 0 = player inventory
+            // Slot needs to be converted to protocol slot format
+            int protocolSlot = convertToProtocolSlot(slot);
+            
+            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.SET_SLOT);
+            packet.getIntegers().write(0, 0); // Window ID 0 = player inventory
+            packet.getIntegers().write(1, 0); // State ID (1.17+)
+            packet.getIntegers().write(2, protocolSlot); // Slot
+            packet.getItemModifier().write(0, modified);
+            
+            protocolManager.sendServerPacket(player, packet);
+            
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("Sent slot update: slot=" + slot + " -> protocolSlot=" + protocolSlot + 
+                    " item=" + item.getType() + " x" + item.getAmount());
+            }
+        } catch (Exception e) {
+            // Try alternative packet structure for different versions
+            try {
+                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.SET_SLOT);
+                packet.getIntegers().write(0, 0); // Window ID
+                packet.getIntegers().write(1, convertToProtocolSlot(slot)); // Slot (no state ID)
+                packet.getItemModifier().write(0, modified);
+                
+                protocolManager.sendServerPacket(player, packet);
+            } catch (Exception e2) {
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("Failed to send slot update: " + e2.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
+     * Send a cursor item update to the player.
+     *
+     * @param player The player
+     * @param cursor The cursor item
+     */
+    private void sendCursorUpdate(Player player, ItemStack cursor) {
+        if (protocolManager == null || cursor == null || cursor.getType() == Material.AIR) return;
+        
+        ItemStack modified = addWorthLore(cursor);
+        if (modified == null) return;
+        
+        try {
+            // Cursor is slot -1 in SET_SLOT packet
+            PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.SET_SLOT);
+            packet.getIntegers().write(0, -1); // Window ID -1 for cursor
+            packet.getIntegers().write(1, 0);  // State ID
+            packet.getIntegers().write(2, -1); // Slot -1 for cursor
+            packet.getItemModifier().write(0, modified);
+            
+            protocolManager.sendServerPacket(player, packet);
+        } catch (Exception e) {
+            // Ignore cursor update failures
+        }
+    }
+
+    /**
+     * Convert Bukkit inventory slot to Minecraft protocol slot.
+     * Player inventory slots in protocol are arranged differently.
+     * 
+     * Bukkit: 0-8 = hotbar, 9-35 = main inventory
+     * Protocol (window 0): 36-44 = hotbar, 9-35 = main inventory, 0-8 = crafting/armor
+     */
+    private int convertToProtocolSlot(int bukkitSlot) {
+        if (bukkitSlot >= 0 && bukkitSlot <= 8) {
+            // Hotbar: Bukkit 0-8 -> Protocol 36-44
+            return bukkitSlot + 36;
+        } else if (bukkitSlot >= 9 && bukkitSlot <= 35) {
+            // Main inventory: same in both
+            return bukkitSlot;
+        } else if (bukkitSlot >= 36 && bukkitSlot <= 39) {
+            // Armor slots: Bukkit 36-39 -> Protocol 5-8
+            return bukkitSlot - 36 + 5;
+        } else if (bukkitSlot == 40) {
+            // Offhand: Bukkit 40 -> Protocol 45
+            return 45;
+        }
+        return bukkitSlot;
     }
 
     /**
@@ -273,10 +496,14 @@ public class WorthDisplayManager {
             return null;
         }
 
-        // Calculate the worth
+        // Calculate the worth based on actual stack size
         int quantity = item.getAmount();
         BigDecimal totalWorth = shopItem.calculateSellPrice(quantity);
         BigDecimal singleWorth = shopItem.calculateSellPrice(1);
+        
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("Worth calc: " + item.getType() + " x" + quantity + " = " + totalWorth + " (single: " + singleWorth + ")");
+        }
 
         // Format the worth line
         String worthLine = formatWorthLine(totalWorth, singleWorth, quantity);

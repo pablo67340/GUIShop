@@ -19,6 +19,7 @@ import com.pablo67340.guishop.worth.WorthDisplayManager;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -176,21 +177,60 @@ public final class GUIShop extends JavaPlugin {
 
     public void warmup() {
         long startTime = System.currentTimeMillis();
-        new Menu().loadItems(true);
-        for (MenuPage page : loadedMenu.getPages().values()) {
-            for (Item item : page.getItems().values()) {
-                if (item.getTargetShop() != null) {
-                    getLogUtil().debugLog("Starting Warmup for Shop: " + item.getTargetShop());
-                    new Shop(item.getTargetShop()).loadItems(true);
-                }
+        
+        try {
+            new Menu().loadItems(true);
+        } catch (Exception e) {
+            getLogUtil().log("[Critical] Failed to load menu: " + e.getMessage());
+            if (Config.isDebugMode()) {
+                e.printStackTrace();
             }
         }
+        
+        // Only process menu items if menu loaded successfully
+        if (loadedMenu != null && loadedMenu.getPages() != null) {
+            // First, load shops linked from menu items
+            for (MenuPage page : loadedMenu.getPages().values()) {
+                for (Item item : page.getItems().values()) {
+                    if (item.getTargetShop() != null) {
+                        try {
+                            getLogUtil().debugLog("Starting Warmup for Shop: " + item.getTargetShop());
+                            new Shop(item.getTargetShop()).loadItems(true);
+                        } catch (Exception e) {
+                            getLogUtil().log("[Warning] Failed to load shop '" + item.getTargetShop() + "': " + e.getMessage());
+                        }
+                    }
+                }
+            }
+        } else {
+            getLogUtil().log("[Warning] Menu failed to load - shops linked from menu won't be loaded.");
+        }
+        
+        // Also load ALL shops from shops.yml (including hidden ones not linked in menu)
+        // This ensures items from all shops are registered in ITEMTABLE for selling/worth
+        try {
+            Set<String> shopKeys = configManager.getShopConfig().getKeys(false);
+            for (String shopName : shopKeys) {
+                if (!loadedShops.containsKey(shopName)) {
+                    try {
+                        getLogUtil().debugLog("Loading unlinked shop for worth/sell registration: " + shopName);
+                        new Shop(shopName).loadItems(true);
+                    } catch (Exception e) {
+                        getLogUtil().log("[Warning] Failed to load shop '" + shopName + "': " + e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Failed to load shops from config: " + e.getMessage());
+        }
+        
         long estimatedTime = System.currentTimeMillis() - startTime;
         getLogUtil().debugLog("Item warming completed in: " + estimatedTime + "ms");
     }
 
     public void reload(CommandSender sender, boolean ignoreCreator) {
         this.setIsReload(true);
+        boolean hadErrors = false;
         
         // Close all GUIShop inventories for online players
         // Must do this BEFORE clearing data to avoid NPEs
@@ -228,34 +268,58 @@ public final class GUIShop extends JavaPlugin {
         }
 
         // Reload all configuration files and defaults
-        configManager.reloadConfigs();
-
-        // Reload all shops and menu items (warmup)
-        warmup();
-
-        // Handle command registration based on mode
-        CommandsMode cmdMode = Config.getCommandsMode();
-        commandManager.unregisterAll();
-
-        if (cmdMode == CommandsMode.REGISTER) {
-            commandManager.registerCommands();
+        try {
+            configManager.reloadConfigs();
+        } catch (Exception e) {
+            getLogUtil().log("[Critical] Failed to reload configs: " + e.getMessage());
+            hadErrors = true;
         }
 
-        // Handle command interception
-        if (cmdMode == CommandsMode.INTERCEPT) {
-            CommandsInterceptor.register();
-        } else {
-            CommandsInterceptor.unregister();
+        // Reload all shops and menu items (warmup)
+        // This is wrapped in try-catch inside warmup() itself
+        warmup();
+
+        // ALWAYS re-register commands, even if config loading failed
+        // This ensures /gs reload is still available to fix config issues
+        try {
+            CommandsMode cmdMode = Config.getCommandsMode();
+            commandManager.unregisterAll();
+
+            if (cmdMode == CommandsMode.REGISTER) {
+                commandManager.registerCommands();
+            }
+
+            // Handle command interception
+            if (cmdMode == CommandsMode.INTERCEPT) {
+                CommandsInterceptor.register();
+            } else {
+                CommandsInterceptor.unregister();
+            }
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Failed to register commands: " + e.getMessage());
+            hadErrors = true;
         }
 
         // Reload worth display system
-        if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
-            worthDisplayManager.unregister();
+        try {
+            if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
+                worthDisplayManager.unregister();
+            }
+            initWorthDisplay();
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Failed to reload worth display: " + e.getMessage());
         }
-        initWorthDisplay();
 
-        logUtil.log("GUIShop reloaded successfully!");
-        getMiscUtils().sendPrefix(sender, "reload.execute");
+        if (hadErrors) {
+            logUtil.log("GUIShop reloaded with errors! Check the logs above.");
+            if (sender != null) {
+                getMiscUtils().sendPrefix(sender, "reload.execute");
+                sender.sendMessage(ChatColor.RED + "[GUIShop] Reload completed with errors - check console!");
+            }
+        } else {
+            logUtil.log("GUIShop reloaded successfully!");
+            getMiscUtils().sendPrefix(sender, "reload.execute");
+        }
 
         this.setIsReload(false);
     }

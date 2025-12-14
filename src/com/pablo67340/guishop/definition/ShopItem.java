@@ -23,12 +23,24 @@ public class ShopItem implements Cloneable {
         for (Map.Entry<String, ShopPage> entry : pages.entrySet()) {
             ShopPage shopPage = entry.getValue();
 
-            Item highestPageItem = shopPage.getItems().values().stream().max(Comparator.comparing(Item::getSlot)).get();
-            shopPage.setHighestSlot(highestPageItem.getSlot());
+            // Handle empty pages gracefully (can happen with worth-only shops that have block-only materials)
+            if (shopPage.getItems().isEmpty()) {
+                shopPage.setHighestSlot(0);
+                pages.put(entry.getKey(), shopPage);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Page " + entry.getKey() + " is empty, setting highest slot to 0");
+                continue;
+            }
+
+            Item highestPageItem = shopPage.getItems().values().stream().max(Comparator.comparing(Item::getSlot)).orElse(null);
+            if (highestPageItem != null) {
+                shopPage.setHighestSlot(highestPageItem.getSlot());
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
+            } else {
+                shopPage.setHighestSlot(0);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Page " + entry.getKey() + " has no items, setting highest slot to 0");
+            }
 
             pages.put(entry.getKey(), shopPage);
-
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
         }
     }
 }

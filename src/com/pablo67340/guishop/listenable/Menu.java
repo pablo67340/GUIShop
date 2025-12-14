@@ -16,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public final class Menu {
@@ -76,6 +78,7 @@ public final class Menu {
         if (menuSection == null) {
             logMenuError("menu.yml is missing the root 'Menu' section. Check your file structure and indentation.");
             logMenuError("Expected format:\n  Menu:\n    pages:\n      Page0:\n        items:\n          '0':\n            id: DIAMOND\n            target-shop: Blocks");
+            createFallbackMenu("Missing 'Menu' section in menu.yml");
             return;
         }
 
@@ -83,6 +86,7 @@ public final class Menu {
         if (pagesConfig == null) {
             logMenuError("menu.yml is missing 'Menu.pages' section. Check your indentation.");
             logMenuError("Expected format:\n  Menu:\n    pages:\n      Page0:\n        items:");
+            createFallbackMenu("Missing 'pages' section in menu.yml");
             return;
         }
 
@@ -149,6 +153,7 @@ public final class Menu {
 
         if (menuItem.getPages().isEmpty()) {
             logMenuError("Menu loaded with 0 pages. Your menu.yml may be empty or incorrectly formatted.");
+            createFallbackMenu("Menu has 0 pages - check menu.yml");
             return;
         }
 
@@ -162,6 +167,37 @@ public final class Menu {
         if (!preLoad) {
             loadMenu();
         }
+    }
+
+    /**
+     * Create a fallback menu with a BARRIER item when config loading fails.
+     * This prevents the plugin from crashing and allows /gs reload to still work.
+     */
+    private void createFallbackMenu(String errorReason) {
+        GUIShop.getINSTANCE().getLogUtil().log("[Fallback] Creating fallback menu due to config error: " + errorReason);
+        
+        menuItem = new MenuItem();
+        MenuPage fallbackPage = new MenuPage();
+        
+        // Create a fallback BARRIER item explaining the error
+        Item fallbackItem = new Item();
+        fallbackItem.setMaterial("BARRIER");
+        fallbackItem.setSlot(13); // Center of first row
+        fallbackItem.setName("&c&lConfig Error");
+        fallbackItem.setItemType(ItemType.DUMMY);
+        
+        List<String> errorLore = new ArrayList<>();
+        errorLore.add("&7" + errorReason);
+        errorLore.add("");
+        errorLore.add("&eCheck your menu.yml file");
+        errorLore.add("&eand run &f/gs reload");
+        fallbackItem.setLore(errorLore);
+        
+        fallbackPage.getItems().put("13", fallbackItem);
+        fallbackPage.setHighestSlot(13);
+        menuItem.getPages().put("Page0", fallbackPage);
+        
+        GUIShop.getINSTANCE().setLoadedMenu(menuItem);
     }
 
     /**

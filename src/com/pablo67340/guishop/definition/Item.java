@@ -713,11 +713,7 @@ public final class Item implements ConfigurationSerializable {
                         itemMeta.setDisplayName(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(GUIShop.getINSTANCE().getConfigManager().getMainConfig().getString("spawner-name").replace("%type%", mobName), player, this));
                     }
                     if (hasShopLore() && !isMenu) {
-                        getShopLore().forEach(str -> {
-                            if (!itemLore.contains(str)) {
-                                itemLore.add(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(str, player, this));
-                            }
-                        });
+                        getShopLore().forEach(str -> itemLore.add(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(str, player, this)));
                     } else if (hasLore() && isMenu) {
                         getLore().forEach(str -> itemLore.add(GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(str, player, this)));
                     }

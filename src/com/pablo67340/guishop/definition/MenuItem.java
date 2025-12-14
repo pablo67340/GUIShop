@@ -23,12 +23,24 @@ public class MenuItem implements Cloneable {
         for (Map.Entry<String, MenuPage> entry : pages.entrySet()) {
             MenuPage menuPage = entry.getValue();
 
-            Item highestPageItem = menuPage.getItems().values().stream().max(Comparator.comparing(Item::getSlot)).get();
-            menuPage.setHighestSlot(highestPageItem.getSlot());
+            // Handle empty pages gracefully
+            if (menuPage.getItems().isEmpty()) {
+                menuPage.setHighestSlot(0);
+                pages.put(entry.getKey(), menuPage);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Page " + entry.getKey() + " is empty, setting highest slot to 0");
+                continue;
+            }
+
+            Item highestPageItem = menuPage.getItems().values().stream().max(Comparator.comparing(Item::getSlot)).orElse(null);
+            if (highestPageItem != null) {
+                menuPage.setHighestSlot(highestPageItem.getSlot());
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
+            } else {
+                menuPage.setHighestSlot(0);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Page " + entry.getKey() + " has no items, setting highest slot to 0");
+            }
 
             pages.put(entry.getKey(), menuPage);
-
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
         }
     }
 }

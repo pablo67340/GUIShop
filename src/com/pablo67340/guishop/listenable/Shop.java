@@ -196,20 +196,31 @@ public class Shop {
      */
     private void registerSellableItem(Item item, String pageKey, String slotKey) {
         try {
+            String materialKey;
+            ItemStack parsedItem;
+            
+            if (item.hasPotion() && item.getPotionInfo().getSplash()) {
+                parsedItem = XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem();
+            } else {
+                parsedItem = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
+            }
+            
+            // Some materials are block-only and don't have an item form (e.g., WALL_TORCH, WATER, TRIPWIRE)
+            // These return null from parseItem() and cannot be registered as sellable
+            if (parsedItem == null) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Skipping block-only material (no item form): " + item.getMaterial());
+                return;
+            }
+            
+            materialKey = parsedItem.getType().toString();
+            
             List<Item> items = GUIShop.getINSTANCE().getITEMTABLE().get(item.getMaterial());
             if (items == null) {
                 items = new ArrayList<>();
             }
             items.add(item);
-
-            String materialKey;
-            if (item.hasPotion() && item.getPotionInfo().getSplash()) {
-                materialKey = XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString();
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Registering SPLASH_POTION as sellable.");
-            } else {
-                materialKey = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString();
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + " as sellable.");
-            }
+            
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + " as sellable.");
             GUIShop.getINSTANCE().getITEMTABLE().put(materialKey, items);
         } catch (NoSuchElementException e) {
             logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "': Material '" + item.getMaterial() + "' is not valid for this server version.");

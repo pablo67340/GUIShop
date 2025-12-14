@@ -184,13 +184,24 @@ public final class ConfigManager {
 
     public void reloadConfigs() {
         try {
+            // Reload ALL config files
+            mainConfig.load(configFile);
             menuConfig.load(menuFile);
             cacheConfig.load(cacheFile);
             shopConfig.load(shopFile);
+            messagesConfig.load(messagesFile);
             worthConfig.load(worthFile);
+            
+            // Reload message system
+            messageSystem.loadCustomMessages(messagesConfig);
+            
+            // Reload all default values from configs
+            loadDefaults();
             loadWorthDefaults();
+            
+            GUIShop.getINSTANCE().getLogUtil().debugLog("All configs reloaded successfully.");
         } catch (IOException | InvalidConfigurationException e) {
-            GUIShop.getINSTANCE().getLogUtil().log("Error loading custom config: " + e.getMessage());
+            GUIShop.getINSTANCE().getLogUtil().log("Error loading config: " + e.getMessage());
         }
     }
 
@@ -442,6 +453,12 @@ public final class ConfigManager {
 
         // Ignore list for lore containing certain strings
         WorthConfig.setIgnoreLoreContaining(worthConfig.getStringList("ignore-lore-containing"));
+
+        // Blacklisted inventory titles
+        WorthConfig.setBlacklistedInventories(worthConfig.getStringList("blacklisted-inventories"));
+
+        // Player inventory only mode
+        WorthConfig.setPlayerInventoryOnly(worthConfig.getBoolean("player-inventory-only", false));
 
         // Debug mode for worth system
         WorthConfig.setDebug(worthConfig.getBoolean("debug", false));

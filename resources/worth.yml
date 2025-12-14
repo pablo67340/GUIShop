@@ -40,6 +40,17 @@ ignore-lore-containing:
   - "Worth:"
   - "Sell Value:"
 
+# Blacklist inventory titles where worth should NOT be displayed
+# GUIShop's own inventories (Menu, Shop, Sell, Quantity, Value, AltSell) are automatically excluded.
+# Add any other inventory titles here (partial matches, case-insensitive)
+blacklisted-inventories:
+  - "Auction House"
+  - "Crate Preview"
+
+# If true, worth will ONLY show in the player's own inventory (not in any container/GUI)
+# This is the most restrictive option - worth only shows in your hotbar and inventory
+player-inventory-only: false
+
 # Debug mode - logs worth calculations to console (useful for troubleshooting)
 debug: false
 

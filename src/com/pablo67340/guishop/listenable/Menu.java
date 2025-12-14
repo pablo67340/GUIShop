@@ -55,40 +55,120 @@ public final class Menu {
      */
     public void loadItems(Boolean preLoad) {
         if (GUIShop.getINSTANCE().getLoadedMenu() == null) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Loading Menu from config.");
-            menuItem = new MenuItem();
-            ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getMenuConfig().getConfigurationSection("Menu.pages");
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Loading items for Menu");
-
-            if (config == null) {
-                GUIShop.getINSTANCE().getLogUtil().log("Check menu.yml for Menu items. They were not found, or the menu.yml is incorrectly formatted.");
-            } else {
-                config.getKeys(false).stream().map(str -> {
-                    MenuPage page = new MenuPage();
-                    ConfigurationSection shopItems = config.getConfigurationSection(str + ".items");
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Reading Page: " + str);
-                    shopItems.getKeys(false).stream().map(key -> {
-                        GUIShop.getINSTANCE().getLogUtil().debugLog("Reading item: " + key + " in page " + str);
-                        ConfigurationSection section = shopItems.getConfigurationSection(key);
-                        return Item.deserialize(section.getValues(true), Integer.parseInt(key), null);
-                    }).forEachOrdered(item -> page.getItems().put(Integer.toString(item.getSlot()), item));
-                    return page;
-                }).forEachOrdered(page -> {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Adding page: " + "Page" + menuItem.getPages().size() + " to pages.");
-                    menuItem.getPages().put("Page" + menuItem.getPages().size(), page);
-                });
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Loaded Menu cached");
-                GUIShop.getINSTANCE().setLoadedMenu(menuItem);
-                if (!preLoad) {
-                    loadMenu();
-                }
-            }
+            loadMenuFromConfig(preLoad);
         } else {
             GUIShop.getINSTANCE().getLogUtil().debugLog("Loading Menu from cache.");
             menuItem = GUIShop.getINSTANCE().getLoadedMenu();
             menuItem.determineHighestSlots();
             loadMenu();
         }
+    }
+
+    /**
+     * Load menu data from the configuration file with comprehensive error handling.
+     */
+    private void loadMenuFromConfig(Boolean preLoad) {
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Loading Menu from config.");
+        menuItem = new MenuItem();
+
+        // Check if menu.yml has the Menu section
+        ConfigurationSection menuSection = GUIShop.getINSTANCE().getConfigManager().getMenuConfig().getConfigurationSection("Menu");
+        if (menuSection == null) {
+            logMenuError("menu.yml is missing the root 'Menu' section. Check your file structure and indentation.");
+            logMenuError("Expected format:\n  Menu:\n    pages:\n      Page0:\n        items:\n          '0':\n            id: DIAMOND\n            target-shop: Blocks");
+            return;
+        }
+
+        ConfigurationSection pagesConfig = menuSection.getConfigurationSection("pages");
+        if (pagesConfig == null) {
+            logMenuError("menu.yml is missing 'Menu.pages' section. Check your indentation.");
+            logMenuError("Expected format:\n  Menu:\n    pages:\n      Page0:\n        items:");
+            return;
+        }
+
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Loading items for Menu");
+        int pageIndex = 0;
+        int totalItems = 0;
+
+        for (String pageKey : pagesConfig.getKeys(false)) {
+            MenuPage page = new MenuPage();
+            ConfigurationSection itemsSection = pagesConfig.getConfigurationSection(pageKey + ".items");
+
+            if (itemsSection == null) {
+                logMenuError("Menu > " + pageKey + " is missing 'items' section. Check your indentation.");
+                logMenuError("Expected format:\n  " + pageKey + ":\n    items:\n      '0':\n        id: DIAMOND");
+                pageIndex++;
+                continue;
+            }
+
+            int itemsLoaded = 0;
+            for (String slotKey : itemsSection.getKeys(false)) {
+                // Validate slot is a number
+                int slot;
+                try {
+                    slot = Integer.parseInt(slotKey);
+                } catch (NumberFormatException e) {
+                    logMenuError("Menu > " + pageKey + " > Item slot '" + slotKey + "' is not a valid number. Slot keys must be numbers (e.g., '0', '1', '2').");
+                    continue;
+                }
+
+                ConfigurationSection itemSection = itemsSection.getConfigurationSection(slotKey);
+                if (itemSection == null) {
+                    logMenuError("Menu > " + pageKey + " > Slot '" + slotKey + "' has invalid format. Check your indentation - each slot needs proper YAML structure.");
+                    continue;
+                }
+
+                // Check for required 'id' field
+                if (!itemSection.contains("id")) {
+                    logMenuError("Menu > " + pageKey + " > Slot '" + slotKey + "' is missing required 'id' field. Every item needs an 'id' property.");
+                    continue;
+                }
+
+                Item item;
+                try {
+                    item = Item.deserialize(itemSection.getValues(true), slot, null);
+                } catch (Exception e) {
+                    logMenuError("Menu > " + pageKey + " > Slot '" + slotKey + "' failed to load: " + e.getMessage());
+                    continue;
+                }
+
+                if (item == null) {
+                    logMenuError("Menu > " + pageKey + " > Slot '" + slotKey + "' returned null item. Check the item configuration.");
+                    continue;
+                }
+
+                page.getItems().put(Integer.toString(item.getSlot()), item);
+                itemsLoaded++;
+            }
+
+            menuItem.getPages().put("Page" + pageIndex, page);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Loaded " + pageKey + " with " + itemsLoaded + " items.");
+            totalItems += itemsLoaded;
+            pageIndex++;
+        }
+
+        if (menuItem.getPages().isEmpty()) {
+            logMenuError("Menu loaded with 0 pages. Your menu.yml may be empty or incorrectly formatted.");
+            return;
+        }
+
+        if (totalItems == 0) {
+            logMenuError("Menu loaded with 0 items across all pages. Check your menu.yml configuration.");
+        }
+
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Menu loaded successfully with " + menuItem.getPages().size() + " page(s) and " + totalItems + " item(s).");
+        GUIShop.getINSTANCE().setLoadedMenu(menuItem);
+
+        if (!preLoad) {
+            loadMenu();
+        }
+    }
+
+    /**
+     * Log a menu configuration error with consistent formatting.
+     */
+    private void logMenuError(String message) {
+        GUIShop.getINSTANCE().getLogUtil().log("[Menu Config Error] " + message);
     }
 
     private void loadMenu() {

@@ -190,19 +190,33 @@ public final class GUIShop extends JavaPlugin {
     }
 
     public void reload(CommandSender sender, boolean ignoreCreator) {
-        Bukkit.getOnlinePlayers().stream().filter(player -> player.getOpenInventory() != null
-                && (player.getOpenInventory().getTitle().contains(Config.getTitlesConfig().getMenuTitle().replace("%page-number%", ""))
-                || player.getOpenInventory().getTitle().contains(Config.getTitlesConfig().getShopTitle().replace("%shopname%", ""))
-                || player.getOpenInventory().getTitle().contains(Config.getTitlesConfig().getQtyTitle())
-                || player.getOpenInventory().getTitle().contains(Config.getTitlesConfig().getSellTitle())
-                || player.getOpenInventory().getTitle().contains(Config.getAltSellConfig().getTitle())
-                || player.getOpenInventory().getTitle().contains(Config.getTitlesConfig().getValueTitle()))
-        ).forEach(Player::closeInventory);
-
         this.setIsReload(true);
+        
+        // Close all GUIShop inventories for online players
+        // Must do this BEFORE clearing data to avoid NPEs
+        try {
+            String menuTitle = Config.getTitlesConfig().getMenuTitle().replace("%page-number%", "");
+            String shopTitle = Config.getTitlesConfig().getShopTitle().replace("%shopname%", "");
+            String qtyTitle = Config.getTitlesConfig().getQtyTitle();
+            String sellTitle = Config.getTitlesConfig().getSellTitle();
+            String altSellTitle = Config.getAltSellConfig().getTitle();
+            String valueTitle = Config.getTitlesConfig().getValueTitle();
+            
+            Bukkit.getOnlinePlayers().stream().filter(player -> {
+                if (player.getOpenInventory() == null) return false;
+                String title = player.getOpenInventory().getTitle();
+                return title.contains(menuTitle)
+                        || title.contains(shopTitle)
+                        || title.contains(qtyTitle)
+                        || title.contains(sellTitle)
+                        || title.contains(altSellTitle)
+                        || title.contains(valueTitle);
+            }).forEach(Player::closeInventory);
+        } catch (Exception e) {
+            getLogUtil().debugLog("Error closing inventories during reload: " + e.getMessage());
+        }
 
-        logUtil.log("GUIShop reloaded");
-
+        // Clear all cached data
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
         SELL_COMMANDS.clear();
@@ -213,24 +227,24 @@ public final class GUIShop extends JavaPlugin {
             CREATOR.clear();
         }
 
+        // Reload all configuration files and defaults
         configManager.reloadConfigs();
 
-        // If the CommandsMode is REGISTER, register/re-register the commands
-        // Otherwise, unregister the commands
-        CommandsMode cmdMode = Config.getCommandsMode();
+        // Reload all shops and menu items (warmup)
+        warmup();
 
+        // Handle command registration based on mode
+        CommandsMode cmdMode = Config.getCommandsMode();
         commandManager.unregisterAll();
 
         if (cmdMode == CommandsMode.REGISTER) {
             commandManager.registerCommands();
         }
 
-        // Intercept commands using the listener, if configured
+        // Handle command interception
         if (cmdMode == CommandsMode.INTERCEPT) {
             CommandsInterceptor.register();
-
         } else {
-            // Unregisters previous command listener
             CommandsInterceptor.unregister();
         }
 
@@ -240,6 +254,7 @@ public final class GUIShop extends JavaPlugin {
         }
         initWorthDisplay();
 
+        logUtil.log("GUIShop reloaded successfully!");
         getMiscUtils().sendPrefix(sender, "reload.execute");
 
         this.setIsReload(false);

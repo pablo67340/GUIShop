@@ -42,6 +42,14 @@ public final class WorthConfig {
 
     @Getter
     @Setter
+    private static List<String> blacklistedInventories = new ArrayList<>();
+
+    @Getter
+    @Setter
+    private static boolean playerInventoryOnly = false;
+
+    @Getter
+    @Setter
     private static boolean debug = false;
 
     /**

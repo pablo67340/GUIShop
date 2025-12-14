@@ -48,41 +48,84 @@ public class MiscUtils {
     public String placeholderIfy(String input, Player player, Item item) {
         String string = ChatColor.translateAlternateColorCodes('&', input);
 
+        // Item name fallback
+        String itemName;
+        try {
+            itemName = XMaterial.matchXMaterial(item.getMaterial()).get().name();
+        } catch (Exception e) {
+            itemName = item.getMaterial();
+        }
+
+        // Item placeholders
         if (item.hasShopName()) {
-            string = string.replace("%item_shop_name%", item.getShopName());
+            string = replaceCaseInsensitive(string, "%item_shop_name%", item.getShopName());
         } else {
-            string = string.replace("%item_shop_name%", XMaterial.matchXMaterial(item.getMaterial()).get().name());
+            string = replaceCaseInsensitive(string, "%item_shop_name%", itemName);
         }
 
         if (item.hasBuyName()) {
-            string = string.replace("%item_buy_name%", item.getBuyName());
+            string = replaceCaseInsensitive(string, "%item_buy_name%", item.getBuyName());
         } else {
-            string = string.replace("%item_buy_name%", XMaterial.matchXMaterial(item.getMaterial()).get().name());
+            string = replaceCaseInsensitive(string, "%item_buy_name%", itemName);
         }
 
         if (item.hasBuyPrice()) {
-            string = string.replace("%buy_price%", item.calculateBuyPrice(1).toPlainString());
+            string = replaceCaseInsensitive(string, "%buy_price%", item.calculateBuyPrice(1).toPlainString());
         }
 
         if (item.hasSellPrice()) {
-            string = string.replace("%sell_price%", item.calculateSellPrice(1).toPlainString());
+            string = replaceCaseInsensitive(string, "%sell_price%", item.calculateSellPrice(1).toPlainString());
         }
 
-        string = string.replace("%currency_symbol%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix"));
-        string = string.replace("%currency_suffix%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
+        string = replaceCaseInsensitive(string, "%currency_symbol%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix"));
+        string = replaceCaseInsensitive(string, "%currency_suffix%", GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
 
+        // Player placeholders
         if (player != null) {
-            string = string.replace("%player_name%", player.getName());
-            string = string.replace("%player_uuid%", player.getUniqueId().toString());
-            string = string.replace("%player_world%", player.getLocation().getWorld().getName());
-            string = string.replace("%player_balance%", getECONOMY().format(getECONOMY().getBalance(player)));
+            String playerName = player.getName();
+            String playerUuid = player.getUniqueId().toString();
+            String playerWorld = player.getLocation().getWorld() != null ? player.getLocation().getWorld().getName() : "unknown";
+            String playerBalance = getECONOMY().format(getECONOMY().getBalance(player));
 
+            string = replaceCaseInsensitive(string, "%player_name%", playerName);
+            string = replaceCaseInsensitive(string, "%player_uuid%", playerUuid);
+            string = replaceCaseInsensitive(string, "%player_world%", playerWorld);
+            string = replaceCaseInsensitive(string, "%player_balance%", playerBalance);
+
+            // PlaceholderAPI support (handles its own placeholders)
             if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
                 string = PlaceholderAPI.setPlaceholders(player, string);
             }
         }
 
         return string;
+    }
+
+    /**
+     * Case-insensitive string replacement that supports both %placeholder% and {placeholder} formats.
+     * 
+     * @param source The source string
+     * @param target The target to find in %placeholder% format (case-insensitive)
+     * @param replacement The replacement value
+     * @return The string with all case-insensitive matches replaced
+     */
+    private String replaceCaseInsensitive(String source, String target, String replacement) {
+        if (source == null || target == null || replacement == null) {
+            return source;
+        }
+        
+        // Replace %placeholder% format (case-insensitive)
+        source = source.replaceAll("(?i)" + java.util.regex.Pattern.quote(target), 
+                java.util.regex.Matcher.quoteReplacement(replacement));
+        
+        // Also replace {placeholder} format (convert %name% to {name} pattern)
+        if (target.startsWith("%") && target.endsWith("%")) {
+            String bracketTarget = "{" + target.substring(1, target.length() - 1) + "}";
+            source = source.replaceAll("(?i)" + java.util.regex.Pattern.quote(bracketTarget), 
+                    java.util.regex.Matcher.quoteReplacement(replacement));
+        }
+        
+        return source;
     }
 
     /**

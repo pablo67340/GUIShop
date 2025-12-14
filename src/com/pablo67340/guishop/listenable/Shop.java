@@ -80,71 +80,151 @@ public class Shop {
         }
 
         if (!GUIShop.getINSTANCE().getLoadedShops().containsKey(shop)) {
-            this.setTitle(GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title"));
-            shopItem = new ShopItem();
-            ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages");
-            if (config == null) {
-                GUIShop.getINSTANCE().getLogUtil().log("Check shops.yml for shop " + shop + ". It was not found.");
-                if (this.player != null) {
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "shop-not-found", shop);
-                }
-                shopMissing = true;
-            } else {
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Loading items for shop: " + shop);
-                config.getKeys(false).stream().map(str -> {
-                    ShopPage page = new ShopPage();
-                    ConfigurationSection shopItems = config.getConfigurationSection(str + ".items");
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Reading Shop Page: " + str);
-                    shopItems.getKeys(false).stream().map(key -> {
-                        GUIShop.getINSTANCE().getLogUtil().debugLog("Reading item: " + key + " in page " + str);
-                        ConfigurationSection section = shopItems.getConfigurationSection(key);
-                        return Item.deserialize(section.getValues(true), Integer.parseInt(key), shop);
-                    }).forEachOrdered(item -> {
-                        if (item.hasSellPrice()) {
-                            List<Item> items = GUIShop.getINSTANCE().getITEMTABLE().get(item.getMaterial());
-                            if (items == null) {
-                                items = new ArrayList<>();
-                            }
-                            items.add(item);
-
-                            if (item.hasPotion() && item.getPotionInfo().getSplash()) {
-                                GUIShop.getINSTANCE().getLogUtil().debugLog("Making item: SPLASH_POTION sellable.");
-                                GUIShop.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString(), items);
-                            } else {
-                                try {
-                                    GUIShop.getINSTANCE().getLogUtil().debugLog("Making item: " + item.getMaterial() + " sellable.");
-                                    GUIShop.getINSTANCE().getITEMTABLE().put(XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString(), items);
-                                } catch (Exception ex) {
-                                    GUIShop.getINSTANCE().getLogUtil().log("Error adding item: " + item.getMaterial() + " to sellable list. Wrong item name or item does not exist for this server version.");
-                                }
-                            }
-                        }
-                        // Only add to GUI if item has a buy price, or hide-non-buyable is disabled
-                        if (!Config.isHideNonBuyable() || item.hasBuyPrice() || item.getItemType() != ItemType.SHOP) {
-                            page.getItems().put(Integer.toString(item.getSlot()), item);
-                        }
-                    });
-                    return page;
-                }).forEachOrdered(page -> {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Adding page: " + "Page" + shopItem.getPages().size() + " to pages.");
-                    shopItem.getPages().put("Page" + shopItem.getPages().size(), page);
-                });
-
-                shopItem.determineHighestSlots();
-
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Shop items added to loaded shops");
-                GUIShop.getINSTANCE().getLoadedShops().put(shop, shopItem);
-                if (!preLoad) {
-                    loadShop();
-                }
-            }
+            loadShopFromConfig(preLoad);
         } else {
             shopItem = (ShopItem) GUIShop.getINSTANCE().getLoadedShops().get(shop);
             this.setTitle(GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title"));
-            //Re-Check for preload here in case they have multiple item's leading to one shop.
             if (!preLoad) {
                 loadShop();
             }
+        }
+    }
+
+    /**
+     * Load shop data from the configuration file with comprehensive error handling.
+     */
+    private void loadShopFromConfig(Boolean preLoad) {
+        String shopTitle = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title");
+        if (shopTitle == null) {
+            logShopError("Shop '" + shop + "' is missing a 'title' property. Add 'title: \"Your Shop Title\"' to the shop configuration.");
+            shopMissing = true;
+            return;
+        }
+        this.setTitle(shopTitle);
+        shopItem = new ShopItem();
+
+        ConfigurationSection pagesConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages");
+        if (pagesConfig == null) {
+            logShopError("Shop '" + shop + "' has no 'pages' section. Check your shops.yml indentation and structure.");
+            logShopError("Expected format:\n  " + shop + ":\n    title: 'Shop Title'\n    pages:\n      Page0:\n        items:\n          '0':\n            id: DIAMOND");
+            shopMissing = true;
+            return;
+        }
+
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Loading items for shop: " + shop);
+        int pageIndex = 0;
+
+        for (String pageKey : pagesConfig.getKeys(false)) {
+            ShopPage page = new ShopPage();
+            ConfigurationSection itemsSection = pagesConfig.getConfigurationSection(pageKey + ".items");
+
+            if (itemsSection == null) {
+                logShopError("Shop '" + shop + "' > " + pageKey + " is missing 'items' section.");
+                logShopError("Expected format:\n  " + pageKey + ":\n    items:\n      '0':\n        id: DIAMOND");
+                pageIndex++;
+                continue;
+            }
+
+            for (String slotKey : itemsSection.getKeys(false)) {
+                // Validate slot is a number
+                int slot;
+                try {
+                    slot = Integer.parseInt(slotKey);
+                } catch (NumberFormatException e) {
+                    logShopError("Shop '" + shop + "' > " + pageKey + " > Item slot '" + slotKey + "' is not a valid number. Slot keys must be numbers (e.g., '0', '1', '2').");
+                    continue;
+                }
+
+                ConfigurationSection itemSection = itemsSection.getConfigurationSection(slotKey);
+                if (itemSection == null) {
+                    logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "' has invalid format. Check indentation.");
+                    continue;
+                }
+
+                // Check for required 'id' field
+                if (!itemSection.contains("id")) {
+                    logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "' is missing required 'id' field.");
+                    continue;
+                }
+
+                Item item;
+                try {
+                    item = Item.deserialize(itemSection.getValues(true), slot, shop);
+                } catch (Exception e) {
+                    logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "' failed to load: " + e.getMessage());
+                    continue;
+                }
+
+                if (item == null) {
+                    logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "' returned null item. Check the item configuration.");
+                    continue;
+                }
+
+                // Register sellable items
+                if (item.hasSellPrice()) {
+                    registerSellableItem(item, pageKey, slotKey);
+                }
+
+                // Add to page if appropriate
+                if (!Config.isHideNonBuyable() || item.hasBuyPrice() || item.getItemType() != ItemType.SHOP) {
+                    page.getItems().put(Integer.toString(item.getSlot()), item);
+                }
+            }
+
+            shopItem.getPages().put("Page" + pageIndex, page);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Loaded " + pageKey + " with " + page.getItems().size() + " items.");
+            pageIndex++;
+        }
+
+        if (shopItem.getPages().isEmpty()) {
+            logShopError("Shop '" + shop + "' loaded with 0 pages. Check your shops.yml configuration.");
+            shopMissing = true;
+            return;
+        }
+
+        shopItem.determineHighestSlots();
+        GUIShop.getINSTANCE().getLoadedShops().put(shop, shopItem);
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Shop '" + shop + "' loaded successfully with " + shopItem.getPages().size() + " page(s).");
+
+        if (!preLoad) {
+            loadShop();
+        }
+    }
+
+    /**
+     * Register an item as sellable in the ITEMTABLE.
+     */
+    private void registerSellableItem(Item item, String pageKey, String slotKey) {
+        try {
+            List<Item> items = GUIShop.getINSTANCE().getITEMTABLE().get(item.getMaterial());
+            if (items == null) {
+                items = new ArrayList<>();
+            }
+            items.add(item);
+
+            String materialKey;
+            if (item.hasPotion() && item.getPotionInfo().getSplash()) {
+                materialKey = XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem().getType().toString();
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Registering SPLASH_POTION as sellable.");
+            } else {
+                materialKey = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem().getType().toString();
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + " as sellable.");
+            }
+            GUIShop.getINSTANCE().getITEMTABLE().put(materialKey, items);
+        } catch (NoSuchElementException e) {
+            logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "': Material '" + item.getMaterial() + "' is not valid for this server version.");
+        } catch (Exception e) {
+            logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "': Failed to register sellable item - " + e.getMessage());
+        }
+    }
+
+    /**
+     * Log a shop configuration error with consistent formatting.
+     */
+    private void logShopError(String message) {
+        GUIShop.getINSTANCE().getLogUtil().log("[Shop Config Error] " + message);
+        if (this.player != null) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "shop-not-found", shop);
         }
     }
 
@@ -451,13 +531,39 @@ public class Shop {
         }
 
         if (GUIShop.getINSTANCE().getMiscUtils().getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
-            item.getCommands().forEach(str -> {
-                Bukkit.getServer().dispatchCommand(str.startsWith("sudo=") ? player : Bukkit.getConsoleSender(),
-                        GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(str.startsWith("sudo=") ? str.substring(5).trim() : str.trim(), player, item));
-            });
-            if (Config.isSoundEnabled()) {
-                player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
+            boolean allCommandsSucceeded = true;
+            
+            for (String str : item.getCommands()) {
+                boolean isSudo = str.startsWith("sudo=");
+                String rawCommand = isSudo ? str.substring(5).trim() : str.trim();
+                String processedCommand = GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(rawCommand, player, item);
+                
+                // Check for unresolved placeholders (indicates wrong format was used)
+                if (hasUnresolvedPlaceholders(processedCommand)) {
+                    GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Unresolved placeholders in command: " + processedCommand);
+                    GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Make sure to use %placeholder% or {placeholder} format (e.g., %player_name% or {player_name})");
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "command-error");
+                    allCommandsSucceeded = false;
+                    continue;
+                }
+                
+                try {
+                    Bukkit.getServer().dispatchCommand(isSudo ? player : Bukkit.getConsoleSender(), processedCommand);
+                } catch (Exception e) {
+                    // Log the error gracefully without dumping a stack trace
+                    GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Failed to execute command: " + processedCommand);
+                    GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Reason: " + e.getMessage());
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "command-error");
+                    allCommandsSucceeded = false;
+                }
             }
+            
+            if (allCommandsSucceeded && Config.isSoundEnabled()) {
+                try {
+                    player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
+                } catch (Exception ignored) {}
+            }
+            
             if (dynamicPricingUpdate != null) {
                 dynamicPricingUpdate.run();
             }
@@ -470,6 +576,35 @@ public class Shop {
 
             GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-enough-money", amount);
         }
+    }
+
+    /**
+     * Check if a command string has unresolved placeholders.
+     * Detects patterns like %something% or {something} that weren't replaced.
+     */
+    private boolean hasUnresolvedPlaceholders(String command) {
+        // Check for %placeholder% patterns (but ignore PlaceholderAPI's %% escape)
+        if (command.matches(".*%[a-zA-Z_]+%.*")) {
+            // Could be PlaceholderAPI placeholders, check for common GUIShop ones
+            String lower = command.toLowerCase();
+            if (lower.contains("%player_name%") || lower.contains("%player_uuid%") || 
+                lower.contains("%player_world%") || lower.contains("%player_balance%") ||
+                lower.contains("%buy_price%") || lower.contains("%sell_price%")) {
+                return true;
+            }
+        }
+        
+        // Check for {placeholder} patterns
+        if (command.matches(".*\\{[a-zA-Z_]+\\}.*")) {
+            String lower = command.toLowerCase();
+            if (lower.contains("{player_name}") || lower.contains("{player_uuid}") || 
+                lower.contains("{player_world}") || lower.contains("{player_balance}") ||
+                lower.contains("{buy_price}") || lower.contains("{sell_price}")) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     private void handleItemClick(InventoryClickEvent event) {

@@ -8,11 +8,14 @@ import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
 import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.Item;
 import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
@@ -65,6 +68,14 @@ public class WorthDisplayManager {
             public void onPacketSending(PacketEvent event) {
                 if (event.isCancelled()) return;
 
+                Player player = event.getPlayer();
+                if (player == null) return;
+
+                // Check if worth should be displayed for this inventory
+                if (!shouldDisplayWorth(player)) {
+                    return;
+                }
+
                 PacketContainer packet = event.getPacket();
                 ItemStack item = packet.getItemModifier().read(0);
 
@@ -82,6 +93,14 @@ public class WorthDisplayManager {
             @Override
             public void onPacketSending(PacketEvent event) {
                 if (event.isCancelled()) return;
+
+                Player player = event.getPlayer();
+                if (player == null) return;
+
+                // Check if worth should be displayed for this inventory
+                if (!shouldDisplayWorth(player)) {
+                    return;
+                }
 
                 PacketContainer packet = event.getPacket();
                 List<ItemStack> items = packet.getItemListModifier().read(0);
@@ -116,6 +135,82 @@ public class WorthDisplayManager {
         registered = true;
 
         plugin.getLogUtil().log("Worth display system enabled (using ProtocolLib).");
+    }
+
+    /**
+     * Check if worth should be displayed for the player's current inventory.
+     *
+     * @param player The player to check
+     * @return true if worth should be displayed, false otherwise
+     */
+    private boolean shouldDisplayWorth(Player player) {
+        if (player == null || player.getOpenInventory() == null) {
+            return true; // Default to showing worth if we can't determine
+        }
+
+        // If player-inventory-only is enabled, only show worth in player's own inventory
+        if (WorthConfig.isPlayerInventoryOnly()) {
+            InventoryType topType = player.getOpenInventory().getTopInventory().getType();
+            if (topType != InventoryType.CRAFTING) {
+                // CRAFTING type means the player is just looking at their inventory (no container open)
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("Skipping worth display - player-inventory-only mode and container open: " + topType);
+                }
+                return false;
+            }
+            return true;
+        }
+
+        String title = player.getOpenInventory().getTitle();
+        if (title == null || title.isEmpty()) {
+            return true;
+        }
+
+        // Strip color codes for comparison
+        String strippedTitle = ChatColor.stripColor(title).toLowerCase();
+
+        // Check if it's a GUIShop inventory (Menu, Shop, Sell, Quantity, Value, AltSell)
+        if (isGUIShopInventory(strippedTitle)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("Skipping worth display - GUIShop inventory: " + title);
+            }
+            return false;
+        }
+
+        // Check against blacklisted inventories
+        for (String blacklisted : WorthConfig.getBlacklistedInventories()) {
+            if (strippedTitle.contains(blacklisted.toLowerCase())) {
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("Skipping worth display - blacklisted inventory: " + title);
+                }
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Check if the inventory title matches any GUIShop inventory.
+     */
+    private boolean isGUIShopInventory(String strippedTitle) {
+        // Get GUIShop's configured inventory titles
+        String menuTitle = ChatColor.stripColor(Config.getTitlesConfig().getMenuTitle()
+                .replace("%page-number%", "")).toLowerCase().trim();
+        String shopTitle = ChatColor.stripColor(Config.getTitlesConfig().getShopTitle()
+                .replace("%shopname%", "")).toLowerCase().trim();
+        String sellTitle = ChatColor.stripColor(Config.getTitlesConfig().getSellTitle()).toLowerCase();
+        String qtyTitle = ChatColor.stripColor(Config.getTitlesConfig().getQtyTitle()).toLowerCase();
+        String valueTitle = ChatColor.stripColor(Config.getTitlesConfig().getValueTitle()).toLowerCase();
+        String altSellTitle = ChatColor.stripColor(Config.getAltSellConfig().getTitle()).toLowerCase();
+
+        // Check if the current inventory title starts with or matches any GUIShop title
+        return strippedTitle.startsWith(menuTitle) ||
+               strippedTitle.startsWith(shopTitle) ||
+               strippedTitle.equals(sellTitle) ||
+               strippedTitle.equals(qtyTitle) ||
+               strippedTitle.equals(valueTitle) ||
+               strippedTitle.equals(altSellTitle);
     }
 
     /**

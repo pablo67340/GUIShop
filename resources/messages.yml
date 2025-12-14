@@ -34,6 +34,9 @@ messages:
   # Placeholders: %needed%
   not-enough-money: '&fYou need &c%needed% &fto purchase this!'
 
+  # The message when a command item fails to execute
+  command-error: '&cThere was an error executing this command. Please contact an administrator.'
+
   # The message when a player sold their items
   # Placeholders: %money%
   sell: '&fYour items were sold, and &a%money% &fwas added to your account.'

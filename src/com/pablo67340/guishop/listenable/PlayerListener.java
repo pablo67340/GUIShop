@@ -3,8 +3,7 @@ package com.pablo67340.guishop.listenable;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
-import de.tr7zw.changeme.nbtapi.NBTCompound;
-import de.tr7zw.changeme.nbtapi.NBTItem;
+import com.pablo67340.guishop.util.PDCUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
@@ -59,7 +58,6 @@ public final class PlayerListener implements Listener {
         "mob-type",
         "target-shop",
         "nbt",
-        "printnbt",
         "list-shops",
         "list-commands",
         "potion-info",
@@ -124,11 +122,10 @@ public final class PlayerListener implements Listener {
     public void onBlockPlace(BlockPlaceEvent event) {
         ItemStack item = event.getItemInHand();
         if (Item.isSpawnerItem(item)) {
-            NBTCompound cmp = new NBTItem(item);
-            if (cmp.hasKey("GUIShopSpawner")) {
+            String mobId = PDCUtil.getString(item, PDCUtil.KEY_SPAWNER_MOB);
+            if (mobId != null) {
                 BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
                 scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
-                    String mobId = cmp.getString("GUIShopSpawner");
                     Block block = event.getBlockPlaced();
                     CreatureSpawner cs = (CreatureSpawner) block.getState();
 
@@ -136,7 +133,7 @@ public final class PlayerListener implements Listener {
 
                     /*
                      * Although valueOf is almost always safe here because
-                     * we used EntityType.name() when setting the NBT tag,
+                     * we used EntityType.name() when setting the PDC tag,
                      * it's possible the user might change server versions,
                      * in which case the EntityType enum may have changed.
                      */

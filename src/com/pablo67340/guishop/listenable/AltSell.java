@@ -5,7 +5,7 @@ import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.gui.SimpleGui;
-import de.tr7zw.changeme.nbtapi.NBTItem;
+import com.pablo67340.guishop.util.PDCUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -186,10 +186,9 @@ public class AltSell {
     }
 
     private void sell(Player player, ItemStack itemStack) {
-        NBTItem comp = new NBTItem(itemStack);
-        comp.removeKey("IF-uuid");
-        itemStack = comp.getItem();
-
+        // Note: IF-uuid removal (for ItemsFrame compatibility) is no longer supported
+        // as we've migrated from NBT API to PDC
+        
         GUIShop.getINSTANCE().getLogUtil().log(itemStack.toString());
 
         int amount = itemStack.getAmount();

@@ -6,7 +6,7 @@ import com.cryptomorin.xseries.XMaterial;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.PotionInfo;
-import de.tr7zw.changeme.nbtapi.NBTItem;
+import com.pablo67340.guishop.util.PDCUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -42,19 +42,15 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        NBTItem comp = new NBTItem(item);
-
         if (price instanceof BigDecimal bigDecimal) {
-            comp.setDouble("buyPrice", bigDecimal.doubleValue());
+            PDCUtil.setDouble(item, PDCUtil.KEY_BUY_PRICE, bigDecimal.doubleValue());
         } else if (price instanceof Integer integer) {
-            comp.setDouble("buyPrice", integer.doubleValue());
+            PDCUtil.setDouble(item, PDCUtil.KEY_BUY_PRICE, integer.doubleValue());
         } else if (price instanceof Boolean) {
-            comp.removeKey("buyPrice");
+            PDCUtil.removeDouble(item, PDCUtil.KEY_BUY_PRICE);
         } else {
             return;
         }
-
-        item = comp.getItem();
 
         ItemMeta im = item.getItemMeta();
 
@@ -126,19 +122,15 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        NBTItem comp = new NBTItem(item);
-
         if (price instanceof BigDecimal) {
-            comp.setDouble("sellPrice", ((BigDecimal) price).doubleValue());
+            PDCUtil.setDouble(item, PDCUtil.KEY_SELL_PRICE, ((BigDecimal) price).doubleValue());
         } else if (price instanceof Integer) {
-            comp.setDouble("sellPrice", ((Integer) price).doubleValue());
+            PDCUtil.setDouble(item, PDCUtil.KEY_SELL_PRICE, ((Integer) price).doubleValue());
         } else if (price instanceof Boolean) {
-            comp.removeKey("sellPrice");
+            PDCUtil.removeDouble(item, PDCUtil.KEY_SELL_PRICE);
         } else {
             return;
         }
-
-        item = comp.getItem();
 
         ItemMeta im = item.getItemMeta();
 
@@ -228,15 +220,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
         if (name instanceof Boolean) {
-            comp.removeKey("customNBT");
+            PDCUtil.removeString(item, PDCUtil.KEY_CUSTOM_NBT);
         } else {
-            comp.setString("customNBT", (String) name);
+            PDCUtil.setString(item, PDCUtil.KEY_CUSTOM_NBT, (String) name);
         }
-
-        item = comp.getItem();
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -293,15 +281,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
         if (name instanceof Boolean) {
-            comp.removeKey("shopName");
+            PDCUtil.removeString(item, PDCUtil.KEY_SHOP_NAME);
         } else {
-            comp.setString("shopName", (String) name);
+            PDCUtil.setString(item, PDCUtil.KEY_SHOP_NAME, (String) name);
         }
-
-        item = comp.getItem();
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -359,15 +343,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
         if (name instanceof Boolean) {
-            comp.removeKey("name");
+            PDCUtil.removeString(item, PDCUtil.KEY_NAME);
         } else {
-            comp.setString("name", (String) name);
+            PDCUtil.setString(item, PDCUtil.KEY_NAME, (String) name);
         }
-
-        item = comp.getItem();
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -425,15 +405,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
         if (name instanceof Boolean) {
-            comp.removeKey("buyName");
+            PDCUtil.removeString(item, PDCUtil.KEY_BUY_NAME);
         } else {
-            comp.setString("buyName", (String) name);
+            PDCUtil.setString(item, PDCUtil.KEY_BUY_NAME, (String) name);
         }
-
-        item = comp.getItem();
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -518,15 +494,11 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
         if (enchantments instanceof Boolean || enchantmentMap.isEmpty()) {
-            comp.removeKey("enchantments");
+            PDCUtil.removeString(item, PDCUtil.KEY_ENCHANTMENTS);
         } else {
-            comp.setString("enchantments", String.join(" ", enchantmentList));
+            PDCUtil.setString(item, PDCUtil.KEY_ENCHANTMENTS, String.join(" ", enchantmentList));
         }
-
-        item = comp.getItem();
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -560,10 +532,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("shopLoreLines")) {
-            line = comp.getString("shopLoreLines") + "::" + line;
+        String existingLines = PDCUtil.getString(item, PDCUtil.KEY_SHOP_LORE_LINES);
+        if (existingLines != null) {
+            line = existingLines + "::" + line;
         }
         String[] lines = line.split("::");
 
@@ -597,15 +568,12 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
-        comp.setString("shopLoreLines", line);
-        ItemStack fnl = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_SHOP_LORE_LINES, line);
 
         if (XMaterial.getVersion() > 18) {
-            player.getInventory().setItemInMainHand(fnl);
+            player.getInventory().setItemInMainHand(item);
         } else {
-            player.setItemInHand(fnl);
+            player.setItemInHand(item);
         }
 
         GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-shop-lore.successful", line);
@@ -634,12 +602,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("shopLoreLines")) {
-            preParsedLine = comp.getString("shopLoreLines");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_SHOP_LORE_LINES);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
 
         String[] lines = preParsedLine.split("::");
@@ -678,13 +643,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = tempLines.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("shopLoreLines", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_SHOP_LORE_LINES, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -715,12 +677,9 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("shopLoreLines")) {
-            preParsedLine = comp.getString("shopLoreLines");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_SHOP_LORE_LINES);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
         String[] lines = preParsedLine.split("::");
 
@@ -757,13 +716,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = linesList.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("shopLoreLines", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_SHOP_LORE_LINES, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -796,10 +752,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("buyLoreLines")) {
-            line = comp.getString("buyLoreLines") + "::" + line;
+        String existingLines = PDCUtil.getString(item, PDCUtil.KEY_BUY_LORE_LINES);
+        if (existingLines != null) {
+            line = existingLines + "::" + line;
         }
         String[] lines = line.split("::");
 
@@ -834,15 +789,12 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
-        comp.setString("buyLoreLines", line);
-        ItemStack fnl = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_BUY_LORE_LINES, line);
 
         if (XMaterial.getVersion() > 18) {
-            player.getInventory().setItemInMainHand(fnl);
+            player.getInventory().setItemInMainHand(item);
         } else {
-            player.setItemInHand(fnl);
+            player.setItemInHand(item);
         }
 
         GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-buy-lore.successful", line);
@@ -871,12 +823,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("buyLoreLines")) {
-            preParsedLine = comp.getString("buyLoreLines");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_BUY_LORE_LINES);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
         String[] lines = preParsedLine.split("::");
 
@@ -913,13 +862,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = tempLines.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("buyLoreLines", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_BUY_LORE_LINES, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -950,12 +896,9 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("buyLoreLines")) {
-            preParsedLine = comp.getString("buyLoreLines");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_BUY_LORE_LINES);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
 
         String[] lines = preParsedLine.split("::");
@@ -994,13 +937,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("buyLoreLines", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_BUY_LORE_LINES, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1050,11 +990,7 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
-        comp.setString("itemType", type);
-
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_ITEM_TYPE, type);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1085,10 +1021,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("commands")) {
-            line = comp.getString("commands") + "::" + line;
+        String existingCommands = PDCUtil.getString(item, PDCUtil.KEY_COMMANDS);
+        if (existingCommands != null) {
+            line = existingCommands + "::" + line;
         }
 
         String[] lines = line.split("::");
@@ -1123,14 +1058,12 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-        comp.setString("commands", line);
-        ItemStack fnl = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_COMMANDS, line);
 
         if (XMaterial.getVersion() > 18) {
-            player.getInventory().setItemInMainHand(fnl);
+            player.getInventory().setItemInMainHand(item);
         } else {
-            player.setItemInHand(fnl);
+            player.setItemInHand(item);
         }
 
         GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-command.successful", line);
@@ -1155,12 +1088,9 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("commands")) {
-            preParsedLine = comp.getString("commands");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_COMMANDS);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
 
         String[] lines = preParsedLine.split("::");
@@ -1199,13 +1129,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = linesList.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("commands", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_COMMANDS, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1234,12 +1161,9 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("commands")) {
-            preParsedLine = comp.getString("commands");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_COMMANDS);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
 
         String[] lines = preParsedLine.split("::");
@@ -1277,13 +1201,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = tempLines.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("commands", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_COMMANDS, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1335,11 +1256,7 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
-        comp.setString("mobType", type);
-
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_MOB_TYPE, type);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1390,11 +1307,7 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
-        comp.setString("targetShop", shopName);
-
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_TARGET_SHOP, shopName);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1449,11 +1362,7 @@ public final class ItemUtil {
 
         item.setItemMeta(im);
 
-        NBTItem comp = new NBTItem(item);
-
-        comp.setString("potion", stringInfo);
-
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_POTION, stringInfo);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1486,10 +1395,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("loreLines")) {
-            line = comp.getString("loreLines") + "::" + line;
+        String existingLines = PDCUtil.getString(item, PDCUtil.KEY_LORE_LINES);
+        if (existingLines != null) {
+            line = existingLines + "::" + line;
         }
         String[] lines = line.split("::");
 
@@ -1524,15 +1432,12 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
-        comp.setString("loreLines", line);
-        ItemStack fnl = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_LORE_LINES, line);
 
         if (XMaterial.getVersion() > 18) {
-            player.getInventory().setItemInMainHand(fnl);
+            player.getInventory().setItemInMainHand(item);
         } else {
-            player.setItemInHand(fnl);
+            player.setItemInHand(item);
         }
 
         GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "add-lore.successful", line);
@@ -1561,12 +1466,9 @@ public final class ItemUtil {
 
         line = ChatColor.translateAlternateColorCodes('&', line);
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("loreLines")) {
-            preParsedLine = comp.getString("loreLines");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_LORE_LINES);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
         String[] lines = preParsedLine.split("::");
 
@@ -1603,13 +1505,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = tempLines.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("loreLines", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_LORE_LINES, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);
@@ -1640,12 +1539,9 @@ public final class ItemUtil {
             item = player.getItemInHand();
         }
 
-        String preParsedLine = "";
-
-        NBTItem comp = new NBTItem(item);
-
-        if (comp.hasKey("loreLines")) {
-            preParsedLine = comp.getString("loreLines");
+        String preParsedLine = PDCUtil.getString(item, PDCUtil.KEY_LORE_LINES);
+        if (preParsedLine == null) {
+            preParsedLine = "";
         }
 
         String[] lines = preParsedLine.split("::");
@@ -1684,13 +1580,10 @@ public final class ItemUtil {
         im.setLore(lore);
         item.setItemMeta(im);
 
-        comp = new NBTItem(item);
-
         String fnl = "";
         fnl = lines2.stream().map(str -> str + "::").reduce(fnl, String::concat);
 
-        comp.setString("loreLines", fnl);
-        item = comp.getItem();
+        PDCUtil.setString(item, PDCUtil.KEY_LORE_LINES, fnl);
 
         if (XMaterial.getVersion() > 18) {
             player.getInventory().setItemInMainHand(item);

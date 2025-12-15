@@ -9,9 +9,8 @@ import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.gui.SimpleGui;
+import com.pablo67340.guishop.util.PDCUtil;
 import com.pablo67340.guishop.util.SkullCreator;
-import de.tr7zw.changeme.nbtapi.NBTContainer;
-import de.tr7zw.changeme.nbtapi.NBTItem;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -179,17 +178,8 @@ class Quantity {
             }
 
             if (item.hasNBT()) {
-                ItemStack tempItem = itemStack.clone();
-                NBTContainer container = new NBTContainer(item.getNBT());
-                NBTItem nbti = new NBTItem(tempItem);
-                nbti.mergeCompound(container);
-                tempItem = nbti.getItem();
-
-                if (tempItem == null) {
-                    GUIShop.getINSTANCE().getLogUtil().log("Error parsing custom NBT for item: " + item.getMaterial() + " in shop: " + currentShop.getShop() + ". Please fix or remove custom-nbt value.");
-                } else {
-                    itemStack = nbti.getItem();
-                }
+                // Store custom-nbt value in PDC for reference
+                PDCUtil.setString(itemStack, PDCUtil.KEY_CUSTOM_NBT, item.getNBT());
             }
 
             GUI.setItem(x, itemStack);

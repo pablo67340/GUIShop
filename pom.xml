@@ -141,11 +141,6 @@
             <version>1.1.1</version>
         </dependency>
         <dependency>
-            <groupId>de.tr7zw</groupId>
-            <artifactId>item-nbt-api</artifactId>
-            <version>2.15.5</version>
-        </dependency>
-        <dependency>
             <groupId>com.mojang</groupId>
             <artifactId>authlib</artifactId>
             <version>3.13.56</version>
@@ -291,15 +286,10 @@
                                     <pattern>com.cryptomorin.xseries</pattern>
                                     <shadedPattern>com.pablo67340.guishop.shade.xseries</shadedPattern>
                                 </relocation>
-                                <relocation>
-                                    <pattern>de.tr7zw.changeme.nbtapi</pattern>
-                                    <shadedPattern>com.pablo67340.guishop.shade.nbtapi</shadedPattern>
-                                </relocation>
                             </relocations>
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
-                                    <include>de.tr7zw:item-nbt-api:jar:</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
                                 </includes>

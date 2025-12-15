@@ -5,11 +5,8 @@ import com.cryptomorin.xseries.XMaterial;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.listenable.Shop;
+import com.pablo67340.guishop.util.PDCUtil;
 import com.pablo67340.guishop.util.SkullCreator;
-import de.tr7zw.changeme.nbtapi.NBTCompound;
-import de.tr7zw.changeme.nbtapi.NBTContainer;
-import de.tr7zw.changeme.nbtapi.NBTItem;
-import de.tr7zw.changeme.nbtapi.NbtApiException;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.ChatColor;
@@ -433,14 +430,12 @@ public final class Item implements ConfigurationSerializable {
     public static String getItemStringForItemStack(ItemStack item) {
         if (isSpawnerItem(item)) {
             String mobType;
-            NBTItem cmp = new NBTItem(item);
-            if (cmp.hasKey("GUIShopSpawner")) {
-                mobType = cmp.getString("GUIShopSpawner");
-            } else if (cmp.hasKey("BlockEntityTag")) {
-                NBTCompound subCmp = cmp.getCompound("BlockEntityTag");
-                mobType = subCmp.getString("EntityId").toUpperCase();
+            // Check PDC for GUIShop spawner data
+            String pdcMob = PDCUtil.getString(item, PDCUtil.KEY_SPAWNER_MOB);
+            if (pdcMob != null) {
+                mobType = pdcMob;
             } else {
-                // default to pig
+                // Default to pig if no spawner type is set
                 mobType = "PIG";
             }
 
@@ -570,94 +565,108 @@ public final class Item implements ConfigurationSerializable {
         Item item = new Item();
 
         if (itemStack != null) {
-            NBTItem component = new NBTItem(itemStack);
-            GUIShop.getINSTANCE().getLogUtil().debugLog(component.toString());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Loading item from ItemStack: " + itemStack.getType());
             item.setMaterial(itemStack.getType().toString());
             item.setSlot(slot);
             item.setShop(shop);
-            if (component.hasKey("itemType")) {
-                item.setItemType(ItemType.valueOf(component.getString("itemType")));
+            
+            // Read all PDC data
+            String itemType = PDCUtil.getString(itemStack, PDCUtil.KEY_ITEM_TYPE);
+            if (itemType != null) {
+                item.setItemType(ItemType.valueOf(itemType));
             }
 
-            if (component.hasKey("permission")) {
-                item.setPermission(new Permission(component.getString("permission")));
+            String permission = PDCUtil.getString(itemStack, PDCUtil.KEY_PERMISSION);
+            if (permission != null) {
+                item.setPermission(new Permission(permission));
             }
 
-            if (component.hasKey("buyPrice")) {
-                Object buyPrice = getBuyPrice(itemStack);
+            Double buyPrice = PDCUtil.getDouble(itemStack, PDCUtil.KEY_BUY_PRICE);
+            if (buyPrice != null) {
                 item.setBuyPrice(buyPrice);
             }
 
-            if (component.hasKey("sellPrice")) {
-                Object sellPrice = getSellPrice(itemStack);
+            Double sellPrice = PDCUtil.getDouble(itemStack, PDCUtil.KEY_SELL_PRICE);
+            if (sellPrice != null) {
                 item.setSellPrice(sellPrice);
             }
 
-            if (component.hasKey("shopName")) {
-                item.setShopName(component.getString("shopName"));
+            String shopName = PDCUtil.getString(itemStack, PDCUtil.KEY_SHOP_NAME);
+            if (shopName != null) {
+                item.setShopName(shopName);
             }
 
-            if (component.hasKey("targetShop")) {
-                item.setTargetShop(component.getString("targetShop"));
+            String targetShop = PDCUtil.getString(itemStack, PDCUtil.KEY_TARGET_SHOP);
+            if (targetShop != null) {
+                item.setTargetShop(targetShop);
             }
 
-            if (component.hasKey("buyName")) {
-                item.setBuyName(component.getString("buyName"));
+            String buyName = PDCUtil.getString(itemStack, PDCUtil.KEY_BUY_NAME);
+            if (buyName != null) {
+                item.setBuyName(buyName);
             }
 
-            if (component.hasKey("name")) {
-                item.setName(component.getString("name"));
+            String name = PDCUtil.getString(itemStack, PDCUtil.KEY_NAME);
+            if (name != null) {
+                item.setName(name);
             }
 
-            if (component.hasKey("enchantments")) {
-                item.setEnchantments(component.getString("enchantments").split(" "));
+            String enchantments = PDCUtil.getString(itemStack, PDCUtil.KEY_ENCHANTMENTS);
+            if (enchantments != null) {
+                item.setEnchantments(enchantments.split(" "));
             }
 
-            if (component.hasKey("commands")) {
+            String commands = PDCUtil.getString(itemStack, PDCUtil.KEY_COMMANDS);
+            if (commands != null) {
                 item.setItemType(ItemType.COMMAND);
-                item.setCommands(Arrays.asList(component.getString("commands").split("::")));
+                item.setCommands(Arrays.asList(commands.split("::")));
             }
 
-            if (component.hasKey("potion")) {
-                String[] splitInfo = component.getString("potion").split("::");
+            String potion = PDCUtil.getString(itemStack, PDCUtil.KEY_POTION);
+            if (potion != null) {
+                String[] splitInfo = potion.split("::");
                 item.setPotionInfo(
                         new PotionInfo(splitInfo[0], Boolean.parseBoolean(splitInfo[1]), Boolean.parseBoolean(splitInfo[2]), Boolean.parseBoolean(splitInfo[3])));
             }
 
-            if (component.hasKey("quantity")) {
-                item.setQuantityValue(new QuantityValue().setQuantity(component.getInteger("quantity")));
+            Integer quantity = PDCUtil.getInteger(itemStack, PDCUtil.KEY_QUANTITY);
+            if (quantity != null) {
+                item.setQuantityValue(new QuantityValue().setQuantity(quantity));
             }
 
-            if (component.hasKey("skullUUID")) {
-                item.setSkullUUID(component.getString("skullUUID"));
+            String skullUUID = PDCUtil.getString(itemStack, PDCUtil.KEY_SKULL_UUID);
+            if (skullUUID != null) {
+                item.setSkullUUID(skullUUID);
             }
 
-            if (component.hasKey("mobType")) {
-                item.setMobType(component.getString("mobType"));
+            String mobType = PDCUtil.getString(itemStack, PDCUtil.KEY_MOB_TYPE);
+            if (mobType != null) {
+                item.setMobType(mobType);
             }
 
-            if (component.hasKey("buyLoreLines")) {
-                String line = component.getString("buyLoreLines");
-                String[] parsedLore = line.split("::");
+            String buyLoreLines = PDCUtil.getString(itemStack, PDCUtil.KEY_BUY_LORE_LINES);
+            if (buyLoreLines != null) {
+                String[] parsedLore = buyLoreLines.split("::");
                 item.setBuyLore(Arrays.asList(parsedLore));
             }
 
-            if (component.hasKey("shopLoreLines")) {
-                String line = component.getString("shopLoreLines");
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Item had shop lore " + line);
-                String[] parsedLore = line.split("::");
+            String shopLoreLines = PDCUtil.getString(itemStack, PDCUtil.KEY_SHOP_LORE_LINES);
+            if (shopLoreLines != null) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Item had shop lore " + shopLoreLines);
+                String[] parsedLore = shopLoreLines.split("::");
                 item.setShopLore(Arrays.asList(parsedLore));
             }
 
-            if (component.hasKey("loreLines")) {
-                String line = component.getString("loreLines");
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Item had lore " + line);
-                String[] parsedLore = line.split("::");
+            String loreLines = PDCUtil.getString(itemStack, PDCUtil.KEY_LORE_LINES);
+            if (loreLines != null) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Item had lore " + loreLines);
+                String[] parsedLore = loreLines.split("::");
                 item.setLore(Arrays.asList(parsedLore));
             }
 
-            if (component.hasKey("customNBT")) {
-                item.setNBT(component.getString("customNBT"));
+            String customNBT = PDCUtil.getString(itemStack, PDCUtil.KEY_CUSTOM_NBT);
+            if (customNBT != null) {
+                item.setNBT(customNBT);
             }
         }
         return item;
@@ -788,99 +797,59 @@ public final class Item implements ConfigurationSerializable {
                     }
 
                     itemStack.setItemMeta(itemMeta);
-                    NBTItem comp = new NBTItem(itemStack);
+                    
+                    // Store all data in PDC
                     if (hasBuyPrice()) {
-                        comp.setDouble("buyPrice", getBuyPriceAsDecimal().doubleValue());
+                        PDCUtil.setDouble(itemStack, PDCUtil.KEY_BUY_PRICE, getBuyPriceAsDecimal().doubleValue());
                     }
                     if (hasSellPrice()) {
-                        comp.setDouble("sellPrice", getSellPriceAsDecimal().doubleValue());
+                        PDCUtil.setDouble(itemStack, PDCUtil.KEY_SELL_PRICE, getSellPriceAsDecimal().doubleValue());
                     }
                     if (hasBuyName()) {
-                        comp.setString("buyName", getBuyName());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_BUY_NAME, getBuyName());
                     }
                     if (hasShopName()) {
-                        comp.setString("shopName", getShopName());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_SHOP_NAME, getShopName());
                     }
                     if (hasName()) {
-                        comp.setString("name", getName());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_NAME, getName());
                     }
                     if (hasMobType()) {
-                        comp.setString("mobType", getMobType());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_MOB_TYPE, getMobType());
                     }
                     if (hasEnchantments()) {
                         StringBuilder itemEnchantments = new StringBuilder();
                         for (String str : getEnchantments()) {
                             itemEnchantments.append(str).append(",");
                         }
-                        comp.setString("enchantments", itemEnchantments.toString());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_ENCHANTMENTS, itemEnchantments.toString());
                     }
                     if (hasShopLore()) {
-                        StringBuilder lor = new StringBuilder();
-                        int index = 0;
-                        for (String str : getShopLore()) {
-                            if (index != (getShopLore().size() - 1)) {
-                                lor.append(str).append("::");
-                            } else {
-                                lor.append(str);
-                            }
-                            index += 1;
-                        }
-                        comp.setString("shopLoreLines", lor.toString());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_SHOP_LORE_LINES, String.join("::", getShopLore()));
                     }
                     if (hasBuyLore()) {
-                        StringBuilder lor = new StringBuilder();
-                        int index = 0;
-                        for (String str : getBuyLore()) {
-                            if (index != (getBuyLore().size() - 1)) {
-                                lor.append(str).append("::");
-                            } else {
-                                lor.append(str);
-                            }
-                            index += 1;
-                        }
-                        comp.setString("buyLoreLines", lor.toString());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_BUY_LORE_LINES, String.join("::", getBuyLore()));
                     }
                     if (hasLore()) {
-                        StringBuilder lor = new StringBuilder();
-                        int index = 0;
-                        for (String str : getLore()) {
-                            if (index != (getLore().size() - 1)) {
-                                lor.append(str).append("::");
-                            } else {
-                                lor.append(str);
-                            }
-                            index += 1;
-                        }
-                        comp.setString("loreLines", lor.toString());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_LORE_LINES, String.join("::", getLore()));
                     }
                     if (hasCommands()) {
-                        StringBuilder lor = new StringBuilder();
-                        int index = 0;
-                        for (String str : getCommands()) {
-                            if (index != (getCommands().size() - 1)) {
-                                lor.append(str).append("::");
-                            } else {
-                                lor.append(str);
-                            }
-                            index += 1;
-                        }
-                        comp.setString("commands", lor.toString());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_COMMANDS, String.join("::", getCommands()));
                     }
                     if (hasSkullUUID()) {
-                        comp.setString("skullUUID", getSkullUUID());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_SKULL_UUID, getSkullUUID());
                     }
                     if (getQuantityValue() != null) {
-                        comp.setInteger("quantity", getQuantityValue().getQuantity());
+                        PDCUtil.setInteger(itemStack, PDCUtil.KEY_QUANTITY, getQuantityValue().getQuantity());
                     }
                     if (hasPotion()) {
                         String[] values = {getPotionInfo().getType(), getPotionInfo().getSplash().toString(), getPotionInfo().getExtended().toString(), getPotionInfo().getUpgraded().toString()};
-                        comp.setString("potion", String.join("::", values));
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_POTION, String.join("::", values));
                     }
                     if (hasPermission()) {
-                        comp.setString("permission", getPermission().getPermission());
+                        PDCUtil.setString(itemStack, PDCUtil.KEY_PERMISSION, getPermission().getPermission());
                     }
-                    comp.setString("itemType", getItemType().toString());
-                    itemStack = comp.getItem();
+                    PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, getItemType().toString());
                 }
             }
 
@@ -919,24 +888,11 @@ public final class Item implements ConfigurationSerializable {
             itemStack.setItemMeta(itemMeta);
 
             if (hasNBT()) {
-                try {
-                    ItemStack tempItem = itemStack.clone();
-                    NBTContainer container = new NBTContainer(getNBT());
-                    NBTItem nbti = new NBTItem(tempItem);
-                    nbti.mergeCompound(container);
-                    tempItem = nbti.getItem();
-
-                    if (tempItem == null) {
-                        GUIShop.getINSTANCE().getLogUtil().log("Error parsing custom NBT for item: " + getMaterial() + " in shop: " + getShop() + ". Please fix or remove custom-nbt value.");
-                        setResolveFailed("Item has Invalid Custom NBT");
-                        return getErrorStack();
-                    } else {
-                        itemStack = nbti.getItem();
-                    }
-                } catch (NbtApiException exception) {
-                    GUIShop.getINSTANCE().getLogUtil().log("Error parsing custom NBT for item: " + getMaterial() + " in shop: " + getShop() + ". Please fix or remove custom-nbt value.");
-                    setResolveFailed("Item has Invalid Custom NBT");
-                }
+                // Store custom-nbt value in PDC for reference
+                // Note: Raw NBT application is deprecated. Use other config options instead.
+                PDCUtil.setString(itemStack, PDCUtil.KEY_CUSTOM_NBT, getNBT());
+                GUIShop.getINSTANCE().getLogUtil().debugLog("custom-nbt stored for item: " + getMaterial() + 
+                    ". Note: Raw NBT application is deprecated. Consider using other config options.");
             }
 
             if (hasPotion()) {
@@ -1047,6 +1003,65 @@ public final class Item implements ConfigurationSerializable {
             itemStack.setItemMeta(fMeta);
         }
 
+        // Store all data in PDC for ALL items (not just creator mode)
+        if (hasBuyPrice()) {
+            PDCUtil.setDouble(itemStack, PDCUtil.KEY_BUY_PRICE, getBuyPriceAsDecimal().doubleValue());
+        }
+        if (hasSellPrice()) {
+            PDCUtil.setDouble(itemStack, PDCUtil.KEY_SELL_PRICE, getSellPriceAsDecimal().doubleValue());
+        }
+        if (hasBuyName()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_BUY_NAME, getBuyName());
+        }
+        if (hasShopName()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_SHOP_NAME, getShopName());
+        }
+        if (hasName()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_NAME, getName());
+        }
+        if (hasMobType()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_MOB_TYPE, getMobType());
+        }
+        if (isMobSpawner() && hasMobType()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_SPAWNER_MOB, getMobType());
+        }
+        if (hasEnchantments()) {
+            StringBuilder itemEnchantments = new StringBuilder();
+            for (String str : getEnchantments()) {
+                itemEnchantments.append(str).append(",");
+            }
+            PDCUtil.setString(itemStack, PDCUtil.KEY_ENCHANTMENTS, itemEnchantments.toString());
+        }
+        if (hasShopLore()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_SHOP_LORE_LINES, String.join("::", getShopLore()));
+        }
+        if (hasBuyLore()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_BUY_LORE_LINES, String.join("::", getBuyLore()));
+        }
+        if (hasLore()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_LORE_LINES, String.join("::", getLore()));
+        }
+        if (hasCommands()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_COMMANDS, String.join("::", getCommands()));
+        }
+        if (hasSkullUUID()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_SKULL_UUID, getSkullUUID());
+        }
+        if (getQuantityValue() != null) {
+            PDCUtil.setInteger(itemStack, PDCUtil.KEY_QUANTITY, getQuantityValue().getQuantity());
+        }
+        if (hasPotion()) {
+            String[] values = {getPotionInfo().getType(), getPotionInfo().getSplash().toString(), getPotionInfo().getExtended().toString(), getPotionInfo().getUpgraded().toString()};
+            PDCUtil.setString(itemStack, PDCUtil.KEY_POTION, String.join("::", values));
+        }
+        if (hasPermission()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_PERMISSION, getPermission().getPermission());
+        }
+        if (hasTargetShop()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_TARGET_SHOP, getTargetShop());
+        }
+        PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, getItemType().toString());
+
         // Create Page
         GUIShop.getINSTANCE().getLogUtil().debugLog("Setting item to slot: " + getSlot());
 
@@ -1109,36 +1124,21 @@ public final class Item implements ConfigurationSerializable {
             }
         }
         if (hasNBT()) {
-            NBTItem tag = new NBTItem(input);
-
-            // We need to make a fake item, as Minecraft will
-            // automatically re-cast some of the NBTTag's do
-            // more optimized object types. This will ensure
-            // everything is matching Minecraft's optimized tag casting.
-            ItemStack fakeItem = new ItemStack(input.getType());
-            NBTItem fakeComp = new NBTItem(fakeItem);
-            NBTContainer container = new NBTContainer(getNBT());
-            fakeComp.mergeCompound(container);
-
-            for (String key : tag.getKeys()) {
-                if (!fakeComp.hasKey(key)) {
-                    return false;
-                } else {
-                    if (!fakeComp.equals(tag)) {
-                        return false;
-                    }
-                }
+            // Check if input item has the same custom-nbt stored in PDC
+            String inputNBT = PDCUtil.getString(input, PDCUtil.KEY_CUSTOM_NBT);
+            if (inputNBT == null || !inputNBT.equals(getNBT())) {
+                return false;
             }
         }
         if (hasSkullUUID() && Config.isSellSkullUUID()) {
             SkullMeta sm = (SkullMeta) input.getItemMeta();
-            if (!sm.getOwningPlayer().getUniqueId().toString().equals(skullUUID)) {
+            if (sm.getOwningPlayer() == null || !sm.getOwningPlayer().getUniqueId().toString().equals(skullUUID)) {
                 return false;
             }
         }
         if (isMobSpawner()) {
-            NBTCompound tag = new NBTItem(input);
-            return tag.getString("GUIShopSpawner").equals(mobType);
+            String inputMobType = PDCUtil.getString(input, PDCUtil.KEY_SPAWNER_MOB);
+            return inputMobType != null && inputMobType.equals(mobType);
         }
         return true;
     }
@@ -1264,55 +1264,51 @@ public final class Item implements ConfigurationSerializable {
                 String entityValue = type.name();
                 GUIShop.getINSTANCE().getLogUtil().debugLog("Attaching " + entityValue + " to purchased spawner.");
 
-                NBTItem tag = new NBTItem(itemStack);
-                tag.setString("GUIShopSpawner", entityValue);
-                itemStack = tag.getItem();
+                PDCUtil.setString(itemStack, PDCUtil.KEY_SPAWNER_MOB, entityValue);
             }
         }
         if (hasNBT()) {
-            NBTContainer container = new NBTContainer(getNBT());
-            NBTItem nbti = new NBTItem(itemStack);
-            nbti.mergeCompound(container);
-            itemStack = nbti.getItem();
-            if (itemStack == null) {
-                GUIShop.getINSTANCE().getLogUtil().log("Error parsing custom NBT for item: " + getMaterial() + " in shop: " + shop + ". Please fix or remove custom-nbt value.");
-                setResolveFailed("Item has Invalid Custom NBT");
-                return getErrorStack();
-            }
+            // Store custom-nbt value in PDC for reference
+            PDCUtil.setString(itemStack, PDCUtil.KEY_CUSTOM_NBT, getNBT());
         }
+        
+        // Store PDC data for bought items (needed for sell price, commands, etc.)
+        if (hasBuyPrice()) {
+            PDCUtil.setDouble(itemStack, PDCUtil.KEY_BUY_PRICE, getBuyPriceAsDecimal().doubleValue());
+        }
+        if (hasSellPrice()) {
+            PDCUtil.setDouble(itemStack, PDCUtil.KEY_SELL_PRICE, getSellPriceAsDecimal().doubleValue());
+        }
+        if (hasCommands()) {
+            PDCUtil.setString(itemStack, PDCUtil.KEY_COMMANDS, String.join("::", getCommands()));
+        }
+        PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, getItemType().toString());
+        
         return itemStack;
     }
 
     /**
-     * Gets the buyPrice of an item using NBT, or <code>null</code> if not
+     * Gets the buyPrice of an item using PDC, or <code>null</code> if not
      * defined
      *
      * @param item ItemStack to get the BuyPrice on
-     * @return Buy Price either Double/Int
+     * @return Buy Price as BigDecimal
      */
     public static BigDecimal getBuyPrice(ItemStack item) {
-        NBTCompound comp = new NBTItem(item);
-
-        if (comp.hasKey("buyPrice")) {
-            return BigDecimal.valueOf(comp.getDouble("buyPrice"));
-        }
-        return null;
+        Double price = PDCUtil.getDouble(item, PDCUtil.KEY_BUY_PRICE);
+        return price != null ? BigDecimal.valueOf(price) : null;
     }
 
     /**
-     * Gets the sellPrice of an item using NBT, or <code>null</code> if not
+     * Gets the sellPrice of an item using PDC, or <code>null</code> if not
      * defined
      *
      * @param item ItemStack to get the SellPrice of
-     * @return Sell Price either Double/Int
+     * @return Sell Price as BigDecimal
      */
     public static BigDecimal getSellPrice(ItemStack item) {
-        NBTCompound comp = new NBTItem(item);
-
-        if (comp.hasKey("sellPrice")) {
-            return BigDecimal.valueOf(comp.getDouble("sellPrice"));
-        }
-        return null;
+        Double price = PDCUtil.getDouble(item, PDCUtil.KEY_SELL_PRICE);
+        return price != null ? BigDecimal.valueOf(price) : null;
     }
 
     public static Item deserialize(Map<String, Object> serialized, Integer slot, String shop) {

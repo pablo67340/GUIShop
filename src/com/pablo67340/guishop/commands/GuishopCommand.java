@@ -14,8 +14,7 @@ import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
-import de.tr7zw.changeme.nbtapi.NBT;
-import de.tr7zw.changeme.nbtapi.NBTItem;
+import com.pablo67340.guishop.util.PDCUtil;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -423,28 +422,6 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "target-shop.usage");
                 }
-            } else if (args[0].equalsIgnoreCase("printnbt")) {
-                if (!GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
-                    ItemStack item;
-
-                    if (XMaterial.getVersion() > 18) {
-                        item = player.getEquipment().getItemInMainHand();
-                    } else {
-                        item = player.getItemInHand();
-                    }
-
-                    // Use NBT.itemStackToNBT() to get the FULL NBT of the item
-                    // This includes vanilla data like potion effects on tipped arrows
-                    String nbtString = NBT.itemStackToNBT(item).toString();
-                    if (nbtString == null || nbtString.isEmpty() || nbtString.equals("{}")) {
-                        nbtString = "No NBT data found";
-                    }
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "printnbt.print", nbtString);
-                    // Also log to console so it can be easily copied
-                    GUIShop.getINSTANCE().getLogUtil().log("PrintNBT for " + player.getName() + ": " + nbtString);
-                } else {
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
-                }
             } else if (args[0].equalsIgnoreCase("nb") || args[0].equalsIgnoreCase("nbt")) {
                 if (args.length >= 2) {
                     StringBuilder line = new StringBuilder();
@@ -481,9 +458,9 @@ public class GuishopCommand implements CommandExecutor {
 
                 StringBuilder replacement = new StringBuilder();
 
-                NBTItem comp = new NBTItem(item);
-                if (comp.hasKey("commands")) {
-                    String[] commands = comp.getString("commands").split("::");
+                String commandsStr = PDCUtil.getString(item, PDCUtil.KEY_COMMANDS);
+                if (commandsStr != null) {
+                    String[] commands = commandsStr.split("::");
                     int index = 0;
                     for (String commandString : commands) {
                         replacement.append("\n").append(GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.list-commands.command", index++, commandString));
@@ -559,10 +536,7 @@ public class GuishopCommand implements CommandExecutor {
 
                     item.setItemMeta(im);
 
-                    NBTItem comp = new NBTItem(item);
-                    comp.setInteger("quantity", quantityValue.getQuantity());
-
-                    item = comp.getItem();
+                    PDCUtil.setInteger(item, PDCUtil.KEY_QUANTITY, quantityValue.getQuantity());
 
                     if (XMaterial.getVersion() > 18) {
                         player.getInventory().setItemInMainHand(item);
@@ -614,10 +588,8 @@ public class GuishopCommand implements CommandExecutor {
 
                     item.setItemMeta(im);
 
-                    NBTItem comp = new NBTItem(item);
-                    comp.setString("skullUUID", uuid);
+                    PDCUtil.setString(item, PDCUtil.KEY_SKULL_UUID, uuid);
 
-                    item = comp.getItem();
                     if (XMaterial.getVersion() > 18) {
                         player.getInventory().setItemInMainHand(item);
                     } else {
@@ -683,10 +655,7 @@ public class GuishopCommand implements CommandExecutor {
 
                     item.setItemMeta(im);
 
-                    NBTItem comp = new NBTItem(item);
-                    comp.setString("permission", permission);
-
-                    item = comp.getItem();
+                    PDCUtil.setString(item, PDCUtil.KEY_PERMISSION, permission);
 
                     if (XMaterial.getVersion() > 18) {
                         player.getInventory().setItemInMainHand(item);

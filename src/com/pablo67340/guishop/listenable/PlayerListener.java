@@ -64,7 +64,8 @@ public final class PlayerListener implements Listener {
         "quantity",
         "skull-uuid",
         "value",
-        "permission"};
+        "permission",
+        "toggleworth"};
 
     public Menu openMenu(Player player) {
         Menu menu = new Menu(player);

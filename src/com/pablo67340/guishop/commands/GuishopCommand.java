@@ -667,6 +667,22 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "permission.usage");
                 }
+            } else if (args[0].equalsIgnoreCase("toggleworth") || args[0].equalsIgnoreCase("tw")) {
+                // Toggle worth display for the player (session-only)
+                if (GUIShop.getINSTANCE().getWorthDisplayManager() == null || !GUIShop.getINSTANCE().getWorthDisplayManager().isRegistered()) {
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "toggleworth.disabled");
+                    return true;
+                }
+                
+                boolean nowEnabled = GUIShop.getINSTANCE().getWorthDisplayManager().toggleWorthForPlayer(player);
+                if (nowEnabled) {
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "toggleworth.enabled");
+                } else {
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "toggleworth.disabled-player");
+                }
+                
+                // Force refresh inventory to apply the change immediately
+                player.updateInventory();
             } else {
                 PlayerListener.INSTANCE.printUsage(player);
             }

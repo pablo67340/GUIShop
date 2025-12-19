@@ -27,7 +27,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
+import java.util.function.Predicate;
 
 /**
  * Manages the display of item worth in item lore using ProtocolLib packet interception.
@@ -47,10 +51,138 @@ public class WorthDisplayManager {
     @Getter
     private boolean registered = false;
 
+    /**
+     * Players who have disabled worth display via command (session-only, resets on reboot).
+     */
+    private final Set<UUID> sessionDisabledPlayers = new HashSet<>();
+
+    /**
+     * External predicate for checking if worth should be displayed for a player.
+     * Other plugins can set this to provide persistent per-player settings.
+     * Return true to DISABLE worth display for the player, false to allow it.
+     */
+    private Predicate<Player> externalDisableCheck = null;
+
     public WorthDisplayManager(GUIShop plugin) {
         this.plugin = plugin;
         instance = this;
     }
+
+    // ==================== Per-Player Worth Toggle API ====================
+
+    /**
+     * Check if worth display is enabled for a specific player.
+     * This checks both session toggles and external plugin hooks.
+     *
+     * @param player The player to check
+     * @return true if worth display is enabled for this player
+     */
+    public boolean isWorthEnabledForPlayer(Player player) {
+        if (player == null) return true;
+
+        // Check session-based disable (from /gs toggleworth command)
+        if (sessionDisabledPlayers.contains(player.getUniqueId())) {
+            return false;
+        }
+
+        // Check external plugin hook
+        if (externalDisableCheck != null) {
+            try {
+                // External check returns true to DISABLE, so we invert
+                if (externalDisableCheck.test(player)) {
+                    return false;
+                }
+            } catch (Exception e) {
+                plugin.getLogUtil().debugLog("External worth check failed for " + player.getName() + ": " + e.getMessage());
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Toggle worth display for a player (session-only, resets on server restart).
+     *
+     * @param player The player to toggle
+     * @return true if worth is now enabled, false if now disabled
+     */
+    public boolean toggleWorthForPlayer(Player player) {
+        UUID uuid = player.getUniqueId();
+        if (sessionDisabledPlayers.contains(uuid)) {
+            sessionDisabledPlayers.remove(uuid);
+            return true; // Now enabled
+        } else {
+            sessionDisabledPlayers.add(uuid);
+            return false; // Now disabled
+        }
+    }
+
+    /**
+     * Enable worth display for a player (session-only).
+     *
+     * @param player The player to enable worth for
+     */
+    public void enableWorthForPlayer(Player player) {
+        sessionDisabledPlayers.remove(player.getUniqueId());
+    }
+
+    /**
+     * Disable worth display for a player (session-only).
+     *
+     * @param player The player to disable worth for
+     */
+    public void disableWorthForPlayer(Player player) {
+        sessionDisabledPlayers.add(player.getUniqueId());
+    }
+
+    /**
+     * Check if a player has disabled worth display via the session toggle.
+     *
+     * @param player The player to check
+     * @return true if the player has disabled worth via session toggle
+     */
+    public boolean isSessionDisabled(Player player) {
+        return sessionDisabledPlayers.contains(player.getUniqueId());
+    }
+
+    /**
+     * Set an external predicate to check if worth should be disabled for a player.
+     * This allows other plugins to hook in and provide persistent per-player settings.
+     * <p>
+     * The predicate should return TRUE to DISABLE worth display for the player,
+     * or FALSE to allow it (defer to other checks).
+     * <p>
+     * Example usage from another plugin:
+     * <pre>
+     * WorthDisplayManager.getInstance().setExternalDisableCheck(player -> {
+     *     // Return true to disable worth for this player
+     *     return myPlugin.hasWorthDisabled(player.getUniqueId());
+     * });
+     * </pre>
+     *
+     * @param check The predicate, or null to remove the hook
+     */
+    public void setExternalDisableCheck(Predicate<Player> check) {
+        this.externalDisableCheck = check;
+    }
+
+    /**
+     * Get the current external disable check predicate.
+     *
+     * @return The current predicate, or null if none set
+     */
+    public Predicate<Player> getExternalDisableCheck() {
+        return this.externalDisableCheck;
+    }
+
+    /**
+     * Clear all session-based worth toggles (useful for reload).
+     */
+    public void clearSessionToggles() {
+        sessionDisabledPlayers.clear();
+    }
+
+    // ==================== End Per-Player API ====================
 
     /**
      * Initialize and register the packet listeners.
@@ -104,9 +236,13 @@ public class WorthDisplayManager {
                     }
                 }
                 
+                // Check per-player worth toggle FIRST (applies to all inventory types)
+                if (!isWorthEnabledForPlayer(player)) {
+                    return;
+                }
+
                 // Window ID 0 = player inventory, -1 or -2 = special slots (cursor, etc.)
-                // For player inventory and special slots, ALWAYS add worth lore
-                // For containers (windowId > 0), check if it's a GUIShop inventory
+                // For containers (windowId > 0), also check if it's a GUIShop inventory
                 if (windowId > 0) {
                     if (!shouldDisplayWorth(player)) {
                         return;
@@ -140,6 +276,11 @@ public class WorthDisplayManager {
 
                 PacketContainer packet = event.getPacket();
                 
+                // Check per-player worth toggle FIRST (applies to all inventory types)
+                if (!isWorthEnabledForPlayer(player)) {
+                    return;
+                }
+
                 // Get window ID
                 int windowId;
                 try {
@@ -239,6 +380,14 @@ public class WorthDisplayManager {
             return true; // Default to showing worth if we can't determine
         }
 
+        // Check per-player worth toggle (session-based and external hooks)
+        if (!isWorthEnabledForPlayer(player)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("Skipping worth display - disabled for player: " + player.getName());
+            }
+            return false;
+        }
+
         // If player-inventory-only is enabled, only show worth in player's own inventory
         if (WorthConfig.isPlayerInventoryOnly()) {
             InventoryType topType = player.getOpenInventory().getTopInventory().getType();
@@ -331,7 +480,15 @@ public class WorthDisplayManager {
      */
     private void refreshPlayerInventory(Player player) {
         if (protocolManager == null) return;
-        
+
+        // Check per-player worth toggle - if disabled, don't refresh with worth lore
+        if (!isWorthEnabledForPlayer(player)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("Skipping worth refresh - disabled for player: " + player.getName());
+            }
+            return;
+        }
+
         // Update all slots in player inventory (0-40)
         for (int slot = 0; slot < player.getInventory().getSize(); slot++) {
             ItemStack item = player.getInventory().getItem(slot);
@@ -339,13 +496,13 @@ public class WorthDisplayManager {
                 sendSlotUpdate(player, slot);
             }
         }
-        
+
         // Update cursor if held
         ItemStack cursor = player.getItemOnCursor();
         if (cursor != null && cursor.getType() != Material.AIR) {
             sendCursorUpdate(player, cursor);
         }
-        
+
         if (WorthConfig.isDebug()) {
             plugin.getLogUtil().debugLog("Refreshed inventory worth display for " + player.getName());
         }
@@ -432,8 +589,11 @@ public class WorthDisplayManager {
      * Convert Bukkit inventory slot to Minecraft protocol slot.
      * Player inventory slots in protocol are arranged differently.
      * 
-     * Bukkit: 0-8 = hotbar, 9-35 = main inventory
-     * Protocol (window 0): 36-44 = hotbar, 9-35 = main inventory, 0-8 = crafting/armor
+     * Bukkit: 0-8 = hotbar, 9-35 = main inventory, 36-39 = armor (boots->helmet), 40 = offhand
+     * Protocol (window 0): 36-44 = hotbar, 9-35 = main inventory, 5-8 = armor (head->feet), 45 = offhand
+     * 
+     * IMPORTANT: Bukkit armor order is boots(36)->helmet(39), but protocol is head(5)->feet(8)
+     * So the armor slots must be reversed!
      */
     private int convertToProtocolSlot(int bukkitSlot) {
         if (bukkitSlot >= 0 && bukkitSlot <= 8) {
@@ -443,8 +603,12 @@ public class WorthDisplayManager {
             // Main inventory: same in both
             return bukkitSlot;
         } else if (bukkitSlot >= 36 && bukkitSlot <= 39) {
-            // Armor slots: Bukkit 36-39 -> Protocol 5-8
-            return bukkitSlot - 36 + 5;
+            // Armor slots - REVERSED order:
+            // Bukkit 36 (boots) -> Protocol 8 (feet)
+            // Bukkit 37 (leggings) -> Protocol 7 (legs)
+            // Bukkit 38 (chestplate) -> Protocol 6 (chest)
+            // Bukkit 39 (helmet) -> Protocol 5 (head)
+            return 44 - bukkitSlot;
         } else if (bukkitSlot == 40) {
             // Offhand: Bukkit 40 -> Protocol 45
             return 45;

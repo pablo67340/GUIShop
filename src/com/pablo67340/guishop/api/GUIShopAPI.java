@@ -252,4 +252,91 @@ public abstract class GUIShopAPI {
         return manager != null && manager.isRegistered();
     }
 
+    // ==================== Per-Player Worth Display API ====================
+
+    /**
+     * Check if worth display is enabled for a specific player.
+     * This checks both session toggles (from /gs toggleworth) and external plugin hooks.
+     *
+     * @param player The player to check
+     * @return true if worth display is enabled for this player
+     */
+    public static boolean isWorthEnabledForPlayer(Player player) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager == null || !manager.isRegistered()) {
+            return false;
+        }
+        return manager.isWorthEnabledForPlayer(player);
+    }
+
+    /**
+     * Toggle worth display for a player (session-only, resets on server restart).
+     * For persistent settings, use {@link #setExternalWorthCheck(java.util.function.Predicate)}.
+     *
+     * @param player The player to toggle
+     * @return true if worth is now enabled, false if now disabled
+     */
+    public static boolean toggleWorthForPlayer(Player player) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager == null || !manager.isRegistered()) {
+            return false;
+        }
+        return manager.toggleWorthForPlayer(player);
+    }
+
+    /**
+     * Enable worth display for a player (session-only).
+     *
+     * @param player The player to enable worth for
+     */
+    public static void enableWorthForPlayer(Player player) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager != null && manager.isRegistered()) {
+            manager.enableWorthForPlayer(player);
+        }
+    }
+
+    /**
+     * Disable worth display for a player (session-only).
+     *
+     * @param player The player to disable worth for
+     */
+    public static void disableWorthForPlayer(Player player) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager != null && manager.isRegistered()) {
+            manager.disableWorthForPlayer(player);
+        }
+    }
+
+    /**
+     * Set an external predicate to check if worth should be disabled for a player.
+     * This allows other plugins to hook in and provide persistent per-player settings.
+     * <p>
+     * The predicate should return TRUE to DISABLE worth display for the player,
+     * or FALSE to allow it (defer to other checks).
+     * <p>
+     * Example usage from another plugin:
+     * <pre>
+     * GUIShopAPI.setExternalWorthCheck(player -> {
+     *     // Return true to disable worth for this player
+     *     return myPlugin.hasWorthDisabled(player.getUniqueId());
+     * });
+     * </pre>
+     *
+     * @param check The predicate, or null to remove the hook
+     */
+    public static void setExternalWorthCheck(java.util.function.Predicate<Player> check) {
+        WorthDisplayManager manager = WorthDisplayManager.getInstance();
+        if (manager != null) {
+            manager.setExternalDisableCheck(check);
+        }
+    }
+
+    /**
+     * Remove any external worth check hook that was previously set.
+     */
+    public static void removeExternalWorthCheck() {
+        setExternalWorthCheck(null);
+    }
+
 }

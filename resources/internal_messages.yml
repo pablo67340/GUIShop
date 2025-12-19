@@ -740,6 +740,20 @@ messages:
     # The entry in the list
     entry: '&7/guishop &ep {permission} &7- &aSet an item''s permission'
 
+  # Messages for /guishop toggleworth
+  toggleworth:
+    # Message when worth display is now enabled for the player
+    enabled: '&aWorth display is now &2enabled&a for your items.'
+
+    # Message when worth display is now disabled for the player
+    disabled-player: '&cWorth display is now &4disabled&c for your items.'
+
+    # Message when worth display system is not available (ProtocolLib not installed)
+    disabled: '&cWorth display system is not available. Make sure ProtocolLib is installed.'
+
+    # The entry in the list
+    entry: '&7/guishop &etoggleworth/tw &7- &aToggle worth display on your items (session only)'
+
 ################################
 ##  Developed by pablo67340   ##
 ##  If you need any support:  ##

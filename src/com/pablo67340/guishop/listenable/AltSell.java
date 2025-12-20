@@ -188,7 +188,7 @@ public class AltSell {
     private void sell(Player player, ItemStack itemStack) {
         // Note: IF-uuid removal (for ItemsFrame compatibility) is no longer supported
         // as we've migrated from NBT API to PDC
-        
+
         GUIShop.getINSTANCE().getLogUtil().log(itemStack.toString());
 
         int amount = itemStack.getAmount();

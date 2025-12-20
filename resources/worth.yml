@@ -34,11 +34,14 @@ only-show-sellable: true
 # Text to show for items that cannot be sold (only used if only-show-sellable is false)
 not-sellable-format: "&7Worth: &cNot sellable"
 
-# Ignore items that already have lore containing these strings (case-insensitive)
-# This prevents duplicate worth lines or conflicts with other plugins
+# Ignore items that have lore containing these strings (case-insensitive)
+# Use this for special items from other plugins that shouldn't show worth
+# NOTE: You do NOT need to add "Worth:" here - existing worth lines are automatically
+# stripped and replaced with the correct value. Only add patterns for items that
+# should NEVER show worth (like soulbound items, quest items, etc.)
 ignore-lore-containing:
-  - "Worth:"
-  - "Sell Value:"
+  - "Soulbound"
+  - "Quest Item"
 
 # Blacklist inventory titles where worth should NOT be displayed
 # GUIShop's own inventories (Menu, Shop, Sell, Quantity, Value, AltSell) are automatically excluded.
@@ -47,9 +50,20 @@ blacklisted-inventories:
   - "Auction House"
   - "Crate Preview"
 
+# Blacklist item display names - items with names containing these strings will NOT show worth
+# Useful for hiding worth on special items like keys, tokens, or custom items from other plugins
+# Uses partial matching (case-insensitive) - if the item's display name contains the string, worth is hidden
+blacklisted-item-names:
+  - "Crate Key"
+  - "Vote Token"
+
 # If true, worth will ONLY show in the player's own inventory (not in any container/GUI)
 # This is the most restrictive option - worth only shows in your hotbar and inventory
 player-inventory-only: false
+
+# If true, items in armor slots (helmet, chestplate, leggings, boots) will NOT show worth
+# Useful if you don't want worth cluttering your equipped armor's lore
+hide-armor-slots: false
 
 # Debug mode - logs worth calculations to console (useful for troubleshooting)
 debug: false

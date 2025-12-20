@@ -457,13 +457,21 @@ public final class ConfigManager {
         // Blacklisted inventory titles
         WorthConfig.setBlacklistedInventories(worthConfig.getStringList("blacklisted-inventories"));
 
+        // Blacklisted item names (partial match)
+        WorthConfig.setBlacklistedItemNames(worthConfig.getStringList("blacklisted-item-names"));
+
         // Player inventory only mode
         WorthConfig.setPlayerInventoryOnly(worthConfig.getBoolean("player-inventory-only", false));
+
+        // Hide worth on items in armor slots
+        WorthConfig.setHideArmorSlots(worthConfig.getBoolean("hide-armor-slots", false));
 
         // Debug mode for worth system
         WorthConfig.setDebug(worthConfig.getBoolean("debug", false));
 
-        GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config loaded. Enabled: " + WorthConfig.isEnabled());
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config loaded. Enabled: " + WorthConfig.isEnabled() + 
+            ", HideArmorSlots: " + WorthConfig.isHideArmorSlots() + 
+            ", PlayerInventoryOnly: " + WorthConfig.isPlayerInventoryOnly());
     }
 
 }

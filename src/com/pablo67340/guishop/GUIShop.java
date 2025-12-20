@@ -179,7 +179,7 @@ public final class GUIShop extends JavaPlugin {
         long startTime = System.currentTimeMillis();
         
         try {
-            new Menu().loadItems(true);
+        new Menu().loadItems(true);
         } catch (Exception e) {
             getLogUtil().log("[Critical] Failed to load menu: " + e.getMessage());
             if (Config.isDebugMode()) {
@@ -190,16 +190,16 @@ public final class GUIShop extends JavaPlugin {
         // Only process menu items if menu loaded successfully
         if (loadedMenu != null && loadedMenu.getPages() != null) {
             // First, load shops linked from menu items
-            for (MenuPage page : loadedMenu.getPages().values()) {
-                for (Item item : page.getItems().values()) {
-                    if (item.getTargetShop() != null) {
+        for (MenuPage page : loadedMenu.getPages().values()) {
+            for (Item item : page.getItems().values()) {
+                if (item.getTargetShop() != null) {
                         try {
-                            getLogUtil().debugLog("Starting Warmup for Shop: " + item.getTargetShop());
-                            new Shop(item.getTargetShop()).loadItems(true);
+                    getLogUtil().debugLog("Starting Warmup for Shop: " + item.getTargetShop());
+                    new Shop(item.getTargetShop()).loadItems(true);
                         } catch (Exception e) {
                             getLogUtil().log("[Warning] Failed to load shop '" + item.getTargetShop() + "': " + e.getMessage());
-                        }
-                    }
+            }
+        }
                 }
             }
         } else {
@@ -269,7 +269,7 @@ public final class GUIShop extends JavaPlugin {
 
         // Reload all configuration files and defaults
         try {
-            configManager.reloadConfigs();
+        configManager.reloadConfigs();
         } catch (Exception e) {
             getLogUtil().log("[Critical] Failed to reload configs: " + e.getMessage());
             hadErrors = true;
@@ -282,18 +282,18 @@ public final class GUIShop extends JavaPlugin {
         // ALWAYS re-register commands, even if config loading failed
         // This ensures /gs reload is still available to fix config issues
         try {
-            CommandsMode cmdMode = Config.getCommandsMode();
-            commandManager.unregisterAll();
+        CommandsMode cmdMode = Config.getCommandsMode();
+        commandManager.unregisterAll();
 
-            if (cmdMode == CommandsMode.REGISTER) {
-                commandManager.registerCommands();
-            }
+        if (cmdMode == CommandsMode.REGISTER) {
+            commandManager.registerCommands();
+        }
 
-            // Handle command interception
-            if (cmdMode == CommandsMode.INTERCEPT) {
-                CommandsInterceptor.register();
-            } else {
-                CommandsInterceptor.unregister();
+        // Handle command interception
+        if (cmdMode == CommandsMode.INTERCEPT) {
+            CommandsInterceptor.register();
+        } else {
+            CommandsInterceptor.unregister();
             }
         } catch (Exception e) {
             getLogUtil().log("[Warning] Failed to register commands: " + e.getMessage());
@@ -302,10 +302,10 @@ public final class GUIShop extends JavaPlugin {
 
         // Reload worth display system
         try {
-            if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
-                worthDisplayManager.unregister();
-            }
-            initWorthDisplay();
+        if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
+            worthDisplayManager.unregister();
+        }
+        initWorthDisplay();
         } catch (Exception e) {
             getLogUtil().log("[Warning] Failed to reload worth display: " + e.getMessage());
         }
@@ -317,8 +317,8 @@ public final class GUIShop extends JavaPlugin {
                 sender.sendMessage(ChatColor.RED + "[GUIShop] Reload completed with errors - check console!");
             }
         } else {
-            logUtil.log("GUIShop reloaded successfully!");
-            getMiscUtils().sendPrefix(sender, "reload.execute");
+        logUtil.log("GUIShop reloaded successfully!");
+        getMiscUtils().sendPrefix(sender, "reload.execute");
         }
 
         this.setIsReload(false);

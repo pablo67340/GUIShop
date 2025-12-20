@@ -1127,7 +1127,7 @@ public final class Item implements ConfigurationSerializable {
             // Check if input item has the same custom-nbt stored in PDC
             String inputNBT = PDCUtil.getString(input, PDCUtil.KEY_CUSTOM_NBT);
             if (inputNBT == null || !inputNBT.equals(getNBT())) {
-                return false;
+                        return false;
             }
         }
         if (hasSkullUUID() && Config.isSellSkullUUID()) {

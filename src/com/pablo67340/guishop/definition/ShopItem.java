@@ -33,7 +33,7 @@ public class ShopItem implements Cloneable {
 
             Item highestPageItem = shopPage.getItems().values().stream().max(Comparator.comparing(Item::getSlot)).orElse(null);
             if (highestPageItem != null) {
-                shopPage.setHighestSlot(highestPageItem.getSlot());
+            shopPage.setHighestSlot(highestPageItem.getSlot());
                 GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
             } else {
                 shopPage.setHighestSlot(0);

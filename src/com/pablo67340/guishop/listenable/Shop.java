@@ -219,8 +219,8 @@ public class Shop {
                 items = new ArrayList<>();
             }
             items.add(item);
-            
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + " as sellable.");
+
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + " as sellable.");
             GUIShop.getINSTANCE().getITEMTABLE().put(materialKey, items);
         } catch (NoSuchElementException e) {
             logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "': Material '" + item.getMaterial() + "' is not valid for this server version.");

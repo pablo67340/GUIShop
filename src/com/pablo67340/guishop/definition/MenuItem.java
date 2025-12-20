@@ -33,7 +33,7 @@ public class MenuItem implements Cloneable {
 
             Item highestPageItem = menuPage.getItems().values().stream().max(Comparator.comparing(Item::getSlot)).orElse(null);
             if (highestPageItem != null) {
-                menuPage.setHighestSlot(highestPageItem.getSlot());
+            menuPage.setHighestSlot(highestPageItem.getSlot());
                 GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
             } else {
                 menuPage.setHighestSlot(0);

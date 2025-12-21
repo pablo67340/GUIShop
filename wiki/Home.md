@@ -15,28 +15,21 @@ Welcome to the official GUIShop documentation. This wiki covers everything you n
 - [Menu Configuration](Menu-Configuration)
 - [Messages Configuration](Messages-Configuration)
 - [Worth Display Configuration](Worth-Display-Configuration)
-
-### Advanced Topics
-- [Item Types and Properties](Item-Types-and-Properties)
 - [Special Item Configurations](Special-Item-Configurations)
-- [Dynamic Pricing](Dynamic-Pricing)
-- [Per-Item Permissions](Per-Item-Permissions)
 
 ### Developer Resources
 - [API Documentation](API-Documentation)
 - [Worth Display API](Worth-Display-API)
-- [Dynamic Price Provider](Dynamic-Price-Provider)
 
 ### Troubleshooting
 - [Common Issues](Common-Issues)
-- [Debug Mode](Debug-Mode)
 
 ---
 
 ## Quick Links
 
 - [GitHub Repository](https://github.com/pablo67340/GUIShop)
-- [Discord Support](https://discord.gg/XQb2Y2jBCa)
+- [Discord Support](https://discord.gg/wm6zMzdBwf)
 - [SpigotMC Page](https://www.spigotmc.org/resources/guishop.2451/)
 
 ## Version Compatibility

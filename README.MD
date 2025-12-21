@@ -6,7 +6,7 @@ The ultimate GUI-based shop plugin for Minecraft servers. Say goodbye to confusi
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/pablo67340/GUIShop)
 [![Wiki](https://img.shields.io/badge/Wiki-Documentation-green)](https://github.com/pablo67340/GUIShop/wiki)
-[![Discord](https://img.shields.io/badge/Discord-Support-purple)](https://discord.gg/XQb2Y2jBCa)
+[![Discord](https://img.shields.io/badge/Discord-Support-purple)](https://discord.gg/wm6zMzdBwf)
 [![SpigotMC](https://img.shields.io/badge/SpigotMC-Download-orange)](https://www.spigotmc.org/resources/guishop.2451/)
 
 ## Features
@@ -120,7 +120,7 @@ The compiled JAR will be in the `target` folder.
 ## Support
 
 - [GitHub Issues](https://github.com/pablo67340/GUIShop/issues)
-- [Discord Server](https://discord.gg/XQb2Y2jBCa)
+- [Discord Server](https://discord.gg/wm6zMzdBwf)
 
 ## License
 

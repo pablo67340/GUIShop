@@ -55,15 +55,19 @@ Configure potions using the `potion-info` property.
 
 ### Format
 ```yaml
-potion-info: 'POTION_TYPE:AMPLIFIER:EXTENDED:UPGRADED'
+potion-info:
+  type: POTION_TYPE
+  splash: true/false
+  extended: true/false
+  upgraded: true/false
 ```
 
 | Field | Description | Values |
 |-------|-------------|--------|
-| POTION_TYPE | The potion effect | See list below |
-| AMPLIFIER | Effect level (0-based) | `0` = Level 1, `1` = Level 2 |
-| EXTENDED | Extended duration | `true` or `false` |
-| UPGRADED | Upgraded (stronger) | `true` or `false` |
+| type | The potion effect type | See list below |
+| splash | Whether it's a splash potion | `true` or `false` |
+| extended | Extended duration | `true` or `false` |
+| upgraded | Upgraded (stronger effect) | `true` or `false` |
 
 ### Example
 ```yaml
@@ -72,7 +76,11 @@ potion-info: 'POTION_TYPE:AMPLIFIER:EXTENDED:UPGRADED'
   id: POTION
   buy-price: 200
   shop-name: '&dSpeed Potion'
-  potion-info: 'SPEED:1:true:false'  # Speed II, Extended
+  potion-info:
+    type: SPEED
+    splash: false
+    extended: true
+    upgraded: false
 ```
 
 ### Splash and Lingering Potions
@@ -81,13 +89,21 @@ potion-info: 'POTION_TYPE:AMPLIFIER:EXTENDED:UPGRADED'
   type: SHOP
   id: SPLASH_POTION
   buy-price: 300
-  potion-info: 'HEALING:1:false:true'  # Instant Health II
+  potion-info:
+    type: INSTANT_HEAL
+    splash: true
+    extended: false
+    upgraded: true
 
 '2':
   type: SHOP
   id: LINGERING_POTION
   buy-price: 400
-  potion-info: 'POISON:0:true:false'  # Poison, Extended
+  potion-info:
+    type: POISON
+    splash: false
+    extended: true
+    upgraded: false
 ```
 
 ### Common Potion Types
@@ -153,17 +169,25 @@ Configure fireworks using the `firework-info` property.
 
 ### Format
 ```yaml
-firework-info: 'TYPE:COLORS:FADE_COLORS:TRAIL:FLICKER:POWER'
+firework-info:
+  flight: 1-3
+  explosions:
+    - shape: shape_type
+      flicker: true/false
+      trail: true/false
+      colors: [color_int, color_int]
+      fade-colors: [color_int, color_int]
 ```
 
 | Field | Description | Values |
 |-------|-------------|--------|
-| TYPE | Firework shape | `BALL`, `BALL_LARGE`, `BURST`, `CREEPER`, `STAR` |
-| COLORS | Primary colors | Comma-separated: `RED,BLUE,GREEN` |
-| FADE_COLORS | Fade colors | Comma-separated: `WHITE,YELLOW` |
-| TRAIL | Has trail effect | `true` or `false` |
-| FLICKER | Has flicker effect | `true` or `false` |
-| POWER | Flight duration (1-3) | `1`, `2`, or `3` |
+| flight | Flight duration | `1`, `2`, or `3` |
+| explosions | List of explosion effects | See below |
+| shape | Firework shape | `small_ball`, `large_ball`, `burst`, `creeper`, `star` |
+| flicker | Has flicker effect | `true` or `false` |
+| trail | Has trail effect | `true` or `false` |
+| colors | Primary colors (RGB integers) | Array of integer color values |
+| fade-colors | Fade colors (RGB integers) | Array of integer color values |
 
 ### Example
 ```yaml
@@ -172,12 +196,30 @@ firework-info: 'TYPE:COLORS:FADE_COLORS:TRAIL:FLICKER:POWER'
   id: FIREWORK_ROCKET
   buy-price: 100
   shop-name: '&6Festive Firework'
-  firework-info: 'BALL_LARGE:RED,BLUE,WHITE:YELLOW:true:true:2'
+  firework-info:
+    flight: 2
+    explosions:
+      - shape: large_ball
+        flicker: true
+        trail: true
+        colors: [11743532, 2437522]
+        fade-colors: [1973019, 15790320]
 ```
 
-### Available Colors
+### Color Values
 
-`WHITE`, `SILVER`, `GRAY`, `BLACK`, `RED`, `MAROON`, `YELLOW`, `OLIVE`, `LIME`, `GREEN`, `AQUA`, `TEAL`, `BLUE`, `NAVY`, `FUCHSIA`, `PURPLE`, `ORANGE`
+Colors are specified as RGB integer values. Common color integers:
+
+| Color | Integer Value |
+|-------|---------------|
+| Red | 11743532 |
+| Blue | 2437522 |
+| Green | 1973019 |
+| Yellow | 15790320 |
+| White | 16777215 |
+| Black | 0 |
+
+You can calculate RGB integers using: `(red * 65536) + (green * 256) + blue`
 
 ---
 

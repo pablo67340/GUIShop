@@ -23,7 +23,6 @@ Files:
                See the comments in the file for more information.
 
 Support:
-  Discord = discord.gg/XQb2Y2jBCa
+  Discord = discord.gg/wm6zMzdBwf
             Join our Discord server and create a ticket or ask in the GUIShop channel.
-  Website = https://abstract.supporttt
-            Register an account and ask your questions there. (Takes longer to get an answer!)
+  Website = https://astrocorelabs.io

@@ -1,35 +1,50 @@
 package com.pablo67340.guishop.worth;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
+import com.github.retrooper.packetevents.PacketEvents;
+import com.github.retrooper.packetevents.event.PacketListenerAbstract;
+import com.github.retrooper.packetevents.event.PacketListenerPriority;
+import com.github.retrooper.packetevents.event.PacketReceiveEvent;
+import com.github.retrooper.packetevents.event.PacketSendEvent;
+import com.github.retrooper.packetevents.protocol.packettype.PacketType;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
+import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.Item;
+import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryCloseEvent;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Predicate;
 
 /**
- * Manages the display of item worth in item lore using ProtocolLib packet interception.
+ * Manages the display of item worth in item lore using PacketEvents packet interception.
  * This modifies items client-side only, preserving server-side item data and stacking behavior.
+ * 
+ * Approach: STRIP AND RE-ADD
+ * - We intercept ALL outgoing SET_SLOT and WINDOW_ITEMS packets
+ * - We STRIP any existing worth lines from item lore
+ * - We ADD fresh worth lore based on current price and stack size
+ * - This ensures worth is always correct and never duplicated
  */
 public class WorthDisplayManager {
 
@@ -37,9 +52,8 @@ public class WorthDisplayManager {
     private static WorthDisplayManager instance;
 
     private final GUIShop plugin;
-    private ProtocolManager protocolManager;
-    private PacketAdapter setSlotListener;
-    private PacketAdapter windowItemsListener;
+    private PacketListenerAbstract packetListener;
+    private Listener eventListener;
 
     @Getter
     private boolean registered = false;
@@ -56,6 +70,12 @@ public class WorthDisplayManager {
      */
     private Predicate<Player> externalDisableCheck = null;
 
+    /**
+     * The prefix pattern used to identify and strip existing worth lines.
+     * This is the text BEFORE the price, stripped of color codes.
+     */
+    private String worthPrefix = "worth:";
+
     public WorthDisplayManager(GUIShop plugin) {
         this.plugin = plugin;
         instance = this;
@@ -63,25 +83,15 @@ public class WorthDisplayManager {
 
     // ==================== Per-Player Worth Toggle API ====================
 
-    /**
-     * Check if worth display is enabled for a specific player.
-     * This checks both session toggles and external plugin hooks.
-     *
-     * @param player The player to check
-     * @return true if worth display is enabled for this player
-     */
     public boolean isWorthEnabledForPlayer(Player player) {
         if (player == null) return true;
 
-        // Check session-based disable (from /gs toggleworth command)
         if (sessionDisabledPlayers.contains(player.getUniqueId())) {
             return false;
         }
 
-        // Check external plugin hook
         if (externalDisableCheck != null) {
             try {
-                // External check returns true to DISABLE, so we invert
                 if (externalDisableCheck.test(player)) {
                     return false;
                 }
@@ -93,84 +103,37 @@ public class WorthDisplayManager {
         return true;
     }
 
-    /**
-     * Toggle worth display for a player (session-only, resets on server restart).
-     *
-     * @param player The player to toggle
-     * @return true if worth is now enabled, false if now disabled
-     */
     public boolean toggleWorthForPlayer(Player player) {
         UUID uuid = player.getUniqueId();
         if (sessionDisabledPlayers.contains(uuid)) {
             sessionDisabledPlayers.remove(uuid);
-            return true; // Now enabled
+            return true;
         } else {
             sessionDisabledPlayers.add(uuid);
-            return false; // Now disabled
+            return false;
         }
     }
 
-    /**
-     * Enable worth display for a player (session-only).
-     *
-     * @param player The player to enable worth for
-     */
     public void enableWorthForPlayer(Player player) {
         sessionDisabledPlayers.remove(player.getUniqueId());
     }
 
-    /**
-     * Disable worth display for a player (session-only).
-     *
-     * @param player The player to disable worth for
-     */
     public void disableWorthForPlayer(Player player) {
         sessionDisabledPlayers.add(player.getUniqueId());
     }
 
-    /**
-     * Check if a player has disabled worth display via the session toggle.
-     *
-     * @param player The player to check
-     * @return true if the player has disabled worth via session toggle
-     */
     public boolean isSessionDisabled(Player player) {
         return sessionDisabledPlayers.contains(player.getUniqueId());
     }
 
-    /**
-     * Set an external predicate to check if worth should be disabled for a player.
-     * This allows other plugins to hook in and provide persistent per-player settings.
-     * <p>
-     * The predicate should return TRUE to DISABLE worth display for the player,
-     * or FALSE to allow it (defer to other checks).
-     * <p>
-     * Example usage from another plugin:
-     * <pre>
-     * WorthDisplayManager.getInstance().setExternalDisableCheck(player -> {
-     *     // Return true to disable worth for this player
-     *     return myPlugin.hasWorthDisabled(player.getUniqueId());
-     * });
-     * </pre>
-     *
-     * @param check The predicate, or null to remove the hook
-     */
     public void setExternalDisableCheck(Predicate<Player> check) {
         this.externalDisableCheck = check;
     }
 
-    /**
-     * Get the current external disable check predicate.
-     *
-     * @return The current predicate, or null if none set
-     */
     public Predicate<Player> getExternalDisableCheck() {
         return this.externalDisableCheck;
     }
 
-    /**
-     * Clear all session-based worth toggles (useful for reload).
-     */
     public void clearSessionToggles() {
         sessionDisabledPlayers.clear();
     }
@@ -178,8 +141,7 @@ public class WorthDisplayManager {
     // ==================== End Per-Player API ====================
 
     /**
-     * Initialize and register the packet listeners.
-     * Should only be called if ProtocolLib is available.
+     * Initialize and register the packet listeners using PacketEvents.
      */
     public void register() {
         if (!WorthConfig.isEnabled()) {
@@ -187,455 +149,413 @@ public class WorthDisplayManager {
             return;
         }
 
+        // Check if PacketEvents is available
         try {
-            protocolManager = ProtocolLibrary.getProtocolManager();
-        } catch (Exception e) {
-            plugin.getLogUtil().log("Failed to get ProtocolLib manager: " + e.getMessage());
+            Class.forName("com.github.retrooper.packetevents.PacketEvents");
+        } catch (ClassNotFoundException e) {
+            plugin.getLogUtil().log("PacketEvents not found - worth display disabled. Please install PacketEvents.");
             return;
         }
 
-        // Listener for SET_SLOT packets (single slot updates)
-        setSlotListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.SET_SLOT) {
+        // Extract the worth prefix pattern from config for stripping
+        String format = WorthConfig.getFormat();
+        // Get everything before %worth% and strip color codes
+        int idx = format.toLowerCase().indexOf("%worth%");
+        if (idx > 0) {
+            worthPrefix = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', format.substring(0, idx))).toLowerCase().trim();
+        }
+
+        // Create packet listener
+        packetListener = new PacketListenerAbstract(PacketListenerPriority.NORMAL) {
             @Override
-            public void onPacketSending(PacketEvent event) {
-                if (event.isCancelled()) return;
+            public void onPacketSend(PacketSendEvent event) {
+                if (!(event.getPlayer() instanceof Player)) return;
+                Player player = (Player) event.getPlayer();
 
-                Player player = event.getPlayer();
-                if (player == null) return;
-
-                PacketContainer packet = event.getPacket();
-                
-                // Read the item FIRST and clone immediately to get fresh data
-                ItemStack originalItem = packet.getItemModifier().read(0);
-                
-                if (originalItem == null || originalItem.getType() == Material.AIR) {
-                    return;
-                }
-                
-                // Clone to ensure we have independent data
-                ItemStack item = originalItem.clone();
-                
-                // Get window ID - use bytes for older versions, integers for newer
-                int windowId;
-                try {
-                    // Try reading as integer first (1.17+)
-                    windowId = packet.getIntegers().read(0);
-                } catch (Exception e) {
-                    // Fall back to byte for older versions
-                    try {
-                        windowId = packet.getBytes().read(0).intValue();
-                    } catch (Exception e2) {
-                        windowId = 0; // Default to player inventory
-                    }
-                }
-                
-                // Check per-player worth toggle FIRST (applies to all inventory types)
+                // Check per-player worth toggle
                 if (!isWorthEnabledForPlayer(player)) {
                     return;
                 }
 
-                // Get the slot number from the packet - needed for armor check and debug
-                // SET_SLOT packet structure:
-                // 1.17+: windowId (int 0), stateId (int 1), slot (int 2), item
-                // Pre-1.17: windowId (int 0), slot (int 1), item
-                int protocolSlot = -1;
-                try {
-                    int integerCount = packet.getIntegers().size();
-                    if (integerCount >= 3) {
-                        // 1.17+ with state ID: slot is at index 2
-                        protocolSlot = packet.getIntegers().read(2);
-                    } else if (integerCount >= 2) {
-                        // Pre-1.17 without state ID: slot is at index 1
-                        protocolSlot = packet.getIntegers().read(1);
-                    }
-                } catch (Exception e) {
-                    // Fallback - try both indices
-                    try {
-                        protocolSlot = packet.getIntegers().read(2);
-                    } catch (Exception e2) {
-                        try {
-                            protocolSlot = packet.getIntegers().read(1);
-                        } catch (Exception e3) {
-                            protocolSlot = -1;
-                        }
-                    }
+                if (event.getPacketType() == PacketType.Play.Server.WINDOW_ITEMS) {
+                    handleWindowItems(event, player);
+                } else if (event.getPacketType() == PacketType.Play.Server.SET_SLOT) {
+                    handleSetSlot(event, player);
                 }
+            }
 
-                // Window ID 0 = player inventory, -1 or -2 = special slots (cursor, etc.)
-                // For containers (windowId > 0), also check if it's a GUIShop inventory
-                if (windowId > 0) {
-                    if (!shouldDisplayWorth(player)) {
-                        return;
-                    }
-                }
-
-                // Check if this is an armor slot and hide-armor-slots is enabled
-                // Protocol slots 5-8 are armor slots (head=5, chest=6, legs=7, feet=8)
-                boolean isArmorSlot = windowId == 0 && protocolSlot >= 5 && protocolSlot <= 8;
-                if (isArmorSlot && WorthConfig.isHideArmorSlots()) {
-                    if (WorthConfig.isDebug()) {
-                        WorthDisplayManager.this.plugin.getLogUtil().debugLog("SET_SLOT: Armor slot " + protocolSlot + " item=" + item.getType() + " - stripping worth");
-                    }
-                    // Strip any existing worth lines from armor items
-                    ItemStack stripped = stripWorthFromItem(item);
-                    if (stripped != null) {
-                        packet.getItemModifier().write(0, stripped);
-                    }
-                    return;
-                }
-
-                // Clone the item and add worth lore
-                ItemStack modified = addWorthLore(item);
-                if (modified != null) {
-                    packet.getItemModifier().write(0, modified);
+            @Override
+            public void onPacketReceive(PacketReceiveEvent event) {
+                if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
+                    if (!(event.getPlayer() instanceof Player)) return;
+                    Player player = (Player) event.getPlayer();
                     
-                    if (WorthConfig.isDebug()) {
-                        WorthDisplayManager.this.plugin.getLogUtil().debugLog("SET_SLOT: Modified " + item.getType() + 
-                            " amount=" + item.getAmount() + " windowId=" + windowId + " slot=" + protocolSlot);
-                    }
-                } else if (WorthConfig.isDebug()) {
-                    WorthDisplayManager.this.plugin.getLogUtil().debugLog("SET_SLOT: No modification for " + item.getType() + 
-                        " amount=" + item.getAmount() + " slot=" + protocolSlot);
+                    if (!isWorthEnabledForPlayer(player)) return;
+                    
+                    // Refresh inventory after 3 ticks (like the working plugin does)
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (player.isOnline()) {
+                            player.updateInventory();
+                        }
+                    }, 3L);
                 }
             }
         };
 
-        // Listener for WINDOW_ITEMS packets (full inventory updates)
-        windowItemsListener = new PacketAdapter(plugin, ListenerPriority.NORMAL, PacketType.Play.Server.WINDOW_ITEMS) {
-            @Override
-            public void onPacketSending(PacketEvent event) {
+        PacketEvents.getAPI().getEventManager().registerListener(packetListener);
+
+        // Register event listener for inventory close, item drop, and clicks
+        eventListener = new Listener() {
+            @EventHandler(priority = EventPriority.MONITOR)
+            public void onInventoryClose(InventoryCloseEvent event) {
+                HumanEntity entity = event.getPlayer();
+                if (entity instanceof Player) {
+                    Player player = (Player) entity;
+                    if (isWorthEnabledForPlayer(player)) {
+                        // Delay to ensure inventory is fully closed
+                        Bukkit.getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
+                    }
+                }
+            }
+
+            @EventHandler(priority = EventPriority.MONITOR)
+            public void onPlayerDropItem(PlayerDropItemEvent event) {
                 if (event.isCancelled()) return;
-
                 Player player = event.getPlayer();
-                if (player == null) return;
-
-                PacketContainer packet = event.getPacket();
-                
-                // Check per-player worth toggle FIRST (applies to all inventory types)
-                if (!isWorthEnabledForPlayer(player)) {
-                    return;
+                if (isWorthEnabledForPlayer(player)) {
+                    player.updateInventory();
                 }
+            }
 
-                // Get window ID
-                int windowId;
-                try {
-                    windowId = packet.getIntegers().read(0);
-                } catch (Exception e) {
-                    try {
-                        windowId = packet.getBytes().read(0).intValue();
-                    } catch (Exception e2) {
-                        windowId = 0;
-                    }
-                }
+            @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+            public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+                if (!(event.getWhoClicked() instanceof Player)) return;
+                Player player = (Player) event.getWhoClicked();
                 
-                // For player inventory (windowId 0), always add worth to all items
-                // For containers, check if it's a GUIShop inventory or blacklisted
-                boolean isPlayerInventory = (windowId == 0);
-                boolean shouldDisplayForContainer = isPlayerInventory || shouldDisplayWorth(player);
-
-                List<ItemStack> items = packet.getItemListModifier().read(0);
-
-                if (items != null && !items.isEmpty()) {
-                    List<ItemStack> modifiedItems = new ArrayList<>();
-                    boolean anyModified = false;
-                    
-                    // Calculate where player inventory slots begin in this packet
-                    // Player inventory always occupies the last 36 slots (27 main + 9 hotbar) in container windows
-                    // For player inventory window (windowId 0), all slots are "player slots"
-                    int playerSlotStart = isPlayerInventory ? 0 : Math.max(0, items.size() - 36);
-                    
-                    if (WorthConfig.isDebug()) {
-                        WorthDisplayManager.this.plugin.getLogUtil().debugLog("WINDOW_ITEMS: windowId=" + windowId + 
-                            " totalSlots=" + items.size() + " playerSlotStart=" + playerSlotStart + 
-                            " shouldDisplayForContainer=" + shouldDisplayForContainer);
-                    }
-
-                    for (int i = 0; i < items.size(); i++) {
-                        ItemStack item = items.get(i);
-                        
-                        if (item != null && item.getType() != Material.AIR) {
-                            // For containers, player inventory slots start at (totalSlots - 36)
-                            // This correctly handles all container sizes (single chest, double chest, etc.)
-                            boolean isPlayerSlot = (i >= playerSlotStart);
-                            boolean shouldAddWorth = isPlayerSlot || shouldDisplayForContainer;
-                            
-                            // Check if this is an armor slot and hide-armor-slots is enabled
-                            // In player inventory (windowId 0), armor slots are 5-8
-                            boolean isArmorSlot = isPlayerInventory && i >= 5 && i <= 8;
-                            if (isArmorSlot && WorthConfig.isHideArmorSlots()) {
-                                if (WorthConfig.isDebug()) {
-                                    WorthDisplayManager.this.plugin.getLogUtil().debugLog("WINDOW_ITEMS: Armor slot " + i + " item=" + item.getType() + " - stripping worth");
-                                }
-                                // Strip any existing worth lines from armor items
-                                ItemStack stripped = stripWorthFromItem(item);
-                                if (stripped != null) {
-                                    modifiedItems.add(stripped);
-                                    anyModified = true;
-                                } else {
-                                    modifiedItems.add(item);
-                                }
-                                continue; // Skip to next item
-                            }
-                            
-                            if (shouldAddWorth) {
-                                ItemStack modified = addWorthLore(item);
-                                if (modified != null) {
-                                    modifiedItems.add(modified);
-                                    anyModified = true;
-                                } else {
-                                    modifiedItems.add(item);
-                                }
-                            } else {
-                                modifiedItems.add(item);
-                            }
-                        } else {
-                            modifiedItems.add(item);
-                        }
-                    }
-
-                    if (anyModified) {
-                        packet.getItemListModifier().write(0, modifiedItems);
-                        
+                if (!isWorthEnabledForPlayer(player)) return;
+                
+                // Refresh inventory after any click to ensure worth is updated
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isOnline()) {
+                        player.updateInventory();
                         if (WorthConfig.isDebug()) {
-                            WorthDisplayManager.this.plugin.getLogUtil().debugLog("WINDOW_ITEMS: Modified " + modifiedItems.size() + 
-                                " items in windowId=" + windowId);
+                            plugin.getLogUtil().debugLog("CLICK: Refreshed inventory for " + player.getName());
                         }
+                    }
+                }, 1L);
+            }
+        };
+        Bukkit.getPluginManager().registerEvents(eventListener, plugin);
+
+        registered = true;
+        plugin.getLogUtil().log("Worth display system enabled (using PacketEvents).");
+    }
+
+    /**
+     * Handle WINDOW_ITEMS packet (full inventory update).
+     */
+    private void handleWindowItems(PacketSendEvent event, Player player) {
+        WrapperPlayServerWindowItems wrapper = new WrapperPlayServerWindowItems(event);
+        int windowId = wrapper.getWindowId();
+        
+        // Check if this is an inventory we should skip (based on what the player has open)
+        if (shouldSkipPlayerInventory(player)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("WINDOW_ITEMS: Skipped - blacklisted inventory");
+            }
+            return;
+        }
+
+        List<com.github.retrooper.packetevents.protocol.item.ItemStack> items = wrapper.getItems();
+        List<com.github.retrooper.packetevents.protocol.item.ItemStack> newItems = new ArrayList<>();
+
+        boolean hideArmor = WorthConfig.isHideArmorSlots();
+        boolean isPlayerInventory = (windowId == 0);
+
+        for (int i = 0; i < items.size(); i++) {
+            com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = items.get(i);
+            
+            // Skip armor slots if configured (slots 5-8) - only for player inventory window
+            if (isPlayerInventory && hideArmor && isArmorSlot(i)) {
+                newItems.add(packetItem); // Add unchanged
+                continue;
+            }
+
+            if (packetItem != null) {
+                com.github.retrooper.packetevents.protocol.item.ItemStack processed = processPacketItem(packetItem);
+                newItems.add(processed);
+            } else {
+                newItems.add(packetItem);
+            }
+        }
+
+        wrapper.setItems(newItems);
+
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("WINDOW_ITEMS: Processed " + newItems.size() + " items for " + player.getName() + " windowId=" + windowId);
+        }
+    }
+    
+    /**
+     * Check if we should skip processing for this player based on their open inventory.
+     */
+    private boolean shouldSkipPlayerInventory(Player player) {
+        // Check if player has an inventory open
+        if (player.getOpenInventory() != null) {
+            String title = player.getOpenInventory().getTitle();
+            if (title != null) {
+                // Check blacklisted inventories
+                for (String blacklisted : WorthConfig.getBlacklistedInventories()) {
+                    if (title.toLowerCase().contains(blacklisted.toLowerCase())) {
+                        return true;
                     }
                 }
             }
-        };
-
-        protocolManager.addPacketListener(setSlotListener);
-        protocolManager.addPacketListener(windowItemsListener);
-        
-        // NOTE: We intentionally do NOT register an inventory click listener here.
-        // The packet interceptors (SET_SLOT and WINDOW_ITEMS) are sufficient.
-        // Sending additional packets on every click caused bandwidth issues and
-        // triggered anti-exploit plugins (ExploitFixer, etc.).
-        // The worth lore updates whenever the server naturally sends inventory packets.
-        
-        registered = true;
-
-        StringBuilder logMsg = new StringBuilder("Worth display system enabled (ProtocolLib)");
-        if (WorthConfig.isHideArmorSlots()) {
-            logMsg.append(" [Armor hidden]");
         }
-        if (WorthConfig.isPlayerInventoryOnly()) {
-            logMsg.append(" [Player inv only]");
-        }
-        if (!WorthConfig.getBlacklistedItemNames().isEmpty()) {
-            logMsg.append(" [").append(WorthConfig.getBlacklistedItemNames().size()).append(" item names blacklisted]");
-        }
-        plugin.getLogUtil().log(logMsg.toString());
-    }
-
-    /**
-     * Check if worth should be displayed for the player's current inventory.
-     *
-     * @param player The player to check
-     * @return true if worth should be displayed, false otherwise
-     */
-    private boolean shouldDisplayWorth(Player player) {
-        if (player == null || player.getOpenInventory() == null) {
-            return true; // Default to showing worth if we can't determine
-        }
-
-        // Check per-player worth toggle (session-based and external hooks)
-        if (!isWorthEnabledForPlayer(player)) {
-            if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("Skipping worth display - disabled for player: " + player.getName());
-            }
-            return false;
-        }
-
-        // If player-inventory-only is enabled, only show worth in player's own inventory
-        if (WorthConfig.isPlayerInventoryOnly()) {
-            InventoryType topType = player.getOpenInventory().getTopInventory().getType();
-            if (topType != InventoryType.CRAFTING) {
-                // CRAFTING type means the player is just looking at their inventory (no container open)
-                if (WorthConfig.isDebug()) {
-                    plugin.getLogUtil().debugLog("Skipping worth display - player-inventory-only mode and container open: " + topType);
-                }
-                return false;
-            }
-            return true;
-        }
-
-        String title = player.getOpenInventory().getTitle();
-        if (title == null || title.isEmpty()) {
-            return true;
-        }
-
-        // Strip color codes for comparison
-        String strippedTitle = ChatColor.stripColor(title).toLowerCase();
-
-        // Check if it's a GUIShop inventory (Menu, Shop, Sell, Quantity, Value, AltSell)
-        if (isGUIShopInventory(strippedTitle)) {
-            if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("Skipping worth display - GUIShop inventory: " + title);
-            }
-            return false;
-        }
-
-        // Check against blacklisted inventories
-        for (String blacklisted : WorthConfig.getBlacklistedInventories()) {
-            if (strippedTitle.contains(blacklisted.toLowerCase())) {
-                if (WorthConfig.isDebug()) {
-                    plugin.getLogUtil().debugLog("Skipping worth display - blacklisted inventory: " + title);
-                }
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    /**
-     * Check if the inventory title matches any GUIShop inventory.
-     */
-    private boolean isGUIShopInventory(String strippedTitle) {
-        // Safety check - if configs aren't loaded yet, don't match
-        if (Config.getTitlesConfig() == null || Config.getAltSellConfig() == null) {
-            return false;
-        }
-
-        try {
-            // Get GUIShop's configured inventory titles with null safety
-            String menuTitleRaw = Config.getTitlesConfig().getMenuTitle();
-            String shopTitleRaw = Config.getTitlesConfig().getShopTitle();
-            String sellTitleRaw = Config.getTitlesConfig().getSellTitle();
-            String qtyTitleRaw = Config.getTitlesConfig().getQtyTitle();
-            String valueTitleRaw = Config.getTitlesConfig().getValueTitle();
-            String altSellTitleRaw = Config.getAltSellConfig().getTitle();
-
-            // Check menu title
-            if (menuTitleRaw != null) {
-                String menuTitle = ChatColor.stripColor(menuTitleRaw.replace("%page-number%", "")).toLowerCase().trim();
-                if (strippedTitle.startsWith(menuTitle)) return true;
-            }
-
-            // Check shop title
-            if (shopTitleRaw != null) {
-                String shopTitle = ChatColor.stripColor(shopTitleRaw.replace("%shopname%", "")).toLowerCase().trim();
-                if (strippedTitle.startsWith(shopTitle)) return true;
-            }
-
-            // Check sell title
-            if (sellTitleRaw != null) {
-                String sellTitle = ChatColor.stripColor(sellTitleRaw).toLowerCase();
-                if (strippedTitle.equals(sellTitle)) return true;
-            }
-
-            // Check quantity title
-            if (qtyTitleRaw != null) {
-                String qtyTitle = ChatColor.stripColor(qtyTitleRaw).toLowerCase();
-                if (strippedTitle.equals(qtyTitle)) return true;
-            }
-
-            // Check value title
-            if (valueTitleRaw != null) {
-                String valueTitle = ChatColor.stripColor(valueTitleRaw).toLowerCase();
-                if (strippedTitle.equals(valueTitle)) return true;
-            }
-
-            // Check alt sell title
-            if (altSellTitleRaw != null) {
-                String altSellTitle = ChatColor.stripColor(altSellTitleRaw).toLowerCase();
-                if (strippedTitle.equals(altSellTitle)) return true;
-            }
-        } catch (Exception e) {
-            // If any error occurs, safely return false
-            if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("Error checking GUIShop inventory title: " + e.getMessage());
-            }
-            return false;
-        }
-
         return false;
     }
 
     /**
-     * Unregister the packet listeners.
+     * Handle SET_SLOT packet (single slot update).
      */
-    public void unregister() {
-        if (protocolManager != null) {
-            if (setSlotListener != null) {
-                protocolManager.removePacketListener(setSlotListener);
+    private void handleSetSlot(PacketSendEvent event, Player player) {
+        WrapperPlayServerSetSlot wrapper = new WrapperPlayServerSetSlot(event);
+        int windowId = wrapper.getWindowId();
+        int slot = wrapper.getSlot();
+
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("SET_SLOT: Received windowId=" + windowId + " slot=" + slot);
+        }
+
+        // Skip invalid slots (like cursor slot -1)
+        if (slot < 0) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("SET_SLOT: Skipped (slot=" + slot + ")");
             }
-            if (windowItemsListener != null) {
-                protocolManager.removePacketListener(windowItemsListener);
+            return;
+        }
+        
+        // Check if this is a blacklisted inventory
+        if (shouldSkipPlayerInventory(player)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("SET_SLOT: Skipped - blacklisted inventory");
+            }
+            return;
+        }
+
+        // Skip armor slots if configured (slots 5-8) - only for player inventory window
+        boolean isPlayerInventory = (windowId == 0);
+        if (isPlayerInventory && WorthConfig.isHideArmorSlots() && isArmorSlot(slot)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("SET_SLOT: Skipped armor slot=" + slot);
+            }
+            return;
+        }
+
+        com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = wrapper.getItem();
+        if (packetItem == null) return;
+
+        com.github.retrooper.packetevents.protocol.item.ItemStack processed = processPacketItem(packetItem);
+        wrapper.setItem(processed);
+
+        if (WorthConfig.isDebug()) {
+            ItemStack bukkitItem = SpigotConversionUtil.toBukkitItemStack(packetItem);
+            if (bukkitItem != null && !bukkitItem.getType().isAir()) {
+                plugin.getLogUtil().debugLog("SET_SLOT: Modified " + bukkitItem.getType() + " x" + bukkitItem.getAmount() + " slot=" + slot);
             }
         }
-        registered = false;
-        plugin.getLogUtil().debugLog("Worth display system disabled.");
     }
 
     /**
-     * Add the worth lore to an item.
-     * Returns a cloned item with modified lore, or null if no modification needed.
-     *
-     * @param item The original item
-     * @return The modified item clone, or null if no worth to display
+     * Check if the slot is an armor slot (helmet=5, chestplate=6, leggings=7, boots=8).
      */
-    private ItemStack addWorthLore(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) {
-            return null;
+    private boolean isArmorSlot(int slot) {
+        return slot >= 5 && slot <= 8;
+    }
+
+    /**
+     * Process a PacketEvents ItemStack: strip existing worth lore and add fresh worth.
+     */
+    private com.github.retrooper.packetevents.protocol.item.ItemStack processPacketItem(
+            com.github.retrooper.packetevents.protocol.item.ItemStack packetItem) {
+        
+        // Convert to Bukkit ItemStack for processing
+        ItemStack bukkitItem = SpigotConversionUtil.toBukkitItemStack(packetItem);
+        if (bukkitItem == null || bukkitItem.getType().isAir()) {
+            return packetItem;
         }
 
-        // Check if item already has a worth line (from ignore list)
-        if (hasIgnoredLore(item)) {
-            if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("Skipping item with ignored lore: " + item.getType());
-            }
+        // Clone for safety
+        ItemStack clonedItem = bukkitItem.clone();
+
+        // Process the item
+        ItemStack processed = processItem(clonedItem);
+        if (processed == null) {
+            return packetItem;
+        }
+
+        // Convert back to PacketEvents ItemStack
+        return SpigotConversionUtil.fromBukkitItemStack(processed);
+    }
+
+    /**
+     * Process an item: strip any existing worth lore and add fresh worth.
+     * 
+     * @param item The item to process
+     * @return The processed item with updated worth lore, or null if no changes needed
+     */
+    private ItemStack processItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) {
             return null;
         }
 
         // Check if item name is blacklisted
         if (hasBlacklistedName(item)) {
             if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("Skipping item with blacklisted name: " + item.getType());
+                plugin.getLogUtil().debugLog("PROCESS: " + item.getType() + " blacklisted by name");
             }
-            return null;
+            return stripWorthLore(item); // Just strip, don't add
         }
 
         // Find the shop item for this material
         Item shopItem = findShopItem(item);
-
-        if (shopItem == null) {
-            if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("No shop item found for: " + item.getType());
-            }
-            // If we want to show "not sellable" for items not in shop
-            if (!WorthConfig.isOnlyShowSellable()) {
-                return addNotSellableLore(item);
-            }
-            return null;
-        }
-
-        if (!shopItem.hasSellPrice()) {
-            if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("No sell price for: " + item.getType());
-            }
-            if (!WorthConfig.isOnlyShowSellable()) {
-                return addNotSellableLore(item);
-            }
-            return null;
-        }
-
-        // Calculate the worth based on actual stack size
-        int quantity = item.getAmount();
-        BigDecimal totalWorth = shopItem.calculateSellPrice(quantity);
-        BigDecimal singleWorth = shopItem.calculateSellPrice(1);
         
-        if (WorthConfig.isDebug()) {
-            plugin.getLogUtil().debugLog("Worth calc: " + item.getType() + " x" + quantity + " = " + totalWorth + " (single: " + singleWorth + ")");
+        // If no shop item or no sell price, handle accordingly
+        if (shopItem == null || !shopItem.hasSellPrice()) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("PROCESS: " + item.getType() + " no shop item or no sell price");
+            }
+            if (WorthConfig.isOnlyShowSellable()) {
+                return stripWorthLore(item);
+            } else {
+                // Add "not sellable" lore
+                return processItemWithLore(item, formatNotSellableLine());
+            }
+        }
+
+        // Calculate price
+        BigDecimal totalWorth = shopItem.calculateSellPrice(item.getAmount());
+        if (totalWorth.doubleValue() <= 0) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("PROCESS: " + item.getType() + " worth is 0 or less");
+            }
+            if (WorthConfig.isOnlyShowSellable()) {
+                return stripWorthLore(item);
+            } else {
+                return processItemWithLore(item, formatNotSellableLine());
+            }
         }
 
         // Format the worth line
-        String worthLine = formatWorthLine(totalWorth, singleWorth, quantity);
+        BigDecimal singleWorth = shopItem.calculateSellPrice(1);
+        String worthLine = formatWorthLine(totalWorth, singleWorth, item.getAmount());
 
-        // Clone and modify the item
-        return applyWorthLore(item, worthLine);
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("PROCESS: " + item.getType() + " x" + item.getAmount() + " worth=" + totalWorth);
+        }
+
+        return processItemWithLore(item, worthLine);
+    }
+
+    /**
+     * Process an item: strip existing worth lore and add the specified line.
+     */
+    private ItemStack processItemWithLore(ItemStack item, String newWorthLine) {
+        ItemStack clone = item.clone();
+        ItemMeta meta = clone.getItemMeta();
+        if (meta == null) {
+            return null;
+        }
+
+        List<String> lore;
+        if (meta.hasLore() && meta.getLore() != null) {
+            lore = new ArrayList<>(meta.getLore());
+            // Strip any existing worth lines
+            stripWorthFromLore(lore);
+        } else {
+            lore = new ArrayList<>();
+        }
+
+        // Add the new worth line
+        if (WorthConfig.isPositionTop()) {
+            if (WorthConfig.isAddBlankLine() && !lore.isEmpty()) {
+                lore.add(0, "");
+            }
+            lore.add(0, newWorthLine);
+        } else {
+            if (WorthConfig.isAddBlankLine() && !lore.isEmpty()) {
+                lore.add("");
+            }
+            lore.add(newWorthLine);
+        }
+
+        meta.setLore(lore);
+        clone.setItemMeta(meta);
+        return clone;
+    }
+
+    /**
+     * Strip any worth-related lines from the lore list.
+     */
+    private void stripWorthFromLore(List<String> lore) {
+        Iterator<String> iterator = lore.iterator();
+        while (iterator.hasNext()) {
+            String line = iterator.next();
+            if (line == null) continue;
+            
+            String stripped = ChatColor.stripColor(line).toLowerCase().trim();
+            
+            // Remove lines that match our worth pattern
+            if (stripped.startsWith(worthPrefix) || 
+                stripped.contains("worth:") ||
+                stripped.contains("not sellable")) {
+                iterator.remove();
+            }
+        }
+        
+        // Also remove trailing empty lines that were added as separators
+        while (!lore.isEmpty() && (lore.get(lore.size() - 1) == null || lore.get(lore.size() - 1).isEmpty())) {
+            lore.remove(lore.size() - 1);
+        }
+        while (!lore.isEmpty() && (lore.get(0) == null || lore.get(0).isEmpty())) {
+            lore.remove(0);
+        }
+    }
+
+    /**
+     * Strip worth lore from an item without adding new worth.
+     */
+    private ItemStack stripWorthLore(ItemStack item) {
+        if (!item.hasItemMeta()) {
+            return item; // Return as-is if no meta
+        }
+        
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null || !meta.hasLore()) {
+            return item;
+        }
+
+        List<String> lore = meta.getLore();
+        if (lore == null || lore.isEmpty()) {
+            return item;
+        }
+
+        int originalSize = lore.size();
+        List<String> newLore = new ArrayList<>(lore);
+        stripWorthFromLore(newLore);
+
+        // Only return modified item if we actually stripped something
+        if (newLore.size() != originalSize) {
+            ItemStack clone = item.clone();
+            ItemMeta cloneMeta = clone.getItemMeta();
+            if (cloneMeta != null) {
+                cloneMeta.setLore(newLore.isEmpty() ? null : newLore);
+                clone.setItemMeta(cloneMeta);
+                return clone;
+            }
+        }
+
+        return item;
     }
 
     /**
@@ -644,10 +564,8 @@ public class WorthDisplayManager {
     private Item findShopItem(ItemStack item) {
         String materialKey = Item.getItemStringForItemStack(item);
         
-        // First try exact match with spawner info
         List<Item> itemList = plugin.getITEMTABLE().get(materialKey);
         
-        // If not found and it's a spawner, try just the base material
         if (itemList == null) {
             itemList = plugin.getITEMTABLE().get(item.getType().toString());
         }
@@ -656,42 +574,17 @@ public class WorthDisplayManager {
             return null;
         }
 
-        // Find the matching shop item
         for (Item shopItem : itemList) {
             if (shopItem.isItemFromItemStack(item)) {
                 return shopItem;
             }
         }
 
-        // Return first item if no exact match (for simple items without special attributes)
         return itemList.get(0);
     }
 
     /**
-     * Check if the item has lore that should be ignored.
-     */
-    private boolean hasIgnoredLore(ItemStack item) {
-        if (!item.hasItemMeta()) return false;
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || !meta.hasLore()) return false;
-
-        List<String> lore = meta.getLore();
-        if (lore == null) return false;
-
-        List<String> ignoreList = WorthConfig.getIgnoreLoreContaining();
-        for (String loreLine : lore) {
-            String stripped = ChatColor.stripColor(loreLine).toLowerCase();
-            for (String ignore : ignoreList) {
-                if (stripped.contains(ignore.toLowerCase())) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Check if the item has a display name that is blacklisted (partial match).
+     * Check if the item has a display name that is blacklisted.
      */
     private boolean hasBlacklistedName(ItemStack item) {
         if (!item.hasItemMeta()) return false;
@@ -733,187 +626,33 @@ public class WorthDisplayManager {
     }
 
     /**
-     * Apply the worth lore to a cloned item.
-     * This method first removes any existing worth lines to prevent duplicates.
+     * Format the "not sellable" line.
      */
-    private ItemStack applyWorthLore(ItemStack item, String worthLine) {
-        ItemStack clone = item.clone();
-        ItemMeta meta = clone.getItemMeta();
-        if (meta == null) return null;
-
-        List<String> lore = meta.hasLore() ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
-        
-        // Remove any existing worth lines to prevent duplicates
-        // Also remove blank lines that were added before worth lines
-        lore = stripExistingWorthLines(lore);
-
-        if (WorthConfig.isPositionTop()) {
-            // Add at the top
-            if (WorthConfig.isAddBlankLine() && !lore.isEmpty()) {
-                lore.add(0, "");
-                lore.add(0, worthLine);
-            } else {
-                lore.add(0, worthLine);
-            }
-        } else {
-            // Add at the bottom (default)
-            if (WorthConfig.isAddBlankLine() && !lore.isEmpty()) {
-                lore.add("");
-            }
-            lore.add(worthLine);
-        }
-
-        meta.setLore(lore);
-        clone.setItemMeta(meta);
-        return clone;
+    private String formatNotSellableLine() {
+        return ChatColor.translateAlternateColorCodes('&', WorthConfig.getNotSellableFormat());
     }
 
     /**
-     * Strip any existing worth lines from the lore to prevent duplicates.
-     * This detects worth lines by checking common patterns like "Worth:", currency symbols, etc.
+     * Unregister the packet listeners.
      */
-    private List<String> stripExistingWorthLines(List<String> lore) {
-        if (lore == null || lore.isEmpty()) {
-            return new ArrayList<>();
-        }
-
-        List<String> cleanedLore = new ArrayList<>();
-        
-        // Get patterns to detect worth lines
-        // We check: "worth:", "not sellable", and the format prefix from config
-        String formatRaw = WorthConfig.getFormat();
-        String notSellableRaw = WorthConfig.getNotSellableFormat();
-        
-        // Extract the start of the format to use as a pattern (e.g., "&7Worth:" -> "worth:")
-        String formatPrefix = "";
-        if (formatRaw != null && !formatRaw.isEmpty()) {
-            // Strip color codes and get the first part before any placeholder
-            String stripped = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', formatRaw));
-            int placeholderIdx = stripped.indexOf('%');
-            if (placeholderIdx > 0) {
-                formatPrefix = stripped.substring(0, placeholderIdx).trim().toLowerCase();
-            } else {
-                formatPrefix = stripped.trim().toLowerCase();
+    public void unregister() {
+        if (packetListener != null) {
+            try {
+                PacketEvents.getAPI().getEventManager().unregisterListener(packetListener);
+            } catch (Exception e) {
+                // Ignore if PacketEvents not available
             }
         }
-        
-        String notSellablePrefix = "";
-        if (notSellableRaw != null && !notSellableRaw.isEmpty()) {
-            notSellablePrefix = ChatColor.stripColor(ChatColor.translateAlternateColorCodes('&', notSellableRaw)).toLowerCase();
+        if (eventListener != null) {
+            HandlerList.unregisterAll(eventListener);
         }
         
-        boolean lastLineWasBlank = false;
-        boolean removedWorthLine = false;
-        
-        for (int i = 0; i < lore.size(); i++) {
-            String line = lore.get(i);
-            String strippedLine = ChatColor.stripColor(line).toLowerCase().trim();
-            
-            // Check if this line looks like a worth line
-            boolean isWorthLine = false;
-            
-            // Check against format prefix (e.g., "worth:")
-            if (!formatPrefix.isEmpty() && strippedLine.startsWith(formatPrefix)) {
-                isWorthLine = true;
-            }
-            
-            // Check against not sellable format
-            if (!notSellablePrefix.isEmpty() && strippedLine.equals(notSellablePrefix)) {
-                isWorthLine = true;
-            }
-            
-            // Also check for common worth patterns as fallback
-            if (strippedLine.startsWith("worth:") || strippedLine.startsWith("sell value:")) {
-                isWorthLine = true;
-            }
-            
-            if (isWorthLine) {
-                removedWorthLine = true;
-                // Skip this line (don't add to cleaned lore)
-                // Also skip the blank line before it if we're at the bottom
-                if (lastLineWasBlank && !cleanedLore.isEmpty()) {
-                    cleanedLore.remove(cleanedLore.size() - 1);
-                }
-                continue;
-            }
-            
-            // Track if this line is blank (for removing blank lines before worth)
-            lastLineWasBlank = strippedLine.isEmpty();
-            
-            cleanedLore.add(line);
-        }
-        
-        // If we're adding at top and the first line is blank, remove it
-        if (removedWorthLine && !cleanedLore.isEmpty()) {
-            String firstLine = ChatColor.stripColor(cleanedLore.get(0)).trim();
-            if (firstLine.isEmpty()) {
-                cleanedLore.remove(0);
-            }
-        }
-        
-        return cleanedLore;
+        registered = false;
+        plugin.getLogUtil().debugLog("Worth display system disabled.");
     }
 
-    /**
-     * Strip all worth lines from an item without adding new ones.
-     * Used for armor slots when hide-armor-slots is enabled.
-     * 
-     * @param item The item to strip worth from
-     * @return A cloned item without worth lines, or null if no changes needed
-     */
-    private ItemStack stripWorthFromItem(ItemStack item) {
-        if (item == null || item.getType() == Material.AIR) {
-            return null;
-        }
-        
-        if (!item.hasItemMeta()) {
-            return null;
-        }
-        
-        ItemMeta meta = item.getItemMeta();
-        if (meta == null || !meta.hasLore()) {
-            return null;
-        }
-        
-        List<String> originalLore = meta.getLore();
-        if (originalLore == null || originalLore.isEmpty()) {
-            return null;
-        }
-        
-        // Strip worth lines
-        List<String> cleanedLore = stripExistingWorthLines(originalLore);
-        
-        // Check if anything changed
-        if (cleanedLore.size() == originalLore.size()) {
-            // No worth lines were removed
-            return null;
-        }
-        
-        // Create modified clone
-        ItemStack clone = item.clone();
-        ItemMeta cloneMeta = clone.getItemMeta();
-        if (cloneMeta != null) {
-            cloneMeta.setLore(cleanedLore.isEmpty() ? null : cleanedLore);
-            clone.setItemMeta(cloneMeta);
-        }
-        
-        return clone;
-    }
+    // ==================== API Methods ====================
 
-    /**
-     * Add a "not sellable" lore to items that can't be sold.
-     */
-    private ItemStack addNotSellableLore(ItemStack item) {
-        String notSellableLine = ChatColor.translateAlternateColorCodes('&', WorthConfig.getNotSellableFormat());
-        return applyWorthLore(item, notSellableLine);
-    }
-
-    /**
-     * Get the sell price for an item (API method for other plugins).
-     *
-     * @param item The item to check
-     * @return The sell price per item, or null if not sellable
-     */
     public BigDecimal getItemWorth(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
             return null;
@@ -927,12 +666,6 @@ public class WorthDisplayManager {
         return shopItem.getSellPriceAsDecimal();
     }
 
-    /**
-     * Get the total sell price for a stack of items (API method).
-     *
-     * @param item The item stack to check
-     * @return The total sell price for the stack, or null if not sellable
-     */
     public BigDecimal getStackWorth(ItemStack item) {
         if (item == null || item.getType() == Material.AIR) {
             return null;
@@ -946,4 +679,3 @@ public class WorthDisplayManager {
         return shopItem.calculateSellPrice(item.getAmount());
     }
 }
-

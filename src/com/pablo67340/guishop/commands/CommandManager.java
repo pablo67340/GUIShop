@@ -15,7 +15,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
-import org.apache.commons.lang3.StringUtils;
+import com.pablo67340.guishop.util.StringUtil;
 
 /**
  * The command manager
@@ -154,14 +154,14 @@ public class CommandManager {
     public void registerCommands() {
         // Register buy commands if there are any
         if (!GUIShop.BUY_COMMANDS.isEmpty()) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering shop commands: " + StringUtils.join(GUIShop.BUY_COMMANDS, ", "));
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering shop commands: " + StringUtil.join(GUIShop.BUY_COMMANDS, ", "));
             BuyCommand buyCommand = new BuyCommand(new ArrayList<>(GUIShop.BUY_COMMANDS));
             register(buyCommand);
         }
 
         // Register sell commands if there are any
         if (!GUIShop.SELL_COMMANDS.isEmpty()) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering sell commands: " + StringUtils.join(GUIShop.SELL_COMMANDS, ", "));
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering sell commands: " + StringUtil.join(GUIShop.SELL_COMMANDS, ", "));
             SellCommand sellCommand = new SellCommand(new ArrayList<>(GUIShop.SELL_COMMANDS));
             register(sellCommand);
         }

@@ -463,15 +463,13 @@ public final class ConfigManager {
         // Player inventory only mode
         WorthConfig.setPlayerInventoryOnly(worthConfig.getBoolean("player-inventory-only", false));
 
-        // Hide worth on items in armor slots
-        WorthConfig.setHideArmorSlots(worthConfig.getBoolean("hide-armor-slots", false));
+        // Hide armor slots
+        WorthConfig.setHideArmorSlots(worthConfig.getBoolean("hide-armor-slots", true));
 
         // Debug mode for worth system
         WorthConfig.setDebug(worthConfig.getBoolean("debug", false));
 
-        GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config loaded. Enabled: " + WorthConfig.isEnabled() + 
-            ", HideArmorSlots: " + WorthConfig.isHideArmorSlots() + 
-            ", PlayerInventoryOnly: " + WorthConfig.isPlayerInventoryOnly());
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config loaded. Enabled: " + WorthConfig.isEnabled());
     }
 
 }

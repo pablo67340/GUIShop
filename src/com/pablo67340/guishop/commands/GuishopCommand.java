@@ -27,7 +27,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
 import java.util.*;
-import org.apache.commons.lang3.StringUtils;
+import com.pablo67340.guishop.util.StringUtil;
 
 public class GuishopCommand implements CommandExecutor {
 
@@ -240,7 +240,7 @@ public class GuishopCommand implements CommandExecutor {
                         ItemUtil.setEnchantments(false, player);
                     } else {
                         String enchantments = String.join(" ", new ArrayList<>(Arrays.asList(args).subList(1, args.length - 1)));
-                        ItemUtil.setEnchantments(StringUtils.isBlank(enchantments) ? false : enchantments, player);
+                        ItemUtil.setEnchantments(StringUtil.isBlank(enchantments) ? false : enchantments, player);
                     }
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "enchant.usage");

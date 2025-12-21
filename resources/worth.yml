@@ -4,8 +4,8 @@
 # This feature displays the sell value of items directly in their lore.
 # Players can see at a glance what any item is worth without opening the shop.
 #
-# REQUIRES: ProtocolLib to be installed on the server.
-# If ProtocolLib is not present, this feature will be disabled automatically.
+# REQUIRES: PacketEvents to be installed on the server.
+# If PacketEvents is not present, this feature will be disabled automatically.
 # ===============================================
 
 # Enable or disable the worth display feature
@@ -34,14 +34,11 @@ only-show-sellable: true
 # Text to show for items that cannot be sold (only used if only-show-sellable is false)
 not-sellable-format: "&7Worth: &cNot sellable"
 
-# Ignore items that have lore containing these strings (case-insensitive)
-# Use this for special items from other plugins that shouldn't show worth
-# NOTE: You do NOT need to add "Worth:" here - existing worth lines are automatically
-# stripped and replaced with the correct value. Only add patterns for items that
-# should NEVER show worth (like soulbound items, quest items, etc.)
+# Ignore items that already have lore containing these strings (case-insensitive)
+# This prevents duplicate worth lines or conflicts with other plugins
 ignore-lore-containing:
-  - "Soulbound"
-  - "Quest Item"
+  - "Worth:"
+  - "Sell Value:"
 
 # Blacklist inventory titles where worth should NOT be displayed
 # GUIShop's own inventories (Menu, Shop, Sell, Quantity, Value, AltSell) are automatically excluded.
@@ -63,7 +60,7 @@ player-inventory-only: false
 
 # If true, items in armor slots (helmet, chestplate, leggings, boots) will NOT show worth
 # Useful if you don't want worth cluttering your equipped armor's lore
-hide-armor-slots: false
+hide-armor-slots: true
 
 # Debug mode - logs worth calculations to console (useful for troubleshooting)
 debug: false

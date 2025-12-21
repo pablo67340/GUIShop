@@ -54,7 +54,7 @@ public final class WorthConfig {
 
     @Getter
     @Setter
-    private static boolean hideArmorSlots = false;
+    private static boolean hideArmorSlots = true;
 
     @Getter
     @Setter

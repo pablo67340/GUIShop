@@ -31,7 +31,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import java.math.BigDecimal;
 import java.util.*;
 
-import org.apache.commons.lang3.StringUtils;
+import com.pablo67340.guishop.util.StringUtil;
 import org.bukkit.event.inventory.ClickType;
 
 class Quantity {
@@ -155,16 +155,16 @@ class Quantity {
                 if (itemStack.getType() == Material.ENCHANTED_BOOK) {
                     EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
                     for (String enc : item.getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
+                        String enchantment = StringUtil.substringBefore(enc, ":");
+                        String level = StringUtil.substringAfter(enc, ":");
                         assert meta != null;
                         meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(meta);
                     }
                 } else {
                     for (String enc : item.getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
+                        String enchantment = StringUtil.substringBefore(enc, ":");
+                        String level = StringUtil.substringAfter(enc, ":");
                         itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(itemMeta);
                     }

@@ -1,0 +1,310 @@
+[CENTER]
+[IMG]https://i.imgur.com/PLACEHOLDER_LOGO.png[/IMG]
+
+[SIZE=6][B]GUIShop[/B][/SIZE]
+[SIZE=4]The Ultimate GUI-Based Shop Plugin for Minecraft Servers[/SIZE]
+
+[SIZE=3][I]Fully compatible with Paper/Spigot 1.21.10[/I][/SIZE]
+
+[URL='https://github.com/pablo67340/GUIShop'][IMG]https://img.shields.io/badge/GitHub-Repository-blue[/IMG][/URL]
+[URL='https://github.com/pablo67340/GUIShop/wiki'][IMG]https://img.shields.io/badge/Wiki-Documentation-green[/IMG][/URL]
+[URL='https://discord.gg/XQb2Y2jBCa'][IMG]https://img.shields.io/badge/Discord-Support-purple[/IMG][/URL]
+[/CENTER]
+
+[HR][/HR]
+
+[SIZE=5][B]Overview[/B][/SIZE]
+
+GUIShop is a powerful, feature-rich shop plugin that allows server owners to create beautiful GUI-based shops with extensive customization options. Say goodbye to confusing sign shops and chest-based systems. GUIShop provides players with an intuitive shopping experience while giving administrators complete control over pricing, items, and layout.
+
+[HR][/HR]
+
+[SIZE=5][B]Key Features[/B][/SIZE]
+
+[LIST]
+[*][B]Easy-to-Use GUI System[/B] - Players browse shops through clean, organized inventory menus
+[*][B]Multi-Page Shops[/B] - Create shops with unlimited pages for large item catalogs
+[*][B]Dynamic Pricing[/B] - Optional supply/demand based pricing system
+[*][B]Worth Display System[/B] - Shows item sell values directly in item lore (requires PacketEvents)
+[*][B]In-Game Editor[/B] - Configure shops directly from within the game
+[*][B]Command Items[/B] - Sell commands that execute when purchased
+[*][B]Custom Items[/B] - Full support for enchantments, potions, fireworks, spawners, and custom NBT
+[*][B]Per-Item Permissions[/B] - Restrict specific items to certain player groups
+[*][B]PlaceholderAPI Support[/B] - Use placeholders in shop names and lores
+[*][B]Vault Integration[/B] - Works with any Vault-compatible economy plugin
+[*][B]Alternate Sell GUI[/B] - Sell items without leaving the shop
+[*][B]Transaction Logging[/B] - Track all purchases and sales
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B]Screenshots[/B][/SIZE]
+
+[SPOILER="Click to view screenshots"]
+[CENTER]
+[I]Screenshot placeholder - Main Menu[/I]
+[IMG]https://i.imgur.com/PLACEHOLDER_SCREENSHOT_1.png[/IMG]
+
+[I]Screenshot placeholder - Shop View[/I]
+[IMG]https://i.imgur.com/PLACEHOLDER_SCREENSHOT_2.png[/IMG]
+
+[I]Screenshot placeholder - Quantity Selector[/I]
+[IMG]https://i.imgur.com/PLACEHOLDER_SCREENSHOT_3.png[/IMG]
+
+[I]Screenshot placeholder - Worth Display[/I]
+[IMG]https://i.imgur.com/PLACEHOLDER_SCREENSHOT_4.png[/IMG]
+[/CENTER]
+[/SPOILER]
+
+[HR][/HR]
+
+[SIZE=5][B]Commands[/B][/SIZE]
+
+[SIZE=4][B]Player Commands[/B][/SIZE]
+[CODE]
+/shop, /buy          - Open the shop menu
+/sell                - Open the sell GUI
+/value, /val         - Check the buy/sell value of held item
+[/CODE]
+
+[SIZE=4][B]Admin Commands[/B][/SIZE]
+[CODE]
+/gs reload           - Reload all configuration files
+/gs edit [shop]      - Enter creator mode to edit shops in-game
+/gs edit [shop] [page] - Edit a specific page of a shop
+/gs buyprice <price> - Set buy price of held item (use 'false' to disable)
+/gs sellprice <price> - Set sell price of held item (use 'false' to disable)
+/gs shopname <name>  - Set the display name in shop
+/gs buyname <name>   - Set the name on purchased item
+/gs enchant <enchant:level> - Add enchantment to held item
+/gs addlore <text>   - Add a line to the item's lore
+/gs setslot <slot>   - Set slot position for current item
+/gs parsemob <type>  - Validate a mob type for spawners
+/gs toggleworth      - Toggle worth display for yourself (session only)
+[/CODE]
+
+[HR][/HR]
+
+[SIZE=5][B]Permissions[/B][/SIZE]
+
+[CODE]
+guishop.use          - Access to the shop (default: op)
+guishop.shop.*       - Access to all shop items (default: op)
+guishop.shop.<shop>.<item> - Access to specific items
+guishop.reload       - Permission to reload the plugin (default: op)
+guishop.creator      - Access to the in-game shop editor (default: op)
+guishop.value        - Access to /value command (default: true)
+guishop.sell         - Access to /sell command (default: true)
+guishop.admin        - Full admin access (default: op)
+[/CODE]
+
+[HR][/HR]
+
+[SIZE=5][B]Configuration[/B][/SIZE]
+
+GUIShop uses several configuration files for maximum flexibility:
+
+[LIST]
+[*][B]config.yml[/B] - General plugin settings, commands, titles, buttons
+[*][B]shops.yml[/B] - Shop layouts and item definitions
+[*][B]menu.yml[/B] - Main menu configuration
+[*][B]messages.yml[/B] - All plugin messages (fully customizable)
+[*][B]worth.yml[/B] - Worth display system configuration
+[/LIST]
+
+[SPOILER="Example Shop Item Configuration"]
+[CODE]
+shops:
+  Blocks:
+    pages:
+      Page0:
+        '0':
+          type: SHOP              # Item type (SHOP, COMMAND, BLANK, DUMMY)
+          id: STONE               # Material ID
+          buy-price: 10.0         # Price to buy (or 'false' to disable)
+          sell-price: 5.0         # Price to sell (or 'false' to disable)
+          shop-name: '&7Stone'    # Display name in shop
+          buy-name: '&7Stone'     # Name on purchased item
+          shop-lore:              # Lore shown in shop
+            - '&fA basic building block'
+          enchantments: 'DURA:1 SHARP:2'  # Enchantments (space separated)
+          quantity: 64            # Stack size to give
+          permission: 'shop.vip'  # Required permission (optional)
+[/CODE]
+[/SPOILER]
+
+[HR][/HR]
+
+[SIZE=5][B]Worth Display System[/B][/SIZE]
+
+GUIShop includes a powerful worth display feature that shows item sell values directly in the item lore. This uses packet manipulation to display worth client-side only, meaning your actual items are never modified.
+
+[B]Requirements:[/B] PacketEvents plugin
+
+[SPOILER="Worth Display Configuration (worth.yml)"]
+[CODE]
+enabled: true
+format: "&7Worth: &a%worth%"
+position: BOTTOM
+add-blank-line: true
+only-show-sellable: true
+not-sellable-format: "&7Worth: &cNot sellable"
+
+# Hide worth in specific inventories
+blacklisted-inventories:
+  - "Auction House"
+  - "Crate Preview"
+
+# Hide worth on items with specific names
+blacklisted-item-names:
+  - "Crate Key"
+  - "Vote Token"
+
+# Hide worth on equipped armor
+hide-armor-slots: true
+[/CODE]
+[/SPOILER]
+
+[HR][/HR]
+
+[SIZE=5][B]Advanced Item Types[/B][/SIZE]
+
+[SIZE=4][B]Command Items[/B][/SIZE]
+Sell commands that execute when purchased:
+[CODE]
+'19':
+  type: COMMAND
+  id: NETHER_STAR
+  shop-name: '&6VIP Rank'
+  buy-price: 10000
+  commands:
+    - 'lp user {PLAYER_NAME} parent set vip'
+    - 'broadcast {PLAYER_NAME} purchased VIP!'
+[/CODE]
+
+[SIZE=4][B]Enchanted Books[/B][/SIZE]
+[CODE]
+'20':
+  type: SHOP
+  id: ENCHANTED_BOOK
+  buy-price: 1000
+  enchantments: 'SHARP:5 FIRE_ASPECT:2'
+[/CODE]
+
+[SIZE=4][B]Potions[/B][/SIZE]
+[CODE]
+'21':
+  type: SHOP
+  id: POTION
+  buy-price: 500
+  potion-info: 'SPEED:1:true:true'  # Type:Amplifier:Extended:Upgraded
+[/CODE]
+
+[SIZE=4][B]Spawners[/B][/SIZE]
+[CODE]
+'22':
+  type: SHOP
+  id: SPAWNER
+  buy-price: 50000
+  mob-type: ZOMBIE
+[/CODE]
+
+[SIZE=4][B]Fireworks[/B][/SIZE]
+[CODE]
+'23':
+  type: SHOP
+  id: FIREWORK_ROCKET
+  buy-price: 100
+  firework-info: 'BALL_LARGE:RED,BLUE:WHITE:true:true:2'
+[/CODE]
+
+[SIZE=4][B]Player Heads[/B][/SIZE]
+[CODE]
+'24':
+  type: SHOP
+  id: PLAYER_HEAD
+  buy-price: 1000
+  skull-uuid: 'player-uuid-here'
+[/CODE]
+
+[HR][/HR]
+
+[SIZE=5][B]Developer API[/B][/SIZE]
+
+GUIShop provides a comprehensive API for developers to integrate with:
+
+[SPOILER="API Examples"]
+[CODE=java]
+// Check if an item can be sold
+boolean canSell = GUIShopAPI.canBeSold(itemStack);
+
+// Get buy/sell prices
+BigDecimal buyPrice = GUIShopAPI.getBuyPrice(itemStack, quantity);
+BigDecimal sellPrice = GUIShopAPI.getSellPrice(itemStack, quantity);
+
+// Sell items programmatically
+GUIShopAPI.sellItems(player, SellType.COMMAND, items);
+
+// Worth Display API
+BigDecimal worth = GUIShopAPI.getItemWorth(itemStack);
+BigDecimal stackWorth = GUIShopAPI.getStackWorth(itemStack);
+
+// Per-player worth toggle
+GUIShopAPI.toggleWorthForPlayer(player);
+GUIShopAPI.enableWorthForPlayer(player);
+GUIShopAPI.disableWorthForPlayer(player);
+
+// Hook for persistent per-player worth settings
+GUIShopAPI.setExternalWorthCheck(player -> {
+    return myPlugin.hasWorthDisabled(player.getUniqueId());
+});
+[/CODE]
+[/SPOILER]
+
+Full API documentation available on the [URL='https://github.com/pablo67340/GUIShop/wiki']Wiki[/URL].
+
+[HR][/HR]
+
+[SIZE=5][B]Dependencies[/B][/SIZE]
+
+[B]Required:[/B]
+[LIST]
+[*]Vault (for economy support)
+[/LIST]
+
+[B]Optional:[/B]
+[LIST]
+[*]PacketEvents (for worth display feature)
+[*]PlaceholderAPI (for placeholder support)
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B]Installation[/B][/SIZE]
+
+[LIST=1]
+[*]Download GUIShop and place it in your plugins folder
+[*]Install Vault and an economy plugin (EssentialsX, CMI, etc.)
+[*](Optional) Install PacketEvents for worth display
+[*](Optional) Install PlaceholderAPI for placeholder support
+[*]Restart your server
+[*]Configure shops in [ICODE]plugins/GUIShop/shops.yml[/ICODE]
+[*]Use [ICODE]/gs reload[/ICODE] to apply changes
+[/LIST]
+
+[HR][/HR]
+
+[SIZE=5][B]Support[/B][/SIZE]
+
+[LIST]
+[*][URL='https://github.com/pablo67340/GUIShop/wiki']Wiki Documentation[/URL]
+[*][URL='https://github.com/pablo67340/GUIShop/issues']GitHub Issues[/URL]
+[*][URL='https://discord.gg/XQb2Y2jBCa']Discord Server[/URL]
+[/LIST]
+
+[HR][/HR]
+
+[CENTER]
+[SIZE=3]Developed by [B]pablo67340[/B][/SIZE]
+[SIZE=2]If you enjoy GUIShop, please consider leaving a review![/SIZE]
+[/CENTER]

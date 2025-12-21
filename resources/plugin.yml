@@ -4,7 +4,7 @@ version: ${project.version}
 author: pablo67340
 description: Shop plugin for any server.
 depend: [ Vault ]
-softdepend: [ PlaceholderAPI, ProtocolLib ]
+softdepend: [ PlaceholderAPI, packetevents ]
 api-version: 1.13
 
 permissions:

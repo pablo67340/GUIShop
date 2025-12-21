@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
-import org.apache.commons.lang3.StringUtils;
+import com.pablo67340.guishop.util.StringUtil;
 
 public final class Item implements ConfigurationSerializable {
 
@@ -870,15 +870,15 @@ public final class Item implements ConfigurationSerializable {
                 if (itemStack.getType() == Material.ENCHANTED_BOOK) {
                     EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
                     for (String enc : getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
+                        String enchantment = StringUtil.substringBefore(enc, ":");
+                        String level = StringUtil.substringAfter(enc, ":");
                         meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(meta);
                     }
                 } else {
                     for (String enc : getEnchantments()) {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
+                        String enchantment = StringUtil.substringBefore(enc, ":");
+                        String level = StringUtil.substringAfter(enc, ":");
                         itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(itemMeta);
                     }
@@ -948,8 +948,8 @@ public final class Item implements ConfigurationSerializable {
                     EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
                     for (String enc : getEnchantments()) {
                         try {
-                            String enchantment = StringUtils.substringBefore(enc, ":");
-                            String level = StringUtils.substringAfter(enc, ":");
+                            String enchantment = StringUtil.substringBefore(enc, ":");
+                            String level = StringUtil.substringAfter(enc, ":");
                             meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         } catch (NoSuchElementException | NumberFormatException ignored) {
                         }
@@ -958,8 +958,8 @@ public final class Item implements ConfigurationSerializable {
                 } else {
                     for (String enc : getEnchantments()) {
                         try {
-                            String enchantment = StringUtils.substringBefore(enc, ":");
-                            String level = StringUtils.substringAfter(enc, ":");
+                            String enchantment = StringUtil.substringBefore(enc, ":");
+                            String level = StringUtil.substringAfter(enc, ":");
                             itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         } catch (NoSuchElementException | NumberFormatException ignored) {
                         }
@@ -1083,8 +1083,8 @@ public final class Item implements ConfigurationSerializable {
         if (hasEnchantments()) {
             if (input.getType() != XMaterial.matchXMaterial("ENCHANTED_BOOK").get().parseMaterial()) {
                 for (String enc : getEnchantments()) {
-                    String enchantment = StringUtils.substringBefore(enc, ":");
-                    Integer level = Integer.parseInt(StringUtils.substringAfter(enc, ":"));
+                    String enchantment = StringUtil.substringBefore(enc, ":");
+                    Integer level = Integer.parseInt(StringUtil.substringAfter(enc, ":"));
                     Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
                     if (!input.getEnchantments().containsKey(targetEnchantment)) {
                         return false;
@@ -1098,8 +1098,8 @@ public final class Item implements ConfigurationSerializable {
                 ItemMeta itemMeta = input.getItemMeta();
                 EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
                 for (String enc : getEnchantments()) {
-                    String enchantment = StringUtils.substringBefore(enc, ":");
-                    Integer level = Integer.parseInt(StringUtils.substringAfter(enc, ":"));
+                    String enchantment = StringUtil.substringBefore(enc, ":");
+                    Integer level = Integer.parseInt(StringUtil.substringAfter(enc, ":"));
                     Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
                     if (!meta.getStoredEnchants().containsKey(targetEnchantment)) {
                         return false;
@@ -1235,8 +1235,8 @@ public final class Item implements ConfigurationSerializable {
                 EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemMeta;
                 for (String enc : getEnchantments()) {
                     try {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
+                        String enchantment = StringUtil.substringBefore(enc, ":");
+                        String level = StringUtil.substringAfter(enc, ":");
                         meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(meta);
                     } catch (NoSuchElementException | NullPointerException ignored) {
@@ -1245,8 +1245,8 @@ public final class Item implements ConfigurationSerializable {
             } else {
                 for (String enc : getEnchantments()) {
                     try {
-                        String enchantment = StringUtils.substringBefore(enc, ":");
-                        String level = StringUtils.substringAfter(enc, ":");
+                        String enchantment = StringUtil.substringBefore(enc, ":");
+                        String level = StringUtil.substringAfter(enc, ":");
                         itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                         itemStack.setItemMeta(itemMeta);
                     } catch (NoSuchElementException | NullPointerException ignored) {
@@ -1403,7 +1403,7 @@ public final class Item implements ConfigurationSerializable {
                 item.setEnchantments(Arrays.stream(((String) entry.getValue()).split(" ")).filter(enchant -> {
                     try {
                         // Extract just the enchantment name (before the colon) for validation
-                        String enchantmentName = StringUtils.substringBefore(enchant, ":");
+                        String enchantmentName = StringUtil.substringBefore(enchant, ":");
                         XEnchantment.matchXEnchantment(enchantmentName).get().getEnchant();
                         return true;
                     } catch (NoSuchElementException | NullPointerException exception) {

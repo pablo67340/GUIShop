@@ -17,7 +17,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
+import com.pablo67340.guishop.util.StringUtil;
 
 public final class ItemUtil {
 
@@ -452,8 +452,8 @@ public final class ItemUtil {
             String[] enc = ((String) enchantments).split(" ");
             // This map is here to NOT add any of the enchantments before every is checked
             for (String str : enc) {
-                String enchantment = StringUtils.substringBefore(str, ":");
-                String level = StringUtils.substringAfter(str, ":");
+                String enchantment = StringUtil.substringBefore(str, ":");
+                String level = StringUtil.substringAfter(str, ":");
                 try {
                     enchantmentMap.put(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level));
                 } catch (NoSuchElementException | NullPointerException exception) {

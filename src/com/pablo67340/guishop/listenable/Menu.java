@@ -322,9 +322,9 @@ public final class Menu {
             return;
         }
 
-        // Close any existing inventory first to trigger its close handler
-        // This ensures CREATOR status is updated before we check it
-        player.closeInventory();
+        // Don't call closeInventory() explicitly - openInventory() handles the transition
+        // This prevents mouse position reset when switching between different sized inventories
+        // The close handler will still be triggered automatically by Bukkit
 
         loadItems(false);
 

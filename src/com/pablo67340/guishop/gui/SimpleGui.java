@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -176,15 +177,178 @@ public class SimpleGui implements GUIHolder {
 
     /**
      * Update the viewer's inventory view.
-     * Call this after making changes while the GUI is open.
+     * This preserves the cursor item during the update (InventoryFramework approach).
      */
     public void update() {
-        if (viewer != null && viewer.isOnline()) {
-            // Check if viewer still has this inventory open
-            if (viewer.getOpenInventory().getTopInventory().equals(inventory)) {
-                viewer.updateInventory();
+        if (viewer == null || !viewer.isOnline()) return;
+        if (!viewer.getOpenInventory().getTopInventory().equals(inventory)) return;
+        
+        // Save cursor, update, restore cursor - this prevents cursor reset!
+        ItemStack cursor = viewer.getItemOnCursor();
+        viewer.setItemOnCursor(new ItemStack(Material.AIR));
+        
+        viewer.updateInventory();
+        
+        viewer.setItemOnCursor(cursor);
+    }
+    
+    /**
+     * Seamlessly update the GUI without resetting cursor position.
+     * Works even when inventory size changes (reopens inventory but preserves cursor).
+     * Based on InventoryFramework's approach.
+     */
+    public void updateSeamlessly() {
+        if (viewer == null || !viewer.isOnline()) return;
+        
+        // Save cursor item before any changes
+        ItemStack cursor = viewer.getItemOnCursor();
+        viewer.setItemOnCursor(new ItemStack(Material.AIR));
+        
+        // Set refreshing flag to prevent close handler from running
+        refreshing = true;
+        
+        // Close and reopen (necessary for size changes)
+        viewer.closeInventory();
+        
+        // Re-register and show
+        GuiListener.getInstance().register(inventory, this);
+        viewer.openInventory(inventory);
+        
+        // Restore cursor on next tick (after inventory is fully open)
+        Bukkit.getScheduler().runTask(GUIShop.getINSTANCE(), () -> {
+            refreshing = false;
+            if (viewer != null && viewer.isOnline()) {
+                viewer.setItemOnCursor(cursor);
             }
+        });
+    }
+    
+    /**
+     * Update all slots via SET_SLOT packets if PacketEvents is available.
+     * Falls back to updateSeamlessly() if PacketEvents is not present.
+     * Does NOT reset cursor position.
+     */
+    public void updateViaPackets() {
+        if (viewer == null || !viewer.isOnline()) return;
+        if (!viewer.getOpenInventory().getTopInventory().equals(inventory)) return;
+        
+        // Check if PacketEvents is available
+        if (!isPacketEventsAvailable()) {
+            // Fallback to seamless update (save/restore cursor approach)
+            update();
+            return;
         }
+        
+        try {
+            int windowId = getWindowId(viewer);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("GUI: Using window ID " + windowId + " for packet updates");
+            
+            if (windowId < 0) {
+                update();
+                return;
+            }
+            
+            // Use PacketEvents to send SET_SLOT packets
+            Object packetEvents = Class.forName("com.github.retrooper.packetevents.PacketEvents")
+                .getMethod("getAPI").invoke(null);
+            Object playerManager = packetEvents.getClass().getMethod("getPlayerManager").invoke(packetEvents);
+            
+            for (int slot = 0; slot < inventory.getSize(); slot++) {
+                ItemStack item = inventory.getItem(slot);
+                
+                // Convert to PacketEvents ItemStack
+                Object packetItem = Class.forName("io.github.retrooper.packetevents.util.SpigotConversionUtil")
+                    .getMethod("fromBukkitItemStack", ItemStack.class)
+                    .invoke(null, item);
+                
+                // Create SET_SLOT wrapper
+                Object setSlotPacket = Class.forName("com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot")
+                    .getConstructor(int.class, int.class, int.class, 
+                        Class.forName("com.github.retrooper.packetevents.protocol.item.ItemStack"))
+                    .newInstance(windowId, 0, slot, packetItem);
+                
+                // Send packet
+                playerManager.getClass().getMethod("sendPacket", Object.class, Object.class)
+                    .invoke(playerManager, viewer, setSlotPacket);
+            }
+            
+            GUIShop.getINSTANCE().getLogUtil().debugLog("GUI: Updated " + inventory.getSize() + " slots via packets (windowId=" + windowId + ")");
+            
+        } catch (Exception e) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Packet update failed, using fallback: " + e.getMessage());
+            update();
+        }
+    }
+    
+    /**
+     * Check if PacketEvents is available on the server.
+     */
+    private boolean isPacketEventsAvailable() {
+        try {
+            Class.forName("com.github.retrooper.packetevents.PacketEvents");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+    
+    /**
+     * Get the window ID for the player's currently open inventory.
+     * Uses reflection to access the internal container ID.
+     */
+    private int getWindowId(Player player) {
+        try {
+            Object handle = player.getClass().getMethod("getHandle").invoke(player);
+            
+            // Try different field names for different MC versions
+            Object container = null;
+            
+            // 1.17+ uses containerMenu
+            try {
+                container = handle.getClass().getField("containerMenu").get(handle);
+            } catch (NoSuchFieldException e) {
+                // 1.16 and below use activeContainer
+                try {
+                    container = handle.getClass().getField("activeContainer").get(handle);
+                } catch (NoSuchFieldException e2) {
+                    // Try bV for some versions
+                    container = handle.getClass().getField("bV").get(handle);
+                }
+            }
+            
+            if (container != null) {
+                // Try containerId field
+                try {
+                    return (int) container.getClass().getField("containerId").get(container);
+                } catch (NoSuchFieldException e) {
+                    // Try windowId for older versions
+                    try {
+                        return (int) container.getClass().getField("windowId").get(container);
+                    } catch (NoSuchFieldException e2) {
+                        // Try j for some mapped versions
+                        try {
+                            return (int) container.getClass().getField("j").get(container);
+                        } catch (NoSuchFieldException e3) {
+                            // Last resort: look for a public int field
+                            for (java.lang.reflect.Field f : container.getClass().getFields()) {
+                                if (f.getType() == int.class && f.getName().length() <= 2) {
+                                    int val = (int) f.get(container);
+                                    if (val > 0 && val < 256) {
+                                        return val;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Could not get window ID via reflection: " + e.getMessage());
+        }
+        
+        // Fallback: For custom GUIs opened after player inventory, it's typically 1
+        // Window 0 is always the player's inventory
+        return 1;
     }
 
     /**

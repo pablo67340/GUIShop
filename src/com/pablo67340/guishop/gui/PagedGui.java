@@ -195,7 +195,9 @@ public class PagedGui extends SimpleGui {
         boolean rowsChanged = targetRows != getRows();
 
         if (rowsChanged && dynamicRows) {
-            // Rows changed - we MUST close and reopen
+            // Rows changed - recreate inventory with new size
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Page size changed from " + getRows() + " to " + targetRows + " rows");
+            
             setRows(targetRows);
             
             // Build the new contents
@@ -209,23 +211,14 @@ public class PagedGui extends SimpleGui {
             }
             getInventory().setContents(contents);
             
-            // Close and reopen since size changed
+            // DON'T call closeInventory() - directly open the new inventory
+            // This lets Minecraft handle the transition more smoothly
             setRefreshing(true);
-            Bukkit.getScheduler().scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
-                if (player.isOnline()) {
-                    player.closeInventory();
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
-                        setRefreshing(false);
-                        if (player.isOnline()) {
-                            show(player);
-                        }
-                    }, 1L);
-                } else {
-                    setRefreshing(false);
-                }
-            }, 1L);
+            GuiListener.getInstance().register(getInventory(), this);
+            player.openInventory(getInventory());
+            setRefreshing(false);
         } else {
-            // Rows didn't change - update in place without closing
+            // Rows didn't change - update in place with cursor preservation
             GUIShop.getINSTANCE().getLogUtil().debugLog("Updating page in-place. Page " + currentPage + " has " + pages.get(currentPage).size() + " items");
             
             // Clear the inventory first
@@ -237,18 +230,11 @@ public class PagedGui extends SimpleGui {
                 int slot = entry.getKey();
                 if (slot >= 0 && slot < getInventory().getSize()) {
                     getInventory().setItem(slot, entry.getValue());
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Set item at slot " + slot + ": " + (entry.getValue() != null ? entry.getValue().getType() : "null"));
                 }
             }
             
-            // Schedule the update for next tick to ensure it applies after event processing
-            final Player finalPlayer = player;
-            Bukkit.getScheduler().runTask(GUIShop.getINSTANCE(), () -> {
-                if (finalPlayer.isOnline()) {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Running scheduled inventory update");
-                    finalPlayer.updateInventory();
-                }
-            });
+            // Use cursor-preserving update (InventoryFramework approach)
+            update();
         }
     }
 

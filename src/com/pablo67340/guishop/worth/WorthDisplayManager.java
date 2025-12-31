@@ -192,12 +192,33 @@ public class WorthDisplayManager {
                     
                     if (!isWorthEnabledForPlayer(player)) return;
                     
+                    // Skip refresh for creative mode to avoid desync
+                    if (player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                        return;
+                    }
+                    
                     // Refresh inventory after 3 ticks (like the working plugin does)
                     Bukkit.getScheduler().runTaskLater(plugin, () -> {
                         if (player.isOnline()) {
                             player.updateInventory();
                         }
                     }, 3L);
+                } else if (event.getPacketType() == PacketType.Play.Client.CREATIVE_INVENTORY_ACTION) {
+                    // When player takes/places items in creative mode, we need to refresh
+                    // to apply worth lore (creative inventory doesn't use normal SET_SLOT flow)
+                    if (!(event.getPlayer() instanceof Player)) return;
+                    Player player = (Player) event.getPlayer();
+                    
+                    if (!isWorthEnabledForPlayer(player)) return;
+                    
+                    // Schedule a single-slot update after the action completes
+                    // Use a slightly longer delay to ensure the server has processed the action
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                        if (player.isOnline() && player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                            // Send individual SET_SLOT packets for player inventory slots with worth
+                            sendCreativeWorthUpdate(player);
+                        }
+                    }, 2L);
                 }
             }
         };
@@ -211,6 +232,10 @@ public class WorthDisplayManager {
                 HumanEntity entity = event.getPlayer();
                 if (entity instanceof Player) {
                     Player player = (Player) entity;
+                    // Skip for creative mode to avoid desync
+                    if (player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                        return;
+                    }
                     if (isWorthEnabledForPlayer(player)) {
                         // Delay to ensure inventory is fully closed
                         Bukkit.getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
@@ -222,6 +247,10 @@ public class WorthDisplayManager {
             public void onPlayerDropItem(PlayerDropItemEvent event) {
                 if (event.isCancelled()) return;
                 Player player = event.getPlayer();
+                // Skip for creative mode to avoid desync
+                if (player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                    return;
+                }
                 if (isWorthEnabledForPlayer(player)) {
                     player.updateInventory();
                 }
@@ -233,6 +262,12 @@ public class WorthDisplayManager {
                 Player player = (Player) event.getWhoClicked();
                 
                 if (!isWorthEnabledForPlayer(player)) return;
+                
+                // Skip inventory refresh for creative mode - causes item desync issues
+                // Worth lore still displays fine, just don't refresh on clicks
+                if (player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                    return;
+                }
                 
                 // Refresh inventory after any click to ensure worth is updated
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
@@ -302,6 +337,9 @@ public class WorthDisplayManager {
     private boolean shouldSkipPlayerInventory(Player player) {
         // Check if player has an inventory open
         if (player.getOpenInventory() != null) {
+            // Note: We allow worth lore in creative inventory - it displays correctly
+            // Only the updateInventory() calls are skipped for creative mode to avoid desync
+            
             String title = player.getOpenInventory().getTitle();
             if (title != null) {
                 // Check blacklisted inventories
@@ -371,6 +409,61 @@ public class WorthDisplayManager {
      */
     private boolean isArmorSlot(int slot) {
         return slot >= 5 && slot <= 8;
+    }
+    
+    /**
+     * Send worth-enhanced SET_SLOT packets for creative mode inventory.
+     * This is needed because creative inventory actions don't go through normal packet flow.
+     */
+    private void sendCreativeWorthUpdate(Player player) {
+        try {
+            // Only process hotbar and main inventory (slots 0-35 in player inventory)
+            // In protocol terms: hotbar is 36-44, main inventory is 9-35, armor is 5-8
+            org.bukkit.inventory.PlayerInventory inv = player.getInventory();
+            
+            for (int i = 0; i < 36; i++) {
+                ItemStack item = inv.getItem(i);
+                if (item == null || item.getType().isAir()) continue;
+                
+                // Check if this item has a sell price
+                Item shopItem = findShopItem(item);
+                if (shopItem == null || !shopItem.hasSellPrice()) continue;
+                
+                // Process the item to add worth lore
+                ItemStack processed = processItem(item.clone());
+                if (processed == null) continue;
+                
+                // Convert slot index to protocol slot
+                // Player inventory slots: 9-35 are main inventory, 36-44 are hotbar
+                int protocolSlot;
+                if (i < 9) {
+                    // Hotbar: 0-8 in inventory -> 36-44 in protocol
+                    protocolSlot = 36 + i;
+                } else {
+                    // Main inventory: 9-35 in inventory -> 9-35 in protocol
+                    protocolSlot = i;
+                }
+                
+                // Send SET_SLOT packet
+                com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = 
+                    SpigotConversionUtil.fromBukkitItemStack(processed);
+                WrapperPlayServerSetSlot setSlot = new WrapperPlayServerSetSlot(
+                    0, // Window ID 0 = player inventory
+                    0, // State ID (not used in older versions, safe to use 0)
+                    protocolSlot,
+                    packetItem
+                );
+                PacketEvents.getAPI().getPlayerManager().sendPacket(player, setSlot);
+                
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("CREATIVE: Sent worth update for slot " + i + " -> protocol " + protocolSlot);
+                }
+            }
+        } catch (Exception e) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("CREATIVE: Error sending worth update: " + e.getMessage());
+            }
+        }
     }
 
     /**

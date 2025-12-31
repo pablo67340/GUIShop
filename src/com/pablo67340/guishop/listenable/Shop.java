@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.XSound;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.*;
+import com.pablo67340.guishop.util.PDCUtil;
 import com.pablo67340.guishop.gui.PagedGui;
 import lombok.Getter;
 import lombok.Setter;
@@ -70,18 +71,30 @@ public class Shop {
     }
 
     /**
-     * Load the specified shop
+     * Load the specified shop.
+     * 
+     * If the shop is not in cache, it will be loaded from config.
+     * If preLoad is false, the GUI will be (re)created to display the items.
      *
-     * @param preLoad True/False if the GUI should load after items are loaded.
+     * @param preLoad True = only load data into cache. False = also create GUI.
      */
     public void loadItems(Boolean preLoad) {
         if (shop.equalsIgnoreCase("NONE")) {
             return;
         }
 
+        // Always reset GUI when not preloading - ensures fresh render with current data
+        if (!preLoad) {
+            this.GUI = null;
+        }
+
         if (!GUIShop.getINSTANCE().getLoadedShops().containsKey(shop)) {
+            // Shop not in cache - load fresh from config file
+            GUIShop.getINSTANCE().getLogUtil().debugLog("SHOP: Loading " + shop + " from config (not in cache)");
             loadShopFromConfig(preLoad);
         } else {
+            // Shop in cache - use cached data
+            GUIShop.getINSTANCE().getLogUtil().debugLog("SHOP: Loading " + shop + " from cache");
             shopItem = (ShopItem) GUIShop.getINSTANCE().getLoadedShops().get(shop);
             this.setTitle(GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title"));
             if (!preLoad) {
@@ -270,10 +283,14 @@ public class Shop {
                 GUI.setPageRows(pageIndex, rows);
 
                 // Add items to the page
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Loading page " + entry.getKey() + " with " + entry.getValue().getItems().size() + " items");
                 for (Item item : entry.getValue().getItems().values()) {
                     if (item.getItemType() == ItemType.BLANK) {
                         continue;
                     }
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Item " + item.getMaterial() + " at slot " + item.getSlot() + 
+                        " hasBuyPrice=" + item.hasBuyPrice() + " hasSellPrice=" + item.hasSellPrice() +
+                        " type=" + item.getItemType());
                     ItemStack itemStack = item.toItemStack(player, false);
                     GUI.setItem(pageIndex, item.getSlot(), itemStack);
                 }
@@ -333,6 +350,14 @@ public class Shop {
             return false;
         }
 
+        // Close any existing inventory first to trigger its close handler
+        // This ensures CREATOR status is updated before we check it
+        player.closeInventory();
+
+        // Reset click state flags when opening
+        hasClicked = false;
+        clickOverride = false;
+
         if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
             GUI.setTopClickHandler(this::onShopClick);
             GUI.setBottomClickHandler((e) -> e.setCancelled(true));
@@ -387,43 +412,130 @@ public class Shop {
     }
 
     private void creatorPlayerInventoryClick(InventoryClickEvent e) {
-        if (e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT) {
-
-            // Since shift clicking moves items to the first available slot, we can assume
-            // the item
-            // will end up in this slot.
-            int slot = e.getInventory().firstEmpty();
-
-            // Run the scheduler after this event is complete. This will ensure the
-            // possible new item is in the slot in time.
-            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
-                ItemStack item = e.getInventory().getItem(slot);
-                if (item != null) {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("New item: " + item.getType());
-                    editShopItem(item, slot);
-                }
-            }, 5L);
+        ItemStack clickedItem = e.getCurrentItem();
+        
+        // Right-click or Shift+click on an item = Open Item Editor GUI
+        if (clickedItem != null && !clickedItem.getType().isAir()) {
+            boolean isEditClick = e.getClick() == ClickType.RIGHT || 
+                                  e.getClick() == ClickType.SHIFT_LEFT || 
+                                  e.getClick() == ClickType.SHIFT_RIGHT;
+            
+            if (isEditClick) {
+                e.setCancelled(true);
+                clickOverride = true;
+                int currentPageForEditor = GUI.getCurrentPage();
+                player.closeInventory();
+                
+                // Open the Item Editor GUI
+                new com.pablo67340.guishop.listenable.editor.ItemEditorGui(
+                    player, 
+                    clickedItem, 
+                    e.getSlot(), 
+                    this.shop,
+                    currentPageForEditor
+                ).onSave(() -> {
+                    // Reopen the shop after saving
+                    // Cache was updated in saveToConfig(), now rebuild GUI with fresh data
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("ONSAVE: Rebuilding shop GUI for " + this.shop);
+                    GUIShop.getCREATOR().add(player.getUniqueId());
+                    this.loadItems(false);
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("ONSAVE: loadItems complete, opening shop");
+                    this.open(player);
+                }).onCancel(() -> {
+                    // Reopen the shop on cancel
+                    GUIShop.getCREATOR().add(player.getUniqueId());
+                    this.open(player);
+                }).open();
+                return;
+            }
         }
+        
+        // Left-click = Allow normal item movement (don't cancel)
+        // The item will be picked up/moved naturally by Minecraft
     }
 
     private void creatorTopInventoryClick(InventoryClickEvent e) {
-        if (e.getCurrentItem() != null || e.getClick() == ClickType.SHIFT_RIGHT || e.getClick() == ClickType.SHIFT_LEFT) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Cursor: " + e.getCursor());
-            deleteShopItem(e.getSlot());
-
-            // When an item is dropped into the slot, it's not null. This is a new item.
-        } else {
-            // Run the scheduler after this event is complete. This will ensure the
-            // possible new item is in the slot in time.
+        ItemStack clickedItem = e.getCurrentItem();
+        
+        // Calculate button slots - these should still function as buttons, not be stealable
+        int inventorySize = GUI.getRows() * 9;
+        int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
+        int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+        int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        
+        // Handle pagination and back buttons (always cancel and process like normal)
+        if (e.getSlot() == nextSlot) {
+            e.setCancelled(true);
+            handleForwardButton();
+            return;
+        } else if (e.getSlot() == prevSlot) {
+            e.setCancelled(true);
+            handleBackwardButton();
+            return;
+        } else if (e.getSlot() == backSlot && !Config.isDisableBackButton()) {
+            e.setCancelled(true);
+            if (menuInstance != null) {
+                hasClicked = true;
+                menuInstance.open(player);
+            }
+            return;
+        }
+        
+        // Right-click or Shift+click on an existing item = Open Item Editor GUI
+        if (clickedItem != null && !clickedItem.getType().isAir()) {
+            boolean isEditClick = e.getClick() == ClickType.RIGHT || 
+                                  e.getClick() == ClickType.SHIFT_LEFT || 
+                                  e.getClick() == ClickType.SHIFT_RIGHT;
+            
+            if (isEditClick) {
+                e.setCancelled(true);
+                clickOverride = true;
+                int currentPageForEditor = GUI.getCurrentPage();
+                player.closeInventory();
+                
+                // Open the Item Editor GUI
+                new com.pablo67340.guishop.listenable.editor.ItemEditorGui(
+                    player, 
+                    clickedItem, 
+                    e.getSlot(), 
+                    this.shop,
+                    currentPageForEditor
+                ).onSave(() -> {
+                    // Reopen the shop after saving
+                    // Cache was updated in saveToConfig(), now rebuild GUI with fresh data
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("ONSAVE: Rebuilding shop GUI for " + this.shop);
+                    GUIShop.getCREATOR().add(player.getUniqueId());
+                    this.loadItems(false);
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("ONSAVE: loadItems complete, opening shop");
+                    this.open(player);
+                }).onCancel(() -> {
+                    // Reopen the shop on cancel
+                    GUIShop.getCREATOR().add(player.getUniqueId());
+                    this.open(player);
+                }).open();
+                return;
+            }
+        }
+        
+        // Left-click with cursor item onto empty slot = Place item (register it)
+        if ((clickedItem == null || clickedItem.getType().isAir()) && e.getCursor() != null && !e.getCursor().getType().isAir()) {
+            // Run after the event to get the placed item
             BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
             scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
-                ItemStack item = e.getInventory().getItem(e.getSlot());
-                if (item != null) {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("New item: " + item.getType());
-                    editShopItem(item, e.getSlot());
+                ItemStack placedItem = e.getInventory().getItem(e.getSlot());
+                if (placedItem != null) {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("New item placed: " + placedItem.getType());
+                    editShopItem(placedItem, e.getSlot());
                 }
-            }, 5L);
+            }, 1L);
+            return;
+        }
+        
+        // Left-click to pick up an item = Delete from shop config
+        if (clickedItem != null && !clickedItem.getType().isAir() && e.getClick() == ClickType.LEFT) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Removing item from slot: " + e.getSlot());
+            deleteShopItem(e.getSlot());
+            // Don't cancel - let them pick it up
         }
     }
 
@@ -467,6 +579,7 @@ public class Shop {
      */
     private void onClose(InventoryCloseEvent e) {
         if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
+            // Normal mode - handle escape back to menu
             if (!Config.isDisableEscapeBack() && !hasClicked && !GUIShop.getINSTANCE().isReload) {
                 BukkitScheduler scheduler = Bukkit.getScheduler();
                 scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> menuInstance.open(player), 1L);
@@ -475,8 +588,110 @@ public class Shop {
             } else {
                 hasClicked = false;
             }
-        } else if (!hasClicked && !clickOverride) {
+        } else {
+            // Creator mode - save and exit
+            if (!clickOverride) {
+                // Only save if we're not in the middle of opening the editor
+                saveCreatorInventory(e.getInventory());
+            }
+            // ALWAYS remove from creator mode when closing
             GUIShop.getCREATOR().remove(player.getUniqueId());
+            GUIShop.getINSTANCE().getLogUtil().debugLog("ONCLOSE: Removed player from creator mode");
+        }
+    }
+    
+    /**
+     * Save all items in the inventory when closing in creator mode.
+     * This handles items that were placed/moved without going through the Item Editor.
+     */
+    private void saveCreatorInventory(org.bukkit.inventory.Inventory inventory) {
+        GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Starting save for shop " + shop);
+        try {
+            String pageKey = "Page" + GUI.getCurrentPage();
+            int inventorySize = GUI.getRows() * 9;
+            
+            // Calculate button slots to skip
+            int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
+            int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+            int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+            
+            org.bukkit.configuration.ConfigurationSection config = 
+                GUIShop.getINSTANCE().getConfigManager().getShopConfig()
+                    .getConfigurationSection(shop + ".pages." + pageKey + ".items");
+            
+            if (config == null) {
+                config = GUIShop.getINSTANCE().getConfigManager().getShopConfig()
+                    .createSection(shop + ".pages." + pageKey + ".items");
+            }
+            
+            boolean hasChanges = false;
+            
+            for (int slot = 0; slot < inventorySize; slot++) {
+                // Skip navigation button slots
+                if (slot == nextSlot || slot == prevSlot || slot == backSlot) {
+                    continue;
+                }
+                
+                ItemStack item = inventory.getItem(slot);
+                String slotKey = String.valueOf(slot);
+                
+                if (item == null || item.getType().isAir()) {
+                    // Remove item from config if slot is now empty
+                    if (config.contains(slotKey)) {
+                        config.set(slotKey, null);
+                        hasChanges = true;
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Removed item from slot " + slot);
+                    }
+                } else {
+                    // Check if this is a new item (no GUIShop PDC data)
+                    String existingType = PDCUtil.getString(item, PDCUtil.KEY_ITEM_TYPE);
+                    
+                    // If no item type set, this is a freshly placed item from player inventory
+                    if (existingType == null) {
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Detected new item at slot " + slot + ": " + item.getType());
+                        // Parse and save the new item
+                        Item newItem = Item.parse(item, slot, shop);
+                        // Default to DUMMY type for decoration items (no prices)
+                        if (!newItem.hasBuyPrice() && !newItem.hasSellPrice()) {
+                            newItem.setItemType(ItemType.DUMMY);
+                        } else {
+                            newItem.setItemType(ItemType.SHOP);
+                        }
+                        
+                        // Save item properties individually to ensure proper YAML structure
+                        java.util.Map<String, Object> serialized = newItem.serialize();
+                        String itemPath = shop + ".pages." + pageKey + ".items." + slotKey;
+                        org.bukkit.configuration.file.FileConfiguration shopConfig = 
+                            GUIShop.getINSTANCE().getConfigManager().getShopConfig();
+                        shopConfig.set(itemPath, null);
+                        for (java.util.Map.Entry<String, Object> entry : serialized.entrySet()) {
+                            shopConfig.set(itemPath + "." + entry.getKey(), entry.getValue());
+                        }
+                        
+                        hasChanges = true;
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Added new item " + item.getType() + " at slot " + slot + " as " + newItem.getItemType());
+                    }
+                }
+            }
+            
+            if (hasChanges) {
+                GUIShop.getINSTANCE().getConfigManager().getShopConfig()
+                    .save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
+                
+                // Reload config from disk to ensure consistency
+                GUIShop.getINSTANCE().getConfigManager().reloadShopConfig();
+                
+                // Invalidate the shop cache so next open gets fresh data
+                GUIShop.getINSTANCE().getLoadedShops().remove(shop);
+                
+                GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Changes saved for shop " + shop);
+                player.sendMessage(ChatColor.GREEN + "Shop changes saved!");
+            } else {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: No changes detected for shop " + shop);
+            }
+        } catch (Exception ex) {
+            GUIShop.getINSTANCE().getLogUtil().log("Error saving creator inventory: " + ex.getMessage());
+            ex.printStackTrace();
         }
     }
 

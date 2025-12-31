@@ -15,14 +15,24 @@ import com.pablo67340.guishop.listenable.Value;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
 import com.pablo67340.guishop.util.PDCUtil;
+import net.md_5.bungee.api.chat.ClickEvent;
+import net.md_5.bungee.api.chat.HoverEvent;
+import net.md_5.bungee.api.chat.TextComponent;
+import net.md_5.bungee.api.chat.hover.content.Text;
 import org.bukkit.ChatColor;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
@@ -110,6 +120,18 @@ public class GuishopCommand implements CommandExecutor {
                 }
             } else if (args[0].equalsIgnoreCase("edit") || args[0].equalsIgnoreCase("e")) {
                 if (args.length >= 2) {
+                    // Explicit "menu" argument opens the menu in edit mode
+                    if (args[1].equalsIgnoreCase("menu")) {
+                        // Check for optional page number
+                        if (args.length >= 3) {
+                            editMenu(args[2], player);
+                        } else {
+                            PlayerListener.INSTANCE.openMenu(player);
+                            GUIShop.getCREATOR().add(player.getUniqueId());
+                            GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode (menu)");
+                        }
+                        return true;
+                    }
 
                     String nearestShop = NameUtil.nearestShop(args[1]);
 
@@ -683,6 +705,9 @@ public class GuishopCommand implements CommandExecutor {
                 
                 // Force refresh inventory to apply the change immediately
                 player.updateInventory();
+            } else if (args[0].equalsIgnoreCase("iteminfo") || args[0].equalsIgnoreCase("ii") || args[0].equalsIgnoreCase("info")) {
+                // Display comprehensive item information
+                printItemInfo(player);
             } else {
                 PlayerListener.INSTANCE.printUsage(player);
             }
@@ -707,5 +732,690 @@ public class GuishopCommand implements CommandExecutor {
                 GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.no-number");
             }
         }
+    }
+
+    /**
+     * Prints comprehensive item information to the player in a nicely formatted way.
+     * Includes basic info, lore, enchantments, PDC data, and other metadata.
+     */
+    private void printItemInfo(Player player) {
+        if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
+            return;
+        }
+
+        ItemStack item;
+        if (XMaterial.getVersion() > 18) {
+            item = player.getEquipment().getItemInMainHand();
+        } else {
+            item = player.getItemInHand();
+        }
+
+        ItemMeta meta = item.getItemMeta();
+        
+        // Header
+        player.sendMessage("");
+        player.sendMessage(ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + "=========" + ChatColor.RESET + ChatColor.YELLOW + " Item Info " + ChatColor.GOLD + ChatColor.STRIKETHROUGH + "=========");
+        player.sendMessage("");
+
+        // ===== BASIC INFO =====
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Basic Information");
+        sendCopyableLine(player, "Material", item.getType().toString());
+        sendCopyableLine(player, "Amount", String.valueOf(item.getAmount()));
+        
+        if (meta != null && meta.hasDisplayName()) {
+            String displayName = meta.getDisplayName();
+            sendCopyableLine(player, "Display Name", displayName);
+            // Also show the raw name with color codes
+            String rawName = displayName.replace(ChatColor.COLOR_CHAR, '&');
+            sendCopyableLine(player, "Display Name (Raw)", rawName);
+        }
+        
+        // Durability
+        if (meta instanceof Damageable) {
+            Damageable damageable = (Damageable) meta;
+            if (damageable.hasDamage()) {
+                int maxDurability = item.getType().getMaxDurability();
+                int currentDamage = damageable.getDamage();
+                int remaining = maxDurability - currentDamage;
+                sendCopyableLine(player, "Durability", remaining + "/" + maxDurability);
+            }
+        }
+        
+        // Custom Model Data
+        if (meta != null && meta.hasCustomModelData()) {
+            sendCopyableLine(player, "Custom Model Data", String.valueOf(meta.getCustomModelData()));
+        }
+
+        // ===== LORE =====
+        if (meta != null && meta.hasLore() && meta.getLore() != null) {
+            player.sendMessage("");
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Lore");
+            List<String> lore = meta.getLore();
+            for (int i = 0; i < lore.size(); i++) {
+                String line = lore.get(i);
+                String rawLine = line.replace(ChatColor.COLOR_CHAR, '&');
+                sendCopyableLine(player, "Line " + i, rawLine);
+            }
+        }
+
+        // ===== ENCHANTMENTS =====
+        if (!item.getEnchantments().isEmpty()) {
+            player.sendMessage("");
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Enchantments");
+            for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
+                sendCopyableLine(player, entry.getKey().getKey().getKey(), "Level " + entry.getValue());
+            }
+            // Show compact format
+            StringBuilder compactEnchants = new StringBuilder();
+            for (Map.Entry<Enchantment, Integer> entry : item.getEnchantments().entrySet()) {
+                if (compactEnchants.length() > 0) compactEnchants.append(" ");
+                compactEnchants.append(entry.getKey().getKey().getKey().toUpperCase()).append(":").append(entry.getValue());
+            }
+            sendCopyableLine(player, "Compact Format", compactEnchants.toString());
+        }
+
+        // ===== ITEM FLAGS =====
+        if (meta != null && !meta.getItemFlags().isEmpty()) {
+            player.sendMessage("");
+            player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "Item Flags");
+            StringBuilder flags = new StringBuilder();
+            for (ItemFlag flag : meta.getItemFlags()) {
+                if (flags.length() > 0) flags.append(" ");
+                flags.append(flag.name());
+            }
+            sendCopyableLine(player, "Flags", flags.toString());
+        }
+
+        // ===== GUISHOP PDC DATA =====
+        player.sendMessage("");
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "GUIShop PDC Data");
+        
+        boolean hasPdcData = false;
+        
+        // Check each known GUIShop PDC key
+        String buyPrice = PDCUtil.getString(item, PDCUtil.KEY_BUY_PRICE);
+        if (buyPrice != null) { sendCopyableLine(player, "Buy Price", buyPrice); hasPdcData = true; }
+        
+        Double buyPriceDbl = PDCUtil.getDouble(item, PDCUtil.KEY_BUY_PRICE);
+        if (buyPriceDbl != null) { sendCopyableLine(player, "Buy Price", buyPriceDbl.toString()); hasPdcData = true; }
+        
+        String sellPrice = PDCUtil.getString(item, PDCUtil.KEY_SELL_PRICE);
+        if (sellPrice != null) { sendCopyableLine(player, "Sell Price", sellPrice); hasPdcData = true; }
+        
+        Double sellPriceDbl = PDCUtil.getDouble(item, PDCUtil.KEY_SELL_PRICE);
+        if (sellPriceDbl != null) { sendCopyableLine(player, "Sell Price", sellPriceDbl.toString()); hasPdcData = true; }
+        
+        String shopName = PDCUtil.getString(item, PDCUtil.KEY_SHOP_NAME);
+        if (shopName != null) { sendCopyableLine(player, "Shop Name", shopName); hasPdcData = true; }
+        
+        String buyName = PDCUtil.getString(item, PDCUtil.KEY_BUY_NAME);
+        if (buyName != null) { sendCopyableLine(player, "Buy Name", buyName); hasPdcData = true; }
+        
+        String itemType = PDCUtil.getString(item, PDCUtil.KEY_ITEM_TYPE);
+        if (itemType != null) { sendCopyableLine(player, "Item Type", itemType); hasPdcData = true; }
+        
+        String targetShop = PDCUtil.getString(item, PDCUtil.KEY_TARGET_SHOP);
+        if (targetShop != null) { sendCopyableLine(player, "Target Shop", targetShop); hasPdcData = true; }
+        
+        String mobType = PDCUtil.getString(item, PDCUtil.KEY_MOB_TYPE);
+        if (mobType != null) { sendCopyableLine(player, "Mob Type", mobType); hasPdcData = true; }
+        
+        String spawnerMob = PDCUtil.getString(item, PDCUtil.KEY_SPAWNER_MOB);
+        if (spawnerMob != null) { sendCopyableLine(player, "Spawner Mob", spawnerMob); hasPdcData = true; }
+        
+        String commands = PDCUtil.getString(item, PDCUtil.KEY_COMMANDS);
+        if (commands != null) { 
+            String[] cmdArray = commands.split("::");
+            for (int i = 0; i < cmdArray.length; i++) {
+                sendCopyableLine(player, "Command " + i, cmdArray[i]);
+            }
+            hasPdcData = true; 
+        }
+        
+        String enchantments = PDCUtil.getString(item, PDCUtil.KEY_ENCHANTMENTS);
+        if (enchantments != null) { sendCopyableLine(player, "Enchantments (PDC)", enchantments); hasPdcData = true; }
+        
+        String customNbt = PDCUtil.getString(item, PDCUtil.KEY_CUSTOM_NBT);
+        if (customNbt != null) { sendCopyableLine(player, "Custom NBT", customNbt); hasPdcData = true; }
+        
+        Integer quantity = PDCUtil.getInteger(item, PDCUtil.KEY_QUANTITY);
+        if (quantity != null) { sendCopyableLine(player, "Quantity", quantity.toString()); hasPdcData = true; }
+        
+        String skullUuid = PDCUtil.getString(item, PDCUtil.KEY_SKULL_UUID);
+        if (skullUuid != null) { sendCopyableLine(player, "Skull UUID", skullUuid); hasPdcData = true; }
+        
+        String permission = PDCUtil.getString(item, PDCUtil.KEY_PERMISSION);
+        if (permission != null) { sendCopyableLine(player, "Permission", permission); hasPdcData = true; }
+        
+        String potionInfo = PDCUtil.getString(item, PDCUtil.KEY_POTION);
+        if (potionInfo != null) { sendCopyableLine(player, "Potion Info", potionInfo); hasPdcData = true; }
+        
+        String shopLore = PDCUtil.getString(item, PDCUtil.KEY_SHOP_LORE_LINES);
+        if (shopLore != null) { sendCopyableLine(player, "Shop Lore Lines", shopLore); hasPdcData = true; }
+        
+        String buyLore = PDCUtil.getString(item, PDCUtil.KEY_BUY_LORE_LINES);
+        if (buyLore != null) { sendCopyableLine(player, "Buy Lore Lines", buyLore); hasPdcData = true; }
+        
+        if (!hasPdcData) {
+            player.sendMessage(ChatColor.GRAY + "  No GUIShop data found on this item.");
+        }
+
+        // ===== ALL PDC KEYS (from any plugin) =====
+        if (meta != null) {
+            PersistentDataContainer pdc = meta.getPersistentDataContainer();
+            Set<NamespacedKey> keys = pdc.getKeys();
+            if (!keys.isEmpty()) {
+                player.sendMessage("");
+                player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "All PDC Keys");
+                for (NamespacedKey key : keys) {
+                    String value = getPdcValueAsString(pdc, key);
+                    sendCopyableLine(player, key.toString(), value);
+                }
+            }
+        }
+
+        // ===== NBT DATA =====
+        player.sendMessage("");
+        player.sendMessage(ChatColor.AQUA + "" + ChatColor.BOLD + "NBT Data");
+        
+        String nbtString = getNbtAsString(item);
+        if (nbtString != null && !nbtString.isEmpty()) {
+            // If NBT is very long, show a truncated version in chat but full in copy
+            if (nbtString.length() > 200) {
+                String truncated = nbtString.substring(0, 200) + "...";
+                sendCopyableNbtLine(player, "Full NBT (truncated)", truncated, nbtString);
+            } else {
+                sendCopyableLine(player, "Full NBT", nbtString);
+            }
+            
+            // Try to extract and display key NBT components nicely
+            displayNbtComponents(player, item, nbtString);
+        } else {
+            player.sendMessage(ChatColor.GRAY + "  No custom NBT data (vanilla item).");
+        }
+
+        // Footer
+        player.sendMessage("");
+        player.sendMessage(ChatColor.GOLD + "" + ChatColor.STRIKETHROUGH + "================================");
+        player.sendMessage(ChatColor.GRAY + "" + ChatColor.ITALIC + "Click on values to copy them to clipboard.");
+        player.sendMessage("");
+    }
+
+    /**
+     * Sends a line with a label and copyable value.
+     */
+    private void sendCopyableLine(Player player, String label, String value) {
+        TextComponent labelComponent = new TextComponent(ChatColor.GRAY + "  " + label + ": ");
+        TextComponent valueComponent = new TextComponent(ChatColor.WHITE + value);
+        
+        // Add click event to copy value
+        valueComponent.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, value));
+        
+        // Add hover text
+        valueComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+            new Text(ChatColor.YELLOW + "Click to copy: " + ChatColor.WHITE + value)));
+        
+        player.spigot().sendMessage(labelComponent, valueComponent);
+    }
+
+    /**
+     * Attempts to get a PDC value as a string, trying different data types.
+     */
+    private String getPdcValueAsString(PersistentDataContainer pdc, NamespacedKey key) {
+        try {
+            if (pdc.has(key, PersistentDataType.STRING)) {
+                return pdc.get(key, PersistentDataType.STRING);
+            } else if (pdc.has(key, PersistentDataType.INTEGER)) {
+                Integer val = pdc.get(key, PersistentDataType.INTEGER);
+                return val != null ? val.toString() : "null";
+            } else if (pdc.has(key, PersistentDataType.DOUBLE)) {
+                Double val = pdc.get(key, PersistentDataType.DOUBLE);
+                return val != null ? val.toString() : "null";
+            } else if (pdc.has(key, PersistentDataType.LONG)) {
+                Long val = pdc.get(key, PersistentDataType.LONG);
+                return val != null ? val.toString() : "null";
+            } else if (pdc.has(key, PersistentDataType.BYTE)) {
+                Byte val = pdc.get(key, PersistentDataType.BYTE);
+                return val != null ? val.toString() : "null";
+            } else if (pdc.has(key, PersistentDataType.FLOAT)) {
+                Float val = pdc.get(key, PersistentDataType.FLOAT);
+                return val != null ? val.toString() : "null";
+            } else if (pdc.has(key, PersistentDataType.SHORT)) {
+                Short val = pdc.get(key, PersistentDataType.SHORT);
+                return val != null ? val.toString() : "null";
+            } else if (pdc.has(key, PersistentDataType.BYTE_ARRAY)) {
+                byte[] val = pdc.get(key, PersistentDataType.BYTE_ARRAY);
+                return val != null ? "[byte array, length=" + val.length + "]" : "null";
+            } else if (pdc.has(key, PersistentDataType.INTEGER_ARRAY)) {
+                int[] val = pdc.get(key, PersistentDataType.INTEGER_ARRAY);
+                return val != null ? "[int array, length=" + val.length + "]" : "null";
+            } else if (pdc.has(key, PersistentDataType.LONG_ARRAY)) {
+                long[] val = pdc.get(key, PersistentDataType.LONG_ARRAY);
+                return val != null ? "[long array, length=" + val.length + "]" : "null";
+            }
+        } catch (Exception e) {
+            return "[error reading value]";
+        }
+        return "[unknown type]";
+    }
+
+    /**
+     * Sends a line with a label, truncated display, but copies the full value.
+     */
+    private void sendCopyableNbtLine(Player player, String label, String displayValue, String fullValue) {
+        TextComponent labelComponent = new TextComponent(ChatColor.GRAY + "  " + label + ": ");
+        TextComponent valueComponent = new TextComponent(ChatColor.WHITE + displayValue);
+        
+        // Add click event to copy FULL value
+        valueComponent.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, fullValue));
+        
+        // Add hover text showing it will copy full value
+        valueComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+            new Text(ChatColor.YELLOW + "Click to copy full NBT (" + fullValue.length() + " chars)")));
+        
+        player.spigot().sendMessage(labelComponent, valueComponent);
+    }
+
+    /**
+     * Gets the NBT data of an ItemStack as a string using reflection.
+     * Works across different Minecraft versions by trying multiple approaches.
+     */
+    private String getNbtAsString(ItemStack item) {
+        if (item == null || item.getType().isAir()) {
+            return null;
+        }
+
+        // Try multiple methods to get NBT string
+        String nbt = null;
+
+        // Method 1: Try Paper's ItemMeta.getAsString() (Paper 1.18.2+)
+        try {
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null) {
+                java.lang.reflect.Method getAsString = meta.getClass().getMethod("getAsString");
+                Object result = getAsString.invoke(meta);
+                if (result != null) {
+                    nbt = result.toString();
+                    if (!nbt.equals("{}")) {
+                        return nbt;
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+            // Not Paper or method not available
+        }
+
+        // Method 2: Try CraftItemStack -> NMS ItemStack -> getTag/getComponents
+        try {
+            // Get CraftItemStack class
+            String version = getServerVersion();
+            Class<?> craftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
+            
+            // Convert to NMS ItemStack
+            java.lang.reflect.Method asNMSCopy = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
+            Object nmsItem = asNMSCopy.invoke(null, item);
+            
+            if (nmsItem != null) {
+                // Try different methods based on version
+                // 1.20.5+ uses components, older uses NBT tags
+                nbt = tryGetNbtFromNmsItem(nmsItem);
+                if (nbt != null && !nbt.isEmpty() && !nbt.equals("{}")) {
+                    return nbt;
+                }
+            }
+        } catch (Exception e) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("NBT extraction method 2 failed: " + e.getMessage());
+        }
+
+        // Method 3: Try using Bukkit's serialization as a fallback
+        try {
+            Map<String, Object> serialized = item.serialize();
+            // Remove basic fields to show only interesting data
+            serialized.remove("type");
+            serialized.remove("amount");
+            if (!serialized.isEmpty()) {
+                return serialized.toString();
+            }
+        } catch (Exception ignored) {
+        }
+
+        return null;
+    }
+
+    /**
+     * Try to extract NBT string from NMS ItemStack using various methods.
+     */
+    private String tryGetNbtFromNmsItem(Object nmsItem) {
+        // Try getTag() for 1.20.4 and below
+        try {
+            java.lang.reflect.Method getTag = nmsItem.getClass().getMethod("getTag");
+            Object tag = getTag.invoke(nmsItem);
+            if (tag != null) {
+                return tag.toString();
+            }
+        } catch (Exception ignored) {
+        }
+
+        // Try u() or similar obfuscated method names (varies by version)
+        for (String methodName : new String[]{"u", "v", "w", "getOrCreateTag", "save"}) {
+            try {
+                java.lang.reflect.Method method = nmsItem.getClass().getMethod(methodName);
+                Object result = method.invoke(nmsItem);
+                if (result != null) {
+                    String str = result.toString();
+                    if (str.contains("{") && str.contains("}")) {
+                        return str;
+                    }
+                }
+            } catch (Exception ignored) {
+            }
+        }
+
+        // Try getComponents() for 1.20.5+
+        try {
+            java.lang.reflect.Method getComponents = nmsItem.getClass().getMethod("getComponents");
+            Object components = getComponents.invoke(nmsItem);
+            if (components != null) {
+                return components.toString();
+            }
+        } catch (Exception ignored) {
+        }
+
+        // Try a() method (common obfuscated name)
+        try {
+            java.lang.reflect.Method[] methods = nmsItem.getClass().getMethods();
+            for (java.lang.reflect.Method m : methods) {
+                if (m.getParameterCount() == 0 && m.getReturnType().getSimpleName().contains("Tag")) {
+                    Object result = m.invoke(nmsItem);
+                    if (result != null) {
+                        return result.toString();
+                    }
+                }
+            }
+        } catch (Exception ignored) {
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets the server version string (e.g., "v1_21_R1").
+     */
+    private String getServerVersion() {
+        String packageName = org.bukkit.Bukkit.getServer().getClass().getPackage().getName();
+        return packageName.substring(packageName.lastIndexOf('.') + 1);
+    }
+
+    /**
+     * Displays extracted NBT components in a more readable format,
+     * with config-ready YAML snippets for easy copying.
+     */
+    private void displayNbtComponents(Player player, ItemStack item, String nbtString) {
+        // Extract common NBT components and display them nicely
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return;
+
+        // Unbreakable
+        if (meta.isUnbreakable()) {
+            sendCopyableLine(player, "Unbreakable", "true");
+        }
+
+        // Attribute Modifiers
+        if (meta.hasAttributeModifiers() && meta.getAttributeModifiers() != null) {
+            player.sendMessage(ChatColor.GRAY + "  Attribute Modifiers:");
+            meta.getAttributeModifiers().forEach((attr, mod) -> {
+                sendCopyableLine(player, "    " + attr.getKey().getKey(), mod.getAmount() + " " + mod.getOperation().name());
+            });
+        }
+
+        // ===== ENCHANTMENTS (Config-Ready Format) =====
+        if (!item.getEnchantments().isEmpty()) {
+            displayEnchantmentsConfigFormat(player, item.getEnchantments(), "enchantments");
+        }
+
+        // ===== POTION (Config-Ready Format) =====
+        if (meta instanceof org.bukkit.inventory.meta.PotionMeta) {
+            displayPotionConfigFormat(player, (org.bukkit.inventory.meta.PotionMeta) meta);
+        }
+
+        // ===== SKULL =====
+        if (meta instanceof org.bukkit.inventory.meta.SkullMeta) {
+            org.bukkit.inventory.meta.SkullMeta skullMeta = (org.bukkit.inventory.meta.SkullMeta) meta;
+            if (skullMeta.getOwningPlayer() != null) {
+                sendCopyableLine(player, "Skull Owner", skullMeta.getOwningPlayer().getName());
+                if (skullMeta.getOwningPlayer().getUniqueId() != null) {
+                    String uuid = skullMeta.getOwningPlayer().getUniqueId().toString();
+                    sendCopyableLine(player, "skull-uuid (config)", uuid);
+                }
+            }
+        }
+
+        // ===== FIREWORK (Config-Ready Format) =====
+        if (meta instanceof org.bukkit.inventory.meta.FireworkMeta) {
+            displayFireworkConfigFormat(player, (org.bukkit.inventory.meta.FireworkMeta) meta);
+        }
+
+        // ===== ENCHANTED BOOK (Config-Ready Format) =====
+        if (meta instanceof org.bukkit.inventory.meta.EnchantmentStorageMeta) {
+            org.bukkit.inventory.meta.EnchantmentStorageMeta bookMeta = 
+                (org.bukkit.inventory.meta.EnchantmentStorageMeta) meta;
+            if (bookMeta.hasStoredEnchants()) {
+                displayEnchantmentsConfigFormat(player, bookMeta.getStoredEnchants(), "enchantments (book)");
+            }
+        }
+
+        // ===== SPAWNER =====
+        if (meta instanceof org.bukkit.inventory.meta.BlockStateMeta) {
+            org.bukkit.inventory.meta.BlockStateMeta blockMeta = 
+                (org.bukkit.inventory.meta.BlockStateMeta) meta;
+            if (blockMeta.hasBlockState()) {
+                org.bukkit.block.BlockState state = blockMeta.getBlockState();
+                if (state instanceof org.bukkit.block.CreatureSpawner) {
+                    org.bukkit.block.CreatureSpawner spawner = (org.bukkit.block.CreatureSpawner) state;
+                    if (spawner.getSpawnedType() != null) {
+                        String mobType = spawner.getSpawnedType().name();
+                        sendCopyableLine(player, "mob-type (config)", mobType);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Displays enchantments in GUIShop config-ready format.
+     * Format: "ENCHANT:LEVEL ENCHANT2:LEVEL2"
+     */
+    private void displayEnchantmentsConfigFormat(Player player, Map<Enchantment, Integer> enchants, String label) {
+        if (enchants.isEmpty()) return;
+        
+        player.sendMessage("");
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Config-Ready: Enchantments");
+        
+        // Build compact format: "SHARP:5 FIRE_ASPECT:2"
+        StringBuilder compact = new StringBuilder();
+        for (Map.Entry<Enchantment, Integer> entry : enchants.entrySet()) {
+            if (compact.length() > 0) compact.append(" ");
+            String enchantName = entry.getKey().getKey().getKey().toUpperCase();
+            compact.append(enchantName).append(":").append(entry.getValue());
+        }
+        
+        String configLine = "enchantments: '" + compact.toString() + "'";
+        sendCopyableLine(player, label, compact.toString());
+        
+        // Show the full YAML line
+        player.sendMessage(ChatColor.DARK_GRAY + "  Copy for config:");
+        sendCopyableLine(player, "  YAML", configLine);
+    }
+
+    /**
+     * Displays potion info in GUIShop config-ready YAML format.
+     */
+    private void displayPotionConfigFormat(Player player, org.bukkit.inventory.meta.PotionMeta potionMeta) {
+        player.sendMessage("");
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Config-Ready: potion-info");
+        
+        String potionType = "WATER";
+        boolean splash = false;
+        boolean extended = false;
+        boolean upgraded = false;
+        
+        // Get base potion type
+        if (potionMeta.getBasePotionType() != null) {
+            org.bukkit.potion.PotionType baseType = potionMeta.getBasePotionType();
+            potionType = baseType.name();
+            
+            // Check if extended or upgraded based on potion type name
+            String typeName = baseType.name();
+            if (typeName.contains("LONG") || typeName.contains("EXTENDED")) {
+                extended = true;
+                potionType = typeName.replace("LONG_", "").replace("_LONG", "");
+            }
+            if (typeName.contains("STRONG") || typeName.contains("II")) {
+                upgraded = true;
+                potionType = typeName.replace("STRONG_", "").replace("_STRONG", "").replace("_II", "");
+            }
+        }
+        
+        // Display individual values
+        sendCopyableLine(player, "type", potionType);
+        sendCopyableLine(player, "splash", String.valueOf(splash));
+        sendCopyableLine(player, "extended", String.valueOf(extended));
+        sendCopyableLine(player, "upgraded", String.valueOf(upgraded));
+        
+        // Build full YAML block
+        StringBuilder yaml = new StringBuilder();
+        yaml.append("potion-info:\\n");
+        yaml.append("  type: ").append(potionType).append("\\n");
+        yaml.append("  splash: ").append(splash).append("\\n");
+        yaml.append("  extended: ").append(extended).append("\\n");
+        yaml.append("  upgraded: ").append(upgraded);
+        
+        player.sendMessage(ChatColor.DARK_GRAY + "  Copy for config:");
+        sendCopyableMultiLine(player, "potion-info", yaml.toString());
+        
+        // Show custom effects if any
+        if (potionMeta.hasCustomEffects()) {
+            player.sendMessage(ChatColor.GRAY + "  Custom Effects:");
+            for (org.bukkit.potion.PotionEffect effect : potionMeta.getCustomEffects()) {
+                String effectStr = effect.getType().getKey().getKey().toUpperCase() + " Lvl " + 
+                    (effect.getAmplifier() + 1) + " (" + (effect.getDuration() / 20) + "s)";
+                sendCopyableLine(player, "    Effect", effectStr);
+            }
+        }
+    }
+
+    /**
+     * Displays firework info in GUIShop config-ready YAML format.
+     */
+    private void displayFireworkConfigFormat(Player player, org.bukkit.inventory.meta.FireworkMeta fwMeta) {
+        player.sendMessage("");
+        player.sendMessage(ChatColor.LIGHT_PURPLE + "" + ChatColor.BOLD + "Config-Ready: firework-info");
+        
+        int flight = fwMeta.getPower();
+        sendCopyableLine(player, "flight", String.valueOf(flight));
+        
+        // Build YAML for each explosion
+        StringBuilder yaml = new StringBuilder();
+        yaml.append("firework-info:\\n");
+        yaml.append("  flight: ").append(flight).append("\\n");
+        yaml.append("  explosions:");
+        
+        if (fwMeta.hasEffects()) {
+            for (org.bukkit.FireworkEffect effect : fwMeta.getEffects()) {
+                yaml.append("\\n    - shape: ").append(getFireworkShapeName(effect.getType()));
+                yaml.append("\\n      flicker: ").append(effect.hasFlicker());
+                yaml.append("\\n      trail: ").append(effect.hasTrail());
+                
+                // Colors as RGB integers
+                if (!effect.getColors().isEmpty()) {
+                    yaml.append("\\n      colors: [");
+                    boolean first = true;
+                    for (org.bukkit.Color color : effect.getColors()) {
+                        if (!first) yaml.append(", ");
+                        yaml.append(color.asRGB());
+                        first = false;
+                    }
+                    yaml.append("]");
+                }
+                
+                // Fade colors
+                if (!effect.getFadeColors().isEmpty()) {
+                    yaml.append("\\n      fade-colors: [");
+                    boolean first = true;
+                    for (org.bukkit.Color color : effect.getFadeColors()) {
+                        if (!first) yaml.append(", ");
+                        yaml.append(color.asRGB());
+                        first = false;
+                    }
+                    yaml.append("]");
+                }
+                
+                // Also display each explosion in chat
+                player.sendMessage(ChatColor.GRAY + "  Explosion:");
+                sendCopyableLine(player, "    shape", getFireworkShapeName(effect.getType()));
+                sendCopyableLine(player, "    flicker", String.valueOf(effect.hasFlicker()));
+                sendCopyableLine(player, "    trail", String.valueOf(effect.hasTrail()));
+                
+                if (!effect.getColors().isEmpty()) {
+                    StringBuilder colorsStr = new StringBuilder("[");
+                    boolean first = true;
+                    for (org.bukkit.Color color : effect.getColors()) {
+                        if (!first) colorsStr.append(", ");
+                        colorsStr.append(color.asRGB());
+                        first = false;
+                    }
+                    colorsStr.append("]");
+                    sendCopyableLine(player, "    colors", colorsStr.toString());
+                }
+                
+                if (!effect.getFadeColors().isEmpty()) {
+                    StringBuilder fadeStr = new StringBuilder("[");
+                    boolean first = true;
+                    for (org.bukkit.Color color : effect.getFadeColors()) {
+                        if (!first) fadeStr.append(", ");
+                        fadeStr.append(color.asRGB());
+                        first = false;
+                    }
+                    fadeStr.append("]");
+                    sendCopyableLine(player, "    fade-colors", fadeStr.toString());
+                }
+            }
+        } else {
+            yaml.append(" []");
+        }
+        
+        player.sendMessage(ChatColor.DARK_GRAY + "  Copy for config:");
+        sendCopyableMultiLine(player, "firework-info", yaml.toString());
+    }
+
+    /**
+     * Converts FireworkEffect.Type to the config shape name.
+     */
+    private String getFireworkShapeName(org.bukkit.FireworkEffect.Type type) {
+        switch (type) {
+            case BALL: return "ball";
+            case BALL_LARGE: return "ball_large";
+            case STAR: return "star";
+            case BURST: return "burst";
+            case CREEPER: return "creeper";
+            default: return type.name().toLowerCase();
+        }
+    }
+
+    /**
+     * Sends a multiline YAML block that can be copied.
+     */
+    private void sendCopyableMultiLine(Player player, String label, String yamlContent) {
+        // Replace \\n with actual newlines for the copy
+        String copyValue = yamlContent.replace("\\n", "\n");
+        
+        TextComponent labelComponent = new TextComponent(ChatColor.GRAY + "  [" + ChatColor.GREEN + "Click to copy " + label + ChatColor.GRAY + "]");
+        
+        labelComponent.setClickEvent(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, copyValue));
+        labelComponent.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, 
+            new Text(ChatColor.YELLOW + "Click to copy full YAML block:\n" + ChatColor.WHITE + copyValue)));
+        
+        player.spigot().sendMessage(labelComponent);
     }
 }

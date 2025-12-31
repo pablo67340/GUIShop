@@ -36,38 +36,14 @@ public final class PlayerListener implements Listener {
         "reload",
         "parsemob",
         "edit",
-        "buy-price",
-        "sell-price",
-        "shop-name",
-        "buy-name",
-        "name",
-        "enchant",
-        "add-shop-lore",
-        "edit-shop-lore",
-        "delete-shop-lore",
-        "add-buy-lore",
-        "edit-buy-lore",
-        "delete-buy-lore",
-        "add-lore",
-        "edit-lore",
-        "delete-lore",
-        "type",
-        "add-command",
-        "edit-command",
-        "delete-command",
-        "mob-type",
-        "target-shop",
-        "nbt",
         "list-shops",
-        "list-commands",
-        "potion-info",
-        "quantity",
-        "skull-uuid",
         "value",
-        "permission",
-        "toggleworth"};
+        "toggleworth",
+        "iteminfo"};
 
     public Menu openMenu(Player player) {
+        // Ensure player is not in creator mode when opening shop normally
+        GUIShop.getCREATOR().remove(player.getUniqueId());
         Menu menu = new Menu(player);
         menu.open(player);
         return menu;

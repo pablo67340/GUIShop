@@ -1,0 +1,77 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Architecture Overview
+
+GUIShop is a Minecraft Bukkit/Spigot plugin that provides GUI-based shops. This document covers the core architecture.
+
+## Key Singleton Entry Point
+- `GUIShop.java` - Main plugin class, access via `GUIShop.getINSTANCE()`
+
+## Core Data Structures
+
+### Item Definition (`src/com/pablo67340/guishop/definition/`)
+- `Item.java` - Represents a shop item with prices, type, enchantments, etc.
+- `ShopItem.java` - Container for a shop's pages
+- `ShopPage.java` - Container for items on a single page
+- `MenuItem.java` / `MenuPage.java` - Same structure for the main menu
+- `ItemType.java` - Enum: SHOP, COMMAND, DUMMY, BLANK, ITEM, SHOP_SHORTCUT
+
+### GUI Framework (`src/com/pablo67340/guishop/gui/`)
+- `SimpleGui.java` - Base GUI with click handlers
+- `PagedGui.java` - Multi-page GUI extending SimpleGui
+- `GUIHolder.java` - Bukkit InventoryHolder implementation
+- `GuiListener.java` - Global inventory event listener
+
+### Listenable Classes (`src/com/pablo67340/guishop/listenable/`)
+- `Menu.java` - Main shop menu (the first GUI players see)
+- `Shop.java` - Individual shop display
+- `Quantity.java` - Quantity selection GUI
+- `Sell.java` / `AltSell.java` - Selling GUIs
+- `Value.java` - Item value display
+- `PlayerListener.java` - Command handling, opens Menu
+
+### Item Editor (`src/com/pablo67340/guishop/listenable/editor/`)
+- `ItemEditorGui.java` - Main item property editor
+- `EnchantmentEditorGui.java` - Enchantment selection
+- `PotionEditorGui.java` - Potion type selection
+- `FireworkEditorGui.java` - Firework configuration
+- `ChatInputHandler.java` - Handles chat-based input for values
+
+## Global Caches (on GUIShop instance)
+
+```java
+// Shop cache: Map<ShopName, ShopItem>
+GUIShop.getINSTANCE().getLoadedShops()
+
+// Menu cache: MenuItem
+GUIShop.getINSTANCE().getLoadedMenu()
+
+// Sellable items table: Map<Material, List<Item>>
+GUIShop.getINSTANCE().getITEMTABLE()
+
+// Players in creator/edit mode: Set<UUID>
+GUIShop.getCREATOR()
+```
+
+## Configuration Files
+- `config.yml` - Main settings (loaded into `Config.java` static fields)
+- `shops.yml` - All shop definitions
+- `menu.yml` - Main menu definition
+- `messages.yml` - Player-facing messages
+- `worth.yml` - Worth display settings
+
+## PDC (Persistent Data Container) Usage
+All GUIShop item data is stored in PDC, managed by `PDCUtil.java`:
+- `guishop:item_type` - SHOP, DUMMY, COMMAND, etc.
+- `guishop:buy_price` - Buy price (Double)
+- `guishop:sell_price` - Sell price (Double)
+- `guishop:shop_name` - Display name in shop
+- `guishop:buy_name` - Display name when bought
+- `guishop:name` - Generic name (for DUMMY items)
+- `guishop:enchantments` - Enchantment string
+- `guishop:potion` - Potion info string
+- `guishop:firework` - Firework info string
+- `guishop:commands` - Commands to run on purchase
+- `guishop:target_shop` - For SHOP_SHORTCUT items

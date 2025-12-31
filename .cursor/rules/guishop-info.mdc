@@ -1,0 +1,62 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Quick Reference
+
+GUIShop is a Minecraft Bukkit/Spigot shop plugin with GUI-based item browsing, buying, selling, and an in-game creator/editor mode.
+
+## Quick Links to Other Rules
+- `guishop-architecture.mdc` - Core classes, caches, and structure
+- `guishop-item-flow.mdc` - Loading, editing, saving items
+- `guishop-patterns-pitfalls.mdc` - Common patterns and bug fixes
+
+## Most Important Classes
+
+| Class | Purpose |
+|-------|---------|
+| `GUIShop.java` | Main plugin singleton |
+| `Shop.java` | Displays individual shops |
+| `Menu.java` | Main menu with shop buttons |
+| `Item.java` | Item definition with prices, type, etc. |
+| `ItemEditorGui.java` | In-game item property editor |
+| `PDCUtil.java` | Persistent Data Container helpers |
+| `ConfigManager.java` | YAML file loading |
+
+## Key Global State
+
+```java
+GUIShop.getINSTANCE().getLoadedShops()  // Map<String, ShopItem>
+GUIShop.getINSTANCE().getLoadedMenu()   // MenuItem
+GUIShop.getCREATOR()                    // Set<UUID> players in edit mode
+```
+
+## Critical Flow Summary
+
+**Normal shop access:**
+```
+/shop → PlayerListener.openMenu() → Menu.loadItems() → Menu.open()
+Click shop button → Shop.loadItems() → Shop.open()
+```
+
+**Creator mode editing:**
+```
+/gs edit → Add to CREATOR set → Open Menu/Shop in creator mode
+Right-click item → ItemEditorGui opens
+Save → Update cache directly → Rebuild GUI → Show updated shop
+Close shop → saveCreatorInventory() → Remove from CREATOR set
+```
+
+## Common Debugging
+
+1. **Lore not updating after save?**
+   - Check if cache was updated in `saveToConfig()`
+   - Check if `loadItems(false)` sets `GUI = null`
+
+2. **Creator mode lore showing in normal shop?**
+   - Check `onClose()` removes from `CREATOR` set
+   - Check `PlayerListener.openMenu()` removes from `CREATOR`
+
+3. **Item not loading from config?**
+   - Check for "invalid format" in logs
+   - Ensure YAML structure is correct (use individual property saves)

@@ -48,6 +48,7 @@ These commands modify the item you are holding:
 | Command | Description | Permission |
 |---------|-------------|------------|
 | `/gs parsemob <type>` | Validate a mob type for spawners | `guishop.admin` |
+| `/gs iteminfo` | Display comprehensive info about held item (PDC, enchants, lore) | `guishop.admin` |
 
 ## Permissions
 

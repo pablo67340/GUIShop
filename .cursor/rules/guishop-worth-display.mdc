@@ -1,0 +1,72 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Worth Display System
+
+The worth display system shows item sell values in the item lore, updated in real-time via packets.
+
+## Requires
+- **PacketEvents** library (optional dependency)
+- Enabled in `worth.yml`
+
+## Key Classes
+
+### WorthDisplayManager (`src/com/pablo67340/guishop/worth/`)
+- Manages packet listeners for worth lore injection
+- Handles SET_SLOT and WINDOW_ITEMS packets
+- Modifies item lore client-side only (no server-side changes)
+
+### Worth Configuration (`worth.yml`)
+```yaml
+enabled: true
+format: "&7Worth: &a$%worth%"
+hide-armor-slots: true  # Don't show worth on equipped armor
+inventory-title-blacklist:  # Inventories to skip
+  - "Auction House"
+  - "Crate"
+item-name-blacklist:  # Items with these name patterns get no worth
+  - "Backpack"
+  - "Kit"
+```
+
+## How It Works
+
+1. **Packet Interception:**
+   - Listens for SET_SLOT and WINDOW_ITEMS packets
+   - Modifies items BEFORE sending to client
+
+2. **Worth Lookup:**
+   - Checks `GUIShop.getITEMTABLE()` for sell price
+   - Uses item material + optional NBT matching
+
+3. **Lore Injection:**
+   - Appends worth line to existing lore
+   - Only visual (client-side), original item unchanged
+
+## API Hook
+
+Other plugins can disable worth for specific players:
+```java
+GUIShopAPI.setExternalWorthCheck(player -> {
+    return myPlugin.hasWorthDisabled(player);
+});
+```
+
+## Player Toggle Command
+```
+/gs toggleworth - Toggles worth display for the player (session only)
+```
+
+## Common Issues
+
+**Worth not showing:**
+- Check PacketEvents is installed
+- Check `worth.yml` enabled: true
+- Check item is registered in ITEMTABLE (has sell price in shop)
+
+**Worth showing in wrong inventories:**
+- Add inventory title to blacklist in worth.yml
+
+**Worth on equipped armor:**
+- Set `hide-armor-slots: true` in worth.yml

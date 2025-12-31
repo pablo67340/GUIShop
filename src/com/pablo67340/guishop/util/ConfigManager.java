@@ -204,6 +204,32 @@ public final class ConfigManager {
             GUIShop.getINSTANCE().getLogUtil().log("Error loading config: " + e.getMessage());
         }
     }
+    
+    /**
+     * Reload only the shop config from disk.
+     * Used after saving individual items to ensure config consistency.
+     */
+    public void reloadShopConfig() {
+        try {
+            shopConfig.load(shopFile);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Shop config reloaded from disk.");
+        } catch (IOException | InvalidConfigurationException e) {
+            GUIShop.getINSTANCE().getLogUtil().log("Error reloading shop config: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Reload only the menu config from disk.
+     * Used after saving individual items to ensure config consistency.
+     */
+    public void reloadMenuConfig() {
+        try {
+            menuConfig.load(menuFile);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Menu config reloaded from disk.");
+        } catch (IOException | InvalidConfigurationException e) {
+            GUIShop.getINSTANCE().getLogUtil().log("Error reloading menu config: " + e.getMessage());
+        }
+    }
 
     /**
      * Load all default config values, translate colors, store.
@@ -350,6 +376,9 @@ public final class ConfigManager {
 
         // Hide non-buyable items from shop GUI (sell-only items)
         Config.setHideNonBuyable(mainConfig.getBoolean("hide-non-buyable", false));
+
+        // Abbreviate prices in shop lore (e.g., 1.5k instead of 1500)
+        Config.setAbbreviatePrices(mainConfig.getBoolean("abbreviate-prices", true));
 
         // Register commands
         if (Config.getCommandsMode() == CommandsMode.INTERCEPT) {

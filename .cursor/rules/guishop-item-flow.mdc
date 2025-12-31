@@ -1,0 +1,108 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Item Lifecycle
+
+This document covers how items flow through the system: loading, editing, and saving.
+
+## Loading Flow
+
+### On Plugin Enable (Preload)
+```
+GUIShop.onEnable()
+  → ConfigManager.initConfigs() - loads YAML files
+  → PlayerListener preloads all shops:
+      for each shop in shops.yml:
+        new Shop(shopName).loadItems(true)  // preLoad=true, no GUI created
+```
+
+### When Player Opens Shop
+```
+PlayerListener.openMenu()
+  → GUIShop.getCREATOR().remove(player)  // Clear creator mode!
+  → new Menu(player).open()
+      → Menu.loadItems(false)
+          if loadedMenu == null: loadMenuFromConfig()
+          else: use cached loadedMenu
+      → Menu.loadMenu() - creates PagedGui with ItemStacks
+      
+Player clicks shop button:
+  → new Shop(player, shopName, menuInstance).open()
+      → Shop.loadItems(false)
+          if shop not in loadedShops: loadShopFromConfig()
+          else: use cached shopItem
+      → Shop.loadShop() - creates PagedGui with ItemStacks
+```
+
+## Creator Mode Flow
+
+### Entering Creator Mode
+```
+/gs edit [shopname]
+  → GuishopCommand adds player to GUIShop.getCREATOR()
+  → Opens Menu or specific Shop in creator mode
+```
+
+### Creator Mode Click Handling (Shop.java / Menu.java)
+```
+Left-click: Allow normal item movement (drag/drop)
+Right-click OR Shift+Left-click: Open ItemEditorGui for that item
+```
+
+### Item Editor Save Flow (CRITICAL)
+```
+ItemEditorGui.saveAndClose():
+  1. Auto-convert types:
+     - DUMMY with prices → SHOP
+     - SHOP without prices/commands → DUMMY
+  
+  2. Apply all values to ItemStack via PDC
+  
+  3. saveToConfig(item):
+     a. Item.parse(item) - reads PDC into Item object
+     b. Item.serialize() - converts to Map for YAML
+     c. Save each property to FileConfiguration
+     d. Write to disk: shopConfig.save(file)
+     e. UPDATE IN-MEMORY CACHE DIRECTLY:
+        shopItem.getPages().get(pageKey).getItems().put(slot, parsedItem)
+     
+  4. onSave callback runs:
+     a. Add player back to CREATOR set
+     b. this.loadItems(false):
+        - Sets this.GUI = null (forces rebuild)
+        - Gets shopItem from cache (already updated!)
+        - Calls loadShop() to create new GUI
+     c. this.open(player) - shows fresh GUI
+```
+
+### Exiting Creator Mode
+```
+Shop/Menu.onClose():
+  if in creator mode:
+    if !clickOverride:  // Not opening editor
+      saveCreatorInventory()  // Saves drag-dropped items
+    ALWAYS: GUIShop.getCREATOR().remove(player)
+```
+
+## Key Insight: Cache-First Updates
+
+When saving from ItemEditorGui, we:
+1. Save to config file (for persistence)
+2. Update in-memory cache directly (for immediate display)
+3. Rebuild GUI from updated cache
+
+This avoids needing to reload from disk and ensures instant updates.
+
+## Item Type Rules
+
+| Type | Has Prices | Has Commands | Has Target Shop | Behavior |
+|------|------------|--------------|-----------------|----------|
+| DUMMY | No | No | No | Decoration only, no interaction |
+| SHOP | Yes | No | No | Can be bought/sold |
+| COMMAND | Maybe | Yes | No | Runs commands on purchase |
+| SHOP_SHORTCUT | No | No | Yes | Opens another shop |
+
+**Auto-conversion in ItemEditorGui.saveAndClose():**
+- If DUMMY but has prices → becomes SHOP
+- If SHOP but no prices/commands/target → becomes DUMMY

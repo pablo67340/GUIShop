@@ -1,0 +1,126 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Common Patterns and Pitfalls
+
+## Pattern: Forcing GUI Rebuild
+
+To refresh a shop/menu GUI with updated data:
+
+```java
+// In loadItems(false):
+if (!preLoad) {
+    this.GUI = null;  // Force loadShop() to create new GUI
+}
+// Then loadShop() checks if (this.GUI == null) before creating
+```
+
+**Key:** Setting `GUI = null` before calling `loadShop()` ensures fresh ItemStacks are created from the current cache state.
+
+## Pattern: Cache Update + GUI Rebuild
+
+When saving item changes:
+
+```java
+// 1. Update in-memory cache directly
+ShopItem shopItem = GUIShop.getINSTANCE().getLoadedShops().get(shopName);
+shopItem.getPages().get(pageKey).getItems().put(slotKey, parsedItem);
+
+// 2. Rebuild GUI (in onSave callback)
+this.loadItems(false);  // Sets GUI=null, uses updated cache, rebuilds
+this.open(player);
+```
+
+**DO NOT** invalidate cache and reload from disk - it's slower and error-prone.
+
+## Pattern: Saving to YAML Properly
+
+To save an Item to config without YAML structure issues:
+
+```java
+// DON'T do this (can cause getConfigurationSection() to return null):
+config.set(slotKey, item.serialize());
+
+// DO this (save each property individually):
+String itemPath = shopName + ".pages." + pageKey + ".items." + slotKey;
+shopConfig.set(itemPath, null);  // Clear first
+for (Map.Entry<String, Object> entry : serialized.entrySet()) {
+    shopConfig.set(itemPath + "." + entry.getKey(), entry.getValue());
+}
+```
+
+## Pitfall: Creator Mode Not Cleared
+
+**Problem:** Player sees creator-mode lore in normal `/shop`.
+
+**Cause:** `onClose()` wasn't removing player from `GUIShop.getCREATOR()`.
+
+**Fix:** ALWAYS remove from creator mode when closing, regardless of click state:
+```java
+private void onClose(InventoryCloseEvent e) {
+    if (inCreatorMode) {
+        if (!clickOverride) {
+            saveCreatorInventory();
+        }
+        // ALWAYS remove, even if hasClicked is true
+        GUIShop.getCREATOR().remove(player.getUniqueId());
+    }
+}
+```
+
+## Pitfall: DUMMY Items with Prices
+
+**Problem:** Item saved as DUMMY but has buy/sell prices - causes "invalid format" error on load.
+
+**Fix:** Auto-convert in `ItemEditorGui.saveAndClose()`:
+```java
+if (itemType == ItemType.DUMMY && hasPrices) {
+    itemType = ItemType.SHOP;
+}
+```
+
+## Pitfall: Stale GUI After Save
+
+**Problem:** After saving in ItemEditorGui, returning to shop shows old data.
+
+**Cause:** GUI wasn't rebuilt after cache update.
+
+**Fix:** In onSave callback:
+```java
+.onSave(() -> {
+    GUIShop.getCREATOR().add(player.getUniqueId());
+    this.loadItems(false);  // Rebuilds GUI from updated cache
+    this.open(player);
+})
+```
+
+## Pitfall: Item.parse() vs Item.deserialize()
+
+- `Item.parse(ItemStack, slot, shop)` - Reads from PDC (runtime items)
+- `Item.deserialize(Map, slot, shop)` - Reads from YAML config (loading)
+
+Both create Item objects, but from different sources.
+
+## Pitfall: Click Handler Flags
+
+Shop.java uses these flags to control behavior:
+- `hasClicked` - Set true when player clicks a shop item to buy
+- `clickOverride` - Set true when opening a nested GUI (editor, quantity)
+
+These prevent the `onClose` handler from reopening the menu or saving incorrectly.
+
+## Debug Logging
+
+Enable debug mode in config.yml to see flow:
+```yaml
+debug-mode: true
+```
+
+Key debug prefixes:
+- `SHOP:` - Shop loading
+- `LOADSHOP:` - Item rendering
+- `EDITOR SAVE:` - ItemEditorGui saving
+- `ONSAVE:` - onSave callback
+- `CREATOR SAVE:` - saveCreatorInventory
+- `ONCLOSE:` - Close handler

@@ -58,6 +58,9 @@ public class PDCUtil {
     
     // Potion info
     public static final NamespacedKey KEY_POTION = new NamespacedKey(NAMESPACE, "potion");
+    
+    // Firework info
+    public static final NamespacedKey KEY_FIREWORK = new NamespacedKey(NAMESPACE, "firework");
 
     // ============== String Operations ==============
     
@@ -69,7 +72,8 @@ public class PDCUtil {
      * @return The modified item (same reference)
      */
     public static ItemStack setString(ItemStack item, NamespacedKey key, String value) {
-        if (item == null || !item.hasItemMeta()) return item;
+        if (item == null) return item;
+        // Get or create ItemMeta - don't check hasItemMeta() as fresh items won't have it
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
         
@@ -125,12 +129,22 @@ public class PDCUtil {
      * Set a double value in an item's PDC.
      */
     public static ItemStack setDouble(ItemStack item, NamespacedKey key, double value) {
-        if (item == null || !item.hasItemMeta()) return item;
+        if (item == null) return item;
+        // Get or create ItemMeta - don't check hasItemMeta() as fresh items won't have it
         ItemMeta meta = item.getItemMeta();
-        if (meta == null) return item;
+        if (meta == null) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("PDCUtil.setDouble: ItemMeta is null for " + item.getType());
+            return item;
+        }
         
         meta.getPersistentDataContainer().set(key, PersistentDataType.DOUBLE, value);
-        item.setItemMeta(meta);
+        boolean success = item.setItemMeta(meta);
+        GUIShop.getINSTANCE().getLogUtil().debugLog("PDCUtil.setDouble: key=" + key.getKey() + ", value=" + value + ", success=" + success);
+        
+        // Verify it was set
+        Double readBack = getDouble(item, key);
+        GUIShop.getINSTANCE().getLogUtil().debugLog("PDCUtil.setDouble: readBack=" + readBack);
+        
         return item;
     }
     
@@ -178,7 +192,8 @@ public class PDCUtil {
      * Set an integer value in an item's PDC.
      */
     public static ItemStack setInteger(ItemStack item, NamespacedKey key, int value) {
-        if (item == null || !item.hasItemMeta()) return item;
+        if (item == null) return item;
+        // Get or create ItemMeta - don't check hasItemMeta() as fresh items won't have it
         ItemMeta meta = item.getItemMeta();
         if (meta == null) return item;
         

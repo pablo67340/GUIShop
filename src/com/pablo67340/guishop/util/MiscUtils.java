@@ -194,13 +194,34 @@ public class MiscUtils {
      * Formats money using the economy plugin's significant digits. <br>
      * <i>Does not add currency prefixes or suffixes. </i> <br>
      * <br>
-     * Example: 2.4193 -> 2.42 <br>
-     * Prevents scientific notation being displayed on items.
+     * If abbreviate-prices is enabled in config, formats as 1.5k, 2.3M, etc.
+     * Otherwise uses economy plugin's fractional digits (e.g., 2.4193 -> 2.42).
      *
      * @param value what to format
      * @return the formatted result
      */
     public String economyFormat(BigDecimal value) {
+        // Check if abbreviation is enabled
+        if (Config.isAbbreviatePrices()) {
+            return MathUtil.formatAbbreviated(value);
+        }
+        
+        int digits = ECONOMY.fractionalDigits();
+        return (digits == -1) ? value.toPlainString() : String.format("%." + digits + "f", value);
+    }
+    
+    /**
+     * Formats money with explicit control over abbreviation.
+     *
+     * @param value what to format
+     * @param abbreviate true to use abbreviated format (1.5k), false for full format
+     * @return the formatted result
+     */
+    public String economyFormat(BigDecimal value, boolean abbreviate) {
+        if (abbreviate) {
+            return MathUtil.formatAbbreviated(value);
+        }
+        
         int digits = ECONOMY.fractionalDigits();
         return (digits == -1) ? value.toPlainString() : String.format("%." + digits + "f", value);
     }

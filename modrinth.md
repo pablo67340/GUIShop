@@ -89,6 +89,7 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 /gs setslot <slot>   - Set slot position for current item
 /gs parsemob <type>  - Validate a mob type for spawners
 /gs toggleworth      - Toggle worth display for yourself (session only)
+/gs iteminfo         - Display comprehensive info about held item (PDC, lore, etc.)
 ```
 
 ---

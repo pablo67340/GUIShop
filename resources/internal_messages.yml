@@ -616,17 +616,10 @@ messages:
     # The entry in the list
     entry: '&7/guishop &enbt {nbt} &7- &aSet an item''s NBT. Must be a valid one!'
 
-  # Message for /guishop printnbt
-  printnbt:
-    # The nbt that got printed
-    print:
-      # Configure the message
-      message: '&7NBT data: &a%nbt%'
-      # Don't change that
-      placeholders: [ "nbt" ]
-
+  # Message for /guishop iteminfo
+  iteminfo:
     # The entry in the list
-    entry: '&7/guishop &eprintnbt &7- &aPrints the NBT of the item you are holding. Useful for custom items.'
+    entry: '&7/guishop &eiteminfo &7- &aDisplays comprehensive info about the held item (PDC, enchants, lore, etc.)'
 
   # Messages for /guishop ls
   list-shops:

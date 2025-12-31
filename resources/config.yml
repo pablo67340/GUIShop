@@ -63,6 +63,10 @@ transaction-log: false
 # This is useful if you want to add sell prices to many items without cluttering the shop.
 hide-non-buyable: false
 
+# Abbreviate large prices in shop lore (e.g., 1.5k instead of 1500, 2.5M instead of 2500000)
+# When enabled, prices will be displayed in a shorter, more readable format.
+abbreviate-prices: true
+
 # Do want players to be able to access the shop ONLY using the sign?
 signs-only: false
 

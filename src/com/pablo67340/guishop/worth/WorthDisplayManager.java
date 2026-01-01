@@ -397,25 +397,33 @@ public class WorthDisplayManager {
     private String stripForComparison(String input) {
         if (input == null) return "";
         
-        // Strip Minecraft color codes (§ and &)
-        String stripped = input.replaceAll("[§&][0-9a-fk-orA-FK-OR]", "");
+        String stripped = input;
         
-        // Strip hex color codes (&#RRGGBB or §x§R§R§G§G§B§B)
-        stripped = stripped.replaceAll("&#[0-9a-fA-F]{6}", "");
+        // Handle UTF-8 encoding issue where § appears as Â§
+        stripped = stripped.replace("Â§", "§");
+        
+        // Strip hex color codes first (§x§R§R§G§G§B§B format - 14 chars total)
+        // This format applies color per-character, need to remove aggressively
         stripped = stripped.replaceAll("§x(§[0-9a-fA-F]){6}", "");
         
-        // Remove common unicode decorative characters (arrows, stars, symbols, etc.)
-        // Keep only ASCII letters, numbers, and basic punctuation
+        // Strip standard Minecraft color codes (§ and &)
+        stripped = stripped.replaceAll("[§&][0-9a-fk-orxA-FK-ORX]", "");
+        
+        // Strip &#RRGGBB format
+        stripped = stripped.replaceAll("&#[0-9a-fA-F]{6}", "");
+        
+        // Remove any remaining § or & followed by anything (catch-all)
+        stripped = stripped.replaceAll("[§&].", "");
+        
+        // Extract only letters, numbers, and spaces - remove everything else
         StringBuilder result = new StringBuilder();
         for (char c : stripped.toCharArray()) {
-            // Keep ASCII printable characters (32-126) but skip extended unicode
-            if (c >= 32 && c <= 126) {
+            if (Character.isLetter(c) || Character.isDigit(c)) {
                 result.append(c);
-            } else if (Character.isLetterOrDigit(c)) {
-                // Also keep unicode letters/digits (for non-English languages)
-                result.append(c);
+            } else if (Character.isWhitespace(c)) {
+                result.append(' ');
             }
-            // Skip other unicode (decorative symbols, icons, etc.)
+            // Skip all other characters (unicode symbols, punctuation, etc.)
         }
         
         // Normalize whitespace and convert to lowercase

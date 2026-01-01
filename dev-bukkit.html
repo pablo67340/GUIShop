@@ -38,6 +38,7 @@
 <li><strong>Per-Item Permissions</strong> - Restrict specific items to certain player groups</li>
 <li><strong>PlaceholderAPI Support</strong> - Use placeholders in shop names and lores</li>
 <li><strong>Vault Integration</strong> - Works with any Vault-compatible economy plugin</li>
+<li><strong>Built-In Economy</strong> - Optional internal economy system (no external economy plugin needed!)</li>
 <li><strong>Alternate Sell GUI</strong> - Sell items without leaving the shop</li>
 <li><strong>Transaction Logging</strong> - Track all purchases and sales</li>
 </ul>
@@ -85,6 +86,26 @@
 /gs toggleworth      - Toggle worth display for yourself (session only)
 /gs iteminfo         - Display comprehensive info about held item
 </pre>
+
+<h3>Economy Commands</h3>
+<p>(Only available when internal economy is enabled)</p>
+
+<p><strong>Player Commands:</strong></p>
+<pre>
+/bal, /balance, /money          - Check your balance
+/bal &lt;player&gt;                   - Check another player's balance
+/pay &lt;player&gt; &lt;amount&gt;          - Send money to a player
+</pre>
+
+<p><strong>Admin Commands:</strong></p>
+<pre>
+/gs eco give &lt;player&gt; &lt;amount&gt;  - Give money to a player
+/gs eco take &lt;player&gt; &lt;amount&gt;  - Take money from a player
+/gs eco set &lt;player&gt; &lt;amount&gt;   - Set a player's balance
+/gs eco balance &lt;player&gt;        - Check a player's balance
+/gs eco reset &lt;player&gt;          - Reset to starting balance
+</pre>
+<p>All amounts support abbreviations: 1k, 1.5M, 100B, etc.</p>
 
 <h3>Item Info Command</h3>
 
@@ -307,6 +328,37 @@ hide-armor-slots: true
 
 <hr />
 
+<h2>Statistics &amp; PlaceholderAPI</h2>
+
+<p>GUIShop tracks player shop statistics and integrates with PlaceholderAPI for use in scoreboards, holograms, and chat.</p>
+
+<h3>Tracked Statistics</h3>
+<ul>
+<li>Total money spent (buying from shops)</li>
+<li>Total money earned (selling items)</li>
+<li>Total items bought/sold</li>
+<li>Top 3 most bought items per player</li>
+<li>Top 3 most sold items per player</li>
+</ul>
+
+<h3>Available Placeholders</h3>
+<pre>
+%guishop_total_spent%           - Money spent (with commas)
+%guishop_total_spent_formatted% - Money spent (abbreviated: 1.5M)
+%guishop_total_earned%          - Money earned (with commas)
+%guishop_total_earned_formatted% - Money earned (abbreviated)
+%guishop_items_bought%          - Items purchased count
+%guishop_items_bought_formatted% - Items purchased (abbreviated)
+%guishop_items_sold%            - Items sold count
+%guishop_items_sold_formatted%  - Items sold (abbreviated)
+%guishop_top_bought_1%          - #1 most bought item (Material: Qty)
+%guishop_top_sold_1%            - #1 most sold item (Material: Qty)
+</pre>
+
+<p>Statistics are stored in SQLite (<code>plugins/GUIShop/Data/player_statistics.db</code>).</p>
+
+<hr />
+
 <h2>Developer API</h2>
 
 <p>GUIShop provides a comprehensive API for developers to integrate with:</p>
@@ -345,14 +397,17 @@ GUIShopAPI.setExternalWorthCheck(player -&gt; {
 
 <p><strong>Required:</strong></p>
 <ul>
-<li>Vault (for economy support)</li>
+<li>Vault (for economy API)</li>
 </ul>
 
 <p><strong>Optional:</strong></p>
 <ul>
+<li>Economy Plugin (EssentialsX, CMI, etc.) - OR use GUIShop's built-in economy!</li>
 <li>PacketEvents (for worth display feature)</li>
 <li>PlaceholderAPI (for placeholder support)</li>
 </ul>
+
+<p><strong>Note:</strong> GUIShop includes its own economy system! Enable it in <code>economy.yml</code> to use GUIShop as your server's economy without needing EssentialsX or similar plugins.</p>
 
 <hr />
 
@@ -360,7 +415,7 @@ GUIShopAPI.setExternalWorthCheck(player -&gt; {
 
 <ol>
 <li>Download GUIShop and place it in your plugins folder</li>
-<li>Install Vault and an economy plugin (EssentialsX, CMI, etc.)</li>
+<li>Install Vault and an economy plugin (EssentialsX, CMI, etc.) - OR enable GUIShop's internal economy</li>
 <li>(Optional) Install PacketEvents for worth display</li>
 <li>(Optional) Install PlaceholderAPI for placeholder support</li>
 <li>Restart your server</li>

@@ -26,6 +26,15 @@ permissions:
   guishop.sell:
     default: true
     description: Grants access to the sell command
+  guishop.economy.balance:
+    default: true
+    description: Grants access to /bal command
+  guishop.economy.balance.others:
+    default: op
+    description: Allows checking other players' balances
+  guishop.economy.pay:
+    default: true
+    description: Grants access to /pay command
 
 commands:
   guishop:
@@ -39,3 +48,11 @@ commands:
     description: View an Item's Buy or Sell Value.
     permission: guishop.value
     aliases: [val, gvalue]
+  bal:
+    description: Check your balance (internal economy)
+    permission: guishop.economy.balance
+    aliases: [balance, money]
+  pay:
+    description: Send money to another player (internal economy)
+    permission: guishop.economy.pay
+    aliases: [send]

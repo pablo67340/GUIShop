@@ -14,12 +14,14 @@ Welcome to the official GUIShop documentation. This wiki covers everything you n
 - [Configuration Overview](Configuration-Overview)
 - [Shop Configuration](Shop-Configuration)
 - [Menu Configuration](Menu-Configuration)
+- [Internal Economy](Internal-Economy)
 - [Messages Configuration](Messages-Configuration)
 - [Worth Display Configuration](Worth-Display-Configuration)
 - [Special Item Configurations](Special-Item-Configurations)
 
 ### Developer Resources
 - [API Documentation](API-Documentation)
+- [Statistics & PlaceholderAPI](Statistics-API)
 - [Worth Display API](Worth-Display-API)
 
 ### Troubleshooting

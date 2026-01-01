@@ -1,0 +1,141 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Statistics System
+
+GUIShop tracks player shop activity and exposes it via PlaceholderAPI and a Java API.
+
+## Key Classes
+
+### Statistics Package (`src/com/pablo67340/guishop/statistics/`)
+- `PlayerStats.java` - Data class holding a player's statistics
+- `StatisticsManager.java` - SQLite storage + caching
+- `GUIShopPlaceholderExpansion.java` - PlaceholderAPI integration
+
+## Database Storage
+
+SQLite: `plugins/GUIShop/Data/player_statistics.db`
+
+### Tables
+
+```sql
+-- Player aggregate stats
+CREATE TABLE player_stats (
+    uuid TEXT PRIMARY KEY,
+    total_spent REAL DEFAULT 0,
+    total_earned REAL DEFAULT 0,
+    items_bought INTEGER DEFAULT 0,
+    items_sold INTEGER DEFAULT 0
+);
+
+-- Individual transactions (for top items)
+CREATE TABLE item_transactions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    uuid TEXT,
+    material TEXT,
+    quantity INTEGER,
+    price REAL,
+    type TEXT,  -- 'BUY' or 'SELL'
+    timestamp INTEGER
+);
+```
+
+## Recording Transactions
+
+### In Shop.java (command items):
+```java
+StatisticsManager.getInstance().recordPurchase(player, material, 1, price);
+```
+
+### In Quantity.java (regular purchases):
+```java
+StatisticsManager.getInstance().recordPurchase(player, item.getMaterial(), quantity, pricePaid);
+```
+
+### In Sell.java:
+```java
+StatisticsManager.getInstance().recordSale(player, material, quantity, priceEarned);
+```
+
+## Cache Management
+
+Like economy, online players have stats cached:
+```java
+// In PlayerListener:
+StatisticsManager.getInstance().loadPlayerCache(player);   // on join
+StatisticsManager.getInstance().unloadPlayerCache(player); // on quit
+```
+
+## Singleton Access
+
+```java
+StatisticsManager.getInstance()
+PlayerStats stats = StatisticsManager.getInstance().getStats(uuid);
+```
+
+## PlaceholderAPI Placeholders
+
+All prefixed with `%guishop_`:
+
+| Placeholder | Description |
+|-------------|-------------|
+| `total_spent` | Money spent (with commas) |
+| `total_spent_raw` | Money spent (raw number) |
+| `total_spent_formatted` | Money spent (abbreviated: 1.5M) |
+| `total_earned` | Money earned (with commas) |
+| `total_earned_raw` | Money earned (raw number) |
+| `total_earned_formatted` | Money earned (abbreviated) |
+| `items_bought` | Items purchased count |
+| `items_bought_formatted` | Items purchased (abbreviated) |
+| `items_sold` | Items sold count |
+| `items_sold_formatted` | Items sold (abbreviated) |
+| `top_bought_1` | #1 most bought: "Material: Qty" |
+| `top_bought_1_material` | #1 material name only |
+| `top_bought_1_quantity` | #1 quantity only |
+| `top_bought_2`, `top_bought_3` | #2, #3 most bought |
+| `top_sold_1`, `top_sold_2`, `top_sold_3` | Most sold items |
+
+## API Methods (GUIShopAPI)
+
+```java
+GUIShopAPI.isStatisticsEnabled()
+GUIShopAPI.getPlayerStats(player)
+GUIShopAPI.getTotalSpent(player)
+GUIShopAPI.getTotalEarned(player)
+GUIShopAPI.getItemsBought(player)
+GUIShopAPI.getItemsSold(player)
+GUIShopAPI.getTotalSpentFormatted(player, abbreviated)
+GUIShopAPI.getTopSpenders(limit)
+GUIShopAPI.getTopEarners(limit)
+GUIShopAPI.resetPlayerStats(player)
+```
+
+## PlayerStats Class
+
+```java
+public class PlayerStats {
+    private UUID uuid;
+    private BigDecimal totalSpent;
+    private BigDecimal totalEarned;
+    private int itemsBought;
+    private int itemsSold;
+    private Map<String, Integer> topBoughtItems;  // Material -> Count
+    private Map<String, Integer> topSoldItems;
+    
+    public void addSpent(BigDecimal amount);
+    public void addEarned(BigDecimal amount);
+    public String getTopItem(int rank, boolean bought);
+    public String getTopItemMaterial(int rank, boolean bought);
+    public Integer getTopItemQuantity(int rank, boolean bought);
+}
+```
+
+## Number Formatting
+
+Uses `MathUtil` for formatting:
+```java
+MathUtil.formatWithCommas(amount)    // "1,234,567.89"
+MathUtil.formatAbbreviated(amount)   // "1.23M"
+NameUtil.formatMaterialName(mat)     // "DIAMOND_SWORD" -> "Diamond Sword"
+```

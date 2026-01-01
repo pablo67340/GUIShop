@@ -4,12 +4,16 @@ alwaysApply: true
 
 # GUIShop Quick Reference
 
-GUIShop is a Minecraft Bukkit/Spigot shop plugin with GUI-based item browsing, buying, selling, and an in-game creator/editor mode.
+GUIShop is a Minecraft Bukkit/Spigot shop plugin with GUI-based item browsing, buying, selling, and an in-game creator/editor mode. It also includes optional internal economy and statistics tracking.
 
 ## Quick Links to Other Rules
 - `guishop-architecture.mdc` - Core classes, caches, and structure
 - `guishop-item-flow.mdc` - Loading, editing, saving items
 - `guishop-patterns-pitfalls.mdc` - Common patterns and bug fixes
+- `guishop-worth-display.mdc` - Packet-based worth lore injection
+- `guishop-economy.mdc` - Internal economy system
+- `guishop-statistics.mdc` - Player statistics and PlaceholderAPI
+- `guishop-special-items.mdc` - Spawners, potions, fireworks, heads
 
 ## Most Important Classes
 
@@ -47,6 +51,33 @@ Save → Update cache directly → Rebuild GUI → Show updated shop
 Close shop → saveCreatorInventory() → Remove from CREATOR set
 ```
 
+## Configuration Files
+
+| File | Purpose |
+|------|---------|
+| `config.yml` | Main settings, loaded into `Config.java` |
+| `shops.yml` | Shop definitions (pages, items, prices) |
+| `menu.yml` | Main menu layout |
+| `messages.yml` | Player-facing messages |
+| `worth.yml` | Worth display settings (requires PacketEvents) |
+| `economy.yml` | Internal economy settings (optional) |
+
+## Database Files (`plugins/GUIShop/Data/`)
+
+| File | Purpose |
+|------|---------|
+| `player_balances.db` | Internal economy balances (SQLite) |
+| `player_statistics.db` | Shop transaction history (SQLite) |
+
+## Singleton Managers
+
+| Class | Access |
+|-------|--------|
+| `EconomyManager` | `EconomyManager.getInstance()` |
+| `EconomyConfig` | `EconomyConfig.getInstance()` |
+| `StatisticsManager` | `StatisticsManager.getInstance()` |
+| `WorthDisplayManager` | `GUIShop.getINSTANCE().getWorthDisplayManager()` |
+
 ## Common Debugging
 
 1. **Lore not updating after save?**
@@ -60,3 +91,17 @@ Close shop → saveCreatorInventory() → Remove from CREATOR set
 3. **Item not loading from config?**
    - Check for "invalid format" in logs
    - Ensure YAML structure is correct (use individual property saves)
+
+4. **Economy not working?**
+   - Check `economy.yml` has `enabled: true`
+   - Check Vault is installed
+   - Check initialization order in GUIShop.onEnable()
+
+5. **Statistics not recording?**
+   - Check `StatisticsManager.getInstance().isAvailable()`
+   - Check database file exists and is writable
+
+6. **Worth display issues?**
+   - Check PacketEvents is installed
+   - Check `worth.yml` has `enabled: true`
+   - Enable debug mode to see packet handling logs

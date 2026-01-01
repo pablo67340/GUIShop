@@ -11,6 +11,14 @@ import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.gui.GuiListener;
+import com.pablo67340.guishop.economy.EconomyCommands;
+import com.pablo67340.guishop.economy.EconomyConfig;
+import com.pablo67340.guishop.economy.EconomyManager;
+import com.pablo67340.guishop.economy.GUIShopEconomy;
+import com.pablo67340.guishop.statistics.GUIShopPlaceholderExpansion;
+import com.pablo67340.guishop.statistics.StatisticsManager;
+import net.milkbowl.vault.economy.Economy;
+import org.bukkit.plugin.ServicePriority;
 import com.pablo67340.guishop.util.ConfigManager;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.MiscUtils;
@@ -90,6 +98,24 @@ public final class GUIShop extends JavaPlugin {
     @Getter
     @Setter
     private WorthDisplayManager worthDisplayManager;
+    
+    /**
+     * The statistics manager for tracking player shop transactions.
+     */
+    @Getter
+    private StatisticsManager statisticsManager;
+    
+    /**
+     * The economy manager for the internal economy system.
+     */
+    @Getter
+    private EconomyManager economyManager;
+    
+    /**
+     * The economy config for the internal economy system.
+     */
+    @Getter
+    private EconomyConfig economyConfig;
 
     /**
      * The scheduled task ID for log flushing, used to cancel on disable.
@@ -110,6 +136,9 @@ public final class GUIShop extends JavaPlugin {
 
         warmup();
         initWriteCache();
+        
+        // Initialize internal economy (if enabled) before checking for economy plugins
+        initInternalEconomy();
 
         if (!getMiscUtils().setupEconomy()) {
             getLogUtil().log("Vault could not detect an economy plugin!");
@@ -127,8 +156,11 @@ public final class GUIShop extends JavaPlugin {
         getServer().getPluginCommand("value").setExecutor(valueCommand);
         getServer().getPluginCommand("value").setTabCompleter(valueCommand);
 
-        // Initialize Worth Display System (requires ProtocolLib)
+        // Initialize Worth Display System (requires PacketEvents)
         initWorthDisplay();
+        
+        // Initialize Statistics System
+        initStatistics();
     }
 
     @Override
@@ -148,15 +180,25 @@ public final class GUIShop extends JavaPlugin {
         if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
             worthDisplayManager.unregister();
         }
+        
+        // Shutdown statistics system
+        if (statisticsManager != null) {
+            statisticsManager.shutdown();
+        }
+        
+        // Shutdown internal economy system
+        if (economyManager != null) {
+            economyManager.shutdown();
+        }
     }
 
     /**
      * Initialize the Worth Display system if ProtocolLib is available.
      */
     private void initWorthDisplay() {
-        if (getServer().getPluginManager().getPlugin("ProtocolLib") == null) {
-            getLogUtil().log("ProtocolLib not found - Worth display feature disabled.");
-            getLogUtil().log("Install ProtocolLib to show item worth in lore.");
+        if (getServer().getPluginManager().getPlugin("packetevents") == null) {
+            getLogUtil().log("PacketEvents not found - Worth display feature disabled.");
+            getLogUtil().log("Install PacketEvents to show item worth in lore.");
             return;
         }
 
@@ -165,6 +207,88 @@ public final class GUIShop extends JavaPlugin {
             worthDisplayManager.register();
         } catch (Exception e) {
             getLogUtil().log("Failed to initialize Worth Display: " + e.getMessage());
+            if (Config.isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Initialize the Statistics system and PlaceholderAPI expansion.
+     */
+    private void initStatistics() {
+        try {
+            statisticsManager = new StatisticsManager(this);
+            statisticsManager.initialize();
+            
+            // Register PlaceholderAPI expansion if available
+            if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+                new GUIShopPlaceholderExpansion(this).register();
+                getLogUtil().log("PlaceholderAPI expansion registered.");
+            }
+            
+        } catch (Exception e) {
+            getLogUtil().log("Failed to initialize Statistics: " + e.getMessage());
+            if (Config.isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Initialize the internal economy system if enabled in economy.yml.
+     */
+    private void initInternalEconomy() {
+        try {
+            // Load economy config
+            economyConfig = new EconomyConfig(this);
+            economyConfig.load();
+            
+            // Check if internal economy is enabled
+            if (!economyConfig.isEnabled()) {
+                getLogUtil().log("Internal economy is disabled. Using external economy plugin.");
+                return;
+            }
+            
+            // Check if Vault is available
+            if (getServer().getPluginManager().getPlugin("Vault") == null) {
+                getLogUtil().log("Vault not found. Internal economy cannot be registered.");
+                return;
+            }
+            
+            // Initialize economy manager
+            economyManager = new EconomyManager(this);
+            if (!economyManager.initialize()) {
+                getLogUtil().log("Failed to initialize internal economy database.");
+                economyManager = null;
+                return;
+            }
+            
+            // Register with Vault
+            GUIShopEconomy vaultEconomy = new GUIShopEconomy(this);
+            getServer().getServicesManager().register(
+                Economy.class, 
+                vaultEconomy, 
+                this, 
+                ServicePriority.High
+            );
+            
+            getLogUtil().log("Internal economy enabled and registered with Vault.");
+            getLogUtil().log("Currency: " + economyConfig.getCurrencySymbol() + " (" + economyConfig.getCurrencyName() + ")");
+            getLogUtil().log("Starting balance: " + economyConfig.formatBalance(economyConfig.getStartingBalance()));
+            
+            // Register economy commands (/bal, /pay)
+            EconomyCommands ecoCommands = new EconomyCommands(this);
+            if (getCommand("bal") != null) {
+                getCommand("bal").setExecutor(ecoCommands);
+            }
+            if (getCommand("pay") != null) {
+                getCommand("pay").setExecutor(ecoCommands);
+            }
+            getLogUtil().log("Economy commands registered: /bal, /balance, /pay");
+            
+        } catch (Exception e) {
+            getLogUtil().log("Failed to initialize internal economy: " + e.getMessage());
             if (Config.isDebugMode()) {
                 e.printStackTrace();
             }
@@ -317,8 +441,10 @@ public final class GUIShop extends JavaPlugin {
                 sender.sendMessage(ChatColor.RED + "[GUIShop] Reload completed with errors - check console!");
             }
         } else {
-        logUtil.log("GUIShop reloaded successfully!");
-        getMiscUtils().sendPrefix(sender, "reload.execute");
+            logUtil.log("GUIShop reloaded successfully!");
+            if (sender != null) {
+                getMiscUtils().sendPrefix(sender, "reload.execute");
+            }
         }
 
         this.setIsReload(false);

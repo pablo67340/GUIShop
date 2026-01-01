@@ -5,6 +5,7 @@ import com.cryptomorin.xseries.XSound;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.*;
+import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.PDCUtil;
 import com.pablo67340.guishop.gui.PagedGui;
 import lombok.Getter;
@@ -801,6 +802,12 @@ public class Shop {
             }
 
             GUIShop.getINSTANCE().getLogUtil().transactionLog("Player " + player.getName() + " bought command " + item.getMaterial() + " in shop " + getShop() + " for " + priceToPay.toPlainString() + " money!");
+            
+            // Track purchase statistics
+            StatisticsManager statsManager = StatisticsManager.getInstance();
+            if (statsManager != null && statsManager.isAvailable()) {
+                statsManager.recordPurchase(player, item.getMaterial(), 1, priceToPay);
+            }
         } else {
             String currencyPrefix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix");
             String currencySuffix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");

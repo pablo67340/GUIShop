@@ -1,0 +1,146 @@
+---
+alwaysApply: true
+---
+
+# GUIShop Internal Economy System
+
+GUIShop includes an optional built-in economy that registers with Vault, eliminating the need for external economy plugins like EssentialsX.
+
+## Key Classes
+
+### Economy Package (`src/com/pablo67340/guishop/economy/`)
+- `EconomyConfig.java` - Loads/manages `economy.yml` settings
+- `EconomyManager.java` - SQLite balance storage + in-memory cache
+- `GUIShopEconomy.java` - Vault `Economy` interface implementation
+
+## Configuration (`economy.yml`)
+
+```yaml
+enabled: true  # Set to true to enable internal economy
+
+currency:
+  name: "Dollar"
+  name-plural: "Dollars"
+  symbol: "$"
+  symbol-prefix: true  # true = $100, false = 100$
+
+formatting:
+  decimal-places: 2
+  use-thousands-separator: true
+  thousands-separator: ","
+  decimal-separator: "."
+  abbreviate-large-numbers: true
+  balance-format: "%symbol%%amount%"
+
+balance:
+  starting-balance: 1000.0
+  allow-negative: false
+  minimum-balance: -10000.0
+  maximum-balance: 1000000000000.0
+```
+
+## Database Storage
+
+Balances stored in SQLite: `plugins/GUIShop/Data/player_balances.db`
+
+### Schema
+```sql
+CREATE TABLE player_balances (
+    uuid TEXT PRIMARY KEY,
+    username TEXT,
+    balance REAL DEFAULT 0,
+    last_seen INTEGER
+)
+```
+
+## Initialization Flow
+
+```java
+// In GUIShop.onEnable():
+initInternalEconomy();  // Called BEFORE setupEconomy()
+
+// initInternalEconomy():
+1. Load EconomyConfig
+2. Check if enabled
+3. Initialize EconomyManager (SQLite)
+4. Register GUIShopEconomy with Vault at ServicePriority.High
+```
+
+## Singleton Access
+
+```java
+EconomyConfig.getInstance()    // Economy settings
+EconomyManager.getInstance()   // Balance operations
+```
+
+## Cache Management
+
+Online players have balances cached in memory:
+```java
+// In PlayerListener:
+@EventHandler
+public void onPlayerJoin(PlayerJoinEvent e) {
+    EconomyManager.getInstance().loadPlayerCache(e.getPlayer());
+}
+
+@EventHandler  
+public void onPlayerQuit(PlayerQuitEvent e) {
+    EconomyManager.getInstance().unloadPlayerCache(e.getPlayer());
+}
+```
+
+## Player Commands
+
+Registered in `plugin.yml`, handled by `EconomyCommands.java`:
+```
+/bal, /balance, /money  - Check own balance
+/bal <player>           - Check other's balance (requires permission)
+/pay <player> <amount>  - Send money to player
+```
+
+## Admin Commands
+
+All commands support abbreviated amounts (1k, 1.5M, 100B):
+```
+/gs eco give <player> <amount>
+/gs eco take <player> <amount>
+/gs eco set <player> <amount>
+/gs eco balance <player>
+/gs eco reset <player>
+```
+
+## Amount Parsing
+
+```java
+// Uses MathUtil.parseAbbreviatedNumber()
+"1k" -> 1000
+"1.5M" -> 1500000
+"100B" -> 100000000000
+"1,000,000" -> 1000000
+```
+
+## API Methods (GUIShopAPI)
+
+```java
+GUIShopAPI.isInternalEconomyEnabled()
+GUIShopAPI.getInternalBalance(player)
+GUIShopAPI.setInternalBalance(player, amount)
+GUIShopAPI.giveInternalMoney(player, amount)
+GUIShopAPI.takeInternalMoney(player, amount)
+GUIShopAPI.formatInternalBalance(amount)
+```
+
+## Common Issues
+
+**Economy not working:**
+- Check `economy.yml` has `enabled: true`
+- Check Vault is installed
+- Check console for initialization messages
+
+**Player has no balance:**
+- Account auto-creates on first join with starting balance
+- For offline players, use `/gs eco set <player> <amount>`
+
+**Balance limits not enforced:**
+- Check `maximum-balance` setting
+- Check `allow-negative` and `minimum-balance` settings

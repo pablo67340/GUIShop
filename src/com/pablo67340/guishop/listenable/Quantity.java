@@ -9,6 +9,7 @@ import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.gui.SimpleGui;
+import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.PDCUtil;
 import com.pablo67340.guishop.util.SkullCreator;
 import lombok.Getter;
@@ -321,6 +322,12 @@ class Quantity {
 
             GUIShop.getINSTANCE().getLogUtil().transactionLog(
                     "Player " + player.getName() + " bought item " + item.getMaterial() + " in shop " + currentShop.getShop() + " for " + priceToPay.toPlainString() + " money! Stacksize: " + quantity);
+            
+            // Track purchase statistics
+            StatisticsManager statsManager = StatisticsManager.getInstance();
+            if (statsManager != null && statsManager.isAvailable()) {
+                statsManager.recordPurchase(player, item.getMaterial(), quantity, priceToPay);
+            }
         } else {
             GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-enough-money", amount);
         }

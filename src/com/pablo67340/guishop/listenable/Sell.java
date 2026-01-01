@@ -6,6 +6,7 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.ItemSellReturn;
 import com.pablo67340.guishop.definition.SellType;
 import com.pablo67340.guishop.gui.SimpleGui;
+import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.MathUtil;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -113,6 +114,21 @@ public final class Sell {
         }
 
         roundAndGiveMoney(player, moneyToGive);
+        
+        // Track statistics for each material sold
+        StatisticsManager statsManager = StatisticsManager.getInstance();
+        if (statsManager != null && statsManager.isAvailable() && moneyToGive.compareTo(BigDecimal.ZERO) > 0) {
+            // Record sale for each material type
+            for (Map.Entry<Material, Integer> entry : itemMap.entrySet()) {
+                // Calculate the proportional price for this material
+                BigDecimal proportion = BigDecimal.valueOf(entry.getValue()).divide(
+                    BigDecimal.valueOf(itemMap.values().stream().mapToInt(Integer::intValue).sum()), 
+                    10, java.math.RoundingMode.HALF_UP);
+                BigDecimal materialPrice = moneyToGive.multiply(proportion);
+                
+                statsManager.recordSale(player, entry.getKey().toString(), entry.getValue(), materialPrice);
+            }
+        }
 
         String materialsString = checkedItems.stream().map(item -> item.getType().toString()).collect(Collectors.joining(", "));
 

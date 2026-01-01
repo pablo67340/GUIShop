@@ -104,4 +104,35 @@ public class NameUtil {
 
     }
 
+    /**
+     * Format a material name to be human-readable.
+     * Example: "DIAMOND_SWORD" -> "Diamond Sword"
+     * 
+     * @param material The material name (uppercase with underscores)
+     * @return Formatted name with proper capitalization
+     */
+    public static String formatMaterialName(String material) {
+        if (material == null || material.isEmpty()) {
+            return "";
+        }
+        
+        // Split by underscores and capitalize each word
+        String[] words = material.toLowerCase().split("_");
+        StringBuilder result = new StringBuilder();
+        
+        for (int i = 0; i < words.length; i++) {
+            if (i > 0) {
+                result.append(" ");
+            }
+            if (!words[i].isEmpty()) {
+                result.append(Character.toUpperCase(words[i].charAt(0)));
+                if (words[i].length() > 1) {
+                    result.append(words[i].substring(1));
+                }
+            }
+        }
+        
+        return result.toString();
+    }
+
 }

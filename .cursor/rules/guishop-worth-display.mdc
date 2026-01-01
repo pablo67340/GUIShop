@@ -58,6 +58,27 @@ GUIShopAPI.setExternalWorthCheck(player -> {
 /gs toggleworth - Toggles worth display for the player (session only)
 ```
 
+## Armor Slot Handling
+
+When `hide-armor-slots: true`, worth is stripped from equipped armor (slots 5-8):
+- Uses `stripWorthFromPacketItem()` to actively REMOVE existing worth lore
+- Not just skipping processing - must strip because items may already have lore
+
+## Inventory Blacklist Matching
+
+Blacklisted inventories use normalized title comparison:
+```java
+private String stripForComparison(String input) {
+    // Fix UTF-8 encoding issues (Â§ -> §)
+    // Strip hex color codes: §x§f§3§9§c§1§2
+    // Strip standard color codes: §a, &b, etc.
+    // Keep only letters, digits, spaces
+    // Lowercase and trim
+}
+```
+
+This handles complex titles with unicode and color codes.
+
 ## Common Issues
 
 **Worth not showing:**
@@ -67,6 +88,13 @@ GUIShopAPI.setExternalWorthCheck(player -> {
 
 **Worth showing in wrong inventories:**
 - Add inventory title to blacklist in worth.yml
+- Blacklist uses normalized matching - just use the readable text
 
 **Worth on equipped armor:**
 - Set `hide-armor-slots: true` in worth.yml
+- All 4 armor slots (5-8) are handled for helmet, chestplate, leggings, boots
+
+**Worth in Creative Mode:**
+- Worth display works in creative inventory
+- Special CREATIVE_INVENTORY_ACTION packet handler adds worth to items taken from creative
+- updateInventory() calls are skipped for creative players to prevent desync

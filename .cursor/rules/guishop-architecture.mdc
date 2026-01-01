@@ -61,6 +61,21 @@ GUIShop.getCREATOR()
 - `menu.yml` - Main menu definition
 - `messages.yml` - Player-facing messages
 - `worth.yml` - Worth display settings
+- `economy.yml` - Internal economy settings (optional)
+
+## Economy System (`src/com/pablo67340/guishop/economy/`)
+- `EconomyConfig.java` - Configuration from `economy.yml`
+- `EconomyManager.java` - SQLite balance storage + cache
+- `GUIShopEconomy.java` - Vault Economy implementation
+
+## Statistics System (`src/com/pablo67340/guishop/statistics/`)
+- `PlayerStats.java` - Player stat data class
+- `StatisticsManager.java` - SQLite storage for player shop activity
+- `GUIShopPlaceholderExpansion.java` - PlaceholderAPI integration
+
+## Database Files (in `plugins/GUIShop/Data/`)
+- `player_balances.db` - Internal economy balances (SQLite)
+- `player_statistics.db` - Shop transaction statistics (SQLite)
 
 ## PDC (Persistent Data Container) Usage
 All GUIShop item data is stored in PDC, managed by `PDCUtil.java`:

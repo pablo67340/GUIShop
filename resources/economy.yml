@@ -1,0 +1,125 @@
+# ================================================
+# GUIShop Internal Economy Configuration
+# ================================================
+# Enable this to use GUIShop's built-in economy system.
+# This will register with Vault, allowing other plugins to use it.
+# Disable this if you're using an external economy plugin like EssentialsX.
+
+# Whether to enable GUIShop's internal economy
+# Set to true to use GUIShop as your economy plugin
+enabled: false
+
+# ================================================
+# Currency Settings
+# ================================================
+currency:
+  # Name of the currency (singular)
+  name: "Dollar"
+  
+  # Name of the currency (plural)
+  name-plural: "Dollars"
+  
+  # Currency symbol
+  symbol: "$"
+  
+  # Whether the symbol comes before the amount
+  # true = $100, false = 100$
+  symbol-prefix: true
+
+# ================================================
+# Number Formatting
+# ================================================
+formatting:
+  # Number of decimal places to display
+  decimal-places: 2
+  
+  # Whether to use thousands separators (e.g., 1,000,000)
+  use-thousands-separator: true
+  
+  # Character to use as thousands separator
+  thousands-separator: ","
+  
+  # Character to use as decimal separator
+  decimal-separator: "."
+  
+  # Whether to abbreviate large numbers (e.g., 1.5M, 100K)
+  abbreviate-large-numbers: true
+  
+  # Format for displaying balance
+  # Available placeholders:
+  #   %symbol% - Currency symbol
+  #   %amount% - The formatted amount
+  #   %currency% - Currency name (singular/plural based on amount)
+  #   %currency_plural% - Always plural currency name
+  balance-format: "%symbol%%amount%"
+
+# ================================================
+# Balance Settings
+# ================================================
+balance:
+  # Starting balance for new players
+  starting-balance: 1000.0
+  
+  # Whether players can have negative balances
+  allow-negative: false
+  
+  # Minimum balance allowed (only applies if allow-negative is true)
+  # Players cannot go below this amount
+  minimum-balance: -10000.0
+  
+  # Maximum balance allowed
+  # Set very high to effectively disable
+  maximum-balance: 1000000000000.0
+
+# ================================================
+# Player Commands
+# ================================================
+commands:
+  # Enable /bal and /balance commands
+  balance-enabled: true
+  
+  # Enable /pay command
+  pay-enabled: true
+  
+  # Minimum amount that can be sent with /pay
+  pay-minimum: 1.0
+  
+  # Maximum amount that can be sent with /pay (0 = unlimited)
+  pay-maximum: 0
+  
+  # Allow paying offline players
+  pay-offline-players: false
+
+# ================================================
+# Command Messages
+# ================================================
+messages:
+  # Balance command
+  balance-self: "&7Your balance: &a%balance%"
+  balance-other: "&7%player%'s balance: &a%balance%"
+  
+  # Pay command
+  pay-sent: "&aYou sent %amount% to %player%."
+  pay-received: "&aYou received %amount% from %player%."
+  pay-self-error: "&cYou cannot pay yourself!"
+  pay-insufficient: "&cInsufficient funds. You have %balance%."
+  pay-minimum-error: "&cMinimum payment amount is %minimum%."
+  pay-maximum-error: "&cMaximum payment amount is %maximum%."
+  pay-player-not-found: "&cPlayer '%player%' not found."
+  pay-invalid-amount: "&cInvalid amount: %amount%"
+  
+  # General
+  economy-disabled: "&cEconomy system is not enabled."
+
+# ================================================
+# Admin Commands
+# ================================================
+# Commands: /gs eco <give|take|set|balance|reset> <player> [amount]
+# Supports abbreviated amounts: 1k, 1.5M, 100B, etc.
+# 
+# Examples:
+#   /gs eco give Steve 1000
+#   /gs eco give Steve 1.5k
+#   /gs eco take Steve 500
+#   /gs eco set Steve 10000
+#   /gs eco balance Steve

@@ -124,3 +124,122 @@ Key debug prefixes:
 - `ONSAVE:` - onSave callback
 - `CREATOR SAVE:` - saveCreatorInventory
 - `ONCLOSE:` - Close handler
+- `BLACKLIST CHECK:` - Worth display blacklist matching
+- `SET_SLOT:` - Packet handling
+- `WINDOW_ITEMS:` - Packet handling
+
+## Pattern: Singleton Managers
+
+Economy and Statistics use singleton pattern:
+```java
+public class EconomyManager {
+    private static EconomyManager instance;
+    
+    public EconomyManager(GUIShop plugin) {
+        instance = this;
+    }
+    
+    public static EconomyManager getInstance() {
+        return instance;
+    }
+}
+```
+
+Access via `EconomyManager.getInstance()` or `StatisticsManager.getInstance()`.
+
+## Pattern: Player Cache on Join/Quit
+
+For performance, online players have data cached:
+```java
+// PlayerListener.java
+@EventHandler
+public void onPlayerJoin(PlayerJoinEvent e) {
+    EconomyManager.getInstance().loadPlayerCache(e.getPlayer());
+    StatisticsManager.getInstance().loadPlayerCache(e.getPlayer());
+}
+
+@EventHandler
+public void onPlayerQuit(PlayerQuitEvent e) {
+    EconomyManager.getInstance().unloadPlayerCache(e.getPlayer());
+    StatisticsManager.getInstance().unloadPlayerCache(e.getPlayer());
+}
+```
+
+## Pattern: Abbreviated Number Parsing
+
+Use `MathUtil` for parsing/formatting:
+```java
+MathUtil.parseAbbreviatedNumber("1.5k")  // Returns BigDecimal 1500
+MathUtil.formatAbbreviated(1500000)       // Returns "1.5M"
+MathUtil.formatWithCommas(BigDecimal.valueOf(1234567))  // Returns "1,234,567"
+```
+
+## Pitfall: Worth Display on Equipped Armor
+
+**Problem:** Worth lore appears on helmet/chestplate/leggings but not boots.
+
+**Cause:** WINDOW_ITEMS was just skipping slots 5-8, but worth was already in the lore.
+
+**Fix:** Must actively STRIP worth from packet items, not just skip:
+```java
+if (isArmorSlot && WorthConfig.isHideArmorSlots()) {
+    stripWorthFromPacketItem(packetItem);  // REMOVE lore, don't just skip
+}
+```
+
+## Pitfall: Unicode in Inventory Titles
+
+**Problem:** Blacklist matching fails for titles with hex colors and unicode.
+
+**Cause:** `§` encoded as `Â§`, hex codes like `§x§f§3§9§c§1§2` leave `x` chars.
+
+**Fix:** Aggressive stripping in `stripForComparison()`:
+```java
+stripped = stripped.replace("Â§", "§");  // Fix encoding
+stripped = stripped.replaceAll("§x(§[0-9a-fA-F]){6}", "");  // Hex colors
+stripped = stripped.replaceAll("[§&][0-9a-fk-orxA-FK-ORX]", "");  // Standard
+// Keep only letters, digits, spaces
+```
+
+## Pitfall: Creative Mode Item Desync
+
+**Problem:** Items taken from creative inventory disappear when clicked.
+
+**Cause:** `updateInventory()` calls conflict with creative mode behavior.
+
+**Fix:** Skip updateInventory for creative mode:
+```java
+if (player.getGameMode() == GameMode.CREATIVE) {
+    return;  // Don't call player.updateInventory()
+}
+```
+
+## Pitfall: GUI Cursor Position Reset
+
+**Problem:** Mouse cursor jumps when navigating between GUIs of different sizes.
+
+**Cause:** Explicit `player.closeInventory()` before `openInventory()`.
+
+**Fix:** Remove the closeInventory call - Bukkit handles it:
+```java
+// DON'T do this:
+player.closeInventory();
+player.openInventory(newGui);
+
+// DO this:
+player.openInventory(newGui);  // Bukkit closes old inventory automatically
+```
+
+## Pitfall: Vault Economy Registration Order
+
+**Problem:** Internal economy not found by setupEconomy().
+
+**Cause:** Economy was initialized AFTER the Vault check.
+
+**Fix:** Initialize internal economy BEFORE setupEconomy():
+```java
+public void onEnable() {
+    initInternalEconomy();  // Register with Vault first
+    getMiscUtils().setupEconomy();  // Now finds our economy
+}
+```

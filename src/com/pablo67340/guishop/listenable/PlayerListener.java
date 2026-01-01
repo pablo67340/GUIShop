@@ -3,6 +3,8 @@ package com.pablo67340.guishop.listenable;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.economy.EconomyManager;
+import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.PDCUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,6 +19,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 
@@ -122,6 +126,42 @@ public final class PlayerListener implements Listener {
                     }
                 }, 1L);
             }
+        }
+    }
+    
+    /**
+     * Load player statistics and economy cache when they join.
+     */
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        // Load statistics cache
+        StatisticsManager statsManager = StatisticsManager.getInstance();
+        if (statsManager != null && statsManager.isAvailable()) {
+            statsManager.loadPlayerCache(event.getPlayer());
+        }
+        
+        // Load economy cache
+        EconomyManager ecoManager = EconomyManager.getInstance();
+        if (ecoManager != null && ecoManager.isAvailable()) {
+            ecoManager.loadPlayerCache(event.getPlayer());
+        }
+    }
+    
+    /**
+     * Save and unload player statistics and economy cache when they leave.
+     */
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        // Unload statistics cache
+        StatisticsManager statsManager = StatisticsManager.getInstance();
+        if (statsManager != null && statsManager.isAvailable()) {
+            statsManager.unloadPlayerCache(event.getPlayer());
+        }
+        
+        // Unload economy cache
+        EconomyManager ecoManager = EconomyManager.getInstance();
+        if (ecoManager != null && ecoManager.isAvailable()) {
+            ecoManager.unloadPlayerCache(event.getPlayer());
         }
     }
 }

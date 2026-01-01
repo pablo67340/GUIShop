@@ -37,6 +37,7 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 - **Per-Item Permissions** - Restrict specific items to certain player groups
 - **PlaceholderAPI Support** - Use placeholders in shop names and lores
 - **Vault Integration** - Works with any Vault-compatible economy plugin
+- **Built-In Economy** - Optional internal economy system (no external economy plugin needed!)
 - **Alternate Sell GUI** - Sell items without leaving the shop
 - **Transaction Logging** - Track all purchases and sales
 
@@ -91,6 +92,26 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 /gs toggleworth      - Toggle worth display for yourself (session only)
 /gs iteminfo         - Display comprehensive info about held item
 ```
+
+### Economy Commands
+(Only available when internal economy is enabled)
+
+**Player Commands:**
+```
+/bal, /balance, /money          - Check your balance
+/bal <player>                   - Check another player's balance
+/pay <player> <amount>          - Send money to a player
+```
+
+**Admin Commands:**
+```
+/gs eco give <player> <amount>  - Give money to a player
+/gs eco take <player> <amount>  - Take money from a player
+/gs eco set <player> <amount>   - Set a player's balance
+/gs eco balance <player>        - Check a player's balance
+/gs eco reset <player>          - Reset to starting balance
+```
+All amounts support abbreviations: 1k, 1.5M, 100B, etc.
 
 ### Item Info Command
 
@@ -330,6 +351,35 @@ Support for player UUIDs or Base64 skin textures:
 
 ---
 
+## Statistics & PlaceholderAPI
+
+GUIShop tracks player shop statistics and integrates with PlaceholderAPI for use in scoreboards, holograms, and chat.
+
+### Tracked Statistics
+- Total money spent (buying from shops)
+- Total money earned (selling items)
+- Total items bought/sold
+- Top 3 most bought items per player
+- Top 3 most sold items per player
+
+### Available Placeholders
+```
+%guishop_total_spent%           - Money spent (with commas)
+%guishop_total_spent_formatted% - Money spent (abbreviated: 1.5M)
+%guishop_total_earned%          - Money earned (with commas)
+%guishop_total_earned_formatted% - Money earned (abbreviated)
+%guishop_items_bought%          - Items purchased count
+%guishop_items_bought_formatted% - Items purchased (abbreviated)
+%guishop_items_sold%            - Items sold count
+%guishop_items_sold_formatted%  - Items sold (abbreviated)
+%guishop_top_bought_1%          - #1 most bought item (Material: Qty)
+%guishop_top_sold_1%            - #1 most sold item (Material: Qty)
+```
+
+Statistics are stored in SQLite (`plugins/GUIShop/Data/player_statistics.db`).
+
+---
+
 ## Developer API
 
 GUIShop provides a comprehensive API for developers to integrate with:
@@ -372,18 +422,21 @@ Full API documentation available on the [Wiki](https://github.com/pablo67340/GUI
 ## Dependencies
 
 **Required:**
-- Vault (for economy support)
+- Vault (for economy API)
 
 **Optional:**
+- Economy Plugin (EssentialsX, CMI, etc.) - OR use GUIShop's built-in economy!
 - PacketEvents (for worth display feature)
 - PlaceholderAPI (for placeholder support)
+
+> **Note:** GUIShop includes its own economy system! Enable it in `economy.yml` to use GUIShop as your server's economy without needing EssentialsX or similar plugins.
 
 ---
 
 ## Installation
 
 1. Download GUIShop and place it in your plugins folder
-2. Install Vault and an economy plugin (EssentialsX, CMI, etc.)
+2. Install Vault and an economy plugin (EssentialsX, CMI, etc.) - OR enable GUIShop's internal economy
 3. (Optional) Install PacketEvents for worth display
 4. (Optional) Install PlaceholderAPI for placeholder support
 5. Restart your server

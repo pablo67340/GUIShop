@@ -362,15 +362,64 @@ public class WorthDisplayManager {
             
             String title = player.getOpenInventory().getTitle();
             if (title != null) {
+                // Strip color codes and normalize for comparison
+                String normalizedTitle = stripForComparison(title);
+                
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("BLACKLIST CHECK: Raw title='" + title + "'");
+                    plugin.getLogUtil().debugLog("BLACKLIST CHECK: Normalized title='" + normalizedTitle + "'");
+                }
+                
                 // Check blacklisted inventories
                 for (String blacklisted : WorthConfig.getBlacklistedInventories()) {
-                    if (title.toLowerCase().contains(blacklisted.toLowerCase())) {
+                    String normalizedBlacklist = stripForComparison(blacklisted);
+                    
+                    // Check both the raw title and normalized title for matches
+                    boolean rawMatch = title.toLowerCase().contains(blacklisted.toLowerCase());
+                    boolean normalizedMatch = normalizedTitle.contains(normalizedBlacklist);
+                    
+                    if (rawMatch || normalizedMatch) {
+                        if (WorthConfig.isDebug()) {
+                            plugin.getLogUtil().debugLog("BLACKLIST CHECK: Matched '" + blacklisted + "' (raw=" + rawMatch + ", normalized=" + normalizedMatch + ")");
+                        }
                         return true;
                     }
                 }
             }
         }
         return false;
+    }
+    
+    /**
+     * Strip color codes, unicode characters, and normalize string for comparison.
+     * This helps match inventory titles that contain unicode icons or special characters.
+     */
+    private String stripForComparison(String input) {
+        if (input == null) return "";
+        
+        // Strip Minecraft color codes (§ and &)
+        String stripped = input.replaceAll("[§&][0-9a-fk-orA-FK-OR]", "");
+        
+        // Strip hex color codes (&#RRGGBB or §x§R§R§G§G§B§B)
+        stripped = stripped.replaceAll("&#[0-9a-fA-F]{6}", "");
+        stripped = stripped.replaceAll("§x(§[0-9a-fA-F]){6}", "");
+        
+        // Remove common unicode decorative characters (arrows, stars, symbols, etc.)
+        // Keep only ASCII letters, numbers, and basic punctuation
+        StringBuilder result = new StringBuilder();
+        for (char c : stripped.toCharArray()) {
+            // Keep ASCII printable characters (32-126) but skip extended unicode
+            if (c >= 32 && c <= 126) {
+                result.append(c);
+            } else if (Character.isLetterOrDigit(c)) {
+                // Also keep unicode letters/digits (for non-English languages)
+                result.append(c);
+            }
+            // Skip other unicode (decorative symbols, icons, etc.)
+        }
+        
+        // Normalize whitespace and convert to lowercase
+        return result.toString().replaceAll("\\s+", " ").trim().toLowerCase();
     }
 
     /**

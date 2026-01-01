@@ -77,50 +77,12 @@ public class EconomyConfig {
         configFile = new File(plugin.getDataFolder(), "economy.yml");
         
         if (!configFile.exists()) {
-            createDefaultConfig();
+            // Copy the default config from resources (preserves comments)
+            plugin.saveResource("economy.yml", false);
         }
         
         config = YamlConfiguration.loadConfiguration(configFile);
         loadValues();
-    }
-    
-    private void createDefaultConfig() {
-        try {
-            configFile.createNewFile();
-            FileConfiguration defaultConfig = YamlConfiguration.loadConfiguration(configFile);
-            
-            // Main settings
-            defaultConfig.set("enabled", false);
-            defaultConfig.addDefault("_comment_enabled", "Set to true to enable GUIShop's internal economy (registers with Vault)");
-            
-            // Currency display
-            defaultConfig.set("currency.name", "Dollar");
-            defaultConfig.set("currency.name-plural", "Dollars");
-            defaultConfig.set("currency.symbol", "$");
-            defaultConfig.set("currency.symbol-prefix", true);
-            defaultConfig.addDefault("_comment_symbol", "symbol-prefix: true = $100, false = 100$");
-            
-            // Number formatting
-            defaultConfig.set("formatting.decimal-places", 2);
-            defaultConfig.set("formatting.use-thousands-separator", true);
-            defaultConfig.set("formatting.thousands-separator", ",");
-            defaultConfig.set("formatting.decimal-separator", ".");
-            defaultConfig.set("formatting.abbreviate-large-numbers", true);
-            defaultConfig.set("formatting.balance-format", "%symbol%%amount%");
-            defaultConfig.addDefault("_comment_format", "Available: %symbol%, %amount%, %currency%, %currency_plural%");
-            
-            // Balance settings
-            defaultConfig.set("balance.starting-balance", 1000.0);
-            defaultConfig.set("balance.allow-negative", false);
-            defaultConfig.set("balance.minimum-balance", -10000.0);
-            defaultConfig.addDefault("_comment_minimum", "minimum-balance only applies if allow-negative is true");
-            defaultConfig.set("balance.maximum-balance", 1000000000000.0); // 1 trillion
-            
-            defaultConfig.save(configFile);
-            
-        } catch (IOException e) {
-            plugin.getLogUtil().log("Failed to create economy.yml: " + e.getMessage());
-        }
     }
     
     private void loadValues() {

@@ -8,6 +8,7 @@ Welcome to the official GUIShop documentation. This wiki covers everything you n
 - [Installation](Installation)
 - [Quick Start Guide](Quick-Start-Guide)
 - [Commands and Permissions](Commands-and-Permissions)
+- [In-Game Item Editor](In-Game-Item-Editor)
 
 ### Configuration
 - [Configuration Overview](Configuration-Overview)

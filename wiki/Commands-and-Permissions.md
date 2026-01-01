@@ -25,30 +25,45 @@ All admin commands use the base command `/guishop` (alias: `/gs`).
 
 | Command | Description | Permission |
 |---------|-------------|------------|
-| `/gs edit` | Enter creator mode (opens menu) | `guishop.creator` |
-| `/gs edit <shop>` | Edit a specific shop | `guishop.creator` |
+| `/gs edit` | Enter creator mode for the main menu | `guishop.creator` |
+| `/gs edit menu` | Enter creator mode for the main menu | `guishop.creator` |
+| `/gs edit <shop>` | Enter creator mode for a specific shop | `guishop.creator` |
 | `/gs edit <shop> <page>` | Edit a specific page of a shop | `guishop.creator` |
 
-### Item Configuration Commands
+**How the In-Game Editor Works:**
+1. Enter creator mode with `/gs edit` or `/gs edit <shop>`
+2. **Left-click** to drag and drop items to rearrange layout
+3. **Right-click** or **Shift+click** any item to open the Item Editor GUI
+4. Click on any setting in the editor to modify it
+5. Changes save automatically when you close the inventory
 
-These commands modify the item you are holding:
-
-| Command | Description | Permission |
-|---------|-------------|------------|
-| `/gs buyprice <price>` | Set buy price (use `false` to disable buying) | `guishop.admin` |
-| `/gs sellprice <price>` | Set sell price (use `false` to disable selling) | `guishop.admin` |
-| `/gs shopname <name>` | Set display name in shop | `guishop.admin` |
-| `/gs buyname <name>` | Set name on purchased item | `guishop.admin` |
-| `/gs enchant <enchant:level>` | Add enchantment | `guishop.admin` |
-| `/gs addlore <text>` | Add a lore line | `guishop.admin` |
-| `/gs setslot <slot>` | Set slot position | `guishop.admin` |
+See [In-Game Item Editor](In-Game-Item-Editor) for detailed documentation.
 
 ### Utility Commands
 
 | Command | Description | Permission |
 |---------|-------------|------------|
 | `/gs parsemob <type>` | Validate a mob type for spawners | `guishop.admin` |
-| `/gs iteminfo` | Display comprehensive info about held item (PDC, enchants, lore) | `guishop.admin` |
+| `/gs iteminfo` | Display comprehensive info about held item | `guishop.admin` |
+
+#### Item Info Command
+
+The `/gs iteminfo` command displays detailed information about the item you're holding:
+
+- **Material and Item Type** - Base material and GUIShop item type
+- **Display Name** - Custom name if set
+- **Lore** - All lore lines
+- **Enchantments** - Listed in config-ready format (e.g., `SHARPNESS:5`)
+- **Potion Info** - Type, duration, amplifier in config-ready format
+- **Firework Info** - Flight duration, explosions in config-ready format
+- **PDC Data** - All Persistent Data Container values
+- **NBT Data** - Custom NBT tags
+
+This is extremely useful for:
+- Debugging item configurations
+- Getting the exact format needed for `shops.yml`
+- Verifying enchantments and potion effects
+- Checking PDC data stored on items
 
 ## Permissions
 

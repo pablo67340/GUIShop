@@ -133,17 +133,27 @@ Sell commands instead of items:
 
 Items will now show their sell value in lore.
 
-## In-Game Editor
+## In-Game Item Editor
 
-Use the in-game editor for quick changes:
+GUIShop includes a powerful GUI-based editor for configuring shops without touching config files:
 
-1. Run `/gs edit` to enter creator mode
-2. Navigate to the shop/slot you want to edit
-3. Use commands to modify:
-   - `/gs buyprice 100`
-   - `/gs sellprice 50`
-   - `/gs shopname &bMy Item`
-4. Changes are saved automatically
+1. Run `/gs edit` to edit the menu, or `/gs edit <shop>` for a specific shop
+2. **Left-click** items to drag and rearrange them
+3. **Right-click** or **Shift+click** any item to open the Item Editor GUI
+4. Click on any setting (buy price, sell price, name, etc.) to modify it
+5. Type values in chat when prompted (supports formats like `1k`, `1.5M`, `100B`)
+6. Changes save automatically when you close the inventory
+
+### Quick Item Setup
+- Drag an item from your inventory into the shop
+- Right-click it to open the editor
+- Set prices and the item becomes purchasable!
+
+See [In-Game Item Editor](In-Game-Item-Editor) for detailed documentation.
+
+### Item Info Command
+
+Use `/gs iteminfo` while holding an item to see its complete configuration in a format ready to paste into `shops.yml`. Great for potions, enchanted items, and spawners!
 
 ## Next Steps
 

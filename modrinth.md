@@ -27,7 +27,8 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 - **Multi-Page Shops** - Create shops with unlimited pages for large item catalogs
 - **Dynamic Pricing** - Optional supply/demand based pricing system
 - **Worth Display System** - Shows item sell values directly in item lore (requires PacketEvents)
-- **In-Game Editor** - Configure shops directly from within the game
+- **Full GUI-Based Item Editor** - Edit item prices, names, enchantments, and more through an intuitive GUI
+- **Drag-and-Drop Shop Building** - Place and rearrange items in shops by simply dragging them
 - **Command Items** - Sell commands that execute when purchased
 - **Custom Items** - Full support for enchantments, potions, fireworks, and custom model data
 - **Native Spawner Support** - Configure and sell mob spawners with any entity type
@@ -54,6 +55,10 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 
 ![Shop View](https://bryces.site/guishop/shop.jpg)
 
+*Item Editor*
+
+![Item Editor](https://bryces.site/guishop/editor.jpg)
+
 *Quantity Selector*
 
 ![Quantity Selector](https://bryces.site/guishop/quantity.jpg)
@@ -78,19 +83,28 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 ### Admin Commands
 ```
 /gs reload           - Reload all configuration files
-/gs edit [shop]      - Enter creator mode to edit shops in-game
+/gs edit             - Enter creator mode for the main menu
+/gs edit menu        - Enter creator mode for the main menu
+/gs edit [shop]      - Enter creator mode for a specific shop
 /gs edit [shop] [page] - Edit a specific page of a shop
-/gs buyprice <price> - Set buy price of held item (use 'false' to disable)
-/gs sellprice <price> - Set sell price of held item (use 'false' to disable)
-/gs shopname <name>  - Set the display name in shop
-/gs buyname <name>   - Set the name on purchased item
-/gs enchant <enchant:level> - Add enchantment to held item
-/gs addlore <text>   - Add a line to the item's lore
-/gs setslot <slot>   - Set slot position for current item
 /gs parsemob <type>  - Validate a mob type for spawners
 /gs toggleworth      - Toggle worth display for yourself (session only)
-/gs iteminfo         - Display comprehensive info about held item (PDC, lore, etc.)
+/gs iteminfo         - Display comprehensive info about held item
 ```
+
+### Item Info Command
+
+The `/gs iteminfo` command is a powerful debugging and configuration helper. Hold any item and run the command to see:
+
+- Material type and display name
+- All lore lines
+- Enchantments in config-ready format (e.g., `SHARPNESS:5 UNBREAKING:3`)
+- Potion info in config-ready format (type, splash, extended, upgraded)
+- Firework info in config-ready format (flight, explosions, colors)
+- All PDC (Persistent Data Container) values
+- Custom NBT data
+
+This makes it easy to configure complex items - just create the item you want, then use `/gs iteminfo` to get the exact format needed for your `shops.yml`.
 
 ---
 
@@ -140,6 +154,58 @@ shops:
           quantity: 64            # Stack size to give
           permission: 'shop.vip'  # Required permission (optional)
 ```
+
+</details>
+
+---
+
+## GUI-Based Item Editor
+
+GUIShop features a powerful, fully GUI-based item editor that eliminates the need for manual config editing. Configure every aspect of shop items through intuitive click-based menus.
+
+### How It Works
+
+1. Enter creator mode with `/gs edit` (for menu) or `/gs edit <shop>` (for shops)
+2. **Left-click** to drag and drop items - move items within the shop, rearrange positions, or place new items from your inventory into the shop
+3. **Right-click** or **Shift+click** any item to open the Item Editor GUI
+4. Click on any setting to modify it through chat input or nested selection GUIs
+5. Changes save automatically when you close the inventory
+
+### Creator Mode Controls
+```
+Left-click     - Pick up / place items (works between shop and your inventory)
+Right-click    - Open Item Editor for the clicked item
+Shift+click    - Open Item Editor for the clicked item
+```
+
+### Item Editor Features
+
+- **Buy/Sell Prices** - Set prices with support for abbreviated formats (1k, 1.5M, 100B)
+- **Item Type** - Switch between SHOP, COMMAND, and DUMMY types
+- **Display Names** - Set shop display name and purchased item name
+- **Custom Lore** - Add descriptive lore lines to items
+- **Enchantments** - Add/remove enchantments through a visual enchantment picker
+- **Potion Effects** - Configure potion type, duration, and amplifier via GUI
+- **Firework Properties** - Set flight duration, explosion shapes, colors, and effects
+- **Spawner Mob Type** - Select mob type from a visual entity picker
+- **Commands** - Configure commands to run on purchase
+- **Permissions** - Set required permissions per item
+- **Quantity** - Set stack size given on purchase
+
+<details>
+<summary>Item Editor Screenshots</summary>
+
+*Item Editor Main View*
+
+![Item Editor](https://bryces.site/guishop/editor.jpg)
+
+*Enchantment Selector*
+
+![Enchantment Editor](https://bryces.site/guishop/enchant-editor.jpg)
+
+*Potion Editor*
+
+![Potion Editor](https://bryces.site/guishop/potion-editor.jpg)
 
 </details>
 

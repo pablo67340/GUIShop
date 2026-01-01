@@ -310,9 +310,29 @@ public class WorthDisplayManager {
         for (int i = 0; i < items.size(); i++) {
             com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = items.get(i);
             
-            // Skip armor slots if configured (slots 5-8) - only for player inventory window
+            // Debug: Log armor items and their indices
+            if (WorthConfig.isDebug() && isPlayerInventory && packetItem != null) {
+                ItemStack debugItem = SpigotConversionUtil.toBukkitItemStack(packetItem);
+                if (debugItem != null && isArmorMaterial(debugItem.getType())) {
+                    plugin.getLogUtil().debugLog("WINDOW_ITEMS: Found " + debugItem.getType() + " at index " + i + " (isArmorSlot=" + isArmorSlot(i) + ")");
+                }
+            }
+            
+            // For armor slots (5-8), strip any existing worth lore instead of adding it
             if (isPlayerInventory && hideArmor && isArmorSlot(i)) {
-                newItems.add(packetItem); // Add unchanged
+                if (packetItem != null) {
+                    // Actively strip worth lore from equipped armor
+                    com.github.retrooper.packetevents.protocol.item.ItemStack stripped = stripWorthFromPacketItem(packetItem);
+                    if (WorthConfig.isDebug()) {
+                        ItemStack debugItem = SpigotConversionUtil.toBukkitItemStack(packetItem);
+                        if (debugItem != null && !debugItem.getType().isAir()) {
+                            plugin.getLogUtil().debugLog("WINDOW_ITEMS: Stripped worth from armor slot " + i + " (" + debugItem.getType() + ")");
+                        }
+                    }
+                    newItems.add(stripped);
+                } else {
+                    newItems.add(packetItem);
+                }
                 continue;
             }
 
@@ -381,13 +401,32 @@ public class WorthDisplayManager {
             return;
         }
 
-        // Skip armor slots if configured (slots 5-8) - only for player inventory window
+        // Skip armor slots if configured - only for player inventory window
         boolean isPlayerInventory = (windowId == 0);
-        if (isPlayerInventory && WorthConfig.isHideArmorSlots() && isArmorSlot(slot)) {
+        if (isPlayerInventory && WorthConfig.isHideArmorSlots()) {
+            // Debug: Log all slots for armor-type items
             if (WorthConfig.isDebug()) {
-                plugin.getLogUtil().debugLog("SET_SLOT: Skipped armor slot=" + slot);
+                com.github.retrooper.packetevents.protocol.item.ItemStack debugItem = wrapper.getItem();
+                if (debugItem != null) {
+                    ItemStack debugBukkit = SpigotConversionUtil.toBukkitItemStack(debugItem);
+                    if (debugBukkit != null && isArmorMaterial(debugBukkit.getType())) {
+                        plugin.getLogUtil().debugLog("SET_SLOT: Armor item " + debugBukkit.getType() + " at slot=" + slot + " (windowId=" + windowId + ")");
+                    }
+                }
             }
-            return;
+            
+            if (isArmorSlot(slot)) {
+                // Actively strip worth lore from equipped armor
+                com.github.retrooper.packetevents.protocol.item.ItemStack armorItem = wrapper.getItem();
+                if (armorItem != null) {
+                    com.github.retrooper.packetevents.protocol.item.ItemStack stripped = stripWorthFromPacketItem(armorItem);
+                    wrapper.setItem(stripped);
+                    if (WorthConfig.isDebug()) {
+                        plugin.getLogUtil().debugLog("SET_SLOT: Stripped worth from armor slot=" + slot);
+                    }
+                }
+                return;
+            }
         }
 
         com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = wrapper.getItem();
@@ -405,10 +444,46 @@ public class WorthDisplayManager {
     }
 
     /**
-     * Check if the slot is an armor slot (helmet=5, chestplate=6, leggings=7, boots=8).
+     * Check if the slot is an armor slot.
+     * In player inventory (window 0):
+     * - Slot 5: Helmet
+     * - Slot 6: Chestplate  
+     * - Slot 7: Leggings
+     * - Slot 8: Boots
      */
     private boolean isArmorSlot(int slot) {
         return slot >= 5 && slot <= 8;
+    }
+    
+    /**
+     * Check if the material is an armor piece (for debug logging).
+     */
+    private boolean isArmorMaterial(Material material) {
+        if (material == null) return false;
+        String name = material.name();
+        return name.endsWith("_HELMET") || name.endsWith("_CHESTPLATE") || 
+               name.endsWith("_LEGGINGS") || name.endsWith("_BOOTS") ||
+               name.equals("TURTLE_HELMET") || name.equals("ELYTRA");
+    }
+    
+    /**
+     * Strip worth lore from a PacketEvents ItemStack without adding it back.
+     * Used for equipped armor when hide-armor-slots is enabled.
+     */
+    private com.github.retrooper.packetevents.protocol.item.ItemStack stripWorthFromPacketItem(
+            com.github.retrooper.packetevents.protocol.item.ItemStack packetItem) {
+        
+        // Convert to Bukkit ItemStack for processing
+        ItemStack bukkitItem = SpigotConversionUtil.toBukkitItemStack(packetItem);
+        if (bukkitItem == null || bukkitItem.getType().isAir()) {
+            return packetItem;
+        }
+
+        // Strip worth lore only (don't add it back)
+        ItemStack stripped = stripWorthLore(bukkitItem);
+
+        // Convert back to PacketEvents ItemStack
+        return SpigotConversionUtil.fromBukkitItemStack(stripped);
     }
     
     /**

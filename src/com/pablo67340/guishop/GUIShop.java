@@ -277,7 +277,7 @@ public final class GUIShop extends JavaPlugin {
             getLogUtil().log("Currency: " + economyConfig.getCurrencySymbol() + " (" + economyConfig.getCurrencyName() + ")");
             getLogUtil().log("Starting balance: " + economyConfig.formatBalance(economyConfig.getStartingBalance()));
             
-            // Register economy commands (/bal, /pay)
+            // Register economy commands (/bal, /pay, /togglepay)
             EconomyCommands ecoCommands = new EconomyCommands(this);
             if (getCommand("bal") != null) {
                 getCommand("bal").setExecutor(ecoCommands);
@@ -285,7 +285,10 @@ public final class GUIShop extends JavaPlugin {
             if (getCommand("pay") != null) {
                 getCommand("pay").setExecutor(ecoCommands);
             }
-            getLogUtil().log("Economy commands registered: /bal, /balance, /pay");
+            if (getCommand("togglepay") != null) {
+                getCommand("togglepay").setExecutor(ecoCommands);
+            }
+            getLogUtil().log("Economy commands registered: /bal, /balance, /pay, /togglepay");
             
         } catch (Exception e) {
             getLogUtil().log("Failed to initialize internal economy: " + e.getMessage());

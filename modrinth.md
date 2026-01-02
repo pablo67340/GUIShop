@@ -101,6 +101,7 @@ GUIShop is a powerful, feature-rich shop plugin that allows server owners to cre
 /bal, /balance, /money          - Check your balance
 /bal <player>                   - Check another player's balance
 /pay <player> <amount>          - Send money to a player
+/togglepay                      - Toggle payment notifications on/off
 ```
 
 **Admin Commands:**

@@ -584,4 +584,77 @@ public abstract class GUIShopAPI {
         return manager.format(amount);
     }
 
+    // ==================== Payment Notification Preferences ====================
+    
+    /**
+     * Check if a player has payment notifications enabled.
+     * 
+     * @param player the player to check
+     * @return true if notifications are enabled (default true)
+     */
+    public static boolean isPayNotificationsEnabled(OfflinePlayer player) {
+        return isPayNotificationsEnabled(player.getUniqueId());
+    }
+    
+    /**
+     * Check if a player has payment notifications enabled.
+     * 
+     * @param uuid the player's UUID
+     * @return true if notifications are enabled (default true)
+     */
+    public static boolean isPayNotificationsEnabled(UUID uuid) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager == null || !manager.isAvailable()) {
+            return true; // Default enabled
+        }
+        return manager.isPayNotificationsEnabled(uuid);
+    }
+    
+    /**
+     * Set whether a player has payment notifications enabled.
+     * 
+     * @param player the player
+     * @param enabled true to enable, false to disable
+     */
+    public static void setPayNotificationsEnabled(OfflinePlayer player, boolean enabled) {
+        setPayNotificationsEnabled(player.getUniqueId(), enabled);
+    }
+    
+    /**
+     * Set whether a player has payment notifications enabled.
+     * 
+     * @param uuid the player's UUID
+     * @param enabled true to enable, false to disable
+     */
+    public static void setPayNotificationsEnabled(UUID uuid, boolean enabled) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager != null && manager.isAvailable()) {
+            manager.setPayNotificationsEnabled(uuid, enabled);
+        }
+    }
+    
+    /**
+     * Toggle payment notifications for a player.
+     * 
+     * @param player the player
+     * @return the new state (true = enabled)
+     */
+    public static boolean togglePayNotifications(OfflinePlayer player) {
+        return togglePayNotifications(player.getUniqueId());
+    }
+    
+    /**
+     * Toggle payment notifications for a player.
+     * 
+     * @param uuid the player's UUID
+     * @return the new state (true = enabled)
+     */
+    public static boolean togglePayNotifications(UUID uuid) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager == null || !manager.isAvailable()) {
+            return true; // Default enabled
+        }
+        return manager.togglePayNotifications(uuid);
+    }
+
 }

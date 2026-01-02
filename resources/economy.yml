@@ -110,6 +110,10 @@ messages:
   
   # General
   economy-disabled: "&cEconomy system is not enabled."
+  
+  # Toggle notifications
+  notifications-enabled: "&aPayment notifications enabled."
+  notifications-disabled: "&cPayment notifications disabled."
 
 # ================================================
 # Admin Commands

@@ -130,7 +130,7 @@ public final class PlayerListener implements Listener {
     }
     
     /**
-     * Load player statistics and economy cache when they join.
+     * Load player statistics, preferences, and economy cache when they join.
      */
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -138,6 +138,7 @@ public final class PlayerListener implements Listener {
         StatisticsManager statsManager = StatisticsManager.getInstance();
         if (statsManager != null && statsManager.isAvailable()) {
             statsManager.loadPlayerCache(event.getPlayer());
+            statsManager.loadPreferencesCache(event.getPlayer().getUniqueId());
         }
         
         // Load economy cache
@@ -148,7 +149,7 @@ public final class PlayerListener implements Listener {
     }
     
     /**
-     * Save and unload player statistics and economy cache when they leave.
+     * Save and unload player statistics, preferences, and economy cache when they leave.
      */
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -156,6 +157,7 @@ public final class PlayerListener implements Listener {
         StatisticsManager statsManager = StatisticsManager.getInstance();
         if (statsManager != null && statsManager.isAvailable()) {
             statsManager.unloadPlayerCache(event.getPlayer());
+            statsManager.unloadPreferencesCache(event.getPlayer().getUniqueId());
         }
         
         // Unload economy cache

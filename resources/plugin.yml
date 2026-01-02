@@ -56,3 +56,7 @@ commands:
     description: Send money to another player (internal economy)
     permission: guishop.economy.pay
     aliases: [send]
+  togglepay:
+    description: Toggle payment notifications on/off
+    permission: guishop.economy.pay
+    aliases: [paytoggle]

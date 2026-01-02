@@ -96,6 +96,7 @@ Registered in `plugin.yml`, handled by `EconomyCommands.java`:
 /bal, /balance, /money  - Check own balance
 /bal <player>           - Check other's balance (requires permission)
 /pay <player> <amount>  - Send money to player
+/togglepay              - Toggle payment notifications on/off
 ```
 
 ## Admin Commands
@@ -122,13 +123,31 @@ All commands support abbreviated amounts (1k, 1.5M, 100B):
 ## API Methods (GUIShopAPI)
 
 ```java
+// Economy
 GUIShopAPI.isInternalEconomyEnabled()
 GUIShopAPI.getInternalBalance(player)
 GUIShopAPI.setInternalBalance(player, amount)
 GUIShopAPI.giveInternalMoney(player, amount)
 GUIShopAPI.takeInternalMoney(player, amount)
 GUIShopAPI.formatInternalBalance(amount)
+
+// Payment Notifications
+GUIShopAPI.isPayNotificationsEnabled(player)
+GUIShopAPI.setPayNotificationsEnabled(player, enabled)
+GUIShopAPI.togglePayNotifications(player)
 ```
+
+## Payment Notifications
+
+Stored in `player_preferences` table in `player_statistics.db`:
+```sql
+CREATE TABLE player_preferences (
+    uuid TEXT PRIMARY KEY,
+    pay_notifications INTEGER DEFAULT 1  -- 1=enabled, 0=disabled
+)
+```
+
+Cached in `StatisticsManager.payNotificationsCache` for online players.
 
 ## Common Issues
 

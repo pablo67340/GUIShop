@@ -60,6 +60,8 @@ public class EconomyConfig {
     @Getter private String messagePayPlayerNotFound;
     @Getter private String messagePayInvalidAmount;
     @Getter private String messageEconomyDisabled;
+    @Getter private String messageNotificationsEnabled;
+    @Getter private String messageNotificationsDisabled;
     
     public EconomyConfig(GUIShop plugin) {
         this.plugin = plugin;
@@ -127,6 +129,8 @@ public class EconomyConfig {
         messagePayPlayerNotFound = config.getString("messages.pay-player-not-found", "&cPlayer '%player%' not found.");
         messagePayInvalidAmount = config.getString("messages.pay-invalid-amount", "&cInvalid amount: %amount%");
         messageEconomyDisabled = config.getString("messages.economy-disabled", "&cEconomy system is not enabled.");
+        messageNotificationsEnabled = config.getString("messages.notifications-enabled", "&aPayment notifications enabled.");
+        messageNotificationsDisabled = config.getString("messages.notifications-disabled", "&cPayment notifications disabled.");
     }
     
     /**

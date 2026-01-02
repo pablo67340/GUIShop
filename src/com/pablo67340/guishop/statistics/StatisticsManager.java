@@ -25,6 +25,9 @@ public class StatisticsManager {
     // Cache for online players
     private final Map<UUID, PlayerStats> cache = new ConcurrentHashMap<>();
     
+    // Cache for player preferences (payment notifications enabled)
+    private final Map<UUID, Boolean> payNotificationsCache = new ConcurrentHashMap<>();
+    
     public StatisticsManager(GUIShop plugin) {
         this.plugin = plugin;
         this.databaseFile = new File(plugin.getDataFolder(), "Data/player_statistics.db");
@@ -94,6 +97,14 @@ public class StatisticsManager {
             // Create indexes for faster queries
             stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_transactions_uuid ON item_transactions(uuid)");
             stmt.executeUpdate("CREATE INDEX IF NOT EXISTS idx_transactions_type ON item_transactions(uuid, type)");
+            
+            // Player preferences table for settings like payment notifications
+            stmt.executeUpdate("""
+                CREATE TABLE IF NOT EXISTS player_preferences (
+                    uuid TEXT PRIMARY KEY,
+                    pay_notifications INTEGER DEFAULT 1
+                )
+            """);
         }
     }
     
@@ -450,5 +461,107 @@ public class StatisticsManager {
                 plugin.getLogUtil().log("Failed to reset stats: " + e.getMessage());
             }
         });
+    }
+    
+    // ==================== Payment Notification Preferences ====================
+    
+    /**
+     * Check if a player has payment notifications enabled.
+     * @param uuid the player's UUID
+     * @return true if notifications are enabled (default true)
+     */
+    public boolean isPayNotificationsEnabled(UUID uuid) {
+        // Check cache first
+        if (payNotificationsCache.containsKey(uuid)) {
+            return payNotificationsCache.get(uuid);
+        }
+        
+        // Load from database
+        if (!isAvailable()) return true;
+        
+        String sql = "SELECT pay_notifications FROM player_preferences WHERE uuid = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, uuid.toString());
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                boolean enabled = rs.getInt("pay_notifications") == 1;
+                payNotificationsCache.put(uuid, enabled);
+                return enabled;
+            }
+        } catch (SQLException e) {
+            plugin.getLogUtil().debugLog("Failed to load pay notifications: " + e.getMessage());
+        }
+        
+        // Default: enabled
+        return true;
+    }
+    
+    /**
+     * Set whether a player has payment notifications enabled.
+     * @param uuid the player's UUID
+     * @param enabled true to enable, false to disable
+     */
+    public void setPayNotificationsEnabled(UUID uuid, boolean enabled) {
+        // Update cache
+        payNotificationsCache.put(uuid, enabled);
+        
+        if (!isAvailable()) return;
+        
+        // Save to database asynchronously
+        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+            String sql = """
+                INSERT INTO player_preferences (uuid, pay_notifications) VALUES (?, ?)
+                ON CONFLICT(uuid) DO UPDATE SET pay_notifications = ?
+            """;
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, uuid.toString());
+                pstmt.setInt(2, enabled ? 1 : 0);
+                pstmt.setInt(3, enabled ? 1 : 0);
+                pstmt.executeUpdate();
+            } catch (SQLException e) {
+                plugin.getLogUtil().log("Failed to save pay notifications: " + e.getMessage());
+            }
+        });
+    }
+    
+    /**
+     * Toggle payment notifications for a player.
+     * @param uuid the player's UUID
+     * @return the new state (true = enabled)
+     */
+    public boolean togglePayNotifications(UUID uuid) {
+        boolean current = isPayNotificationsEnabled(uuid);
+        boolean newState = !current;
+        setPayNotificationsEnabled(uuid, newState);
+        return newState;
+    }
+    
+    /**
+     * Load preferences into cache when player joins.
+     */
+    public void loadPreferencesCache(UUID uuid) {
+        if (!isAvailable()) return;
+        
+        String sql = "SELECT pay_notifications FROM player_preferences WHERE uuid = ?";
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, uuid.toString());
+            ResultSet rs = pstmt.executeQuery();
+            
+            if (rs.next()) {
+                payNotificationsCache.put(uuid, rs.getInt("pay_notifications") == 1);
+            } else {
+                payNotificationsCache.put(uuid, true); // Default enabled
+            }
+        } catch (SQLException e) {
+            plugin.getLogUtil().debugLog("Failed to load preferences: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Unload preferences from cache when player leaves.
+     */
+    public void unloadPreferencesCache(UUID uuid) {
+        payNotificationsCache.remove(uuid);
     }
 }

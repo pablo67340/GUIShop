@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.economy;
 
 import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.MathUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -41,9 +42,36 @@ public class EconomyCommands implements CommandExecutor {
         switch (cmdName) {
             case "bal", "balance", "money" -> handleBalance(sender, args);
             case "pay", "send" -> handlePay(sender, args);
+            case "togglepay", "paytoggle" -> handleTogglePay(sender);
         }
         
         return true;
+    }
+    
+    /**
+     * Handle /togglepay command.
+     */
+    private void handleTogglePay(CommandSender sender) {
+        if (!(sender instanceof Player player)) {
+            sender.sendMessage(ChatColor.RED + "Only players can use this command.");
+            return;
+        }
+        
+        EconomyConfig ecoConfig = EconomyConfig.getInstance();
+        StatisticsManager statsManager = StatisticsManager.getInstance();
+        
+        if (statsManager == null || !statsManager.isAvailable()) {
+            sender.sendMessage(ChatColor.RED + "This feature is not available.");
+            return;
+        }
+        
+        boolean newState = statsManager.togglePayNotifications(player.getUniqueId());
+        
+        if (newState) {
+            sender.sendMessage(colorize(ecoConfig.getMessageNotificationsEnabled()));
+        } else {
+            sender.sendMessage(colorize(ecoConfig.getMessageNotificationsDisabled()));
+        }
     }
     
     /**
@@ -240,12 +268,19 @@ public class EconomyCommands implements CommandExecutor {
             .replace("%player%", targetDisplayName);
         sender.sendMessage(colorize(sentMessage));
         
-        // Notify recipient if online
+        // Notify recipient if online and has notifications enabled
         if (targetOnline != null) {
-            String receivedMessage = ecoConfig.getMessagePayReceived()
-                .replace("%amount%", formattedAmount)
-                .replace("%player%", player.getName());
-            targetOnline.sendMessage(colorize(receivedMessage));
+            StatisticsManager statsManager = StatisticsManager.getInstance();
+            boolean notificationsEnabled = statsManager == null || 
+                !statsManager.isAvailable() || 
+                statsManager.isPayNotificationsEnabled(targetUUID);
+            
+            if (notificationsEnabled) {
+                String receivedMessage = ecoConfig.getMessagePayReceived()
+                    .replace("%amount%", formattedAmount)
+                    .replace("%player%", player.getName());
+                targetOnline.sendMessage(colorize(receivedMessage));
+            }
         }
     }
     

@@ -127,6 +127,7 @@ messages:
 | `/bal`, `/balance`, `/money` | Check your own balance | `guishop.economy.balance` |
 | `/bal <player>` | Check another player's balance | `guishop.economy.balance.others` |
 | `/pay <player> <amount>` | Send money to another player | `guishop.economy.pay` |
+| `/togglepay` | Toggle payment notifications on/off | `guishop.economy.pay` |
 
 ## Admin Commands
 

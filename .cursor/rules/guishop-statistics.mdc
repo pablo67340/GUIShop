@@ -99,6 +99,7 @@ All prefixed with `%guishop_`:
 ## API Methods (GUIShopAPI)
 
 ```java
+// Player Stats
 GUIShopAPI.isStatisticsEnabled()
 GUIShopAPI.getPlayerStats(player)
 GUIShopAPI.getTotalSpent(player)
@@ -109,6 +110,14 @@ GUIShopAPI.getTotalSpentFormatted(player, abbreviated)
 GUIShopAPI.getTopSpenders(limit)
 GUIShopAPI.getTopEarners(limit)
 GUIShopAPI.resetPlayerStats(player)
+
+// Server-wide Top Items
+GUIShopAPI.getServerTopSoldItems(limit)   // Map<String, Long> material -> quantity
+GUIShopAPI.getServerTopBoughtItems(limit) // Map<String, Long> material -> quantity
+
+// Per-player Top Items
+GUIShopAPI.getPlayerTopSoldItems(player, limit)   // Map<String, Long> material -> quantity
+GUIShopAPI.getPlayerTopBoughtItems(player, limit) // Map<String, Long> material -> quantity
 ```
 
 ## PlayerStats Class

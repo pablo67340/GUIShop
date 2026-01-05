@@ -147,6 +147,35 @@ List<Map.Entry<UUID, BigDecimal>> topEarners = GUIShopAPI.getTopEarners(10);
 GUIShopAPI.resetPlayerStats(player);
 ```
 
+### Top Items (Server-wide)
+
+```java
+// Get top 10 most sold items across all players
+Map<String, Long> topSoldItems = GUIShopAPI.getServerTopSoldItems(10);
+
+for (Map.Entry<String, Long> entry : topSoldItems.entrySet()) {
+    String material = entry.getKey();  // e.g. "DIAMOND"
+    long quantity = entry.getValue();  // Total sold across all players
+    // Display on leaderboard...
+}
+
+// Get top 10 most bought items across all players
+Map<String, Long> topBoughtItems = GUIShopAPI.getServerTopBoughtItems(10);
+```
+
+### Top Items (Per-player)
+
+```java
+// Get a player's top 5 most sold items
+Map<String, Long> playerTopSold = GUIShopAPI.getPlayerTopSoldItems(player, 5);
+
+// Get a player's top 5 most bought items
+Map<String, Long> playerTopBought = GUIShopAPI.getPlayerTopBoughtItems(player, 5);
+
+// Can also use UUID
+Map<String, Long> playerTopSold = GUIShopAPI.getPlayerTopSoldItems(uuid, 5);
+```
+
 ## Notes
 
 - Statistics are saved asynchronously to prevent lag

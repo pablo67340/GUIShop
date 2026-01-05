@@ -436,6 +436,142 @@ public class StatisticsManager {
         return result;
     }
     
+    // ==================== Top Items (Server-wide) ====================
+    
+    /**
+     * Get top sold items server-wide (all players combined).
+     * @param limit max number of items to return
+     * @return LinkedHashMap of material name to total quantity sold, ordered by quantity desc
+     */
+    public Map<String, Long> getServerTopSoldItems(int limit) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        if (!isAvailable()) return result;
+        
+        String sql = """
+            SELECT material, SUM(quantity) as total_qty 
+            FROM item_transactions 
+            WHERE type = 'SELL' 
+            GROUP BY material 
+            ORDER BY total_qty DESC 
+            LIMIT ?
+        """;
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, limit);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                result.put(rs.getString("material"), rs.getLong("total_qty"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogUtil().log("Failed to get server top sold items: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Get top bought items server-wide (all players combined).
+     * @param limit max number of items to return
+     * @return LinkedHashMap of material name to total quantity bought, ordered by quantity desc
+     */
+    public Map<String, Long> getServerTopBoughtItems(int limit) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        if (!isAvailable()) return result;
+        
+        String sql = """
+            SELECT material, SUM(quantity) as total_qty 
+            FROM item_transactions 
+            WHERE type = 'BUY' 
+            GROUP BY material 
+            ORDER BY total_qty DESC 
+            LIMIT ?
+        """;
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setInt(1, limit);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                result.put(rs.getString("material"), rs.getLong("total_qty"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogUtil().log("Failed to get server top bought items: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    // ==================== Top Items (Per-player) ====================
+    
+    /**
+     * Get a player's top sold items.
+     * @param uuid the player's UUID
+     * @param limit max number of items to return
+     * @return LinkedHashMap of material name to total quantity sold, ordered by quantity desc
+     */
+    public Map<String, Long> getPlayerTopSoldItems(UUID uuid, int limit) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        if (!isAvailable()) return result;
+        
+        String sql = """
+            SELECT material, SUM(quantity) as total_qty 
+            FROM item_transactions 
+            WHERE uuid = ? AND type = 'SELL' 
+            GROUP BY material 
+            ORDER BY total_qty DESC 
+            LIMIT ?
+        """;
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, uuid.toString());
+            pstmt.setInt(2, limit);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                result.put(rs.getString("material"), rs.getLong("total_qty"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogUtil().log("Failed to get player top sold items: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
+    /**
+     * Get a player's top bought items.
+     * @param uuid the player's UUID
+     * @param limit max number of items to return
+     * @return LinkedHashMap of material name to total quantity bought, ordered by quantity desc
+     */
+    public Map<String, Long> getPlayerTopBoughtItems(UUID uuid, int limit) {
+        Map<String, Long> result = new LinkedHashMap<>();
+        if (!isAvailable()) return result;
+        
+        String sql = """
+            SELECT material, SUM(quantity) as total_qty 
+            FROM item_transactions 
+            WHERE uuid = ? AND type = 'BUY' 
+            GROUP BY material 
+            ORDER BY total_qty DESC 
+            LIMIT ?
+        """;
+        
+        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+            pstmt.setString(1, uuid.toString());
+            pstmt.setInt(2, limit);
+            ResultSet rs = pstmt.executeQuery();
+            
+            while (rs.next()) {
+                result.put(rs.getString("material"), rs.getLong("total_qty"));
+            }
+        } catch (SQLException e) {
+            plugin.getLogUtil().log("Failed to get player top bought items: " + e.getMessage());
+        }
+        
+        return result;
+    }
+    
     /**
      * Reset a player's statistics.
      */

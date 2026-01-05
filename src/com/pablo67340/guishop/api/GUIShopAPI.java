@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.BigDecimal;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -497,6 +498,90 @@ public abstract class GUIShopAPI {
         if (manager != null && manager.isAvailable()) {
             manager.resetStats(player.getUniqueId());
         }
+    }
+
+    // ==================== Top Items API (Server-wide) ====================
+
+    /**
+     * Get top sold items server-wide (all players combined).
+     *
+     * @param limit Max number of items to return
+     * @return LinkedHashMap of material name to total quantity sold, ordered by quantity desc
+     */
+    public static Map<String, Long> getServerTopSoldItems(int limit) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager == null || !manager.isAvailable()) {
+            return new LinkedHashMap<>();
+        }
+        return manager.getServerTopSoldItems(limit);
+    }
+
+    /**
+     * Get top bought items server-wide (all players combined).
+     *
+     * @param limit Max number of items to return
+     * @return LinkedHashMap of material name to total quantity bought, ordered by quantity desc
+     */
+    public static Map<String, Long> getServerTopBoughtItems(int limit) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager == null || !manager.isAvailable()) {
+            return new LinkedHashMap<>();
+        }
+        return manager.getServerTopBoughtItems(limit);
+    }
+
+    // ==================== Top Items API (Per-player) ====================
+
+    /**
+     * Get a player's top sold items.
+     *
+     * @param player The player
+     * @param limit Max number of items to return
+     * @return LinkedHashMap of material name to total quantity sold, ordered by quantity desc
+     */
+    public static Map<String, Long> getPlayerTopSoldItems(OfflinePlayer player, int limit) {
+        return getPlayerTopSoldItems(player.getUniqueId(), limit);
+    }
+
+    /**
+     * Get a player's top sold items.
+     *
+     * @param uuid The player's UUID
+     * @param limit Max number of items to return
+     * @return LinkedHashMap of material name to total quantity sold, ordered by quantity desc
+     */
+    public static Map<String, Long> getPlayerTopSoldItems(UUID uuid, int limit) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager == null || !manager.isAvailable()) {
+            return new LinkedHashMap<>();
+        }
+        return manager.getPlayerTopSoldItems(uuid, limit);
+    }
+
+    /**
+     * Get a player's top bought items.
+     *
+     * @param player The player
+     * @param limit Max number of items to return
+     * @return LinkedHashMap of material name to total quantity bought, ordered by quantity desc
+     */
+    public static Map<String, Long> getPlayerTopBoughtItems(OfflinePlayer player, int limit) {
+        return getPlayerTopBoughtItems(player.getUniqueId(), limit);
+    }
+
+    /**
+     * Get a player's top bought items.
+     *
+     * @param uuid The player's UUID
+     * @param limit Max number of items to return
+     * @return LinkedHashMap of material name to total quantity bought, ordered by quantity desc
+     */
+    public static Map<String, Long> getPlayerTopBoughtItems(UUID uuid, int limit) {
+        StatisticsManager manager = StatisticsManager.getInstance();
+        if (manager == null || !manager.isAvailable()) {
+            return new LinkedHashMap<>();
+        }
+        return manager.getPlayerTopBoughtItems(uuid, limit);
     }
 
     // ==================== Internal Economy API ====================

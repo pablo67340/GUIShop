@@ -428,6 +428,9 @@ Full API documentation available on the [Wiki](https://github.com/pablo67340/GUI
 **Optional:**
 - Economy Plugin (EssentialsX, CMI, etc.) - OR use GUIShop's built-in economy!
 - PacketEvents (for worth display feature)
+
+**Folia Support:**
+GUIShop fully supports [Folia](https://papermc.io/software/folia) - Paper's regionized multithreading fork for improved performance on large servers. No additional configuration required!
 - PlaceholderAPI (for placeholder support)
 
 > **Note:** GUIShop includes its own economy system! Enable it in `economy.yml` to use GUIShop as your server's economy without needing EssentialsX or similar plugins.

@@ -81,7 +81,10 @@ messages:
   alt-sell-not-enough: '&fYou do not have &c%amount% &fsuch items to sell.'
 
   # The message when there is no economy system
-  no-economy-system: '&cThe plugin didn''t detect an economy system! \n&fPlease contact a server administrator or setup an economy system.'
+  no-economy-system:
+    - '&cNo economy system detected!'
+    - '&7Please contact a server administrator, or enable'
+    - '&7GUIShop''s internal economy in &feconomy.yml&7.'
 
   # The message for commands that can only be ran as a player
   only-player: '&4You can only run this command as a player!'

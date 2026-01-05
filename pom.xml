@@ -96,6 +96,10 @@
             <id>packetevents-repo</id>
             <url>https://repo.codemc.io/repository/maven-releases/</url>
         </repository>
+        <repository>
+            <id>tcoded-releases</id>
+            <url>https://repo.tcoded.com/releases</url>
+        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -152,6 +156,12 @@
             <version>2.7.0</version>
             <scope>provided</scope>
         </dependency>
+        <!-- Folia/Paper/Spigot scheduler compatibility -->
+        <dependency>
+            <groupId>com.tcoded</groupId>
+            <artifactId>FoliaLib</artifactId>
+            <version>0.5.1</version>
+        </dependency>
     </dependencies>
     <build>
         <defaultGoal>clean install</defaultGoal>
@@ -188,6 +198,7 @@
                             <include>messages.yml</include>
                             <include>internal_messages.yml</include>
                             <include>worth.yml</include>
+                            <include>economy.yml</include>
                         </includes>
                     </resource>
                     <resource>
@@ -261,12 +272,17 @@
                                     <pattern>com.cryptomorin.xseries</pattern>
                                     <shadedPattern>com.pablo67340.guishop.shade.xseries</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>com.tcoded.folialib</pattern>
+                                    <shadedPattern>com.pablo67340.guishop.shade.folialib</shadedPattern>
+                                </relocation>
                             </relocations>
                             <artifactSet>
                                 <includes>
                                     <include>com.pablo67340.GUIShop</include>
                                     <include>com.github.cryptomorin:XSeries:jar:</include>
                                     <include>com.mojang:authlib:jar:</include>
+                                    <include>com.tcoded:FoliaLib:jar:</include>
                                 </includes>
                             </artifactSet>
                             <filters>

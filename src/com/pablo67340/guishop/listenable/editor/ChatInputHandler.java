@@ -10,7 +10,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
+import com.pablo67340.guishop.util.SchedulerUtil;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -102,16 +102,13 @@ public class ChatInputHandler implements Listener {
         player.sendMessage("");
         
         // Set up timeout
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                PendingInput input = pendingInputs.remove(uuid);
-                if (input != null && input.cancelCallback != null) {
-                    player.sendMessage(ChatColor.RED + "Input timed out.");
-                    input.cancelCallback.run();
-                }
+        SchedulerUtil.runAtEntityLater(player, () -> {
+            PendingInput input = pendingInputs.remove(uuid);
+            if (input != null && input.cancelCallback != null) {
+                player.sendMessage(ChatColor.RED + "Input timed out.");
+                input.cancelCallback.run();
             }
-        }.runTaskLater(GUIShop.getINSTANCE(), timeoutSeconds * 20L);
+        }, timeoutSeconds * 20L);
     }
 
     /**
@@ -187,26 +184,18 @@ public class ChatInputHandler implements Listener {
             
             // Check for cancel
             if (message.equalsIgnoreCase("cancel")) {
-                // Run on main thread
-                new BukkitRunnable() {
-                    @Override
-                    public void run() {
-                        player.sendMessage(ChatColor.YELLOW + "Input cancelled.");
-                        if (pending.cancelCallback != null) {
-                            pending.cancelCallback.run();
-                        }
+                // Run on player's thread (main thread on Paper/Spigot, entity region on Folia)
+                SchedulerUtil.runAtEntity(player, () -> {
+                    player.sendMessage(ChatColor.YELLOW + "Input cancelled.");
+                    if (pending.cancelCallback != null) {
+                        pending.cancelCallback.run();
                     }
-                }.runTask(GUIShop.getINSTANCE());
+                });
                 return;
             }
             
-            // Run callback on main thread
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    pending.callback.accept(message);
-                }
-            }.runTask(GUIShop.getINSTANCE());
+            // Run callback on player's thread (main thread on Paper/Spigot, entity region on Folia)
+            SchedulerUtil.runAtEntity(player, () -> pending.callback.accept(message));
         }
     }
 

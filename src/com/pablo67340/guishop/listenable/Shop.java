@@ -19,7 +19,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
+import com.pablo67340.guishop.util.SchedulerUtil;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -521,8 +521,7 @@ public class Shop {
         // Left-click with cursor item onto empty slot = Place item (register it)
         if ((clickedItem == null || clickedItem.getType().isAir()) && e.getCursor() != null && !e.getCursor().getType().isAir()) {
             // Run after the event to get the placed item
-            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+            SchedulerUtil.runAtEntityLater(player, () -> {
                 ItemStack placedItem = e.getInventory().getItem(e.getSlot());
                 if (placedItem != null) {
                     GUIShop.getINSTANCE().getLogUtil().debugLog("New item placed: " + placedItem.getType());
@@ -582,8 +581,7 @@ public class Shop {
         if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
             // Normal mode - handle escape back to menu
             if (!Config.isDisableEscapeBack() && !hasClicked && !GUIShop.getINSTANCE().isReload) {
-                BukkitScheduler scheduler = Bukkit.getScheduler();
-                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> menuInstance.open(player), 1L);
+                SchedulerUtil.runAtEntityLater(player, () -> menuInstance.open(player), 1L);
             } else if (clickOverride) {
                 clickOverride = false;
             } else {
@@ -884,8 +882,7 @@ public class Shop {
             if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
                 if (!item.isResolveFailed()) {
                     hasClicked = true;
-                    BukkitScheduler scheduler = Bukkit.getScheduler();
-                    scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
+                    SchedulerUtil.runAtEntityLater(clickingPlayer, () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
 
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());

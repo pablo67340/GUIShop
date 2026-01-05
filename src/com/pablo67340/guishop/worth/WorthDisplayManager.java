@@ -13,6 +13,7 @@ import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.Item;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
+import com.pablo67340.guishop.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -198,7 +199,7 @@ public class WorthDisplayManager {
                     }
                     
                     // Refresh inventory after 3 ticks (like the working plugin does)
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    SchedulerUtil.runAtEntityLater(player, () -> {
                         if (player.isOnline()) {
                             player.updateInventory();
                         }
@@ -213,7 +214,7 @@ public class WorthDisplayManager {
                     
                     // Schedule a single-slot update after the action completes
                     // Use a slightly longer delay to ensure the server has processed the action
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    SchedulerUtil.runAtEntityLater(player, () -> {
                         if (player.isOnline() && player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
                             // Send individual SET_SLOT packets for player inventory slots with worth
                             sendCreativeWorthUpdate(player);
@@ -238,7 +239,7 @@ public class WorthDisplayManager {
                     }
                     if (isWorthEnabledForPlayer(player)) {
                         // Delay to ensure inventory is fully closed
-                        Bukkit.getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
+                        SchedulerUtil.runAtEntityLater(player, player::updateInventory, 1L);
                     }
                 }
             }
@@ -270,7 +271,7 @@ public class WorthDisplayManager {
                 }
                 
                 // Refresh inventory after any click to ensure worth is updated
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                SchedulerUtil.runAtEntityLater(player, () -> {
                     if (player.isOnline()) {
                         player.updateInventory();
                         if (WorthConfig.isDebug()) {

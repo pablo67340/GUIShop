@@ -23,6 +23,7 @@ import com.pablo67340.guishop.util.ConfigManager;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.MiscUtils;
 import com.pablo67340.guishop.util.RowChart;
+import com.pablo67340.guishop.util.SchedulerUtil;
 import com.pablo67340.guishop.worth.WorthDisplayManager;
 import lombok.Getter;
 import lombok.Setter;
@@ -118,13 +119,16 @@ public final class GUIShop extends JavaPlugin {
     private EconomyConfig economyConfig;
 
     /**
-     * The scheduled task ID for log flushing, used to cancel on disable.
+     * The scheduled task for log flushing, used to cancel on disable.
      */
-    private int logFlushTaskId = -1;
+    private final SchedulerUtil.TaskHolder logFlushTask = new SchedulerUtil.TaskHolder();
 
     @Override
     public void onEnable() {
         INSTANCE = this;
+        
+        // Initialize Folia/Paper/Spigot scheduler compatibility
+        SchedulerUtil.init(this);
 
         this.configManager = new ConfigManager();
         this.logUtil = new LogUtil();
@@ -166,10 +170,7 @@ public final class GUIShop extends JavaPlugin {
     @Override
     public void onDisable() {
         // Cancel the log flush task
-        if (logFlushTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(logFlushTaskId);
-            logFlushTaskId = -1;
-        }
+        SchedulerUtil.cancelTask(logFlushTask);
 
         // Flush any remaining logs to disk
         if (logUtil != null) {
@@ -455,18 +456,16 @@ public final class GUIShop extends JavaPlugin {
 
     public void initWriteCache() {
         // Cancel any existing task from a previous load/reload
-        if (logFlushTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(logFlushTaskId);
-        }
+        SchedulerUtil.cancelTask(logFlushTask);
 
         // Schedule periodic log flushing and rotation (every 5 minutes = 6000 ticks)
-        logFlushTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+        SchedulerUtil.runTaskTimerAsync(logFlushTask, () -> {
             if (logUtil != null) {
                 // Flush cached logs to disk
                 logUtil.flushLogs();
                 // Check and rotate oversized log files
                 logUtil.checkAndRotateLogs();
             }
-        }, 6000, 6000).getTaskId();
+        }, 6000, 6000);
     }
 }

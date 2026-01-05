@@ -126,14 +126,27 @@ public class MiscUtils {
 
     /**
      * Sends a message to the sender with the translated path and optional
-     * placeholders
+     * placeholders. Supports multi-line messages (lists in messages.yml).
      *
      * @param sender The receiver
      * @param path The path to the message
      * @param params Optional, the placeholder replacements
      */
     public void sendPrefix(CommandSender sender, String path, Object... params) {
-        sender.sendMessage(ChatColor.translateAlternateColorCodes('&', GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.prefix") + " " + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages." + path, params)));
+        String prefix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.prefix");
+        String message = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages." + path, params);
+        
+        // Split on newlines to support list messages
+        String[] lines = message.split("\n");
+        for (int i = 0; i < lines.length; i++) {
+            String line = lines[i];
+            // Only add prefix to the first line
+            if (i == 0) {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', prefix + " " + line));
+            } else {
+                sender.sendMessage(ChatColor.translateAlternateColorCodes('&', line));
+            }
+        }
     }
 
     /**

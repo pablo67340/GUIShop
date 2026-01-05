@@ -1,0 +1,111 @@
+---
+description: GUIShop Folia Support
+globs: 
+alwaysApply: false
+---
+
+# Folia Support in GUIShop
+
+GUIShop supports Folia (Paper's regionized multithreading fork) via FoliaLib.
+
+## Architecture
+
+### SchedulerUtil (`util/SchedulerUtil.java`)
+
+Cross-platform scheduler wrapper that uses FoliaLib internally:
+
+```java
+// Initialization (in GUIShop.onEnable())
+SchedulerUtil.init(this);
+
+// Check if running on Folia
+boolean isFolia = SchedulerUtil.isFolia();
+
+// ASYNC TASKS (safe everywhere)
+SchedulerUtil.runTaskAsync(() -> { /* database ops */ });
+SchedulerUtil.runTaskLaterAsync(() -> { /* delayed async */ }, 20L);
+SchedulerUtil.runTaskTimerAsync(() -> { /* repeating async */ }, 0L, 100L);
+
+// ENTITY-BOUND TASKS (REQUIRED for player operations on Folia)
+SchedulerUtil.runAtEntity(player, () -> { /* GUI, inventory, etc */ });
+SchedulerUtil.runAtEntityLater(player, () -> { /* delayed player task */ }, 1L);
+SchedulerUtil.runAtEntityTimer(player, () -> { /* repeating player task */ }, 0L, 20L);
+
+// LOCATION-BOUND TASKS (for block/world operations)
+SchedulerUtil.runAtLocation(location, () -> { /* block modification */ });
+
+// GLOBAL TASKS (non-entity specific)
+SchedulerUtil.runTask(() -> { /* global task */ });
+SchedulerUtil.runTaskLater(() -> { /* delayed global */ }, 20L);
+
+// CLEANUP
+SchedulerUtil.cancelTask(wrappedTask);
+SchedulerUtil.cancelAllTasks();
+```
+
+## Key Rules for Folia Compatibility
+
+### DO NOT use direct BukkitScheduler
+```java
+// BAD - breaks on Folia
+Bukkit.getScheduler().runTask(plugin, () -> player.updateInventory());
+Bukkit.getScheduler().runTaskLater(plugin, () -> player.openInventory(inv), 1L);
+
+// GOOD - works on Folia, Paper, and Spigot
+SchedulerUtil.runAtEntity(player, () -> player.updateInventory());
+SchedulerUtil.runAtEntityLater(player, () -> player.openInventory(inv), 1L);
+```
+
+### DO NOT use BukkitRunnable for player operations
+```java
+// BAD
+new BukkitRunnable() {
+    @Override public void run() {
+        player.sendMessage("Hi");
+    }
+}.runTask(plugin);
+
+// GOOD
+SchedulerUtil.runAtEntity(player, () -> player.sendMessage("Hi"));
+```
+
+### Async is safe everywhere
+```java
+// Database operations - async is fine
+SchedulerUtil.runTaskAsync(() -> {
+    // SQLite operations
+    saveToDatabase(player.getUniqueId(), data);
+});
+```
+
+## File References
+
+| File | Scheduler Usage |
+|------|-----------------|
+| `GUIShop.java` | Log flush timer (async) |
+| `StatisticsManager.java` | Database ops (async) |
+| `WorthDisplayManager.java` | Inventory refresh (entity) |
+| `SimpleGui.java` | Cursor restore, refresh (entity) |
+| `Shop.java` | Menu navigation (entity) |
+| `Quantity.java` | Shop return (entity) |
+| `AltSell.java` | Shop return (entity) |
+| `ChatInputHandler.java` | Timeout, callbacks (entity) |
+
+## Dependencies
+
+```xml
+<!-- pom.xml -->
+<dependency>
+    <groupId>com.tcoded</groupId>
+    <artifactId>FoliaLib</artifactId>
+    <version>0.4.3</version>
+</dependency>
+```
+
+Shaded and relocated to `com.pablo67340.guishop.shade.folialib`.
+
+## plugin.yml
+
+```yaml
+folia-supported: true
+```

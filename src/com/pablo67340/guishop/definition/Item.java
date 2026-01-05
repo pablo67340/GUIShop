@@ -640,7 +640,7 @@ public final class Item implements ConfigurationSerializable {
                 }
                 if (!validEnchants.isEmpty()) {
                     item.setEnchantments(validEnchants.toArray(new String[0]));
-                }
+            }
             }
 
             String commands = PDCUtil.getString(itemStack, PDCUtil.KEY_COMMANDS);
@@ -901,8 +901,8 @@ public final class Item implements ConfigurationSerializable {
                             String enchantment = StringUtil.substringBefore(enc, ":");
                             String level = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                             if (!level.isEmpty()) {
-                                meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
-                            }
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
+                    }
                         } catch (NoSuchElementException | NumberFormatException e) {
                             GUIShop.getINSTANCE().getLogUtil().log("&cSkipping malformed enchantment: " + enc);
                         }
@@ -914,8 +914,8 @@ public final class Item implements ConfigurationSerializable {
                             String enchantment = StringUtil.substringBefore(enc, ":");
                             String level = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                             if (!level.isEmpty()) {
-                                itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
-                            }
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
+                    }
                         } catch (NoSuchElementException | NumberFormatException e) {
                             GUIShop.getINSTANCE().getLogUtil().log("&cSkipping malformed enchantment: " + enc);
                         }
@@ -990,7 +990,7 @@ public final class Item implements ConfigurationSerializable {
                             String enchantment = StringUtil.substringBefore(enc, ":");
                             String level = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                             if (!level.isEmpty()) {
-                                meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
+                            meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                             }
                         } catch (NoSuchElementException | NumberFormatException ignored) {
                         }
@@ -1002,7 +1002,7 @@ public final class Item implements ConfigurationSerializable {
                             String enchantment = StringUtil.substringBefore(enc, ":");
                             String level = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                             if (!level.isEmpty()) {
-                                itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
+                            itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                             }
                         } catch (NoSuchElementException | NumberFormatException ignored) {
                         }
@@ -1131,13 +1131,13 @@ public final class Item implements ConfigurationSerializable {
                         String levelStr = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                         if (levelStr.isEmpty()) continue;
                         Integer level = Integer.parseInt(levelStr);
-                        Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
-                        if (!input.getEnchantments().containsKey(targetEnchantment)) {
+                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
+                    if (!input.getEnchantments().containsKey(targetEnchantment)) {
+                        return false;
+                    } else {
+                        if (!input.getEnchantments().get(targetEnchantment).equals(level)) {
                             return false;
-                        } else {
-                            if (!input.getEnchantments().get(targetEnchantment).equals(level)) {
-                                return false;
-                            }
+                        }
                         }
                     } catch (NoSuchElementException | NumberFormatException ignored) {
                         // Skip malformed enchantment entries
@@ -1152,13 +1152,13 @@ public final class Item implements ConfigurationSerializable {
                         String levelStr = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                         if (levelStr.isEmpty()) continue;
                         Integer level = Integer.parseInt(levelStr);
-                        Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
-                        if (!meta.getStoredEnchants().containsKey(targetEnchantment)) {
+                    Enchantment targetEnchantment = XEnchantment.matchXEnchantment(enchantment).get().getEnchant();
+                    if (!meta.getStoredEnchants().containsKey(targetEnchantment)) {
+                        return false;
+                    } else {
+                        if (!meta.getStoredEnchants().get(targetEnchantment).equals(level)) {
                             return false;
-                        } else {
-                            if (!meta.getStoredEnchants().get(targetEnchantment).equals(level)) {
-                                return false;
-                            }
+                        }
                         }
                     } catch (NoSuchElementException | NumberFormatException ignored) {
                         // Skip malformed enchantment entries
@@ -1293,10 +1293,10 @@ public final class Item implements ConfigurationSerializable {
                         String enchantment = StringUtil.substringBefore(enc, ":");
                         String level = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                         if (!level.isEmpty()) {
-                            meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
-                        }
-                    } catch (NoSuchElementException | NullPointerException | NumberFormatException ignored) {
+                        meta.addStoredEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                     }
+                    } catch (NoSuchElementException | NullPointerException | NumberFormatException ignored) {
+                }
                 }
                 itemStack.setItemMeta(meta);
             } else {
@@ -1305,10 +1305,10 @@ public final class Item implements ConfigurationSerializable {
                         String enchantment = StringUtil.substringBefore(enc, ":");
                         String level = StringUtil.substringAfter(enc, ":").replaceAll("[^0-9]", "");
                         if (!level.isEmpty()) {
-                            itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
-                        }
-                    } catch (NoSuchElementException | NullPointerException | NumberFormatException ignored) {
+                        itemMeta.addEnchant(XEnchantment.matchXEnchantment(enchantment).get().getEnchant(), Integer.parseInt(level), true);
                     }
+                    } catch (NoSuchElementException | NullPointerException | NumberFormatException ignored) {
+                }
                 }
                 itemStack.setItemMeta(itemMeta);
             }
@@ -1479,16 +1479,16 @@ public final class Item implements ConfigurationSerializable {
                     .map(String::trim)
                     .filter(enchant -> !enchant.isEmpty())
                     .filter(enchant -> {
-                        try {
+                    try {
                             // Extract just the enchantment name (before the colon) for validation
                             String enchantmentName = StringUtil.substringBefore(enchant, ":");
                             XEnchantment.matchXEnchantment(enchantmentName).get().getEnchant();
-                            return true;
-                        } catch (NoSuchElementException | NullPointerException exception) {
-                            GUIShop.getINSTANCE().getLogUtil().log("&cInvalid enchantment found: " + enchant + "&c! Skipping enchantment.");
-                            return false;
-                        }
-                    }).toArray(String[]::new));
+                        return true;
+                    } catch (NoSuchElementException | NullPointerException exception) {
+                        GUIShop.getINSTANCE().getLogUtil().log("&cInvalid enchantment found: " + enchant + "&c! Skipping enchantment.");
+                        return false;
+                    }
+                }).toArray(String[]::new));
             } else if (entry.getKey().equalsIgnoreCase("custom-nbt")) {
                 if (entry.getValue() instanceof List) {
                     item.setNBT(String.join("", (List<String>) entry.getValue()));
@@ -1581,11 +1581,11 @@ public final class Item implements ConfigurationSerializable {
             serialized.put("name", hasName() ? name : " ");
         } else {
             // SHOP/COMMAND/etc items use shop-name and buy-name, NOT the generic name field
-            if (hasShopName()) {
-                serialized.put("shop-name", shopName);
-            }
-            if (hasBuyName()) {
-                serialized.put("buy-name", buyName);
+        if (hasShopName()) {
+            serialized.put("shop-name", shopName);
+        }
+        if (hasBuyName()) {
+            serialized.put("buy-name", buyName);
             }
             // Don't serialize 'name' for SHOP items - let vanilla item name show if no shop-name set
         }

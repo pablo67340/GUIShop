@@ -2,6 +2,7 @@ package com.pablo67340.guishop.statistics;
 
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.util.MathUtil;
+import com.pablo67340.guishop.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -147,7 +148,7 @@ public class StatisticsManager {
     public void recordPurchase(Player player, String material, int quantity, BigDecimal price) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             try {
                 UUID uuid = player.getUniqueId();
                 
@@ -176,7 +177,7 @@ public class StatisticsManager {
     public void recordSale(Player player, String material, int quantity, BigDecimal price) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             try {
                 UUID uuid = player.getUniqueId();
                 
@@ -324,7 +325,7 @@ public class StatisticsManager {
     public void loadPlayerCache(Player player) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             PlayerStats stats = loadStats(player.getUniqueId());
             cache.put(player.getUniqueId(), stats);
         });
@@ -578,7 +579,7 @@ public class StatisticsManager {
     public void resetStats(UUID uuid) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             try {
                 // Delete from both tables
                 try (PreparedStatement pstmt = connection.prepareStatement("DELETE FROM player_stats WHERE uuid = ?")) {
@@ -645,7 +646,7 @@ public class StatisticsManager {
         if (!isAvailable()) return;
         
         // Save to database asynchronously
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        SchedulerUtil.runTaskAsync(() -> {
             String sql = """
                 INSERT INTO player_preferences (uuid, pay_notifications) VALUES (?, ?)
                 ON CONFLICT(uuid) DO UPDATE SET pay_notifications = ?

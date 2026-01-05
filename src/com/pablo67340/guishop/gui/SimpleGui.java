@@ -3,6 +3,7 @@ package com.pablo67340.guishop.gui;
 import com.pablo67340.guishop.GUIShop;
 import lombok.Getter;
 import lombok.Setter;
+import com.pablo67340.guishop.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -215,7 +216,7 @@ public class SimpleGui implements GUIHolder {
         viewer.openInventory(inventory);
         
         // Restore cursor on next tick (after inventory is fully open)
-        Bukkit.getScheduler().runTask(GUIShop.getINSTANCE(), () -> {
+        SchedulerUtil.runAtEntity(viewer, () -> {
             refreshing = false;
             if (viewer != null && viewer.isOnline()) {
                 viewer.setItemOnCursor(cursor);
@@ -359,10 +360,10 @@ public class SimpleGui implements GUIHolder {
         refreshing = true;
         
         // Close and reopen
-        Bukkit.getScheduler().scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+        SchedulerUtil.runAtEntityLater(player, () -> {
             if (player.isOnline()) {
                 player.closeInventory();
-                Bukkit.getScheduler().scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+                SchedulerUtil.runAtEntityLater(player, () -> {
                     refreshing = false;
                     if (player.isOnline()) {
                         show(player);

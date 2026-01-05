@@ -14,7 +14,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.scheduler.BukkitScheduler;
+import com.pablo67340.guishop.util.SchedulerUtil;
 
 import java.util.NoSuchElementException;
 import org.bukkit.event.inventory.ClickType;
@@ -238,12 +238,12 @@ public class AltSell {
 
     private void onClose(InventoryCloseEvent event) {
         if (!hasClicked && !GUIShop.getINSTANCE().isReload) {
-            BukkitScheduler scheduler = Bukkit.getScheduler();
-            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+            Player player = (Player) event.getPlayer();
+            SchedulerUtil.runAtEntityLater(player, () -> {
                 if (this.shop != null) {
-                    shop.open((Player) event.getPlayer());
+                    shop.open(player);
                 } else {
-                    PlayerListener.INSTANCE.openMenu((Player) event.getPlayer());
+                    PlayerListener.INSTANCE.openMenu(player);
                 }
             }, 1L);
         }

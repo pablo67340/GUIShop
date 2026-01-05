@@ -5,7 +5,6 @@ import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.gui.SimpleGui;
-import com.pablo67340.guishop.util.PDCUtil;
 import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -17,7 +16,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitScheduler;
 
-import java.util.Map;
 import java.util.NoSuchElementException;
 import org.bukkit.event.inventory.ClickType;
 
@@ -186,29 +184,55 @@ public class AltSell {
     }
 
     private void sell(Player player, ItemStack itemStack) {
-        // Note: IF-uuid removal (for ItemsFrame compatibility) is no longer supported
-        // as we've migrated from NBT API to PDC
+        // Note: We need to use isItemFromItemStack() for matching, not removeItem(),
+        // because items may have enchantments, potions, NBT, etc. that need smart matching.
 
-        GUIShop.getINSTANCE().getLogUtil().log(itemStack.toString());
+        GUIShop.getINSTANCE().getLogUtil().debugLog("AltSell: Attempting to sell " + itemStack.toString());
 
-        int amount = itemStack.getAmount();
-        Map<Integer, ItemStack> result = player.getInventory().removeItem(itemStack);
-        if (result.isEmpty()) {
-            Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amount));
+        int amountToSell = itemStack.getAmount();
+        int amountRemoved = 0;
+        
+        // Iterate through player inventory and find matching items using the same logic as Sell.java
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length && amountRemoved < amountToSell; i++) {
+            ItemStack invItem = contents[i];
+            if (invItem == null || invItem.getType().isAir()) {
+                continue;
+            }
+            
+            // Use isItemFromItemStack for smart matching (handles enchantments, potions, NBT, etc.)
+            if (subjectItem.isItemFromItemStack(invItem)) {
+                int canTake = Math.min(invItem.getAmount(), amountToSell - amountRemoved);
+                amountRemoved += canTake;
+                
+                if (canTake >= invItem.getAmount()) {
+                    player.getInventory().setItem(i, null);
+                } else {
+                    invItem.setAmount(invItem.getAmount() - canTake);
+                }
+            }
+        }
+        
+        if (amountRemoved >= amountToSell) {
+            Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amountToSell));
             // buy price must be defined for dynamic pricing to work
             if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
-                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amount);
+                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amountToSell);
             }
 
             GUIShop.getINSTANCE().getLogUtil().transactionLog(
-                    "Player " + player.getName() + " sold " + amount + " items (1 different) for " + subjectItem.calculateSellPrice(amount) + ". Item: \n" + itemStack.getType());
-        } else {
-            ItemStack addBack = result.get(0).clone();
-            addBack.setAmount(amount - addBack.getAmount());
-            if (addBack.getAmount() > 0) {
-                player.getInventory().addItem(addBack);
+                    "Player " + player.getName() + " sold " + amountToSell + " items (1 different) for " + subjectItem.calculateSellPrice(amountToSell) + ". Item: \n" + itemStack.getType());
+        } else if (amountRemoved > 0) {
+            // Partial sell - sold what we could
+            Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amountRemoved));
+            if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
+                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amountRemoved);
             }
-            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "alt-sell-not-enough", amount);
+            GUIShop.getINSTANCE().getLogUtil().transactionLog(
+                    "Player " + player.getName() + " sold " + amountRemoved + " items (partial, wanted " + amountToSell + ") for " + subjectItem.calculateSellPrice(amountRemoved) + ". Item: \n" + itemStack.getType());
+        } else {
+            // Couldn't find any matching items
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "alt-sell-not-enough", amountToSell);
         }
     }
 

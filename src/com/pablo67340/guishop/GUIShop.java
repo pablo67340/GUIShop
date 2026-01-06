@@ -33,6 +33,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 public final class GUIShop extends JavaPlugin {
 
@@ -118,9 +119,19 @@ public final class GUIShop extends JavaPlugin {
     private EconomyConfig economyConfig;
 
     /**
-     * The scheduled task ID for log flushing, used to cancel on disable.
+     * The scheduled task ID for log flushing (Bukkit scheduler), used to cancel on disable.
      */
     private int logFlushTaskId = -1;
+    
+    /**
+     * The scheduled task for log flushing (Folia scheduler), used to cancel on disable.
+     */
+    private Object foliaLogFlushTask = null;
+    
+    /**
+     * Whether we're running on Folia server.
+     */
+    private static Boolean isFolia = null;
 
     @Override
     public void onEnable() {
@@ -165,11 +176,8 @@ public final class GUIShop extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        // Cancel the log flush task
-        if (logFlushTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(logFlushTaskId);
-            logFlushTaskId = -1;
-        }
+        // Cancel the log flush task (handles both Folia and Bukkit)
+        cancelLogFlushTask();
 
         // Flush any remaining logs to disk
         if (logUtil != null) {
@@ -178,7 +186,11 @@ public final class GUIShop extends JavaPlugin {
 
         // Unregister worth display system
         if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
-            worthDisplayManager.unregister();
+            try {
+                worthDisplayManager.unregister();
+            } catch (NoClassDefFoundError | Exception e) {
+                // PacketEvents may have been removed - ignore
+            }
         }
         
         // Shutdown statistics system
@@ -429,12 +441,19 @@ public final class GUIShop extends JavaPlugin {
 
         // Reload worth display system
         try {
-        if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
-            worthDisplayManager.unregister();
-        }
-        initWorthDisplay();
-        } catch (Exception e) {
+            if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
+                try {
+                    worthDisplayManager.unregister();
+                } catch (NoClassDefFoundError | Exception e) {
+                    // PacketEvents may have been removed
+                    getLogUtil().debugLog("Worth display unregister skipped: " + e.getMessage());
+                }
+            }
+            worthDisplayManager = null;
+            initWorthDisplay();
+        } catch (NoClassDefFoundError | Exception e) {
             getLogUtil().log("[Warning] Failed to reload worth display: " + e.getMessage());
+            worthDisplayManager = null;
         }
 
         if (hadErrors) {
@@ -455,18 +474,139 @@ public final class GUIShop extends JavaPlugin {
 
     public void initWriteCache() {
         // Cancel any existing task from a previous load/reload
-        if (logFlushTaskId != -1) {
-            Bukkit.getScheduler().cancelTask(logFlushTaskId);
-        }
+        cancelLogFlushTask();
 
-        // Schedule periodic log flushing and rotation (every 5 minutes = 6000 ticks)
-        logFlushTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
-            if (logUtil != null) {
-                // Flush cached logs to disk
-                logUtil.flushLogs();
-                // Check and rotate oversized log files
-                logUtil.checkAndRotateLogs();
+        // Schedule periodic log flushing and rotation (every 5 minutes)
+        if (isFolia()) {
+            // Use Folia's async scheduler via reflection to avoid compile-time dependency
+            try {
+                Object asyncScheduler = Bukkit.class.getMethod("getAsyncScheduler").invoke(null);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                java.lang.reflect.Method runAtFixedRate = asyncScheduler.getClass().getMethod(
+                    "runAtFixedRate", 
+                    org.bukkit.plugin.Plugin.class, 
+                    consumerClass, 
+                    long.class, 
+                    long.class, 
+                    TimeUnit.class
+                );
+                
+                // Create a consumer that handles the task
+                java.util.function.Consumer<Object> taskConsumer = (task) -> {
+                    if (logUtil != null) {
+                        logUtil.flushLogs();
+                        logUtil.checkAndRotateLogs();
+                    }
+                };
+                
+                Object task = runAtFixedRate.invoke(asyncScheduler, this, taskConsumer, 5L, 5L, TimeUnit.MINUTES);
+                foliaLogFlushTask = task;
+            } catch (Exception e) {
+                getLogUtil().log("Failed to schedule log flush task on Folia: " + e.getMessage());
+                if (Config.isDebugMode()) {
+                    e.printStackTrace();
+                }
             }
-        }, 6000, 6000).getTaskId();
+        } else {
+            // Use standard Bukkit scheduler (6000 ticks = 5 minutes)
+            logFlushTaskId = Bukkit.getScheduler().runTaskTimerAsynchronously(this, () -> {
+                if (logUtil != null) {
+                    logUtil.flushLogs();
+                    logUtil.checkAndRotateLogs();
+                }
+            }, 6000, 6000).getTaskId();
+        }
+    }
+    
+    /**
+     * Cancel the log flush task for either Bukkit or Folia scheduler.
+     */
+    private void cancelLogFlushTask() {
+        if (isFolia()) {
+            if (foliaLogFlushTask != null) {
+                try {
+                    // Use reflection to call cancel() on the ScheduledTask
+                    java.lang.reflect.Method cancelMethod = foliaLogFlushTask.getClass().getMethod("cancel");
+                    cancelMethod.invoke(foliaLogFlushTask);
+                } catch (Exception e) {
+                    // Ignore cancellation errors
+                }
+                foliaLogFlushTask = null;
+            }
+        } else {
+            if (logFlushTaskId != -1) {
+                Bukkit.getScheduler().cancelTask(logFlushTaskId);
+                logFlushTaskId = -1;
+            }
+        }
+    }
+    
+    /**
+     * Check if we're running on a Folia server.
+     * @return true if running on Folia, false otherwise
+     */
+    public static boolean isFolia() {
+        if (isFolia == null) {
+            try {
+                Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+                isFolia = true;
+            } catch (ClassNotFoundException e) {
+                isFolia = false;
+            }
+        }
+        return isFolia;
+    }
+    
+    /**
+     * Run a task asynchronously, compatible with both Folia and Bukkit.
+     */
+    public static void runAsync(Runnable task) {
+        if (isFolia()) {
+            try {
+                Object asyncScheduler = Bukkit.class.getMethod("getAsyncScheduler").invoke(null);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                java.lang.reflect.Method runNow = asyncScheduler.getClass().getMethod(
+                    "runNow", org.bukkit.plugin.Plugin.class, consumerClass
+                );
+                java.util.function.Consumer<Object> taskConsumer = (t) -> task.run();
+                runNow.invoke(asyncScheduler, INSTANCE, taskConsumer);
+            } catch (Exception e) {
+                // Fallback: run in a new thread
+                new Thread(task).start();
+            }
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(INSTANCE, task);
+        }
+    }
+    
+    /**
+     * Run a task on the main thread with a delay, compatible with both Folia and Bukkit.
+     * For Folia, this uses the entity scheduler tied to the player's region.
+     */
+    public static void runLater(Player player, Runnable task, long delayTicks) {
+        if (isFolia()) {
+            try {
+                // Use player.getScheduler().runDelayed() for Folia
+                Object entityScheduler = player.getClass().getMethod("getScheduler").invoke(player);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                java.lang.reflect.Method runDelayed = entityScheduler.getClass().getMethod(
+                    "runDelayed", org.bukkit.plugin.Plugin.class, consumerClass, Runnable.class, long.class
+                );
+                java.util.function.Consumer<Object> taskConsumer = (t) -> task.run();
+                runDelayed.invoke(entityScheduler, INSTANCE, taskConsumer, null, delayTicks);
+            } catch (Exception e) {
+                // Fallback: just run it
+                task.run();
+            }
+        } else {
+            Bukkit.getScheduler().scheduleSyncDelayedTask(INSTANCE, task, delayTicks);
+        }
+    }
+    
+    /**
+     * Run a task on the main thread immediately (next tick), compatible with both Folia and Bukkit.
+     */
+    public static void runSync(Player player, Runnable task) {
+        runLater(player, task, 1L);
     }
 }

@@ -215,12 +215,12 @@ public class SimpleGui implements GUIHolder {
         viewer.openInventory(inventory);
         
         // Restore cursor on next tick (after inventory is fully open)
-        Bukkit.getScheduler().runTask(GUIShop.getINSTANCE(), () -> {
+        GUIShop.runLater(viewer, () -> {
             refreshing = false;
             if (viewer != null && viewer.isOnline()) {
                 viewer.setItemOnCursor(cursor);
             }
-        });
+        }, 1L);
     }
     
     /**
@@ -359,10 +359,10 @@ public class SimpleGui implements GUIHolder {
         refreshing = true;
         
         // Close and reopen
-        Bukkit.getScheduler().scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+        GUIShop.runLater(player, () -> {
             if (player.isOnline()) {
                 player.closeInventory();
-                Bukkit.getScheduler().scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+                GUIShop.runLater(player, () -> {
                     refreshing = false;
                     if (player.isOnline()) {
                         show(player);

@@ -169,6 +169,11 @@ public class WorthDisplayManager {
         packetListener = new PacketListenerAbstract(PacketListenerPriority.NORMAL) {
             @Override
             public void onPacketSend(PacketSendEvent event) {
+                // Check if worth display is still enabled (allows dynamic disable via config reload)
+                if (!WorthConfig.isEnabled()) {
+                    return;
+                }
+                
                 if (!(event.getPlayer() instanceof Player)) return;
                 Player player = (Player) event.getPlayer();
 
@@ -186,6 +191,11 @@ public class WorthDisplayManager {
 
             @Override
             public void onPacketReceive(PacketReceiveEvent event) {
+                // Check if worth display is still enabled (allows dynamic disable via config reload)
+                if (!WorthConfig.isEnabled()) {
+                    return;
+                }
+                
                 if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
                     if (!(event.getPlayer() instanceof Player)) return;
                     Player player = (Player) event.getPlayer();
@@ -198,8 +208,8 @@ public class WorthDisplayManager {
                     }
                     
                     // Refresh inventory after 3 ticks (like the working plugin does)
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if (player.isOnline()) {
+                    GUIShop.runLater(player, () -> {
+                        if (player.isOnline() && WorthConfig.isEnabled()) {
                             player.updateInventory();
                         }
                     }, 3L);
@@ -213,8 +223,8 @@ public class WorthDisplayManager {
                     
                     // Schedule a single-slot update after the action completes
                     // Use a slightly longer delay to ensure the server has processed the action
-                    Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                        if (player.isOnline() && player.getGameMode() == org.bukkit.GameMode.CREATIVE) {
+                    GUIShop.runLater(player, () -> {
+                        if (player.isOnline() && player.getGameMode() == org.bukkit.GameMode.CREATIVE && WorthConfig.isEnabled()) {
                             // Send individual SET_SLOT packets for player inventory slots with worth
                             sendCreativeWorthUpdate(player);
                         }
@@ -229,6 +239,9 @@ public class WorthDisplayManager {
         eventListener = new Listener() {
             @EventHandler(priority = EventPriority.MONITOR)
             public void onInventoryClose(InventoryCloseEvent event) {
+                // Check if worth display is still enabled
+                if (!WorthConfig.isEnabled()) return;
+                
                 HumanEntity entity = event.getPlayer();
                 if (entity instanceof Player) {
                     Player player = (Player) entity;
@@ -238,13 +251,20 @@ public class WorthDisplayManager {
                     }
                     if (isWorthEnabledForPlayer(player)) {
                         // Delay to ensure inventory is fully closed
-                        Bukkit.getScheduler().runTaskLater(plugin, player::updateInventory, 1L);
+                        GUIShop.runLater(player, () -> {
+                            if (WorthConfig.isEnabled()) {
+                                player.updateInventory();
+                            }
+                        }, 1L);
                     }
                 }
             }
 
             @EventHandler(priority = EventPriority.MONITOR)
             public void onPlayerDropItem(PlayerDropItemEvent event) {
+                // Check if worth display is still enabled
+                if (!WorthConfig.isEnabled()) return;
+                
                 if (event.isCancelled()) return;
                 Player player = event.getPlayer();
                 // Skip for creative mode to avoid desync
@@ -258,6 +278,9 @@ public class WorthDisplayManager {
 
             @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
             public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event) {
+                // Check if worth display is still enabled
+                if (!WorthConfig.isEnabled()) return;
+                
                 if (!(event.getWhoClicked() instanceof Player)) return;
                 Player player = (Player) event.getWhoClicked();
                 
@@ -270,8 +293,8 @@ public class WorthDisplayManager {
                 }
                 
                 // Refresh inventory after any click to ensure worth is updated
-                Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                    if (player.isOnline()) {
+                GUIShop.runLater(player, () -> {
+                    if (player.isOnline() && WorthConfig.isEnabled()) {
                         player.updateInventory();
                         if (WorthConfig.isDebug()) {
                             plugin.getLogUtil().debugLog("CLICK: Refreshed inventory for " + player.getName());
@@ -864,12 +887,14 @@ public class WorthDisplayManager {
         if (packetListener != null) {
             try {
                 PacketEvents.getAPI().getEventManager().unregisterListener(packetListener);
-            } catch (Exception e) {
-                // Ignore if PacketEvents not available
+            } catch (NoClassDefFoundError | Exception e) {
+                // Ignore if PacketEvents not available or was unloaded
             }
+            packetListener = null;
         }
         if (eventListener != null) {
             HandlerList.unregisterAll(eventListener);
+            eventListener = null;
         }
         
         registered = false;

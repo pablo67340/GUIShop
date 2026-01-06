@@ -13,7 +13,6 @@ import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.PDCUtil;
 import com.pablo67340.guishop.util.SkullCreator;
 import lombok.Getter;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -27,7 +26,6 @@ import org.bukkit.inventory.meta.PotionMeta;
 
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitScheduler;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -243,8 +241,7 @@ class Quantity {
         }
         
         if ((!Config.isDisableEscapeBack() || !Config.isDisableEscapeBackQuantity()) && !GUIShop.getINSTANCE().isReload) {
-            BukkitScheduler scheduler = Bukkit.getScheduler();
-            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> currentShop.open(player), 1L);
+            GUIShop.runLater(player, () -> currentShop.open(player), 1L);
         }
     }
 

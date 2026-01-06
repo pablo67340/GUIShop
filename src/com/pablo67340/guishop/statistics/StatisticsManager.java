@@ -4,6 +4,7 @@ import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.util.MathUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.Plugin;
 
 import java.io.File;
 import java.math.BigDecimal;
@@ -109,6 +110,28 @@ public class StatisticsManager {
     }
     
     /**
+     * Run a task asynchronously, compatible with both Folia and Bukkit.
+     */
+    private void runAsync(Runnable task) {
+        if (GUIShop.isFolia()) {
+            try {
+                Object asyncScheduler = Bukkit.class.getMethod("getAsyncScheduler").invoke(null);
+                Class<?> consumerClass = Class.forName("java.util.function.Consumer");
+                java.lang.reflect.Method runNow = asyncScheduler.getClass().getMethod(
+                    "runNow", Plugin.class, consumerClass
+                );
+                java.util.function.Consumer<Object> taskConsumer = (t) -> task.run();
+                runNow.invoke(asyncScheduler, plugin, taskConsumer);
+            } catch (Exception e) {
+                // Fallback: run in a new thread
+                new Thread(task).start();
+            }
+        } else {
+            Bukkit.getScheduler().runTaskAsynchronously(plugin, task);
+        }
+    }
+    
+    /**
      * Close the database connection.
      */
     public void shutdown() {
@@ -147,7 +170,7 @@ public class StatisticsManager {
     public void recordPurchase(Player player, String material, int quantity, BigDecimal price) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        runAsync(() -> {
             try {
                 UUID uuid = player.getUniqueId();
                 
@@ -176,7 +199,7 @@ public class StatisticsManager {
     public void recordSale(Player player, String material, int quantity, BigDecimal price) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        runAsync(() -> {
             try {
                 UUID uuid = player.getUniqueId();
                 
@@ -324,7 +347,7 @@ public class StatisticsManager {
     public void loadPlayerCache(Player player) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        runAsync(() -> {
             PlayerStats stats = loadStats(player.getUniqueId());
             cache.put(player.getUniqueId(), stats);
         });
@@ -338,7 +361,7 @@ public class StatisticsManager {
         
         PlayerStats stats = cache.remove(player.getUniqueId());
         if (stats != null) {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> saveStats(stats));
+            runAsync(() -> saveStats(stats));
         }
     }
     
@@ -442,7 +465,7 @@ public class StatisticsManager {
     public void resetStats(UUID uuid) {
         if (!isAvailable()) return;
         
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        runAsync(() -> {
             try {
                 // Delete from both tables
                 try (PreparedStatement pstmt = connection.prepareStatement("DELETE FROM player_stats WHERE uuid = ?")) {
@@ -509,7 +532,7 @@ public class StatisticsManager {
         if (!isAvailable()) return;
         
         // Save to database asynchronously
-        Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+        runAsync(() -> {
             String sql = """
                 INSERT INTO player_preferences (uuid, pay_notifications) VALUES (?, ?)
                 ON CONFLICT(uuid) DO UPDATE SET pay_notifications = ?

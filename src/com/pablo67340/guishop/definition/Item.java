@@ -1331,17 +1331,11 @@ public final class Item implements ConfigurationSerializable {
             PDCUtil.setString(itemStack, PDCUtil.KEY_CUSTOM_NBT, getNBT());
         }
         
-        // Store PDC data for bought items (needed for sell price, commands, etc.)
-        if (hasBuyPrice()) {
-            PDCUtil.setDouble(itemStack, PDCUtil.KEY_BUY_PRICE, getBuyPriceAsDecimal().doubleValue());
-        }
-        if (hasSellPrice()) {
-            PDCUtil.setDouble(itemStack, PDCUtil.KEY_SELL_PRICE, getSellPriceAsDecimal().doubleValue());
-        }
-        if (hasCommands()) {
-            PDCUtil.setString(itemStack, PDCUtil.KEY_COMMANDS, String.join("::", getCommands()));
-        }
-        PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, getItemType().toString());
+        // NOTE: We do NOT add buy/sell price, commands, or item type PDC data to purchased items.
+        // This allows vanilla items (stone, diamonds, etc.) to stack with naturally obtained items.
+        // The sell system uses ITEMTABLE lookup based on material, not PDC data on items.
+        // Items that already have custom lore/name/enchants won't stack anyway due to that metadata.
+        // Spawners and custom NBT items still get their necessary PDC data above.
         
         return itemStack;
     }

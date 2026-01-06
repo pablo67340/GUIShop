@@ -582,8 +582,7 @@ public class Shop {
         if (!GUIShop.getCREATOR().contains(player.getUniqueId())) {
             // Normal mode - handle escape back to menu
             if (!Config.isDisableEscapeBack() && !hasClicked && !GUIShop.getINSTANCE().isReload) {
-                BukkitScheduler scheduler = Bukkit.getScheduler();
-                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> menuInstance.open(player), 1L);
+                GUIShop.runLater(player, () -> menuInstance.open(player), 1L);
             } else if (clickOverride) {
                 clickOverride = false;
             } else {
@@ -884,8 +883,7 @@ public class Shop {
             if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
                 if (!item.isResolveFailed()) {
                     hasClicked = true;
-                    BukkitScheduler scheduler = Bukkit.getScheduler();
-                    scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
+                    GUIShop.runLater(clickingPlayer, () -> this.menuInstance.openShop(clickingPlayer, shopName), 1L);
 
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", item.getResolveReason());

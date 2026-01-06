@@ -6,6 +6,7 @@ description: Shop plugin for any server.
 depend: [ Vault ]
 softdepend: [ PlaceholderAPI, packetevents ]
 api-version: 1.13
+folia-supported: true
 
 permissions:
   guishop.use:

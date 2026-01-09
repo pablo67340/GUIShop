@@ -1327,21 +1327,14 @@ public final class Item implements ConfigurationSerializable {
             }
         }
         if (hasNBT()) {
-            // Store custom-nbt value in PDC for reference
+            // Store custom-nbt value in PDC for reference (needed for matching custom NBT items)
             PDCUtil.setString(itemStack, PDCUtil.KEY_CUSTOM_NBT, getNBT());
         }
         
-        // Store PDC data for bought items (needed for sell price, commands, etc.)
-        if (hasBuyPrice()) {
-            PDCUtil.setDouble(itemStack, PDCUtil.KEY_BUY_PRICE, getBuyPriceAsDecimal().doubleValue());
-        }
-        if (hasSellPrice()) {
-            PDCUtil.setDouble(itemStack, PDCUtil.KEY_SELL_PRICE, getSellPriceAsDecimal().doubleValue());
-        }
-        if (hasCommands()) {
-            PDCUtil.setString(itemStack, PDCUtil.KEY_COMMANDS, String.join("::", getCommands()));
-        }
-        PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, getItemType().toString());
+        // NOTE: We intentionally do NOT store buy/sell prices, commands, or item type in PDC
+        // on purchased items. This allows bought items to stack with vanilla items after
+        // placing and breaking. The selling system uses ITEMTABLE lookup by material type,
+        // so it doesn't need PDC data. Only spawners (mob type) and custom NBT items need PDC.
         
         return itemStack;
     }

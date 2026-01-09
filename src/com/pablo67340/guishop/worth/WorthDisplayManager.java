@@ -170,6 +170,11 @@ public class WorthDisplayManager {
         packetListener = new PacketListenerAbstract(PacketListenerPriority.NORMAL) {
             @Override
             public void onPacketSend(PacketSendEvent event) {
+                // Runtime config check - allows disabling via /gs reload without restart
+                if (!WorthConfig.isEnabled()) {
+                    return;
+                }
+                
                 if (!(event.getPlayer() instanceof Player)) return;
                 Player player = (Player) event.getPlayer();
 
@@ -187,6 +192,11 @@ public class WorthDisplayManager {
 
             @Override
             public void onPacketReceive(PacketReceiveEvent event) {
+                // Runtime config check - allows disabling via /gs reload without restart
+                if (!WorthConfig.isEnabled()) {
+                    return;
+                }
+                
                 if (event.getPacketType() == PacketType.Play.Client.CLOSE_WINDOW) {
                     if (!(event.getPlayer() instanceof Player)) return;
                     Player player = (Player) event.getPlayer();
@@ -224,7 +234,13 @@ public class WorthDisplayManager {
             }
         };
 
-        PacketEvents.getAPI().getEventManager().registerListener(packetListener);
+        try {
+            PacketEvents.getAPI().getEventManager().registerListener(packetListener);
+        } catch (NoClassDefFoundError | Exception e) {
+            plugin.getLogUtil().log("Failed to register PacketEvents listener - worth display disabled: " + e.getMessage());
+            packetListener = null;
+            return;
+        }
 
         // Register event listener for inventory close, item drop, and clicks
         eventListener = new Listener() {
@@ -578,7 +594,7 @@ public class WorthDisplayManager {
                 }
                 
                 // Send SET_SLOT packet
-                com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = 
+                    com.github.retrooper.packetevents.protocol.item.ItemStack packetItem = 
                     SpigotConversionUtil.fromBukkitItemStack(processed);
                 WrapperPlayServerSetSlot setSlot = new WrapperPlayServerSetSlot(
                     0, // Window ID 0 = player inventory
@@ -592,7 +608,8 @@ public class WorthDisplayManager {
                     plugin.getLogUtil().debugLog("CREATIVE: Sent worth update for slot " + i + " -> protocol " + protocolSlot);
                 }
             }
-        } catch (Exception e) {
+        } catch (NoClassDefFoundError | Exception e) {
+            // Safely handle if PacketEvents becomes unavailable
             if (WorthConfig.isDebug()) {
                 plugin.getLogUtil().debugLog("CREATIVE: Error sending worth update: " + e.getMessage());
             }
@@ -860,17 +877,21 @@ public class WorthDisplayManager {
 
     /**
      * Unregister the packet listeners.
+     * Safely handles the case where PacketEvents might not be available.
      */
     public void unregister() {
         if (packetListener != null) {
             try {
                 PacketEvents.getAPI().getEventManager().unregisterListener(packetListener);
-            } catch (Exception e) {
-                // Ignore if PacketEvents not available
+            } catch (NoClassDefFoundError | Exception e) {
+                // Ignore if PacketEvents not available or already unloaded
+                plugin.getLogUtil().debugLog("PacketEvents not available for unregister: " + e.getMessage());
             }
+            packetListener = null;
         }
         if (eventListener != null) {
             HandlerList.unregisterAll(eventListener);
+            eventListener = null;
         }
         
         registered = false;

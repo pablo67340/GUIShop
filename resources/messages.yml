@@ -53,6 +53,10 @@ messages:
 
   # The message when the player has a full inventory
   full-inventory: '&cPlease empty your inventory!'
+  
+  # The message when only some items could fit in inventory (rest dropped)
+  # Placeholders: %amount%
+  partial-purchase: '&eOnly %amount% items fit in your inventory. The rest were dropped at your feet.'
 
   # Message when something went wrong while parsing an item
   # Placeholders:

@@ -252,6 +252,12 @@ class Quantity {
             GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "cant-buy");
             return;
         }
+        
+        // Check if player has inventory space BEFORE taking money
+        if (player.getInventory().firstEmpty() == -1) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "full-inventory");
+            return;
+        }
 
         // If the quantity is 0
         if (quantity == 0) {
@@ -317,7 +323,30 @@ class Quantity {
                 dynamicPricingUpdate.run();
             }
 
-            player.getInventory().addItem(item.toBuyItemStack(quantity, player, currentShop));
+            ItemStack purchasedItem = item.toBuyItemStack(quantity, player, currentShop);
+            HashMap<Integer, ItemStack> overflow = player.getInventory().addItem(purchasedItem);
+            
+            // Handle any items that couldn't be added (safety net for edge cases)
+            if (!overflow.isEmpty()) {
+                // Calculate refund for items that couldn't fit
+                int itemsNotAdded = overflow.values().stream().mapToInt(ItemStack::getAmount).sum();
+                if (itemsNotAdded > 0 && itemsNotAdded < quantity) {
+                    // Partial purchase - refund the difference
+                    BigDecimal refundPerItem = item.getBuyPriceAsDecimal();
+                    BigDecimal refundAmount = refundPerItem.multiply(BigDecimal.valueOf(itemsNotAdded));
+                    GUIShop.getINSTANCE().getMiscUtils().getECONOMY().depositPlayer(player, refundAmount.doubleValue());
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "partial-purchase", quantity - itemsNotAdded);
+                } else if (itemsNotAdded == quantity) {
+                    // Nothing was added - full refund
+                    GUIShop.getINSTANCE().getMiscUtils().getECONOMY().depositPlayer(player, priceToPay.doubleValue());
+                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "full-inventory");
+                    return;
+                }
+                // Drop overflow items at player's feet as last resort
+                for (ItemStack overflowItem : overflow.values()) {
+                    player.getWorld().dropItemNaturally(player.getLocation(), overflowItem);
+                }
+            }
 
             GUIShop.getINSTANCE().getLogUtil().transactionLog(
                     "Player " + player.getName() + " bought item " + item.getMaterial() + " in shop " + currentShop.getShop() + " for " + priceToPay.toPlainString() + " money! Stacksize: " + quantity);

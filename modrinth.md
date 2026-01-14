@@ -5,7 +5,7 @@
 # GUIShop
 ### The Ultimate GUI-Based Shop Plugin for Minecraft Servers
 
-*Fully compatible with Paper/Spigot 1.21.10*
+*Fully compatible with Paper/Spigot/Folia 1.21.11*
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/pablo67340/GUIShop)
 [![Wiki](https://img.shields.io/badge/Wiki-Documentation-green)](https://github.com/pablo67340/GUIShop/wiki)

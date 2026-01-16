@@ -441,7 +441,7 @@ public class GuishopCommand implements CommandExecutor {
                 }
             } else if (args[0].equalsIgnoreCase("ts") || args[0].equalsIgnoreCase("targetShop")) {
                 if (args.length == 2) {
-                    if (GUIShop.getINSTANCE().configManager.getShopConfig().getKeys(false).contains(args[1])) {
+                    if (GUIShop.getINSTANCE().configManager.shopExists(args[1])) {
                         ItemUtil.setTargetShop(args[1], player);
                     } else {
                         GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "target-shop.invalid-shop", args[1]);

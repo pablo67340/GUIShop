@@ -339,7 +339,7 @@ public class StatisticsManager {
         
         PlayerStats stats = cache.remove(player.getUniqueId());
         if (stats != null) {
-            Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> saveStats(stats));
+            SchedulerUtil.runTaskAsync(() -> saveStats(stats));
         }
     }
     

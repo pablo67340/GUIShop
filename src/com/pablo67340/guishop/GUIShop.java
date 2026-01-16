@@ -334,11 +334,11 @@ public final class GUIShop extends JavaPlugin {
             getLogUtil().log("[Warning] Menu failed to load - shops linked from menu won't be loaded.");
         }
         
-        // Also load ALL shops from shops.yml (including hidden ones not linked in menu)
+        // Also load ALL shops from shops folder (including hidden ones not linked in menu)
         // This ensures items from all shops are registered in ITEMTABLE for selling/worth
         try {
-            Set<String> shopKeys = configManager.getShopConfig().getKeys(false);
-            for (String shopName : shopKeys) {
+            Set<String> shopNames = configManager.getShopNames();
+            for (String shopName : shopNames) {
                 if (!loadedShops.containsKey(shopName)) {
                     try {
                         getLogUtil().debugLog("Loading unlinked shop for worth/sell registration: " + shopName);

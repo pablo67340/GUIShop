@@ -1,0 +1,98 @@
+###########################################################################
+#                         RAIDING SHOP EXAMPLE                            #
+#     This is an individual shop file. Each shop is now stored in its     #
+#     own file within the plugins/GUIShop/shops/ folder.                  #
+###########################################################################
+title: '&4Raiding &bShop'
+pages:
+  Page0:
+    items:
+      '0':
+        id: BLUE_STAINED_GLASS_PANE
+        shop-name: ' '
+      '1':
+        id: RED_STAINED_GLASS_PANE
+        shop-name: ' '
+      '2':
+        id: BLUE_STAINED_GLASS_PANE
+        shop-name: ' '
+      '3':
+        id: RED_STAINED_GLASS_PANE
+        shop-name: ' '
+      '4':
+        id: BLUE_STAINED_GLASS_PANE
+        shop-name: ' '
+      '5':
+        id: RED_STAINED_GLASS_PANE
+        shop-name: ' '
+      '6':
+        id: BLUE_STAINED_GLASS_PANE
+        shop-name: ' '
+      '7':
+        id: RED_STAINED_GLASS_PANE
+        shop-name: ' '
+      '8':
+        id: BLUE_STAINED_GLASS_PANE
+        shop-name: ' '
+      '19':
+        type: COMMAND
+        id: PISTON
+        shop-name: '&4Example Command Item (Suicide)'
+        buy-price: 100.0
+        sell-price: 50.2
+        commands:
+          - 'kill {PLAYER_NAME}'
+          - 'broadcast {PLAYER_NAME} Tested the Suicide Item'
+      '20':
+        type: SHOP
+        id: REDSTONE_BLOCK
+        buy-price: 150
+      '21':
+        type: SHOP
+        id: DISPENSER
+        buy-price: 135.0
+      '22':
+        type: SHOP
+        id: LEVER
+        buy-price: 5.0
+      '23':
+        type: SHOP
+        id: STONE_BUTTON
+        buy-price: 5.0
+      '24':
+        type: SHOP
+        id: STONE_PRESSURE_PLATE
+        buy-price: 5.0
+      '25':
+        type: SHOP
+        id: REDSTONE_TORCH
+        buy-price: 2.0
+      '28':
+        type: SHOP
+        id: REDSTONE
+        buy-price: 1.0
+        sell-price: 1.0
+      '29':
+        type: SHOP
+        id: WATER_BUCKET
+        buy-price: 150.0
+      '30':
+        type: SHOP
+        id: LAVA_BUCKET
+        buy-price: 150.0
+      '31':
+        type: SHOP
+        id: STONE_SLAB
+        buy-price: 3.0
+      '32':
+        type: SHOP
+        id: TNT
+        buy-price: 50.0
+      '33':
+        type: SHOP
+        id: FIRE_CHARGE
+        buy-price: 50.0
+      '34':
+        type: SHOP
+        id: CREEPER_SPAWN_EGG
+        buy-price: 50.0

@@ -13,6 +13,7 @@ import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -21,7 +22,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 import com.pablo67340.guishop.util.SchedulerUtil;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -97,7 +97,10 @@ public class Shop {
             // Shop in cache - use cached data
             GUIShop.getINSTANCE().getLogUtil().debugLog("SHOP: Loading " + shop + " from cache");
             shopItem = (ShopItem) GUIShop.getINSTANCE().getLoadedShops().get(shop);
-            this.setTitle(GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title"));
+            FileConfiguration shopConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig(shop);
+            if (shopConfig != null) {
+                this.setTitle(shopConfig.getString("title"));
+            }
             if (!preLoad) {
                 loadShop();
             }
@@ -108,7 +111,14 @@ public class Shop {
      * Load shop data from the configuration file with comprehensive error handling.
      */
     private void loadShopFromConfig(Boolean preLoad) {
-        String shopTitle = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getString(shop + ".title");
+        FileConfiguration shopConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig(shop);
+        if (shopConfig == null) {
+            logShopError("Shop '" + shop + "' config file not found. Create shops/" + shop + ".yml");
+            shopMissing = true;
+            return;
+        }
+        
+        String shopTitle = shopConfig.getString("title");
         if (shopTitle == null) {
             logShopError("Shop '" + shop + "' is missing a 'title' property. Add 'title: \"Your Shop Title\"' to the shop configuration.");
             shopMissing = true;
@@ -117,10 +127,10 @@ public class Shop {
         this.setTitle(shopTitle);
         shopItem = new ShopItem();
 
-        ConfigurationSection pagesConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages");
+        ConfigurationSection pagesConfig = shopConfig.getConfigurationSection("pages");
         if (pagesConfig == null) {
-            logShopError("Shop '" + shop + "' has no 'pages' section. Check your shops.yml indentation and structure.");
-            logShopError("Expected format:\n  " + shop + ":\n    title: 'Shop Title'\n    pages:\n      Page0:\n        items:\n          '0':\n            id: DIAMOND");
+            logShopError("Shop '" + shop + "' has no 'pages' section. Check your " + shop + ".yml indentation and structure.");
+            logShopError("Expected format:\n  title: 'Shop Title'\n  pages:\n    Page0:\n      items:\n        '0':\n          id: DIAMOND");
             shopMissing = true;
             return;
         }
@@ -191,7 +201,7 @@ public class Shop {
         }
 
         if (shopItem.getPages().isEmpty()) {
-            logShopError("Shop '" + shop + "' loaded with 0 pages. Check your shops.yml configuration.");
+            logShopError("Shop '" + shop + "' loaded with 0 pages. Check your shops/" + shop + ".yml configuration.");
             shopMissing = true;
             return;
         }
@@ -542,15 +552,14 @@ public class Shop {
     private void deleteShopItem(Integer slot) {
         String pageKey = "Page" + GUI.getCurrentPage();
         shopItem.getPages().get(pageKey).getItems().remove(Integer.toString(slot));
-        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items") != null
-                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items")
-                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages." + pageKey + ".items");
+        FileConfiguration shopConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig(shop);
+        if (shopConfig == null) return;
+        
+        ConfigurationSection config = shopConfig.getConfigurationSection("pages." + pageKey + ".items") != null
+                ? shopConfig.getConfigurationSection("pages." + pageKey + ".items")
+                : shopConfig.createSection("pages." + pageKey + ".items");
         config.set(slot.toString(), null);
-        try {
-            GUIShop.getINSTANCE().getConfigManager().getShopConfig().save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
-        } catch (IOException ex) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Error saving shops: " + ex.getMessage());
-        }
+        GUIShop.getINSTANCE().getConfigManager().saveShopConfig(shop);
     }
 
     public void editShopItem(ItemStack itemStack, Integer slot) {
@@ -558,18 +567,17 @@ public class Shop {
         Item item = Item.parse(itemStack, slot, shop);
         shopItem.getPages().get(pageKey).getItems().put(Integer.toString(item.getSlot()), item);
 
-        ConfigurationSection config = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items") != null
-                ? GUIShop.getINSTANCE().getConfigManager().getShopConfig().getConfigurationSection(shop + ".pages." + pageKey + ".items")
-                : GUIShop.getINSTANCE().getConfigManager().getShopConfig().createSection(shop + ".pages." + pageKey + ".items");
+        FileConfiguration shopConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig(shop);
+        if (shopConfig == null) return;
+        
+        ConfigurationSection config = shopConfig.getConfigurationSection("pages." + pageKey + ".items") != null
+                ? shopConfig.getConfigurationSection("pages." + pageKey + ".items")
+                : shopConfig.createSection("pages." + pageKey + ".items");
 
         config.set(slot.toString(), item.serialize());
 
         GUIShop.getINSTANCE().getLogUtil().debugLog("Player edited item: " + item.getMaterial() + " slot: " + slot);
-        try {
-            GUIShop.getINSTANCE().getConfigManager().getShopConfig().save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
-        } catch (IOException ex) {
-            GUIShop.getINSTANCE().getLogUtil().log("Error saving shops: " + ex.getMessage());
-        }
+        GUIShop.getINSTANCE().getConfigManager().saveShopConfig(shop);
 
         hasClicked = false;
     }
@@ -606,6 +614,12 @@ public class Shop {
     private void saveCreatorInventory(org.bukkit.inventory.Inventory inventory) {
         GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Starting save for shop " + shop);
         try {
+            FileConfiguration shopConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig(shop);
+            if (shopConfig == null) {
+                GUIShop.getINSTANCE().getLogUtil().log("CREATOR SAVE: Shop config not found for " + shop);
+                return;
+            }
+            
             String pageKey = "Page" + GUI.getCurrentPage();
             int inventorySize = GUI.getRows() * 9;
             
@@ -615,12 +629,10 @@ public class Shop {
             int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
             
             org.bukkit.configuration.ConfigurationSection config = 
-                GUIShop.getINSTANCE().getConfigManager().getShopConfig()
-                    .getConfigurationSection(shop + ".pages." + pageKey + ".items");
+                shopConfig.getConfigurationSection("pages." + pageKey + ".items");
             
             if (config == null) {
-                config = GUIShop.getINSTANCE().getConfigManager().getShopConfig()
-                    .createSection(shop + ".pages." + pageKey + ".items");
+                config = shopConfig.createSection("pages." + pageKey + ".items");
             }
             
             boolean hasChanges = false;
@@ -659,9 +671,7 @@ public class Shop {
                         
                         // Save item properties individually to ensure proper YAML structure
                         java.util.Map<String, Object> serialized = newItem.serialize();
-                        String itemPath = shop + ".pages." + pageKey + ".items." + slotKey;
-                        org.bukkit.configuration.file.FileConfiguration shopConfig = 
-                            GUIShop.getINSTANCE().getConfigManager().getShopConfig();
+                        String itemPath = "pages." + pageKey + ".items." + slotKey;
                         shopConfig.set(itemPath, null);
                         for (java.util.Map.Entry<String, Object> entry : serialized.entrySet()) {
                             shopConfig.set(itemPath + "." + entry.getKey(), entry.getValue());
@@ -674,11 +684,10 @@ public class Shop {
             }
             
             if (hasChanges) {
-                GUIShop.getINSTANCE().getConfigManager().getShopConfig()
-                    .save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
+                GUIShop.getINSTANCE().getConfigManager().saveShopConfig(shop);
                 
                 // Reload config from disk to ensure consistency
-                GUIShop.getINSTANCE().getConfigManager().reloadShopConfig();
+                GUIShop.getINSTANCE().getConfigManager().reloadShopConfig(shop);
                 
                 // Invalidate the shop cache so next open gets fresh data
                 GUIShop.getINSTANCE().getLoadedShops().remove(shop);

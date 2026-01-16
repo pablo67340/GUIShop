@@ -7,7 +7,7 @@ import java.util.*;
 public class NameUtil {
 
     public static String nearestShop(String input) {
-        List<String> availableShops = GUIShop.getINSTANCE().getConfigManager().getShopConfig().getKeys(false).stream().toList();
+        List<String> availableShops = new ArrayList<>(GUIShop.getINSTANCE().getConfigManager().getShopNames());
 
         TreeMap<Double, String> sorted = new TreeMap<>();
 

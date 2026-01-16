@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import lombok.Getter;
@@ -81,13 +82,31 @@ public final class ConfigManager {
      * The overridden config file objects.
      */
     @Getter
-    private File configFile, shopFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile, worthFile;
+    private File configFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile, worthFile;
+    
+    /**
+     * The shops folder containing individual shop files.
+     */
+    @Getter
+    private File shopsFolder;
+    
+    /**
+     * Map of shop name to their config file.
+     */
+    @Getter
+    private final Map<String, File> shopFiles = new ConcurrentHashMap<>();
+    
+    /**
+     * Map of shop name to their FileConfiguration.
+     */
+    @Getter
+    private final Map<String, FileConfiguration> shopConfigs = new ConcurrentHashMap<>();
 
     /**
      * The configs FileConfiguration object.
      */
     @Getter
-    private FileConfiguration mainConfig, shopConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig, worthConfig;
+    private FileConfiguration mainConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig, worthConfig;
 
     @Getter
     public MessageSystem messageSystem;
@@ -105,7 +124,6 @@ public final class ConfigManager {
 
     public void initConfigs() {
         mainConfig = new YamlConfiguration();
-        shopConfig = new YamlConfiguration();
         menuConfig = new YamlConfiguration();
         cacheConfig = new YamlConfiguration();
         inventoryConfig = new YamlConfiguration();
@@ -113,21 +131,17 @@ public final class ConfigManager {
         worthConfig = new YamlConfiguration();
 
         configFile = new File(this.dataFolder, "config.yml");
-        shopFile = new File(this.dataFolder, "shops.yml");
         menuFile = new File(this.dataFolder, "menu.yml");
         cacheFile = new File(this.dataFolder, "/Data/cache.yml");
         inventoryFile = new File(this.dataFolder.getPath(), "/Data/inventories.yml");
         messagesFile = new File(getDataFolder(), "messages.yml");
         worthFile = new File(getDataFolder(), "worth.yml");
+        shopsFolder = new File(this.dataFolder, "shops");
 
         configFile.getParentFile().mkdirs();
 
         if (!configFile.exists()) {
             GUIShop.getINSTANCE().saveResource("config.yml", false);
-        }
-
-        if (!shopFile.exists()) {
-            GUIShop.getINSTANCE().saveResource("shops.yml", false);
         }
 
         if (!menuFile.exists()) {
@@ -152,14 +166,20 @@ public final class ConfigManager {
             GUIShop.getINSTANCE().saveResource("worth.yml", false);
         }
 
+        // Initialize shops folder
+        initShopsFolder();
+
         try {
             mainConfig.load(configFile);
-            shopConfig.load(shopFile);
             menuConfig.load(menuFile);
             cacheConfig.load(cacheFile);
             inventoryConfig.load(inventoryFile);
             messagesConfig.load(messagesFile);
             worthConfig.load(worthFile);
+            
+            // Load all shop configs from shops folder
+            loadAllShopConfigs();
+            
             messageSystem.loadCustomMessages(messagesConfig);
             loadCache();
             loadDefaults();
@@ -168,7 +188,250 @@ public final class ConfigManager {
         } catch (IOException | InvalidConfigurationException e) {
             GUIShop.getINSTANCE().getLogUtil().log("Error Main config: " + e.getMessage());
         }
-
+    }
+    
+    /**
+     * Initialize the shops folder and handle migration from old shops.yml
+     */
+    private void initShopsFolder() {
+        // Create shops folder if it doesn't exist
+        if (!shopsFolder.exists()) {
+            shopsFolder.mkdirs();
+        }
+        
+        // Check for legacy shops.yml and migrate if needed
+        File legacyShopsFile = new File(this.dataFolder, "shops.yml");
+        if (legacyShopsFile.exists()) {
+            migrateFromLegacyShopsYml(legacyShopsFile);
+        }
+        
+        // If shops folder is empty, extract default example shops
+        File[] shopYmlFiles = shopsFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (shopYmlFiles == null || shopYmlFiles.length == 0) {
+            extractDefaultShops();
+        }
+    }
+    
+    /**
+     * Migrate shops from legacy shops.yml to individual files in shops folder.
+     */
+    private void migrateFromLegacyShopsYml(File legacyFile) {
+        GUIShop.getINSTANCE().getLogUtil().log("Detected legacy shops.yml - migrating to individual shop files...");
+        
+        try {
+            YamlConfiguration legacyConfig = new YamlConfiguration();
+            legacyConfig.load(legacyFile);
+            
+            Set<String> shopNames = legacyConfig.getKeys(false);
+            int migratedCount = 0;
+            
+            for (String shopName : shopNames) {
+                ConfigurationSection shopSection = legacyConfig.getConfigurationSection(shopName);
+                if (shopSection == null) continue;
+                
+                // Create individual shop file
+                File shopFile = new File(shopsFolder, shopName + ".yml");
+                if (shopFile.exists()) {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Shop file already exists, skipping: " + shopName);
+                    continue;
+                }
+                
+                // Create new config for this shop
+                YamlConfiguration shopConfig = new YamlConfiguration();
+                
+                // Copy all data from the section
+                for (String key : shopSection.getKeys(true)) {
+                    Object value = shopSection.get(key);
+                    // Only set leaf values, not sections
+                    if (!(value instanceof ConfigurationSection)) {
+                        shopConfig.set(key, value);
+                    }
+                }
+                
+                // Save the individual shop file
+                shopConfig.save(shopFile);
+                migratedCount++;
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Migrated shop: " + shopName);
+            }
+            
+            if (migratedCount > 0) {
+                // Rename old shops.yml to shops.yml.backup
+                File backupFile = new File(this.dataFolder, "shops.yml.backup");
+                if (backupFile.exists()) {
+                    backupFile.delete();
+                }
+                legacyFile.renameTo(backupFile);
+                GUIShop.getINSTANCE().getLogUtil().log("Migration complete! Migrated " + migratedCount + " shops.");
+                GUIShop.getINSTANCE().getLogUtil().log("Old shops.yml has been backed up to shops.yml.backup");
+            }
+            
+        } catch (IOException | InvalidConfigurationException e) {
+            GUIShop.getINSTANCE().getLogUtil().log("Error migrating legacy shops.yml: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Extract default example shop files from plugin resources.
+     */
+    private void extractDefaultShops() {
+        // Extract example shops from resources
+        String[] defaultShops = {"Blocks.yml", "Tools.yml", "Food.yml", "Raiding.yml"};
+        
+        for (String shopFileName : defaultShops) {
+            InputStream resource = GUIShop.getINSTANCE().getClass().getClassLoader()
+                    .getResourceAsStream("shops/" + shopFileName);
+            if (resource != null) {
+                File destFile = new File(shopsFolder, shopFileName);
+                copy(shopFileName, resource, destFile.getPath());
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Extracted default shop: " + shopFileName);
+            }
+        }
+    }
+    
+    /**
+     * Load all shop configuration files from the shops folder.
+     */
+    public void loadAllShopConfigs() {
+        shopConfigs.clear();
+        shopFiles.clear();
+        
+        File[] shopYmlFiles = shopsFolder.listFiles((dir, name) -> name.endsWith(".yml"));
+        if (shopYmlFiles == null || shopYmlFiles.length == 0) {
+            GUIShop.getINSTANCE().getLogUtil().log("No shop files found in shops folder!");
+            return;
+        }
+        
+        for (File shopFile : shopYmlFiles) {
+            String shopName = shopFile.getName().replace(".yml", "");
+            try {
+                YamlConfiguration config = new YamlConfiguration();
+                config.load(shopFile);
+                shopConfigs.put(shopName, config);
+                shopFiles.put(shopName, shopFile);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Loaded shop config: " + shopName);
+            } catch (IOException | InvalidConfigurationException e) {
+                GUIShop.getINSTANCE().getLogUtil().log("Error loading shop " + shopName + ": " + e.getMessage());
+            }
+        }
+        
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Loaded " + shopConfigs.size() + " shop configs.");
+    }
+    
+    /**
+     * Get a specific shop's configuration.
+     * @param shopName The name of the shop
+     * @return The FileConfiguration for the shop, or null if not found
+     */
+    public FileConfiguration getShopConfig(String shopName) {
+        return shopConfigs.get(shopName);
+    }
+    
+    /**
+     * Get a specific shop's file.
+     * @param shopName The name of the shop
+     * @return The File for the shop, or null if not found
+     */
+    public File getShopFile(String shopName) {
+        return shopFiles.get(shopName);
+    }
+    
+    /**
+     * Save a specific shop's configuration to disk.
+     * @param shopName The name of the shop to save
+     */
+    public void saveShopConfig(String shopName) {
+        FileConfiguration config = shopConfigs.get(shopName);
+        File file = shopFiles.get(shopName);
+        
+        if (config != null && file != null) {
+            try {
+                config.save(file);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Saved shop config: " + shopName);
+            } catch (IOException e) {
+                GUIShop.getINSTANCE().getLogUtil().log("Error saving shop " + shopName + ": " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Reload a specific shop's configuration from disk.
+     * @param shopName The name of the shop to reload
+     */
+    public void reloadShopConfig(String shopName) {
+        File file = shopFiles.get(shopName);
+        if (file != null && file.exists()) {
+            try {
+                YamlConfiguration config = new YamlConfiguration();
+                config.load(file);
+                shopConfigs.put(shopName, config);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Reloaded shop config: " + shopName);
+            } catch (IOException | InvalidConfigurationException e) {
+                GUIShop.getINSTANCE().getLogUtil().log("Error reloading shop " + shopName + ": " + e.getMessage());
+            }
+        }
+    }
+    
+    /**
+     * Create a new shop with the given name.
+     * @param shopName The name of the new shop
+     * @param title The display title for the shop
+     * @return true if created successfully, false if shop already exists
+     */
+    public boolean createShop(String shopName, String title) {
+        if (shopConfigs.containsKey(shopName)) {
+            return false;
+        }
+        
+        File shopFile = new File(shopsFolder, shopName + ".yml");
+        YamlConfiguration config = new YamlConfiguration();
+        config.set("title", title);
+        config.createSection("pages.Page0.items");
+        
+        try {
+            config.save(shopFile);
+            shopConfigs.put(shopName, config);
+            shopFiles.put(shopName, shopFile);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Created new shop: " + shopName);
+            return true;
+        } catch (IOException e) {
+            GUIShop.getINSTANCE().getLogUtil().log("Error creating shop " + shopName + ": " + e.getMessage());
+            return false;
+        }
+    }
+    
+    /**
+     * Delete a shop.
+     * @param shopName The name of the shop to delete
+     * @return true if deleted successfully
+     */
+    public boolean deleteShop(String shopName) {
+        File file = shopFiles.get(shopName);
+        if (file != null && file.exists()) {
+            if (file.delete()) {
+                shopConfigs.remove(shopName);
+                shopFiles.remove(shopName);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Deleted shop: " + shopName);
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    /**
+     * Get all available shop names.
+     * @return Set of shop names
+     */
+    public Set<String> getShopNames() {
+        return new java.util.HashSet<>(shopConfigs.keySet());
+    }
+    
+    /**
+     * Check if a shop exists.
+     * @param shopName The name of the shop
+     * @return true if the shop exists
+     */
+    public boolean shopExists(String shopName) {
+        return shopConfigs.containsKey(shopName);
     }
 
     public void loadCache() {
@@ -188,9 +451,11 @@ public final class ConfigManager {
             mainConfig.load(configFile);
             menuConfig.load(menuFile);
             cacheConfig.load(cacheFile);
-            shopConfig.load(shopFile);
             messagesConfig.load(messagesFile);
             worthConfig.load(worthFile);
+            
+            // Reload all shop configs from folder
+            loadAllShopConfigs();
             
             // Reload message system
             messageSystem.loadCustomMessages(messagesConfig);
@@ -206,16 +471,13 @@ public final class ConfigManager {
     }
     
     /**
-     * Reload only the shop config from disk.
-     * Used after saving individual items to ensure config consistency.
+     * Reload all shop configs from disk.
+     * @deprecated Use loadAllShopConfigs() or reloadShopConfig(String shopName) instead
      */
+    @Deprecated
     public void reloadShopConfig() {
-        try {
-            shopConfig.load(shopFile);
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Shop config reloaded from disk.");
-        } catch (IOException | InvalidConfigurationException e) {
-            GUIShop.getINSTANCE().getLogUtil().log("Error reloading shop config: " + e.getMessage());
-        }
+        loadAllShopConfigs();
+        GUIShop.getINSTANCE().getLogUtil().debugLog("All shop configs reloaded from disk.");
     }
     
     /**

@@ -1101,16 +1101,22 @@ public class ItemEditorGui {
                     GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Updated menu cache at slot " + originalSlot);
                 }
             } else {
-                // 1. Save to shops.yml config file
+                // 1. Save to individual shop config file
                 org.bukkit.configuration.file.FileConfiguration shopConfig = 
-                    GUIShop.getINSTANCE().getConfigManager().getShopConfig();
+                    GUIShop.getINSTANCE().getConfigManager().getShopConfig(shopName);
                 
-                String itemPath = shopName + ".pages." + pageKey + ".items." + originalSlot;
+                if (shopConfig == null) {
+                    GUIShop.getINSTANCE().getLogUtil().log("EDITOR SAVE: Shop config not found for " + shopName);
+                    player.sendMessage(ChatColor.RED + "Error: Shop config not found!");
+                    return;
+                }
+                
+                String itemPath = "pages." + pageKey + ".items." + originalSlot;
                 shopConfig.set(itemPath, null);
                 for (java.util.Map.Entry<String, Object> entry : serialized.entrySet()) {
                     shopConfig.set(itemPath + "." + entry.getKey(), entry.getValue());
                 }
-                shopConfig.save(GUIShop.getINSTANCE().getConfigManager().getShopFile());
+                GUIShop.getINSTANCE().getConfigManager().saveShopConfig(shopName);
                 
                 // 2. Update in-memory cache directly
                 Object cached = GUIShop.getINSTANCE().getLoadedShops().get(shopName);

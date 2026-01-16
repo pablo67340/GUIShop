@@ -6,7 +6,6 @@ import com.pablo67340.guishop.definition.*;
 import com.pablo67340.guishop.gui.PagedGui;
 import com.pablo67340.guishop.util.NameUtil;
 import com.pablo67340.guishop.util.PDCUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -14,7 +13,8 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
+
+import com.pablo67340.guishop.util.SchedulerUtil;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -607,8 +607,7 @@ public final class Menu {
         if ((clickedItem == null || clickedItem.getType().isAir()) && e.getCursor() != null && !e.getCursor().getType().isAir()) {
             int slot = e.getSlot();
             // Run after the event to get the placed item
-            BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-            scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
+            SchedulerUtil.runAtEntityLater(player, () -> {
                 ItemStack placedItem = e.getInventory().getItem(slot);
                 if (placedItem != null) {
                     GUIShop.getINSTANCE().getLogUtil().debugLog("New menu item placed: " + placedItem.getType());

@@ -191,7 +191,6 @@
                         <includes>
                             <include>plugin.yml</include>
                             <include>config.yml</include>
-                            <include>shops.yml</include>
                             <include>menu.yml</include>
                             <include>cache.yml</include>
                             <include>README.txt</include>
@@ -226,6 +225,14 @@
                         <includes>
                             <include>cache.yml</include>
                             <include>inventories.yml</include>
+                        </includes>
+                    </resource>
+                    <resource>
+                        <directory>${project.basedir}/resources/shops</directory>
+                        <targetPath>shops</targetPath>
+                        <filtering>true</filtering>
+                        <includes>
+                            <include>*.yml</include>
                         </includes>
                     </resource>
                 </resources>

@@ -6,7 +6,6 @@ import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.economy.EconomyManager;
 import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.util.PDCUtil;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.block.Block;
 import org.bukkit.block.CreatureSpawner;
@@ -22,7 +21,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
+
+import com.pablo67340.guishop.util.SchedulerUtil;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -105,9 +105,8 @@ public final class PlayerListener implements Listener {
         if (Item.isSpawnerItem(item)) {
             String mobId = PDCUtil.getString(item, PDCUtil.KEY_SPAWNER_MOB);
             if (mobId != null) {
-                BukkitScheduler scheduler = Bukkit.getServer().getScheduler();
-                scheduler.scheduleSyncDelayedTask(GUIShop.getINSTANCE(), () -> {
-                    Block block = event.getBlockPlaced();
+                Block block = event.getBlockPlaced();
+                SchedulerUtil.runAtLocationLater(block.getLocation(), () -> {
                     CreatureSpawner cs = (CreatureSpawner) block.getState();
 
                     GUIShop.getINSTANCE().getLogUtil().debugLog("Applying mob type " + mobId);

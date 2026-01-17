@@ -1100,6 +1100,19 @@ public class ItemEditorGui {
                     loadedMenu.getPages().get(pageKey).getItems().put(String.valueOf(originalSlot), parsedItem);
                     GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Updated menu cache at slot " + originalSlot);
                 }
+                
+                // 3. Auto-create target shop if it doesn't exist
+                if (parsedItem.hasTargetShop()) {
+                    String targetShopName = parsedItem.getTargetShop();
+                    if (!GUIShop.getINSTANCE().getConfigManager().shopExists(targetShopName)) {
+                        // Create a new shop file with the target shop name
+                        String shopTitle = "&a" + targetShopName + " Shop";
+                        if (GUIShop.getINSTANCE().getConfigManager().createShop(targetShopName, shopTitle)) {
+                            player.sendMessage(ChatColor.GREEN + "Created new shop: " + ChatColor.YELLOW + targetShopName + ".yml");
+                            GUIShop.getINSTANCE().getLogUtil().log("Auto-created new shop file: " + targetShopName + ".yml");
+                        }
+                    }
+                }
             } else {
                 // 1. Save to individual shop config file
                 org.bukkit.configuration.file.FileConfiguration shopConfig = 

@@ -495,6 +495,20 @@ public final class Menu {
         GUIShop.getINSTANCE().getLogUtil().debugLog("Player Edited Item: " + item.getMaterial() + " slot: " + slot);
         try {
             GUIShop.getINSTANCE().getConfigManager().getMenuConfig().save(GUIShop.getINSTANCE().getConfigManager().getMenuFile());
+            
+            // Auto-create target shop if it doesn't exist
+            if (item.hasTargetShop()) {
+                String targetShopName = item.getTargetShop();
+                if (!GUIShop.getINSTANCE().getConfigManager().shopExists(targetShopName)) {
+                    String shopTitle = "&a" + targetShopName + " Shop";
+                    if (GUIShop.getINSTANCE().getConfigManager().createShop(targetShopName, shopTitle)) {
+                        if (player != null) {
+                            player.sendMessage(ChatColor.GREEN + "Created new shop: " + ChatColor.YELLOW + targetShopName + ".yml");
+                        }
+                        GUIShop.getINSTANCE().getLogUtil().log("Auto-created new shop file: " + targetShopName + ".yml");
+                    }
+                }
+            }
         } catch (IOException ex) {
             GUIShop.getINSTANCE().getLogUtil().debugLog("Error saving Shops: " + ex.getMessage());
         }
@@ -733,6 +747,9 @@ public final class Menu {
                 // Invalidate the menu cache
                 GUIShop.getINSTANCE().setLoadedMenu(null);
                 
+                // Check all menu items for target-shops that don't exist and auto-create them
+                checkAndCreateTargetShops();
+                
                 if (player != null) {
                     player.sendMessage(ChatColor.GREEN + "Menu changes saved!");
                 }
@@ -743,6 +760,32 @@ public final class Menu {
         }
     }
 
+    /**
+     * Check all menu items for target-shops and auto-create any that don't exist.
+     */
+    private void checkAndCreateTargetShops() {
+        if (menuItem == null || menuItem.getPages() == null) return;
+        
+        for (MenuPage page : menuItem.getPages().values()) {
+            if (page.getItems() == null) continue;
+            
+            for (Item item : page.getItems().values()) {
+                if (item.hasTargetShop()) {
+                    String targetShopName = item.getTargetShop();
+                    if (!GUIShop.getINSTANCE().getConfigManager().shopExists(targetShopName)) {
+                        String shopTitle = "&a" + targetShopName + " Shop";
+                        if (GUIShop.getINSTANCE().getConfigManager().createShop(targetShopName, shopTitle)) {
+                            if (player != null) {
+                                player.sendMessage(ChatColor.GREEN + "Created new shop: " + ChatColor.YELLOW + targetShopName + ".yml");
+                            }
+                            GUIShop.getINSTANCE().getLogUtil().log("Auto-created new shop file: " + targetShopName + ".yml");
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
     /**
      * Get the current page index (for compatibility with other classes).
      */

@@ -11,6 +11,8 @@ import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWi
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.gui.GUIHolder;
+import com.pablo67340.guishop.util.PDCUtil;
 import io.github.retrooper.packetevents.util.SpigotConversionUtil;
 import lombok.Getter;
 import com.pablo67340.guishop.util.SchedulerUtil;
@@ -374,6 +376,14 @@ public class WorthDisplayManager {
     private boolean shouldSkipPlayerInventory(Player player) {
         // Check if player has an inventory open
         if (player.getOpenInventory() != null) {
+            // Skip all GUIShop inventories (Menu, Shop, etc.) - no worth display in shop GUIs
+            if (player.getOpenInventory().getTopInventory().getHolder() instanceof GUIHolder) {
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("BLACKLIST CHECK: Skipping GUIShop inventory");
+                }
+                return true;
+            }
+            
             // Note: We allow worth lore in creative inventory - it displays correctly
             // Only the updateInventory() calls are skipped for creative mode to avoid desync
             
@@ -652,6 +662,14 @@ public class WorthDisplayManager {
             return null;
         }
 
+        // Check if item is marked as a GUI element (should not show worth)
+        if (isGuiElement(item)) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("PROCESS: " + item.getType() + " is GUI element, skipping worth");
+            }
+            return stripWorthLore(item); // Just strip, don't add
+        }
+
         // Check if item name is blacklisted
         if (hasBlacklistedName(item)) {
             if (WorthConfig.isDebug()) {
@@ -846,6 +864,15 @@ public class WorthDisplayManager {
             }
         }
         return false;
+    }
+
+    /**
+     * Check if the item is marked as a GUI element (should not display worth).
+     * GUI elements like buttons, indicators, and player heads are marked with a PDC tag.
+     */
+    private boolean isGuiElement(ItemStack item) {
+        String guiElement = PDCUtil.getString(item, PDCUtil.KEY_GUI_ELEMENT);
+        return "true".equals(guiElement);
     }
 
     /**

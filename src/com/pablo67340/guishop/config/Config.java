@@ -13,7 +13,7 @@ public final class Config {
      */
     @Getter
     @Setter
-    private static boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled,
+    private static boolean signsOnly, disableBackButton, disableEscapeBack, soundEnabled,
             dynamicPricing, debugMode, sellSkullUUID, disableEscapeBackQuantity, transactionLog, hideNonBuyable,
             abbreviatePrices;
 
@@ -47,6 +47,10 @@ public final class Config {
     @Getter
     @Setter
     private static LoreConfig loreConfig = new LoreConfig();
+
+    @Getter
+    @Setter
+    private static TransactionGuiConfig transactionGuiConfig = new TransactionGuiConfig();
 
     /**
      * The list of disabled worlds for GUIShop

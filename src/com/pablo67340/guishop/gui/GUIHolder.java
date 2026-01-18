@@ -3,11 +3,13 @@ package com.pablo67340.guishop.gui;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
+import org.bukkit.inventory.InventoryHolder;
 
 /**
  * Interface for classes that can handle GUI events.
+ * Extends InventoryHolder so GUIShop inventories can be properly identified.
  */
-public interface GUIHolder {
+public interface GUIHolder extends InventoryHolder {
 
     /**
      * Handle a click event in this GUI.

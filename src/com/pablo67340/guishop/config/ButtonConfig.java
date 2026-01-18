@@ -14,7 +14,7 @@ public class ButtonConfig {
 
     @Getter
     @Setter
-    public Item backwardButton, forwardButton, backButton;
+    public Item backwardButton, forwardButton, backButton, pageIndicatorButton;
 
     @Getter
     @Setter
@@ -27,6 +27,7 @@ public class ButtonConfig {
         createBackButton();
         createBackwardButton();
         createForwardButton();
+        createPageIndicatorButton();
     }
 
     protected void createBackwardButton() {
@@ -63,5 +64,15 @@ public class ButtonConfig {
         backButton.setItemType(ItemType.DUMMY);
 
         backSlot = config.getInt("buttons.back.slot");
+    }
+
+    protected void createPageIndicatorButton() {
+        if (config.getConfigurationSection("buttons.page-indicator") == null) {
+            pageIndicatorButton = new ItemBuilder().setNames("&fPage %page% of %maxpage%").setMaterial("NETHER_STAR").setItemType(ItemType.DUMMY).build();
+            return;
+        }
+
+        pageIndicatorButton = Item.deserialize(config.getConfigurationSection("buttons.page-indicator").getValues(true), -1, null);
+        pageIndicatorButton.setItemType(ItemType.DUMMY);
     }
 }

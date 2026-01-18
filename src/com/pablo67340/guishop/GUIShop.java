@@ -18,6 +18,7 @@ import com.pablo67340.guishop.economy.GUIShopEconomy;
 import com.pablo67340.guishop.statistics.GUIShopPlaceholderExpansion;
 import com.pablo67340.guishop.statistics.StatisticsManager;
 import net.milkbowl.vault.economy.Economy;
+import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
 import com.pablo67340.guishop.util.ConfigManager;
 import com.pablo67340.guishop.util.LogUtil;
@@ -255,6 +256,24 @@ public final class GUIShop extends JavaPlugin {
             if (getServer().getPluginManager().getPlugin("Vault") == null) {
                 getLogUtil().log("Vault not found. Internal economy cannot be registered.");
                 return;
+            }
+            
+            // Check if another economy plugin is already registered
+            RegisteredServiceProvider<Economy> existingEconomy = getServer().getServicesManager().getRegistration(Economy.class);
+            if (existingEconomy != null) {
+                String existingPlugin = existingEconomy.getPlugin().getName();
+                getLogUtil().log("=========================================");
+                getLogUtil().log("NOTICE: Another economy plugin detected!");
+                getLogUtil().log("Detected: " + existingPlugin);
+                getLogUtil().log("");
+                getLogUtil().log("GUIShop's internal economy is currently ENABLED");
+                getLogUtil().log("and will override " + existingPlugin + ".");
+                getLogUtil().log("");
+                getLogUtil().log("To use " + existingPlugin + " instead:");
+                getLogUtil().log("  1. Open plugins/GUIShop/economy.yml");
+                getLogUtil().log("  2. Set 'enabled: false'");
+                getLogUtil().log("  3. Restart the server");
+                getLogUtil().log("=========================================");
             }
             
             // Initialize economy manager

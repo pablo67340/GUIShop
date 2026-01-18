@@ -63,7 +63,6 @@ public class ItemEditorGui {
     private List<String> shopLore;
     private List<String> buyLore;
     private List<String> commands;
-    private Integer quantity;
     private String skullUuid;
     private String potionInfo;
     private String fireworkInfo;
@@ -153,9 +152,6 @@ public class ItemEditorGui {
                 itemType = ItemType.DUMMY;
             }
         }
-
-        // Quantity
-        quantity = PDCUtil.getInteger(item, PDCUtil.KEY_QUANTITY);
 
         // Lore lists
         String shopLoreStr = PDCUtil.getString(item, PDCUtil.KEY_SHOP_LORE_LINES);
@@ -262,7 +258,7 @@ public class ItemEditorGui {
             "&fSkull UUID", "Player UUID or Base64 texture"));
         gui.setItem(33, createStringButton("permission", permission, Material.IRON_BARS,
             "&7Permission", "Required permission to buy"));
-        gui.setItem(34, createQuantityButton());
+        // Slot 34 intentionally empty - quantity is handled by Transaction GUI
 
         // Row 6: Actions
         gui.setItem(45, createActionButton(Material.LIME_WOOL, "&a&lSave", 
@@ -392,26 +388,6 @@ public class ItemEditorGui {
             .addLoreLine(ChatColor.GRAY + "Current: " + ChatColor.WHITE + itemType.name())
             .addLoreLine("")
             .addLoreLine(ChatColor.YELLOW + "Click to cycle types")
-            .addItemFlag(ItemFlag.HIDE_ATTRIBUTES)
-            .build();
-    }
-
-    /**
-     * Create the quantity button.
-     */
-    private ItemStack createQuantityButton() {
-        String valueStr = (quantity == null || quantity == 1) 
-            ? ChatColor.GRAY + "Default (1)" 
-            : ChatColor.GREEN + String.valueOf(quantity);
-
-        return new ItemStackBuilder(Material.HOPPER)
-            .setName(ChatColor.AQUA + "Quantity")
-            .addLoreLine(ChatColor.GRAY + "Stack size to give on purchase")
-            .addLoreLine("")
-            .addLoreLine(ChatColor.GRAY + "Current: " + valueStr)
-            .addLoreLine("")
-            .addLoreLine(ChatColor.YELLOW + "Left-click to edit")
-            .addLoreLine(ChatColor.RED + "Right-click to reset")
             .addItemFlag(ItemFlag.HIDE_ATTRIBUTES)
             .build();
     }
@@ -568,8 +544,7 @@ public class ItemEditorGui {
                 case 32 -> editSkullUuid(event.isRightClick());
                 // Permission (right-click to clear)
                 case 33 -> editPermission(event.isRightClick());
-                // Quantity (right-click to clear/reset)
-                case 34 -> editQuantity(event.isRightClick());
+                // Slot 34 - empty (quantity handled by Transaction GUI)
                 // Save
                 case 45 -> saveAndClose();
                 // Reset
@@ -875,32 +850,6 @@ public class ItemEditorGui {
         );
     }
 
-    private void editQuantity(boolean clear) {
-        if (clear) {
-            quantity = null;
-            player.sendMessage(ChatColor.YELLOW + "Quantity reset to default.");
-            buildMainMenu();
-            gui.update();
-            return;
-        }
-        
-        player.closeInventory();
-        ChatInputHandler.getInstance().requestInput(player,
-            "Enter the quantity to give on purchase:",
-            input -> {
-                try {
-                    quantity = Integer.parseInt(input.trim());
-                } catch (NumberFormatException e) {
-                    player.sendMessage(ChatColor.RED + "Invalid number!");
-                    quantity = null;
-                }
-                open();
-            },
-            this::open,
-            60
-        );
-    }
-
     private void openEnchantmentsEditor(boolean clear) {
         if (clear) {
             enchantments = null;
@@ -1021,12 +970,7 @@ public class ItemEditorGui {
         GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Setting item type PDC to " + itemType.name());
         PDCUtil.setString(item, PDCUtil.KEY_ITEM_TYPE, itemType.name());
         
-        // Quantity
-        if (quantity != null && quantity > 1) {
-            PDCUtil.setInteger(item, PDCUtil.KEY_QUANTITY, quantity);
-        } else {
-            PDCUtil.removeKey(item, PDCUtil.KEY_QUANTITY);
-        }
+        // Note: Quantity is handled by the Transaction GUI, not stored per-item
         
         // Lists (join with ::)
         if (shopLore != null && !shopLore.isEmpty()) {
@@ -1070,6 +1014,8 @@ public class ItemEditorGui {
      */
     private void saveToConfig(ItemStack item) {
         try {
+            // YAML uses 1-indexed pages (Page1, Page2), but GUI uses 0-indexed
+            // YAML uses 0-indexed pages (Page0, Page1, etc.)
             String pageKey = "Page" + currentPage;
             
             // Parse item from PDC data
@@ -1133,12 +1079,21 @@ public class ItemEditorGui {
                 
                 // 2. Update in-memory cache directly
                 Object cached = GUIShop.getINSTANCE().getLoadedShops().get(shopName);
+                GUIShop.getINSTANCE().getLogUtil().log("EDITOR SAVE: Cache lookup for shop '" + shopName + "' = " + (cached != null ? "found" : "NOT FOUND"));
                 if (cached instanceof com.pablo67340.guishop.definition.ShopItem) {
                     com.pablo67340.guishop.definition.ShopItem shopItem = 
                         (com.pablo67340.guishop.definition.ShopItem) cached;
+                    GUIShop.getINSTANCE().getLogUtil().log("EDITOR SAVE: Shop has pages: " + String.join(", ", shopItem.getPages().keySet()));
                     if (shopItem.getPages().containsKey(pageKey)) {
                         shopItem.getPages().get(pageKey).getItems().put(String.valueOf(originalSlot), parsedItem);
-                        GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Updated shop cache at slot " + originalSlot);
+                        GUIShop.getINSTANCE().getLogUtil().log("EDITOR SAVE: Updated cache at " + pageKey + " slot " + originalSlot + " type=" + parsedItem.getItemType());
+                    } else {
+                        // Page doesn't exist in cache - create it
+                        GUIShop.getINSTANCE().getLogUtil().log("EDITOR SAVE: Page " + pageKey + " not in cache, creating new page");
+                        com.pablo67340.guishop.definition.ShopPage newPage = new com.pablo67340.guishop.definition.ShopPage();
+                        newPage.getItems().put(String.valueOf(originalSlot), parsedItem);
+                        shopItem.getPages().put(pageKey, newPage);
+                        GUIShop.getINSTANCE().getLogUtil().log("EDITOR SAVE: Created new page and added item");
                     }
                 }
             }

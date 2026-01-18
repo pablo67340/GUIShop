@@ -1,0 +1,55 @@
+###########################################################################
+#                         GUISHOP MENU                                    #
+#     Main menu with shop buttons - 5 shops in a centered layout          #
+###########################################################################
+
+Menu:
+  pages:
+    Page0:
+      items:
+        # Row 1 - Top buffer (slots 0-8) - empty
+        
+        # Row 2 - Shop buttons centered (slots 9-17)
+        '11':
+          id: BRICKS
+          name: '&e&lBlocks'
+          lore:
+            - '&7Building materials'
+            - '&7Stone, wood, and more'
+          target-shop: 'Blocks'
+        '12':
+          id: COOKED_BEEF
+          name: '&e&lFood'
+          lore:
+            - '&7Food and consumables'
+            - '&7Stay fed!'
+          target-shop: 'Food'
+        '13':
+          id: DIAMOND_SWORD
+          name: '&e&lCombat'
+          lore:
+            - '&7Weapons and armor'
+            - '&7Gear up for battle'
+          target-shop: 'Combat'
+        '14':
+          id: TNT
+          name: '&e&lRaiding'
+          lore:
+            - '&7Raiding supplies'
+            - '&7TNT, redstone, and more'
+          target-shop: 'Raiding'
+        '15':
+          id: SPAWNER
+          name: '&e&lSpawners'
+          lore:
+            - '&7Mob spawners'
+            - '&7Build your farm'
+          target-shop: 'Spawners'
+        
+        # Row 3 - Bottom buffer (slots 18-26) - empty
+
+  ################################
+  ##  Developed by pablo67340   ##
+  ##  If you need any support:  ##
+  ##  discord.gg/wm6zMzdBwf     ##
+  ################################

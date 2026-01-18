@@ -45,9 +45,23 @@ public final class PlayerListener implements Listener {
         "toggleworth",
         "iteminfo"};
 
+    /**
+     * Opens the shop menu for a player.
+     * This removes the player from creator mode to ensure normal shop behavior.
+     */
     public Menu openMenu(Player player) {
-        // Ensure player is not in creator mode when opening shop normally
+        // Remove from creator mode when opening shop normally
         GUIShop.getCREATOR().remove(player.getUniqueId());
+        Menu menu = new Menu(player);
+        menu.open(player);
+        return menu;
+    }
+    
+    /**
+     * Opens the shop menu for a player in edit mode.
+     * Does NOT remove from creator mode - caller should add to CREATOR first.
+     */
+    public Menu openMenuForEdit(Player player) {
         Menu menu = new Menu(player);
         menu.open(player);
         return menu;

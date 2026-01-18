@@ -75,7 +75,13 @@ public final class MessageSystem {
         Objects.requireNonNull(configuration, "Configuration cannot be null!");
         synchronized (this.messages) {
             this.messages.values().forEach(message -> {
-                String s = configuration.getString(message.getPath());
+                String s;
+                // Handle both string and list formats in messages.yml
+                if (configuration.isList(message.getPath())) {
+                    s = String.join("\n", configuration.getStringList(message.getPath()));
+                } else {
+                    s = configuration.getString(message.getPath());
+                }
                 message.setCustomMessage(s != null ? ChatColor.translateAlternateColorCodes('&', s) : null);
             });
         }

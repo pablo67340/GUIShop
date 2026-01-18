@@ -1,0 +1,76 @@
+###########################################################################
+#                         SPAWNERS SHOP                                   #
+#                                                                         #
+# Mob spawners to build your grinder                                      #
+#                                                                         #
+# SPAWNER FORMAT:                                                         #
+#   'slot':                                                               #
+#     type: SHOP                                                          #
+#     id: SPAWNER                                                         #
+#     mob-type: ZOMBIE   # EntityType name (see Dictionary/spawner-names)#
+#     buy-price: 50000.0                                                  #
+#     sell-price: 10000.0                                                 #
+#     shop-name: '&2&lZombie Spawner'  # Custom display name             #
+#     lore:                                                               #
+#       - '&7Spawns zombies'                                              #
+#                                                                         #
+# SLOTS: Use 11-15 (row 1) for 5 centered items                          #
+###########################################################################
+
+# Shop title - displayed at top of inventory
+title: '&8&lSpawners'
+
+pages:
+  Page0:
+    items:
+      # --- Centered Spawners (5 items in slots 11-15) ---
+      '11':
+        type: SHOP
+        id: SPAWNER
+        mob-type: ZOMBIE
+        buy-price: 50000.0
+        sell-price: 10000.0
+        shop-name: '&2&lZombie Spawner'
+        lore:
+          - '&7Spawns zombies'
+          - '&7Great for XP farms!'
+      '12':
+        type: SHOP
+        id: SPAWNER
+        mob-type: SKELETON
+        buy-price: 50000.0
+        sell-price: 10000.0
+        shop-name: '&f&lSkeleton Spawner'
+        lore:
+          - '&7Spawns skeletons'
+          - '&7Get bones and arrows!'
+      '13':
+        type: SHOP
+        id: SPAWNER
+        mob-type: SPIDER
+        buy-price: 45000.0
+        sell-price: 9000.0
+        shop-name: '&8&lSpider Spawner'
+        lore:
+          - '&7Spawns spiders'
+          - '&7Collect string and eyes!'
+      '14':
+        type: SHOP
+        id: SPAWNER
+        mob-type: CREEPER
+        buy-price: 75000.0
+        sell-price: 15000.0
+        shop-name: '&a&lCreeper Spawner'
+        lore:
+          - '&7Spawns creepers'
+          - '&7Infinite gunpowder!'
+      '15':
+        type: SHOP
+        id: SPAWNER
+        mob-type: IRON_GOLEM
+        buy-price: 250000.0
+        sell-price: 50000.0
+        shop-name: '&7&lIron Golem Spawner'
+        lore:
+          - '&7Spawns iron golems'
+          - '&7Massive iron production!'

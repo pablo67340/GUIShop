@@ -275,7 +275,7 @@ public final class ConfigManager {
      */
     private void extractDefaultShops() {
         // Extract example shops from resources
-        String[] defaultShops = {"Blocks.yml", "Tools.yml", "Food.yml", "Raiding.yml"};
+        String[] defaultShops = {"Blocks.yml", "Food.yml", "Combat.yml", "Raiding.yml", "Spawners.yml"};
         
         for (String shopFileName : defaultShops) {
             InputStream resource = GUIShop.getINSTANCE().getClass().getClassLoader()
@@ -527,16 +527,13 @@ public final class ConfigManager {
                 Objects.requireNonNull(mainConfig.getString("titles.sign", "&f[&cGUIShop&f]"))));
 
         // Disable the back button
-        Config.setDisableBackButton(mainConfig.getBoolean("disable-back-button", true));
+        Config.setDisableBackButton(mainConfig.getBoolean("disable-back-button", false));
 
-        // Disable the feature to escape back
-        Config.setDisableEscapeBack(mainConfig.getBoolean("disable-escape-back", false));
+        // Disable the feature to escape back (true = ESC closes GUI completely)
+        Config.setDisableEscapeBack(mainConfig.getBoolean("disable-escape-back", true));
 
-        // Disable the feature to escape back from quantity (If the upper one is disabled, this is enabled)
-        Config.setDisableEscapeBackQuantity(mainConfig.getBoolean("disable-escape-back-quantity", true));
-
-        // Enable alternate sell
-        Config.setAlternateSellEnabled(mainConfig.getBoolean("alternate-sell-enable", false));
+        // Disable the feature to escape back from quantity (false = ESC in transaction returns to shop)
+        Config.setDisableEscapeBackQuantity(mainConfig.getBoolean("disable-escape-back-quantity", false));
 
         // The sound when buying something
         try {
@@ -578,6 +575,26 @@ public final class ConfigManager {
         // Value title
         Config.getTitlesConfig().setValueTitle(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(mainConfig.getString("titles.value", "&2Item values"))));
+
+        // Transaction GUI titles
+        Config.getTitlesConfig().setTransactionTitle(
+                mainConfig.getString("titles.transaction", "&8%item%"));
+        Config.getTitlesConfig().setTransactionBuyButton(
+                mainConfig.getString("titles.transaction-buy-button", "&a&lBuy %amount%"));
+        Config.getTitlesConfig().setTransactionSellButton(
+                mainConfig.getString("titles.transaction-sell-button", "&c&lSell %amount%"));
+        Config.getTitlesConfig().setTransactionBuyLore(
+                mainConfig.getString("titles.transaction-buy-lore", "&7Click to buy %amount% for %price%"));
+        Config.getTitlesConfig().setTransactionSellLore(
+                mainConfig.getString("titles.transaction-sell-lore", "&7Click to sell %amount% for %price%"));
+        Config.getTitlesConfig().setTransactionNotSellable(
+                mainConfig.getString("titles.transaction-not-sellable", "&c&lItem Not Sellable"));
+        Config.getTitlesConfig().setTransactionNotBuyable(
+                mainConfig.getString("titles.transaction-not-buyable", "&c&lItem Not Buyable"));
+        Config.getTitlesConfig().setTransactionBalanceTitle(
+                mainConfig.getString("titles.transaction-balance-title", "&6&l%player%"));
+        Config.getTitlesConfig().setTransactionBalanceLore(
+                mainConfig.getString("titles.transaction-balance-lore", "&7Balance: &a%balance%"));
 
         // The material for the indicator
         Config.getAltSellConfig().setIndicatorMaterial(mainConfig.getString("alt-sell.indicator-material", "EMERALD"));
@@ -651,6 +668,9 @@ public final class ConfigManager {
 
         // Load the buttons
         Config.getButtonConfig().createButtons();
+
+        // Load the transaction GUI config
+        Config.getTransactionGuiConfig().load();
 
         // Load the lores
         Map<String, String> lores = new ConcurrentHashMap<>();

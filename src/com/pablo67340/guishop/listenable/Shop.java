@@ -20,6 +20,8 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 import com.pablo67340.guishop.util.SchedulerUtil;
 
 import java.math.BigDecimal;
@@ -183,6 +185,9 @@ public class Shop {
                     logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "' returned null item. Check the item configuration.");
                     continue;
                 }
+                
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOAD: Item " + item.getMaterial() + " at slot " + slotKey + 
+                    " type=" + item.getItemType() + " buyPrice=" + (item.hasBuyPrice() ? item.getBuyPriceAsDecimal() : "none"));
 
                 // Register sellable items
                 if (item.hasSellPrice()) {
@@ -195,7 +200,8 @@ public class Shop {
                 }
             }
 
-            shopItem.getPages().put("Page" + pageIndex, page);
+            // Use the actual YAML page key (Page1, Page2, etc.) for cache consistency
+            shopItem.getPages().put(pageKey, page);
             GUIShop.getINSTANCE().getLogUtil().debugLog("Loaded " + pageKey + " with " + page.getItems().size() + " items.");
             pageIndex++;
         }
@@ -265,36 +271,42 @@ public class Shop {
 
     private void loadShop() {
         if (this.GUI == null) {
-            // Get initial rows from first page
-            int initialRows = 6;
-            if (!shopItem.getPages().isEmpty()) {
-                ShopPage firstPage = shopItem.getPages().values().iterator().next();
-                initialRows = GUIShop.rowChart.getRowsFromHighestSlot(firstPage.getHighestSlot());
-                if (hasMultiplePages() && initialRows != 6) {
-                    initialRows += 1; // Add row for navigation buttons
+            // Calculate dynamic row count based on item count (7 items per row with side padding)
+            int maxItemsOnPage = 0;
+            for (ShopPage page : shopItem.getPages().values()) {
+                int itemCount = 0;
+                for (Item item : page.getItems().values()) {
+                    if (item.getItemType() != ItemType.BLANK) {
+                        itemCount++;
+                    }
+                }
+                if (itemCount > maxItemsOnPage) {
+                    maxItemsOnPage = itemCount;
                 }
             }
+            
+            // Calculate rows: top buffer + item rows + bottom buffer + pagination
+            // 1-7 items = 4 rows, 8-14 items = 5 rows, 15-21 items = 6 rows
+            int itemRows = (int) Math.ceil(maxItemsOnPage / 7.0);
+            int initialRows = Math.min(6, Math.max(4, itemRows + 3)); // +1 top buffer, +1 bottom buffer, +1 pagination
 
             String guiTitle = ChatColor.translateAlternateColorCodes('&', 
                     Config.getTitlesConfig().getShopTitle().replace("%shopname%", title));
 
             this.GUI = new PagedGui(initialRows, guiTitle);
-            this.GUI.setDynamicRows(true);
+            this.GUI.setDynamicRows(false);
 
             int pageIndex = 0;
             for (Map.Entry<String, ShopPage> entry : shopItem.getPages().entrySet()) {
                 // Add a new page
                 GUI.addPage();
 
-                // Calculate rows for this page
-                int rows = GUIShop.rowChart.getRowsFromHighestSlot(entry.getValue().getHighestSlot());
-                if (hasMultiplePages() && rows != 6) {
-                    rows += 1; // Add row for navigation buttons
-                }
+                int rows = initialRows;
                 GUI.setPageRows(pageIndex, rows);
 
                 // Add items to the page
                 GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Loading page " + entry.getKey() + " with " + entry.getValue().getItems().size() + " items");
+                
                 for (Item item : entry.getValue().getItems().values()) {
                     if (item.getItemType() == ItemType.BLANK) {
                         continue;
@@ -317,25 +329,84 @@ public class Shop {
         GUIShop.getINSTANCE().getLogUtil().debugLog("Applying buttons with page index: " + pageIndex + " max pages: " + maxPages);
 
         int inventorySize = rows * 9;
-        int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
-        int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+        int bottomRowStart = (rows - 1) * 9;
+        int centerSlot = bottomRowStart + 4; // Center of bottom row (slot 49 for 6-row)
+        int prevSlot = centerSlot - 1; // Left of center
+        int nextSlot = centerSlot + 1; // Right of center
         int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        int playerHeadSlot = bottomRowStart; // Bottom left corner
 
-        if (pageIndex < (maxPages - 1)) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button at slot " + nextSlot);
-            GUI.setItem(pageIndex, nextSlot, Config.getButtonConfig().forwardButton.toItemStack(player, false));
-        }
+        // Add page indicator in center - always shows (configurable via buttons.page-indicator)
+        Item pageIndicatorConfig = Config.getButtonConfig().getPageIndicatorButton();
+        ItemStack pageIndicator = pageIndicatorConfig.toItemStack(player, false);
+        ItemMeta pageMeta = pageIndicator.getItemMeta();
+        String indicatorName = pageIndicatorConfig.hasShopName() ? pageIndicatorConfig.getShopName() : "&fPage %page% of %maxpage%";
+        pageMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+            indicatorName.replace("%page%", String.valueOf(pageIndex + 1)).replace("%maxpage%", String.valueOf(maxPages))));
+        pageIndicator.setItemMeta(pageMeta);
+        PDCUtil.setString(pageIndicator, PDCUtil.KEY_GUI_ELEMENT, "true");
+        GUI.setItem(pageIndex, centerSlot, pageIndicator);
 
-        if (pageIndex > 0) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button at slot " + prevSlot);
-            GUI.setItem(pageIndex, prevSlot, Config.getButtonConfig().backwardButton.toItemStack(player, false));
+        // Only show navigation buttons if there are multiple pages
+        if (maxPages > 1) {
+            // Add forward button - only if not on last page (configurable via buttons.forward)
+            if (pageIndex < (maxPages - 1)) {
+                ItemStack forwardButton = Config.getButtonConfig().getForwardButton().toItemStack(player, false);
+                PDCUtil.setString(forwardButton, PDCUtil.KEY_GUI_ELEMENT, "true");
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button at slot " + nextSlot);
+                GUI.setItem(pageIndex, nextSlot, forwardButton);
+            }
+
+            // Add backward button - only if not on first page (configurable via buttons.backward)
+            if (pageIndex > 0) {
+                ItemStack backwardButton = Config.getButtonConfig().getBackwardButton().toItemStack(player, false);
+                PDCUtil.setString(backwardButton, PDCUtil.KEY_GUI_ELEMENT, "true");
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button at slot " + prevSlot);
+                GUI.setItem(pageIndex, prevSlot, backwardButton);
+            }
         }
 
         if (!Config.isDisableBackButton()) {
             GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button at slot " + backSlot);
             ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, false);
+            PDCUtil.setString(backButtonItem, PDCUtil.KEY_GUI_ELEMENT, "true");
             GUI.setItem(pageIndex, backSlot, backButtonItem);
         }
+
+        // Add player head with balance in bottom left
+        if (player != null) {
+            ItemStack playerHead = createPlayerHead();
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding player head at slot " + playerHeadSlot);
+            GUI.setItem(pageIndex, playerHeadSlot, playerHead);
+        }
+    }
+
+    /**
+     * Creates the player head showing their balance.
+     */
+    private ItemStack createPlayerHead() {
+        ItemStack playerHead = XMaterial.PLAYER_HEAD.parseItem();
+        SkullMeta skullMeta = (SkullMeta) playerHead.getItemMeta();
+        skullMeta.setOwningPlayer(player);
+        
+        // Get player balance
+        double balance = GUIShop.getINSTANCE().getMiscUtils().getECONOMY().getBalance(player);
+        String formattedBalance = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
+            + GUIShop.getINSTANCE().getMiscUtils().economyFormat(BigDecimal.valueOf(balance))
+            + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
+        
+        skullMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+            Config.getTitlesConfig().getTransactionBalanceTitle().replace("%player%", player.getName())));
+        
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.translateAlternateColorCodes('&', 
+            Config.getTitlesConfig().getTransactionBalanceLore().replace("%balance%", formattedBalance)));
+        skullMeta.setLore(lore);
+        
+        playerHead.setItemMeta(skullMeta);
+        // Mark as GUI element to prevent worth display
+        PDCUtil.setString(playerHead, PDCUtil.KEY_GUI_ELEMENT, "true");
+        return playerHead;
     }
 
     private int calculateSlot(int setSlot, int inventorySize) {
@@ -398,17 +469,23 @@ public class Shop {
         }
 
         int inventorySize = GUI.getRows() * 9;
-        int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
-        int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+        int bottomRowStart = (GUI.getRows() - 1) * 9;
+        int centerSlot = bottomRowStart + 4; // Center of bottom row
+        int prevSlot = centerSlot - 1; // Left of center (ghast tear)
+        int nextSlot = centerSlot + 1; // Right of center (ghast tear)
         int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        int playerHeadSlot = bottomRowStart; // Bottom left corner
 
-        // Forward Button
+        // Forward Button (ghast tear right of center)
         GUIShop.getINSTANCE().getLogUtil().debugLog("Clicked: " + event.getSlot());
         if (event.getSlot() == nextSlot) {
             handleForwardButton();
-            // Backward Button
+            // Backward Button (ghast tear left of center)
         } else if (event.getSlot() == prevSlot) {
             handleBackwardButton();
+            // Center slot (nether star page indicator) - do nothing
+        } else if (event.getSlot() == centerSlot) {
+            return;
             // Back Button
         } else if (event.getSlot() == backSlot && !Config.isDisableBackButton()) {
             if (menuInstance != null && !GUIShop.getCREATOR().contains(player.getUniqueId())) {
@@ -417,52 +494,30 @@ public class Shop {
                 // Open menu directly - openInventory() will close current inventory
                 menuInstance.open(player);
             }
+        } else if (event.getSlot() == playerHeadSlot) {
+            // Player head click - do nothing (just displays balance info)
+            return;
         } else {
             handleItemClick(event);
         }
     }
 
     private void creatorPlayerInventoryClick(InventoryClickEvent e) {
-        ItemStack clickedItem = e.getCurrentItem();
+        // Player inventory clicks: Only allow left-click to pick up items for placing into shop
+        // Right-click and shift-click are blocked to prevent accidental edits
+        // Items can only be edited once placed in the shop GUI
         
-        // Right-click or Shift+click on an item = Open Item Editor GUI
-        if (clickedItem != null && !clickedItem.getType().isAir()) {
-            boolean isEditClick = e.getClick() == ClickType.RIGHT || 
-                                  e.getClick() == ClickType.SHIFT_LEFT || 
-                                  e.getClick() == ClickType.SHIFT_RIGHT;
-            
-            if (isEditClick) {
-                e.setCancelled(true);
-                clickOverride = true;
-                int currentPageForEditor = GUI.getCurrentPage();
-                player.closeInventory();
-                
-                // Open the Item Editor GUI
-                new com.pablo67340.guishop.listenable.editor.ItemEditorGui(
-                    player, 
-                    clickedItem, 
-                    e.getSlot(), 
-                    this.shop,
-                    currentPageForEditor
-                ).onSave(() -> {
-                    // Reopen the shop after saving
-                    // Cache was updated in saveToConfig(), now rebuild GUI with fresh data
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("ONSAVE: Rebuilding shop GUI for " + this.shop);
-                    GUIShop.getCREATOR().add(player.getUniqueId());
-                    this.loadItems(false);
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("ONSAVE: loadItems complete, opening shop");
-                    this.open(player);
-                }).onCancel(() -> {
-                    // Reopen the shop on cancel
-                    GUIShop.getCREATOR().add(player.getUniqueId());
-                    this.open(player);
-                }).open();
-                return;
-            }
+        boolean isEditClick = e.getClick() == ClickType.RIGHT || 
+                              e.getClick() == ClickType.SHIFT_LEFT || 
+                              e.getClick() == ClickType.SHIFT_RIGHT;
+        
+        if (isEditClick) {
+            // Block shift-clicks to prevent moving items unexpectedly
+            e.setCancelled(true);
+            return;
         }
         
-        // Left-click = Allow normal item movement (don't cancel)
-        // The item will be picked up/moved naturally by Minecraft
+        // Left-click = Allow normal item pickup for placing into shop GUI
     }
 
     private void creatorTopInventoryClick(InventoryClickEvent e) {
@@ -470,9 +525,12 @@ public class Shop {
         
         // Calculate button slots - these should still function as buttons, not be stealable
         int inventorySize = GUI.getRows() * 9;
-        int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
-        int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+        int bottomRowStart = (GUI.getRows() - 1) * 9;
+        int centerSlot = bottomRowStart + 4; // Center of bottom row (nether star)
+        int prevSlot = centerSlot - 1; // Left of center (ghast tear)
+        int nextSlot = centerSlot + 1; // Right of center (ghast tear)
         int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        int playerHeadSlot = bottomRowStart; // Bottom left corner
         
         // Handle pagination and back buttons (always cancel and process like normal)
         if (e.getSlot() == nextSlot) {
@@ -483,12 +541,20 @@ public class Shop {
             e.setCancelled(true);
             handleBackwardButton();
             return;
+        } else if (e.getSlot() == centerSlot) {
+            // Center slot (nether star page indicator) - don't allow modification
+            e.setCancelled(true);
+            return;
         } else if (e.getSlot() == backSlot && !Config.isDisableBackButton()) {
             e.setCancelled(true);
             if (menuInstance != null) {
                 hasClicked = true;
                 menuInstance.open(player);
             }
+            return;
+        } else if (e.getSlot() == playerHeadSlot) {
+            // Player head slot - don't allow modification
+            e.setCancelled(true);
             return;
         }
         
@@ -550,6 +616,7 @@ public class Shop {
     }
 
     private void deleteShopItem(Integer slot) {
+        // YAML uses 1-indexed pages (Page1, Page2), but GUI uses 0-indexed
         String pageKey = "Page" + GUI.getCurrentPage();
         shopItem.getPages().get(pageKey).getItems().remove(Integer.toString(slot));
         FileConfiguration shopConfig = GUIShop.getINSTANCE().getConfigManager().getShopConfig(shop);
@@ -563,6 +630,7 @@ public class Shop {
     }
 
     public void editShopItem(ItemStack itemStack, Integer slot) {
+        // YAML uses 1-indexed pages (Page1, Page2), but GUI uses 0-indexed
         String pageKey = "Page" + GUI.getCurrentPage();
         Item item = Item.parse(itemStack, slot, shop);
         shopItem.getPages().get(pageKey).getItems().put(Integer.toString(item.getSlot()), item);
@@ -620,13 +688,17 @@ public class Shop {
                 return;
             }
             
+            // YAML uses 1-indexed pages (Page1, Page2), but GUI uses 0-indexed
             String pageKey = "Page" + GUI.getCurrentPage();
             int inventorySize = GUI.getRows() * 9;
             
             // Calculate button slots to skip
-            int nextSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getForwardSlot(), inventorySize) - 1);
-            int prevSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackwardSlot(), inventorySize) - 1);
+            int bottomRowStart = (GUI.getRows() - 1) * 9;
+            int centerSlot = bottomRowStart + 4; // Center of bottom row (nether star)
+            int prevSlot = centerSlot - 1; // Left of center (ghast tear)
+            int nextSlot = centerSlot + 1; // Right of center (ghast tear)
             int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+            int playerHeadSlot = bottomRowStart; // Bottom left corner
             
             org.bukkit.configuration.ConfigurationSection config = 
                 shopConfig.getConfigurationSection("pages." + pageKey + ".items");
@@ -638,8 +710,8 @@ public class Shop {
             boolean hasChanges = false;
             
             for (int slot = 0; slot < inventorySize; slot++) {
-                // Skip navigation button slots
-                if (slot == nextSlot || slot == prevSlot || slot == backSlot) {
+                // Skip navigation button slots, page indicator, and player head slot
+                if (slot == nextSlot || slot == prevSlot || slot == centerSlot || slot == backSlot || slot == playerHeadSlot) {
                     continue;
                 }
                 
@@ -647,8 +719,15 @@ public class Shop {
                 String slotKey = String.valueOf(slot);
                 
                 if (item == null || item.getType().isAir()) {
-                    // Remove item from config if slot is now empty
-                    if (config.contains(slotKey)) {
+                    // Check if this slot has a BLANK item in the cache - don't delete those
+                    ShopPage cachedPage = shopItem != null ? shopItem.getPages().get(pageKey) : null;
+                    Item cachedItem = cachedPage != null ? cachedPage.getItems().get(slotKey) : null;
+                    
+                    if (cachedItem != null && cachedItem.getItemType() == ItemType.BLANK) {
+                        // Preserve BLANK items - they appear as empty slots intentionally
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Preserving BLANK item at slot " + slot);
+                    } else if (config.contains(slotKey)) {
+                        // Only delete if it wasn't a BLANK item
                         config.set(slotKey, null);
                         hasChanges = true;
                         GUIShop.getINSTANCE().getLogUtil().debugLog("CREATOR SAVE: Removed item from slot " + slot);
@@ -712,39 +791,15 @@ public class Shop {
             }
         }
 
-        hasClicked = true;
-        if (Config.isAlternateSellEnabled() && item.hasSellPrice() && (event.getClick() == ClickType.RIGHT || event.getClick() == ClickType.SHIFT_RIGHT)) {
-            hasClicked = true;
-            new AltSell(item, this).open(player);
-        } else {
-            if (item.isResolveFailed()) {
-                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "went-wrong", item.getResolveReason());
-            } else {
-                boolean quantityDisabled = item.getQuantityValue() == null || item.getQuantityValue().isDisabled();
-
-                int maxStackSize = 64;
-
-                try {
-                    maxStackSize = XMaterial.matchXMaterial(item.getMaterial()).get().parseMaterial().getMaxStackSize();
-                } catch (NoSuchElementException | NullPointerException ignored) {
-                }
-
-                int quantityCount;
-
-                if (item.getQuantityValue() == null) {
-                    quantityCount = maxStackSize;
-                } else {
-                    quantityCount = item.getQuantityValue().getQuantity();
-                }
-
-                if (quantityDisabled && maxStackSize > 1) {
-                    new Quantity(item, this, player).loadInventory().open();
-                } else {
-                    new Quantity(item, this, player).buy(item, quantityCount);
-                    hasClicked = false;
-                }
-            }
+        if (item.isResolveFailed()) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "went-wrong", item.getResolveReason());
+            return;
         }
+
+        hasClicked = true;
+        
+        // Open the unified Transaction GUI for buying and selling
+        new TransactionGui(item, this, player).loadInventory().open();
     }
 
     private void commandItem(Item item) {
@@ -857,29 +912,46 @@ public class Shop {
         /*
          * If the player has enough money to purchase the item, then allow them to.
          */
-        GUIShop.getINSTANCE().getLogUtil().debugLog("Creator status: " + GUIShop.getCREATOR().contains(player.getUniqueId()));
-
+        // YAML uses 0-indexed pages (Page0, Page1, etc.)
         String pageKey = "Page" + GUI.getCurrentPage();
+        GUIShop.getINSTANCE().getLogUtil().log("CLICK: Shop=" + shop + " Page=" + pageKey + " Slot=" + event.getSlot());
+        
+        // Check if page exists
+        if (shopItem.getPages().get(pageKey) == null) {
+            GUIShop.getINSTANCE().getLogUtil().log("CLICK: Page " + pageKey + " NOT FOUND in cache. Available: " + 
+                String.join(", ", shopItem.getPages().keySet()));
+            return;
+        }
+        
         Item item = shopItem.getPages().get(pageKey).getItems().get(Integer.toString(event.getSlot()));
 
         if (item == null) {
-            return;
-        } else if (!item.hasBuyPrice() && item.getItemType() == ItemType.SHOP) {
-            if (Config.isAlternateSellEnabled() && item.hasSellPrice() && item.getItemType() == ItemType.SHOP) {
-                hasClicked = true;
-                new AltSell(item, this).open(player);
-            }
+            GUIShop.getINSTANCE().getLogUtil().log("CLICK: Item NULL at slot " + event.getSlot() + 
+                ". Available slots: " + String.join(", ", shopItem.getPages().get(pageKey).getItems().keySet()));
             return;
         }
 
+        GUIShop.getINSTANCE().getLogUtil().log("CLICK: Found " + item.getMaterial() + " type=" + item.getItemType());
+
         if (null != item.getItemType()) {
             switch (item.getItemType()) {
-                case SHOP ->
+                case SHOP, ITEM -> {
+                    // ITEM type is treated as SHOP for backwards compatibility
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Opening Transaction GUI for " + item.getItemType() + " item");
                     shopItem(item, event);
-                case COMMAND ->
+                }
+                case COMMAND -> {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing COMMAND item");
                     commandItem(item);
-                case SHOP_SHORTCUT ->
+                }
+                case SHOP_SHORTCUT -> {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing SHOP_SHORTCUT item");
                     shopShortcut(item, event);
+                }
+                default -> {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Item type " + item.getItemType() + " - no action");
+                    // DUMMY, BLANK types - do nothing (decorative items)
+                }
             }
         }
     }

@@ -1,6 +1,9 @@
-This is the list of official Spigot Item Names as of 1.21. You MUST use names from this list.
-If you are using an older server version, and the item you are trying to use
-doesn't exist, the item obviously will not work.
+This is the list of official Spigot Item Names as of Minecraft 1.21.1.
+You MUST use names from this list in your shop configurations.
+
+NOTE: 1.21.1 is a bug-fix release with no new items compared to 1.21.
+If you are using an older server version, items that don't exist in your
+version will not work (e.g., MACE, WIND_CHARGE require 1.21+).
 
 Example Config Format:
 

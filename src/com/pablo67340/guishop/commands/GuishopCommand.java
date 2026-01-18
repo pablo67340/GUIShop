@@ -9,7 +9,6 @@ import com.pablo67340.guishop.economy.EconomyConfig;
 import com.pablo67340.guishop.economy.EconomyManager;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.PotionInfo;
-import com.pablo67340.guishop.definition.QuantityValue;
 import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Shop;
@@ -131,9 +130,9 @@ public class GuishopCommand implements CommandExecutor {
                         if (args.length >= 3) {
                             editMenu(args[2], player);
                         } else {
-                            PlayerListener.INSTANCE.openMenu(player);
                             GUIShop.getCREATOR().add(player.getUniqueId());
                             GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode (menu)");
+                            PlayerListener.INSTANCE.openMenuForEdit(player);
                         }
                         return true;
                     }
@@ -141,10 +140,15 @@ public class GuishopCommand implements CommandExecutor {
                     String nearestShop = NameUtil.nearestShop(args[1]);
 
                     if (nearestShop != null) {
+                        // Add to CREATOR before opening so the shop sets up editor handlers
+                        GUIShop.getCREATOR().add(player.getUniqueId());
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+                        
                         Shop openShop = new Shop(player, nearestShop, new Menu());
                         openShop.loadItems(false);
 
                         if (!openShop.open(player)) {
+                            GUIShop.getCREATOR().remove(player.getUniqueId()); // Remove if open failed
                             editMenu(args[1], player);
                             return true;
                         }
@@ -152,10 +156,7 @@ public class GuishopCommand implements CommandExecutor {
                         if (args.length >= 3) {
                             try {
                                 int page = Integer.parseInt(args[2]);
-                                if (openShop.GUI.goToPage(page)) {
-                                    GUIShop.getCREATOR().add(player.getUniqueId());
-                                    GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
-                                } else {
+                                if (!openShop.GUI.goToPage(page)) {
                                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.invalid-page", openShop.GUI.getPageCount());
                                 }
                             } catch (NumberFormatException numberFormatException) {
@@ -166,9 +167,9 @@ public class GuishopCommand implements CommandExecutor {
                         editMenu(args[1], player);
                     }
                 } else {
-                    PlayerListener.INSTANCE.openMenu(player);
                     GUIShop.getCREATOR().add(player.getUniqueId());
                     GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+                    PlayerListener.INSTANCE.openMenuForEdit(player);
                 }
             } else if (args[0].equalsIgnoreCase("b") || args[0].equalsIgnoreCase("buyprice") || args[0].equalsIgnoreCase("buy")) {
                 if (args.length >= 2) {
@@ -516,65 +517,7 @@ public class GuishopCommand implements CommandExecutor {
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "potion-info.usage");
                 }
-            } else if (args[0].equalsIgnoreCase("quantity") || args[0].equalsIgnoreCase("qty") || args[0].equalsIgnoreCase("q")) {
-                if (args.length >= 2) {
-                    QuantityValue quantityValue = new QuantityValue();
-
-                    String quantity = args[1];
-
-                    try {
-                        quantityValue.setQuantity(Integer.parseInt(quantity));
-                    } catch (NumberFormatException exception) {
-                        quantityValue.setDisabled(!Boolean.parseBoolean(quantity));
-                    }
-
-                    ItemStack item;
-
-                    if (GUIShop.getINSTANCE().getMiscUtils().isMainHandNull(player)) {
-                        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "need-item");
-                        return true;
-                    }
-
-                    if (XMaterial.getVersion() > 18) {
-                        item = player.getEquipment().getItemInMainHand();
-                    } else {
-                        item = player.getItemInHand();
-                    }
-
-                    ItemMeta im = item.getItemMeta();
-
-                    List<String> lore = im.getLore() != null ? im.getLore() : new ArrayList<>();
-                    int index = 0;
-                    boolean hasReplaced = false;
-                    for (String str : lore) {
-                        if (str.contains(Config.getLoreConfig().lores.get("quantity").replace("%quantity%", ""))) {
-                            lore.set(index, Config.getLoreConfig().lores.get("quantity").replace("%quantity%", (quantityValue.getQuantity() == -1 ? true : quantityValue.getQuantity() == 1 ? false : quantityValue.getQuantity()).toString()));
-                            hasReplaced = true;
-                            break;
-                        }
-                        index += 1;
-                    }
-
-                    if (!hasReplaced) {
-                        lore.add(Config.getLoreConfig().lores.get("quantity").replace("%quantity%", (quantityValue.getQuantity() == -1 ? true : quantityValue.getQuantity() == 1 ? false : quantityValue.getQuantity()).toString()));
-                    }
-
-                    im.setLore(lore);
-
-                    item.setItemMeta(im);
-
-                    PDCUtil.setInteger(item, PDCUtil.KEY_QUANTITY, quantityValue.getQuantity());
-
-                    if (XMaterial.getVersion() > 18) {
-                        player.getInventory().setItemInMainHand(item);
-                    } else {
-                        player.setItemInHand(item);
-                    }
-
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "quantity.successful", quantityValue.getQuantity() == -1 ? true : quantityValue.getQuantity() == 1 ? false : quantityValue.getQuantity());
-                } else {
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "quantity.usage");
-                }
+            // Note: /gs quantity command removed - quantity selection is now handled by the Transaction GUI
             } else if (args[0].equalsIgnoreCase("skulluuid") || args[0].equalsIgnoreCase("skull") || args[0].equalsIgnoreCase("head")
                     || args[0].equalsIgnoreCase("headuuid") || args[0].equalsIgnoreCase("su") || args[0].equalsIgnoreCase("hu")) {
                 if (args.length >= 2) {
@@ -920,14 +863,15 @@ public class GuishopCommand implements CommandExecutor {
     }
 
     protected void editMenu(String number, Player player) {
-        Menu menu = PlayerListener.INSTANCE.openMenu(player);
+        // Add to CREATOR before opening so the menu sets up editor handlers
+        GUIShop.getCREATOR().add(player.getUniqueId());
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
+        
+        Menu menu = PlayerListener.INSTANCE.openMenuForEdit(player);
         if (menu.hasMultiplePages()) {
             try {
                 int page = Integer.parseInt(number);
-                if (menu.GUI.goToPage(page)) {
-                    GUIShop.getCREATOR().add(player.getUniqueId());
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("Added player " + player.getName() + " to creator mode");
-                } else {
+                if (!menu.GUI.goToPage(page)) {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.invalid-page", menu.GUI.getPageCount());
                 }
             } catch (NumberFormatException numberFormatException) {

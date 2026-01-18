@@ -1,0 +1,105 @@
+###########################################################################
+#                         COMBAT SHOP                                     #
+#                                                                         #
+# Weapons, armor, and combat gear - some with enchantments!              #
+#                                                                         #
+# ENCHANTMENT FORMAT:                                                     #
+#   enchantments: 'SHARPNESS:5 UNBREAKING:3 FIRE_ASPECT:2'               #
+#   Space-separated ENCHANT:LEVEL pairs                                  #
+#   See Dictionary/enchantment-names.txt for valid names                 #
+#                                                                         #
+# SLOTS: Use 10-16 (row 1), 19-25 (row 2), 28-34 (row 3) for 7 items/row #
+###########################################################################
+
+# Shop title - displayed at top of inventory
+title: '&8&lCombat'
+
+pages:
+  Page0:
+    items:
+      # --- Row 1: Swords and Ranged Weapons ---
+      '10':
+        type: SHOP
+        id: DIAMOND_SWORD
+        buy-price: 500.0
+        sell-price: 100.0
+        enchantments: 'SHARPNESS:3'
+      '11':
+        type: SHOP
+        id: DIAMOND_SWORD
+        buy-price: 1500.0
+        sell-price: 300.0
+        enchantments: 'SHARPNESS:5 FIRE_ASPECT:2 UNBREAKING:3'
+        shop-name: '&b&lGod Sword'
+      '12':
+        type: SHOP
+        id: NETHERITE_SWORD
+        buy-price: 2500.0
+        sell-price: 500.0
+        enchantments: 'SHARPNESS:5 FIRE_ASPECT:2 UNBREAKING:3 MENDING:1'
+        shop-name: '&5&lNetherite God Sword'
+      '13':
+        type: SHOP
+        id: BOW
+        buy-price: 200.0
+        sell-price: 40.0
+        enchantments: 'POWER:5 INFINITY:1'
+        shop-name: '&e&lPower Bow'
+      '14':
+        type: SHOP
+        id: CROSSBOW
+        buy-price: 300.0
+        sell-price: 60.0
+        enchantments: 'QUICK_CHARGE:3 MULTISHOT:1'
+      '15':
+        type: SHOP
+        id: ARROW
+        buy-price: 2.0
+        sell-price: 0.5
+      '16':
+        type: SHOP
+        id: SPECTRAL_ARROW
+        buy-price: 5.0
+        sell-price: 1.0
+
+      # --- Row 2: Armor and Utility ---
+      '19':
+        type: SHOP
+        id: DIAMOND_HELMET
+        buy-price: 400.0
+        sell-price: 80.0
+        enchantments: 'PROTECTION:4 UNBREAKING:3'
+      '20':
+        type: SHOP
+        id: DIAMOND_CHESTPLATE
+        buy-price: 600.0
+        sell-price: 120.0
+        enchantments: 'PROTECTION:4 UNBREAKING:3'
+      '21':
+        type: SHOP
+        id: DIAMOND_LEGGINGS
+        buy-price: 500.0
+        sell-price: 100.0
+        enchantments: 'PROTECTION:4 UNBREAKING:3'
+      '22':
+        type: SHOP
+        id: DIAMOND_BOOTS
+        buy-price: 350.0
+        sell-price: 70.0
+        enchantments: 'PROTECTION:4 FEATHER_FALLING:4 UNBREAKING:3'
+      '23':
+        type: SHOP
+        id: SHIELD
+        buy-price: 100.0
+        sell-price: 20.0
+        enchantments: 'UNBREAKING:3'
+      '24':
+        type: SHOP
+        id: TOTEM_OF_UNDYING
+        buy-price: 2500.0
+        sell-price: 500.0
+      '25':
+        type: SHOP
+        id: END_CRYSTAL
+        buy-price: 150.0
+        sell-price: 30.0

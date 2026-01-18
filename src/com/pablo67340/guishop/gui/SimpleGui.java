@@ -48,6 +48,9 @@ public class SimpleGui implements GUIHolder {
     private Consumer<InventoryCloseEvent> closeHandler;
 
     @Setter
+    private Consumer<InventoryDragEvent> dragHandler;
+
+    @Setter
     private boolean allowBottomInventoryClick = false;
 
     @Setter
@@ -71,7 +74,7 @@ public class SimpleGui implements GUIHolder {
     }
 
     private void createInventory() {
-        this.inventory = Bukkit.createInventory(null, rows * 9, title);
+        this.inventory = Bukkit.createInventory(this, rows * 9, title);
     }
 
     /**
@@ -415,7 +418,13 @@ public class SimpleGui implements GUIHolder {
 
     @Override
     public void handleDrag(InventoryDragEvent event) {
-        // Cancel drags that affect the top inventory, unless allowed
+        // Use custom drag handler if set
+        if (dragHandler != null) {
+            dragHandler.accept(event);
+            return;
+        }
+        
+        // Default behavior: Cancel drags that affect the top inventory, unless allowed
         if (!allowTopInventoryClick) {
             for (int slot : event.getRawSlots()) {
                 if (slot < inventory.getSize()) {

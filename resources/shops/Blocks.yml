@@ -1,99 +1,486 @@
 ###########################################################################
-#                         BLOCKS SHOP EXAMPLE                             #
-#     This is an individual shop file. Each shop is now stored in its     #
-#     own file within the plugins/GUIShop/shops/ folder.                  #
+#                         BLOCKS SHOP                                     #
+#                                                                         #
+# Building materials - wood, stone, glass, and decorative blocks         #
+#                                                                         #
+# ITEM STRUCTURE:                                                         #
+#   'slot':                                                               #
+#     type: SHOP        # SHOP, COMMAND, DUMMY, or BLANK                  #
+#     id: MATERIAL      # Bukkit material name (see Dictionary folder)   #
+#     buy-price: 10.0   # Price to buy (omit for sell-only)              #
+#     sell-price: 2.0   # Price to sell (omit for buy-only)              #
+#     shop-name: 'Name' # Custom display name in shop (optional)         #
+#     enchantments: 'SHARPNESS:5 UNBREAKING:3'  # Space-separated        #
+#     lore:             # Custom lore lines (optional)                   #
+#       - '&7Description'                                                 #
+#                                                                         #
+# SLOTS: Use 10-16 (row 1), 19-25 (row 2), 28-34 (row 3) for 7 items/row #
 ###########################################################################
-title: '&aBlocks &bShop'
+
+# Shop title - displayed at top of inventory
+title: '&8&lBlocks'
+
 pages:
+  # =============================================
+  # PAGE 0 - Wood Logs, Planks, Stone Variants
+  # =============================================
   Page0:
     items:
-      '0':
-        type: SHOP
-        id: STONE
-        buy-price: 5.0
-        sell-price: 2.5
-      '1':
-        type: SHOP
-        id: COBBLESTONE
-        buy-price: 3.0
-        sell-price: 1.5
-      '2':
-        type: SHOP
-        id: DIRT
-        buy-price: 2.0
-        sell-price: 1.0
-      '3':
-        type: SHOP
-        id: GRASS_BLOCK
-        buy-price: 10.0
-        sell-price: 5.0
-      '4':
+      # --- Row 1: Wood Logs ---
+      '10':
         type: SHOP
         id: OAK_LOG
         buy-price: 8.0
-        sell-price: 4.0
-      '5':
-        type: SHOP
-        id: SPRUCE_LOG
-        buy-price: 8.0
-        sell-price: 4.0
-      '6':
-        type: SHOP
-        id: BIRCH_LOG
-        buy-price: 8.0
-        sell-price: 4.0
-      '7':
-        type: SHOP
-        id: JUNGLE_LOG
-        buy-price: 8.0
-        sell-price: 4.0
-      '8':
-        type: SHOP
-        id: ACACIA_LOG
-        buy-price: 8.0
-        sell-price: 4.0
-      '9':
-        type: SHOP
-        id: DARK_OAK_LOG
-        buy-price: 8.0
-        sell-price: 4.0
-      '10':
-        type: SHOP
-        id: SAND
-        buy-price: 4.0
         sell-price: 2.0
       '11':
         type: SHOP
-        id: GRAVEL
-        buy-price: 4.0
+        id: SPRUCE_LOG
+        buy-price: 8.0
         sell-price: 2.0
       '12':
         type: SHOP
-        id: GLASS
-        buy-price: 10.0
-        sell-price: 5.0
+        id: BIRCH_LOG
+        buy-price: 8.0
+        sell-price: 2.0
       '13':
         type: SHOP
-        id: BRICKS
-        buy-price: 15.0
-        sell-price: 7.5
+        id: JUNGLE_LOG
+        buy-price: 8.0
+        sell-price: 2.0
       '14':
         type: SHOP
-        id: STONE_BRICKS
-        buy-price: 12.0
-        sell-price: 6.0
+        id: ACACIA_LOG
+        buy-price: 8.0
+        sell-price: 2.0
       '15':
+        type: SHOP
+        id: DARK_OAK_LOG
+        buy-price: 8.0
+        sell-price: 2.0
+      '16':
+        type: SHOP
+        id: CHERRY_LOG
+        buy-price: 10.0
+        sell-price: 2.5
+
+      # --- Row 2: Wood Planks ---
+      '19':
+        type: SHOP
+        id: OAK_PLANKS
+        buy-price: 4.0
+        sell-price: 1.0
+      '20':
+        type: SHOP
+        id: SPRUCE_PLANKS
+        buy-price: 4.0
+        sell-price: 1.0
+      '21':
+        type: SHOP
+        id: BIRCH_PLANKS
+        buy-price: 4.0
+        sell-price: 1.0
+      '22':
+        type: SHOP
+        id: JUNGLE_PLANKS
+        buy-price: 4.0
+        sell-price: 1.0
+      '23':
+        type: SHOP
+        id: ACACIA_PLANKS
+        buy-price: 4.0
+        sell-price: 1.0
+      '24':
+        type: SHOP
+        id: DARK_OAK_PLANKS
+        buy-price: 4.0
+        sell-price: 1.0
+      '25':
+        type: SHOP
+        id: CHERRY_PLANKS
+        buy-price: 5.0
+        sell-price: 1.25
+
+      # --- Row 3: Stone Variants ---
+      '28':
+        type: SHOP
+        id: STONE
+        buy-price: 5.0
+        sell-price: 1.0
+      '29':
+        type: SHOP
+        id: COBBLESTONE
+        buy-price: 3.0
+        sell-price: 0.5
+      '30':
+        type: SHOP
+        id: STONE_BRICKS
+        buy-price: 10.0
+        sell-price: 2.5
+      '31':
         type: SHOP
         id: MOSSY_STONE_BRICKS
         buy-price: 15.0
-        sell-price: 7.5
-      '16':
+        sell-price: 3.0
+      '32':
         type: SHOP
         id: CRACKED_STONE_BRICKS
+        buy-price: 12.0
+        sell-price: 2.5
+      '33':
+        type: SHOP
+        id: SMOOTH_STONE
+        buy-price: 8.0
+        sell-price: 2.0
+      '34':
+        type: SHOP
+        id: CHISELED_STONE_BRICKS
         buy-price: 15.0
-        sell-price: 7.5
-      '17':
+        sell-price: 3.0
+
+  # =============================================
+  # PAGE 1 - Deepslate, Earth, Terracotta
+  # =============================================
+  Page1:
+    items:
+      # --- Row 1: Deepslate Variants ---
+      '10':
+        type: SHOP
+        id: DEEPSLATE
+        buy-price: 8.0
+        sell-price: 2.0
+      '11':
+        type: SHOP
+        id: COBBLED_DEEPSLATE
+        buy-price: 6.0
+        sell-price: 1.5
+      '12':
+        type: SHOP
+        id: DEEPSLATE_BRICKS
+        buy-price: 12.0
+        sell-price: 3.0
+      '13':
+        type: SHOP
+        id: DEEPSLATE_TILES
+        buy-price: 12.0
+        sell-price: 3.0
+      '14':
+        type: SHOP
+        id: CHISELED_DEEPSLATE
+        buy-price: 15.0
+        sell-price: 3.5
+      '15':
+        type: SHOP
+        id: POLISHED_DEEPSLATE
+        buy-price: 10.0
+        sell-price: 2.5
+      '16':
+        type: SHOP
+        id: REINFORCED_DEEPSLATE
+        buy-price: 500.0
+        sell-price: 100.0
+
+      # --- Row 2: Earth Blocks ---
+      '19':
+        type: SHOP
+        id: DIRT
+        buy-price: 2.0
+        sell-price: 0.25
+      '20':
+        type: SHOP
+        id: GRASS_BLOCK
+        buy-price: 10.0
+        sell-price: 2.0
+      '21':
+        type: SHOP
+        id: PODZOL
+        buy-price: 15.0
+        sell-price: 3.0
+      '22':
+        type: SHOP
+        id: MYCELIUM
+        buy-price: 20.0
+        sell-price: 4.0
+      '23':
+        type: SHOP
+        id: SAND
+        buy-price: 3.0
+        sell-price: 0.5
+      '24':
+        type: SHOP
+        id: RED_SAND
+        buy-price: 5.0
+        sell-price: 1.0
+      '25':
+        type: SHOP
+        id: GRAVEL
+        buy-price: 3.0
+        sell-price: 0.5
+
+      # --- Row 3: Clay and Terracotta ---
+      '28':
+        type: SHOP
+        id: CLAY
+        buy-price: 8.0
+        sell-price: 2.0
+      '29':
+        type: SHOP
+        id: TERRACOTTA
+        buy-price: 10.0
+        sell-price: 2.5
+      '30':
+        type: SHOP
+        id: WHITE_TERRACOTTA
+        buy-price: 12.0
+        sell-price: 3.0
+      '31':
+        type: SHOP
+        id: BLACK_TERRACOTTA
+        buy-price: 12.0
+        sell-price: 3.0
+      '32':
+        type: SHOP
+        id: BRICKS
+        buy-price: 12.0
+        sell-price: 3.0
+      '33':
+        type: SHOP
+        id: MUD_BRICKS
+        buy-price: 10.0
+        sell-price: 2.5
+      '34':
+        type: SHOP
+        id: WHITE_GLAZED_TERRACOTTA
+        buy-price: 20.0
+        sell-price: 5.0
+
+  # =============================================
+  # PAGE 2 - Glass, Nether, Special Blocks
+  # =============================================
+  Page2:
+    items:
+      # --- Row 1: Glass and Light Blocks ---
+      '10':
+        type: SHOP
+        id: GLASS
+        buy-price: 8.0
+        sell-price: 2.0
+      '11':
+        type: SHOP
+        id: WHITE_STAINED_GLASS
+        buy-price: 10.0
+        sell-price: 2.5
+      '12':
+        type: SHOP
+        id: BLACK_STAINED_GLASS
+        buy-price: 10.0
+        sell-price: 2.5
+      '13':
+        type: SHOP
+        id: TINTED_GLASS
+        buy-price: 25.0
+        sell-price: 5.0
+      '14':
+        type: SHOP
+        id: GLOWSTONE
+        buy-price: 25.0
+        sell-price: 5.0
+      '15':
+        type: SHOP
+        id: SEA_LANTERN
+        buy-price: 30.0
+        sell-price: 6.0
+      '16':
+        type: SHOP
+        id: SHROOMLIGHT
+        buy-price: 25.0
+        sell-price: 5.0
+
+      # --- Row 2: Nether Blocks ---
+      '19':
+        type: SHOP
+        id: NETHERRACK
+        buy-price: 2.0
+        sell-price: 0.25
+      '20':
+        type: SHOP
+        id: NETHER_BRICKS
+        buy-price: 15.0
+        sell-price: 3.0
+      '21':
+        type: SHOP
+        id: RED_NETHER_BRICKS
+        buy-price: 18.0
+        sell-price: 4.0
+      '22':
+        type: SHOP
+        id: BLACKSTONE
+        buy-price: 10.0
+        sell-price: 2.0
+      '23':
+        type: SHOP
+        id: POLISHED_BLACKSTONE_BRICKS
+        buy-price: 15.0
+        sell-price: 3.0
+      '24':
+        type: SHOP
+        id: SOUL_SAND
+        buy-price: 10.0
+        sell-price: 2.0
+      '25':
+        type: SHOP
+        id: SOUL_SOIL
+        buy-price: 10.0
+        sell-price: 2.0
+
+      # --- Row 3: Special Blocks ---
+      '28':
         type: SHOP
         id: OBSIDIAN
         buy-price: 100.0
+        sell-price: 25.0
+      '29':
+        type: SHOP
+        id: CRYING_OBSIDIAN
+        buy-price: 150.0
+        sell-price: 35.0
+      '30':
+        type: SHOP
+        id: END_STONE
+        buy-price: 25.0
+        sell-price: 5.0
+      '31':
+        type: SHOP
+        id: END_STONE_BRICKS
+        buy-price: 30.0
+        sell-price: 6.0
+      '32':
+        type: SHOP
+        id: PURPUR_BLOCK
+        buy-price: 25.0
+        sell-price: 5.0
+      '33':
+        type: SHOP
+        id: PURPUR_PILLAR
+        buy-price: 30.0
+        sell-price: 6.0
+      '34':
+        type: SHOP
+        id: PRISMARINE
+        buy-price: 15.0
+        sell-price: 3.0
+
+  # =============================================
+  # PAGE 3 - Quartz, Copper, Misc
+  # =============================================
+  Page3:
+    items:
+      # --- Row 1: Quartz and Prismarine ---
+      '10':
+        type: SHOP
+        id: QUARTZ_BLOCK
+        buy-price: 20.0
+        sell-price: 5.0
+      '11':
+        type: SHOP
+        id: QUARTZ_BRICKS
+        buy-price: 22.0
+        sell-price: 5.5
+      '12':
+        type: SHOP
+        id: QUARTZ_PILLAR
+        buy-price: 22.0
+        sell-price: 5.5
+      '13':
+        type: SHOP
+        id: SMOOTH_QUARTZ
+        buy-price: 22.0
+        sell-price: 5.5
+      '14':
+        type: SHOP
+        id: DARK_PRISMARINE
+        buy-price: 20.0
+        sell-price: 4.0
+      '15':
+        type: SHOP
+        id: PRISMARINE_BRICKS
+        buy-price: 18.0
+        sell-price: 3.5
+      '16':
+        type: SHOP
+        id: SPONGE
+        buy-price: 200.0
         sell-price: 50.0
+
+      # --- Row 2: Copper Blocks ---
+      '19':
+        type: SHOP
+        id: COPPER_BLOCK
+        buy-price: 50.0
+        sell-price: 10.0
+      '20':
+        type: SHOP
+        id: CUT_COPPER
+        buy-price: 55.0
+        sell-price: 11.0
+      '21':
+        type: SHOP
+        id: OXIDIZED_COPPER
+        buy-price: 60.0
+        sell-price: 12.0
+      '22':
+        type: SHOP
+        id: WAXED_COPPER_BLOCK
+        buy-price: 55.0
+        sell-price: 11.0
+      '23':
+        type: SHOP
+        id: AMETHYST_BLOCK
+        buy-price: 100.0
+        sell-price: 20.0
+      '24':
+        type: SHOP
+        id: BUDDING_AMETHYST
+        buy-price: 500.0
+        sell-price: 100.0
+      '25':
+        type: SHOP
+        id: CALCITE
+        buy-price: 15.0
+        sell-price: 3.0
+
+      # --- Row 3: Miscellaneous Blocks ---
+      '28':
+        type: SHOP
+        id: TUFF
+        buy-price: 8.0
+        sell-price: 2.0
+      '29':
+        type: SHOP
+        id: DRIPSTONE_BLOCK
+        buy-price: 10.0
+        sell-price: 2.0
+      '30':
+        type: SHOP
+        id: MOSS_BLOCK
+        buy-price: 15.0
+        sell-price: 3.0
+      '31':
+        type: SHOP
+        id: ROOTED_DIRT
+        buy-price: 8.0
+        sell-price: 2.0
+      '32':
+        type: SHOP
+        id: PACKED_ICE
+        buy-price: 25.0
+        sell-price: 5.0
+      '33':
+        type: SHOP
+        id: BLUE_ICE
+        buy-price: 50.0
+        sell-price: 10.0
+      '34':
+        type: SHOP
+        id: SNOW_BLOCK
+        buy-price: 10.0
+        sell-price: 2.0

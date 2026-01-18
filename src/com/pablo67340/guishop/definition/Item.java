@@ -756,18 +756,34 @@ public final class Item implements ConfigurationSerializable {
                     itemMeta.setLore(itemLore);
                     itemStack.setItemMeta(itemMeta);
                 } else {
-                    itemLore.add(Config.getLoreConfig().lores.get("type").replace("%type%", getItemType().toString()));
+                    // Add type lore with null safety
+                    String typeTemplate = Config.getLoreConfig().lores.get("type");
+                    if (typeTemplate != null && getItemType() != null) {
+                        itemLore.add(typeTemplate.replace("%type%", getItemType().toString()));
+                    }
                     if (hasShopName()) {
-                        itemLore.add(Config.getLoreConfig().lores.get("shop-name").replace("%name%", getShopName()));
+                        String template = Config.getLoreConfig().lores.get("shop-name");
+                        if (template != null && getShopName() != null) {
+                            itemLore.add(template.replace("%name%", getShopName()));
+                        }
                     }
                     if (hasName()) {
-                        itemLore.add(Config.getLoreConfig().lores.get("name").replace("%name%", getName()));
+                        String template = Config.getLoreConfig().lores.get("name");
+                        if (template != null && getName() != null) {
+                            itemLore.add(template.replace("%name%", getName()));
+                        }
                     }
                     if (hasMobType()) {
-                        itemLore.add(Config.getLoreConfig().lores.get("mob-type").replace("%type%", getMobType()));
+                        String template = Config.getLoreConfig().lores.get("mob-type");
+                        if (template != null && getMobType() != null) {
+                            itemLore.add(template.replace("%type%", getMobType()));
+                        }
                     }
                     if (hasBuyName()) {
-                        itemLore.add(Config.getLoreConfig().lores.get("buy-name").replace("%name%", getName()));
+                        String loreTemplate = Config.getLoreConfig().lores.get("buy-name");
+                        if (loreTemplate != null && getBuyName() != null) {
+                            itemLore.add(loreTemplate.replace("%name%", getBuyName()));
+                        }
                     }
                     if (hasBuyLore()) {
                         itemLore.add(Config.getLoreConfig().lores.get("buy-lore"));
@@ -798,14 +814,23 @@ public final class Item implements ConfigurationSerializable {
                         for (String str : getEnchantments()) {
                             encLore.append(str).append(" ");
                         }
-                        itemLore.add(Config.getLoreConfig().lores.get("enchantments").replace("%enchantments%", encLore));
+                        String template = Config.getLoreConfig().lores.get("enchantments");
+                        if (template != null) {
+                            itemLore.add(template.replace("%enchantments%", encLore));
+                        }
                     }
                     if (hasTargetShop()) {
-                        itemLore.add(Config.getLoreConfig().lores.get("target-shop").replace("%shop%", getTargetShop()));
+                        String template = Config.getLoreConfig().lores.get("target-shop");
+                        if (template != null && getTargetShop() != null) {
+                            itemLore.add(template.replace("%shop%", getTargetShop()));
+                        }
                     }
                     if (hasPotion()) {
                         String infoString = potionInfo.getType() + " " + potionInfo.getSplash() + " " + potionInfo.getExtended() + " " + potionInfo.getUpgraded();
-                        itemLore.add(Config.getLoreConfig().lores.get("potion-info").replace("%info%", infoString));
+                        String template = Config.getLoreConfig().lores.get("potion-info");
+                        if (template != null) {
+                            itemLore.add(template.replace("%info%", infoString));
+                        }
                     }
                     if (hasNBT()) {
                         itemLore.add(Config.getLoreConfig().lores.get("nbt").replace("%nbt%", getNBT()));

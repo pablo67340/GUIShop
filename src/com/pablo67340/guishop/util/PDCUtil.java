@@ -59,6 +59,9 @@ public class PDCUtil {
     // Potion info
     public static final NamespacedKey KEY_POTION = new NamespacedKey(NAMESPACE, "potion");
     
+    // GUI element marker - items with this set to true should not show worth lore
+    public static final NamespacedKey KEY_GUI_ELEMENT = new NamespacedKey(NAMESPACE, "gui_element");
+    
     // Firework info
     public static final NamespacedKey KEY_FIREWORK = new NamespacedKey(NAMESPACE, "firework");
 

@@ -82,7 +82,7 @@ public final class ConfigManager {
      * The overridden config file objects.
      */
     @Getter
-    private File configFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile, worthFile;
+    private File configFile, menuFile, cacheFile, dictionaryFile, inventoryFile, messagesFile, worthFile, transactionFile;
     
     /**
      * The shops folder containing individual shop files.
@@ -106,7 +106,7 @@ public final class ConfigManager {
      * The configs FileConfiguration object.
      */
     @Getter
-    private FileConfiguration mainConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig, worthConfig;
+    private FileConfiguration mainConfig, menuConfig, cacheConfig, inventoryConfig, messagesConfig, worthConfig, transactionConfig;
 
     @Getter
     public MessageSystem messageSystem;
@@ -129,6 +129,7 @@ public final class ConfigManager {
         inventoryConfig = new YamlConfiguration();
         messagesConfig = new YamlConfiguration();
         worthConfig = new YamlConfiguration();
+        transactionConfig = new YamlConfiguration();
 
         configFile = new File(this.dataFolder, "config.yml");
         menuFile = new File(this.dataFolder, "menu.yml");
@@ -136,6 +137,7 @@ public final class ConfigManager {
         inventoryFile = new File(this.dataFolder.getPath(), "/Data/inventories.yml");
         messagesFile = new File(getDataFolder(), "messages.yml");
         worthFile = new File(getDataFolder(), "worth.yml");
+        transactionFile = new File(getDataFolder(), "transaction.yml");
         shopsFolder = new File(this.dataFolder, "shops");
 
         configFile.getParentFile().mkdirs();
@@ -166,6 +168,10 @@ public final class ConfigManager {
             GUIShop.getINSTANCE().saveResource("worth.yml", false);
         }
 
+        if (!transactionFile.exists()) {
+            GUIShop.getINSTANCE().saveResource("transaction.yml", false);
+        }
+
         // Initialize shops folder
         initShopsFolder();
 
@@ -176,6 +182,7 @@ public final class ConfigManager {
             inventoryConfig.load(inventoryFile);
             messagesConfig.load(messagesFile);
             worthConfig.load(worthFile);
+            transactionConfig.load(transactionFile);
             
             // Load all shop configs from shops folder
             loadAllShopConfigs();
@@ -453,6 +460,7 @@ public final class ConfigManager {
             cacheConfig.load(cacheFile);
             messagesConfig.load(messagesFile);
             worthConfig.load(worthFile);
+            transactionConfig.load(transactionFile);
             
             // Reload all shop configs from folder
             loadAllShopConfigs();
@@ -490,6 +498,19 @@ public final class ConfigManager {
             GUIShop.getINSTANCE().getLogUtil().debugLog("Menu config reloaded from disk.");
         } catch (IOException | InvalidConfigurationException e) {
             GUIShop.getINSTANCE().getLogUtil().log("Error reloading menu config: " + e.getMessage());
+        }
+    }
+    
+    /**
+     * Reload only the transaction config from disk.
+     * Used after saving transaction GUI changes.
+     */
+    public void reloadTransactionConfig() {
+        try {
+            transactionConfig.load(transactionFile);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Transaction config reloaded from disk.");
+        } catch (IOException | InvalidConfigurationException e) {
+            GUIShop.getINSTANCE().getLogUtil().log("Error reloading transaction config: " + e.getMessage());
         }
     }
 

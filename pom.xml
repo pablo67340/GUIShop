@@ -198,6 +198,7 @@
                             <include>internal_messages.yml</include>
                             <include>worth.yml</include>
                             <include>economy.yml</include>
+                            <include>transaction.yml</include>
                         </includes>
                     </resource>
                     <resource>

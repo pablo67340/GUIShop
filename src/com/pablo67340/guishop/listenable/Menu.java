@@ -490,22 +490,46 @@ public final class Menu {
     private void handleItemClick(Player clickingPlayer, InventoryClickEvent event) {
         // YAML and cache use 1-indexed pages (Page1, Page2), but GUI uses 0-indexed
         String pageKey = "Page" + GUI.getCurrentPage();
-        if (GUIShop.getINSTANCE().getLoadedMenu().getPages().containsKey(pageKey) 
-                && GUIShop.getINSTANCE().getLoadedMenu().getPages().get(pageKey).getItems().containsKey(((Integer) event.getSlot()).toString())) {
-            Item clickedItem = GUIShop.getINSTANCE().getLoadedMenu().getPages().get(pageKey).getItems().get(((Integer) event.getSlot()).toString());
-
-            if (clickedItem.hasTargetShop()) {
-                String shopName = clickedItem.getTargetShop();
-                if (GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) || GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
-                    if (!clickedItem.isResolveFailed()) {
-                        openShop(clickingPlayer, shopName);
-                    } else {
-                        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", clickedItem.getResolveReason());
-                    }
-                } else {
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "no-permission");
-                }
+        if (!GUIShop.getINSTANCE().getLoadedMenu().getPages().containsKey(pageKey) 
+                || !GUIShop.getINSTANCE().getLoadedMenu().getPages().get(pageKey).getItems().containsKey(((Integer) event.getSlot()).toString())) {
+            return;
+        }
+        
+        Item clickedItem = GUIShop.getINSTANCE().getLoadedMenu().getPages().get(pageKey).getItems().get(((Integer) event.getSlot()).toString());
+        ItemStack itemStack = event.getCurrentItem();
+        
+        // Use unified item action handler
+        // This allows ANY item type to work in the menu (SHOP, ITEM, COMMAND, etc.)
+        com.pablo67340.guishop.handler.ItemActionHandler.ClickContext context = 
+            com.pablo67340.guishop.handler.ItemActionHandler.ClickContext.menu(
+                GUI.getCurrentPage(), 
+                () -> this.open(clickingPlayer)
+            );
+        
+        // Check permission for target shop
+        if (clickedItem.hasTargetShop()) {
+            String shopName = clickedItem.getTargetShop();
+            if (!GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop." + shopName.toLowerCase()) 
+                    && !GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(clickingPlayer, "guishop.shop.*")) {
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "no-permission");
+                return;
             }
+            if (clickedItem.isResolveFailed()) {
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(clickingPlayer, "open-shop-error", clickedItem.getResolveReason());
+                return;
+            }
+        }
+        
+        // Try unified handler first
+        if (com.pablo67340.guishop.handler.ItemActionHandler.handleClick(
+                clickingPlayer, itemStack, event.getSlot(), event.getClick(), context)) {
+            hasClicked = true;
+            return;
+        }
+        
+        // Fallback: original behavior for items with target-shop
+        if (clickedItem.hasTargetShop()) {
+            openShop(clickingPlayer, clickedItem.getTargetShop());
         }
     }
 

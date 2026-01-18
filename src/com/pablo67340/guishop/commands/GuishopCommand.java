@@ -13,6 +13,7 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.listenable.Value;
+import com.pablo67340.guishop.listenable.editor.TransactionEditor;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
 import com.pablo67340.guishop.util.PDCUtil;
@@ -136,6 +137,16 @@ public class GuishopCommand implements CommandExecutor {
                         }
                         return true;
                     }
+                    
+                    // Explicit "transaction" argument opens the transaction GUI in edit mode
+                    if (args[1].equalsIgnoreCase("transaction") || args[1].equalsIgnoreCase("trans")) {
+                        GUIShop.getCREATOR().add(player.getUniqueId());
+                        GUIShop.getINSTANCE().getLogUtil().log("Opening transaction editor for " + player.getName());
+                        openTransactionEditor(player);
+                        return true;
+                    }
+                    
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Edit command arg[1]: '" + args[1] + "'");
 
                     String nearestShop = NameUtil.nearestShop(args[1]);
 
@@ -878,6 +889,14 @@ public class GuishopCommand implements CommandExecutor {
                 GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "edit.no-number");
             }
         }
+    }
+    
+    /**
+     * Opens the Transaction GUI editor.
+     */
+    protected void openTransactionEditor(Player player) {
+        TransactionEditor editor = new TransactionEditor(player);
+        editor.open();
     }
 
     /**

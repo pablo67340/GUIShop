@@ -932,7 +932,21 @@ public class Shop {
         }
 
         GUIShop.getINSTANCE().getLogUtil().log("CLICK: Found " + item.getMaterial() + " type=" + item.getItemType());
-
+        
+        // Create context for unified handler
+        com.pablo67340.guishop.handler.ItemActionHandler.ClickContext context = 
+            com.pablo67340.guishop.handler.ItemActionHandler.ClickContext.shop(
+                this.shop,
+                GUI.getCurrentPage(),
+                () -> {
+                    if (menuInstance != null) {
+                        menuInstance.open(player);
+                    }
+                },
+                item
+            );
+        
+        // Handle item types
         if (null != item.getItemType()) {
             switch (item.getItemType()) {
                 case SHOP, ITEM -> {
@@ -941,16 +955,36 @@ public class Shop {
                     shopItem(item, event);
                 }
                 case COMMAND -> {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing COMMAND item");
-                    commandItem(item);
+                    // Use unified handler for commands
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing COMMAND item via unified handler");
+                    if (!com.pablo67340.guishop.handler.ItemActionHandler.handleClick(
+                            player, event.getCurrentItem(), event.getSlot(), event.getClick(), context)) {
+                        // Fallback to original command handling
+                        commandItem(item);
+                    }
                 }
                 case SHOP_SHORTCUT -> {
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing SHOP_SHORTCUT item");
-                    shopShortcut(item, event);
+                    // Use unified handler for shop navigation
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing SHOP_SHORTCUT item via unified handler");
+                    if (!com.pablo67340.guishop.handler.ItemActionHandler.handleClick(
+                            player, event.getCurrentItem(), event.getSlot(), event.getClick(), context)) {
+                        // Fallback to original shortcut handling
+                        shopShortcut(item, event);
+                    } else {
+                        hasClicked = true;
+                    }
+                }
+                case DUMMY -> {
+                    // DUMMY items might have target-shop - use unified handler
+                    if (com.pablo67340.guishop.handler.ItemActionHandler.handleClick(
+                            player, event.getCurrentItem(), event.getSlot(), event.getClick(), context)) {
+                        hasClicked = true;
+                    }
+                    // Otherwise do nothing (decorative)
                 }
                 default -> {
                     GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Item type " + item.getItemType() + " - no action");
-                    // DUMMY, BLANK types - do nothing (decorative items)
+                    // BLANK types - do nothing (decorative items)
                 }
             }
         }

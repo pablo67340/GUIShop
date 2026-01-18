@@ -175,6 +175,18 @@ public class ItemEditorGui {
         } else {
             commands = new ArrayList<>();
         }
+        
+        // For Transaction GUI items, also check KEY_SLOT_TYPE for the item type
+        if ("Transaction".equalsIgnoreCase(shopName)) {
+            String slotType = PDCUtil.getString(item, TransactionEditor.KEY_SLOT_TYPE);
+            if (slotType != null && !slotType.isEmpty()) {
+                try {
+                    itemType = ItemType.valueOf(slotType.toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // Keep existing itemType if slot type is invalid
+                }
+            }
+        }
     }
 
     /**
@@ -258,7 +270,6 @@ public class ItemEditorGui {
             "&fSkull UUID", "Player UUID or Base64 texture"));
         gui.setItem(33, createStringButton("permission", permission, Material.IRON_BARS,
             "&7Permission", "Required permission to buy"));
-        // Slot 34 intentionally empty - quantity is handled by Transaction GUI
 
         // Row 6: Actions
         gui.setItem(45, createActionButton(Material.LIME_WOOL, "&a&lSave", 
@@ -378,18 +389,35 @@ public class ItemEditorGui {
             case COMMAND -> Material.COMMAND_BLOCK;
             case BLANK -> Material.BARRIER;
             case DUMMY -> Material.GLASS;
+            case ITEM_DISPLAY -> Material.NETHER_STAR;
+            case BUY_1, BUY_2, BUY_3 -> Material.LIME_STAINED_GLASS_PANE;
+            case SELL_1, SELL_2, SELL_3 -> Material.RED_STAINED_GLASS_PANE;
+            case BACK -> Material.BARRIER;
+            case PLAYER_HEAD -> Material.PLAYER_HEAD;
             default -> Material.CHEST;
         };
-
-        return new ItemStackBuilder(mat)
+        
+        ItemStackBuilder builder = new ItemStackBuilder(mat)
             .setName(ChatColor.LIGHT_PURPLE + "Item Type")
             .addLoreLine(ChatColor.GRAY + "Determines item behavior")
             .addLoreLine("")
             .addLoreLine(ChatColor.GRAY + "Current: " + ChatColor.WHITE + itemType.name())
-            .addLoreLine("")
-            .addLoreLine(ChatColor.YELLOW + "Click to cycle types")
-            .addItemFlag(ItemFlag.HIDE_ATTRIBUTES)
-            .build();
+            .addLoreLine("");
+        
+        // Show available types based on context
+        if ("Transaction".equalsIgnoreCase(shopName)) {
+            builder.addLoreLine(ChatColor.DARK_GRAY + "Available: DUMMY, ITEM_DISPLAY,");
+            builder.addLoreLine(ChatColor.DARK_GRAY + "BUY_1/2/3, SELL_1/2/3, BACK, PLAYER_HEAD");
+        } else {
+            builder.addLoreLine(ChatColor.DARK_GRAY + "Available: ITEM, COMMAND, DUMMY,");
+            builder.addLoreLine(ChatColor.DARK_GRAY + "SHOP, BLANK, SHOP_SHORTCUT");
+        }
+        
+        builder.addLoreLine("");
+        builder.addLoreLine(ChatColor.YELLOW + "Click to cycle types");
+        builder.addItemFlag(ItemFlag.HIDE_ATTRIBUTES);
+
+        return builder.build();
     }
 
     /**
@@ -544,7 +572,6 @@ public class ItemEditorGui {
                 case 32 -> editSkullUuid(event.isRightClick());
                 // Permission (right-click to clear)
                 case 33 -> editPermission(event.isRightClick());
-                // Slot 34 - empty (quantity handled by Transaction GUI)
                 // Save
                 case 45 -> saveAndClose();
                 // Reset
@@ -691,9 +718,34 @@ public class ItemEditorGui {
     }
 
     private void cycleItemType() {
-        ItemType[] types = ItemType.values();
-        int current = itemType.ordinal();
-        itemType = types[(current + 1) % types.length];
+        // Filter types based on context
+        ItemType[] availableTypes;
+        if ("Transaction".equalsIgnoreCase(shopName)) {
+            // For Transaction GUI, only show transaction types and DUMMY
+            availableTypes = new ItemType[]{
+                ItemType.DUMMY, ItemType.ITEM_DISPLAY, 
+                ItemType.BUY_1, ItemType.BUY_2, ItemType.BUY_3,
+                ItemType.SELL_1, ItemType.SELL_2, ItemType.SELL_3,
+                ItemType.BACK, ItemType.PLAYER_HEAD
+            };
+        } else {
+            // For Shop/Menu, only show standard types (not transaction types)
+            availableTypes = new ItemType[]{
+                ItemType.ITEM, ItemType.COMMAND, ItemType.DUMMY, 
+                ItemType.SHOP, ItemType.BLANK, ItemType.SHOP_SHORTCUT
+            };
+        }
+        
+        // Find current index in available types
+        int current = 0;
+        for (int i = 0; i < availableTypes.length; i++) {
+            if (availableTypes[i] == itemType) {
+                current = i;
+                break;
+            }
+        }
+        
+        itemType = availableTypes[(current + 1) % availableTypes.length];
         buildMainMenu();
         gui.update();
     }
@@ -970,6 +1022,11 @@ public class ItemEditorGui {
         GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Setting item type PDC to " + itemType.name());
         PDCUtil.setString(item, PDCUtil.KEY_ITEM_TYPE, itemType.name());
         
+        // For Transaction GUI items, also save to the slot type key
+        if ("Transaction".equalsIgnoreCase(shopName)) {
+            PDCUtil.setString(item, TransactionEditor.KEY_SLOT_TYPE, itemType.name());
+        }
+        
         // Note: Quantity is handled by the Transaction GUI, not stored per-item
         
         // Lists (join with ::)
@@ -1028,7 +1085,40 @@ public class ItemEditorGui {
                 " buyPrice=" + (parsedItem.hasBuyPrice() ? parsedItem.getBuyPriceAsDecimal() : "none") +
                 " sellPrice=" + (parsedItem.hasSellPrice() ? parsedItem.getSellPriceAsDecimal() : "none"));
             
-            if ("Menu".equalsIgnoreCase(shopName)) {
+            if ("Transaction".equalsIgnoreCase(shopName)) {
+                // Save to transaction.yml layout section
+                org.bukkit.configuration.file.FileConfiguration transConfig = 
+                    GUIShop.getINSTANCE().getConfigManager().getTransactionConfig();
+                
+                String itemPath = "layout." + originalSlot;
+                String slotType = itemType.name();
+                transConfig.set(itemPath + ".type", slotType);
+                
+                // Only save material/name for DUMMY items
+                if (itemType == ItemType.DUMMY) {
+                    transConfig.set(itemPath + ".id", parsedItem.getMaterial());
+                    // For DUMMY, use itemName if available, else shopName, else " "
+                    String displayName = itemName;
+                    if (displayName == null || displayName.isEmpty()) {
+                        displayName = parsedItem.hasShopName() ? parsedItem.getShopName() : " ";
+                    }
+                    transConfig.set(itemPath + ".name", displayName);
+                    if (parsedItem.hasShopLore()) {
+                        transConfig.set(itemPath + ".lore", parsedItem.getShopLore());
+                    }
+                } else {
+                    // Non-DUMMY slots don't need material/name - they're generated at runtime
+                    transConfig.set(itemPath + ".id", null);
+                    transConfig.set(itemPath + ".name", null);
+                    transConfig.set(itemPath + ".lore", null);
+                }
+                
+                transConfig.save(GUIShop.getINSTANCE().getConfigManager().getTransactionFile());
+                GUIShop.getINSTANCE().getConfigManager().reloadTransactionConfig();
+                
+                GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Updated transaction.yml slot " + originalSlot + " type=" + slotType);
+                
+            } else if ("Menu".equalsIgnoreCase(shopName)) {
                 // 1. Save to menu.yml config file
                 org.bukkit.configuration.file.FileConfiguration menuConfig = 
                     GUIShop.getINSTANCE().getConfigManager().getMenuConfig();

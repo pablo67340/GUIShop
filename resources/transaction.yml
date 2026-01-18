@@ -1,0 +1,162 @@
+###########################################################################
+#                       TRANSACTION GUI LAYOUT                            #
+#                                                                         #
+# This file configures the layout of the Transaction GUI that appears     #
+# when a player clicks an item in a shop to buy or sell.                  #
+#                                                                         #
+# SLOT TYPES:                                                             #
+#   ITEM_DISPLAY  - Shows the item being transacted (required, only one)  #
+#   BUY_1         - Buy button for quantity 1                             #
+#   BUY_2         - Buy button for quantity 2 (from config)               #
+#   BUY_3         - Buy button for quantity 3 (from config)               #
+#   SELL_1        - Sell button for quantity 1                            #
+#   SELL_2        - Sell button for quantity 2 (from config)              #
+#   SELL_3        - Sell button for quantity 3 (from config)              #
+#   BACK          - Back button (returns to shop)                         #
+#   PLAYER_HEAD   - Shows player's head with balance info                 #
+#   DUMMY         - Decorative item (no function)                         #
+#                                                                         #
+# ITEM PROPERTIES (for DUMMY type):                                       #
+#   id: MATERIAL      - Bukkit material name                              #
+#   name: '&7Name'    - Display name (optional)                           #
+#   lore:             - Lore lines (optional)                             #
+#     - '&8Decorative'                                                    #
+###########################################################################
+
+# Title of the transaction GUI
+# Placeholders: %item% = Item name being transacted
+title: '&8Transaction: &f%item%'
+
+# Number of rows (1-6, default is 3)
+rows: 3
+
+# Layout definition
+# Each slot can have a type and optional item properties
+layout:
+  # Row 1 (slots 0-8) - Decorative border
+  '0':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '1':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '2':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '3':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '4':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '5':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '6':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '7':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '8':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+
+  # Row 2 (slots 9-17) - Main transaction area
+  '9':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '10':
+    type: SELL_3
+    # Material is configured in config.yml transaction-gui section
+    # This slot will show: Sell x64 (or whatever quantity-3 is set to)
+  '11':
+    type: SELL_2
+    # Sell x32 button
+  '12':
+    type: SELL_1
+    # Sell x1 button
+  '13':
+    type: ITEM_DISPLAY
+    # The item being bought/sold (auto-generated)
+  '14':
+    type: BUY_1
+    # Buy x1 button
+  '15':
+    type: BUY_2
+    # Buy x32 button
+  '16':
+    type: BUY_3
+    # Buy x64 button
+  '17':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+
+  # Row 3 (slots 18-26) - Bottom row with player head and back button
+  '18':
+    type: PLAYER_HEAD
+    # Shows player's head with balance lore (auto-generated)
+  '19':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '20':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '21':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '22':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '23':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '24':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '25':
+    type: DUMMY
+    id: BLACK_STAINED_GLASS_PANE
+    name: ' '
+  '26':
+    type: BACK
+    # Back button (uses config from buttons section in config.yml)
+
+# Button display names and lore
+# These override the titles in config.yml when set
+buttons:
+  sell:
+    name: '&c&lSell x%amount%'
+    lore:
+      - '&7Click to sell &f%amount% &7items'
+      - '&7You will receive: &a%price%'
+  buy:
+    name: '&a&lBuy x%amount%'
+    lore:
+      - '&7Click to buy &f%amount% &7items'
+      - '&7Cost: &c%price%'
+  not-sellable:
+    name: '&7Not Sellable'
+    lore:
+      - '&8This item cannot be sold'
+  not-buyable:
+    name: '&7Not Buyable'
+    lore:
+      - '&8This item cannot be bought'

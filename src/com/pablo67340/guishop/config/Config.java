@@ -13,7 +13,7 @@ public final class Config {
      */
     @Getter
     @Setter
-    private static boolean signsOnly, disableBackButton, disableEscapeBack, soundEnabled,
+    private static boolean signsOnly, disableEscapeBack, soundEnabled,
             dynamicPricing, debugMode, sellSkullUUID, disableEscapeBackQuantity, transactionLog, hideNonBuyable,
             abbreviatePrices;
 

@@ -153,7 +153,11 @@ public final class GUIShop extends JavaPlugin {
 
         getServer().getPluginManager().registerEvents(PlayerListener.INSTANCE, this);
         getServer().getPluginManager().registerEvents(GuiListener.getInstance(), this);
+        
+        // Register guishop command with tab completion
         getServer().getPluginCommand("guishop").setExecutor(new GuishopCommand());
+        getServer().getPluginCommand("guishop").setTabCompleter(new com.pablo67340.guishop.commands.GuishopTabCompleter());
+        
         getServer().getPluginCommand("guishopuser").setExecutor(new UserCommand());
         
         // Register value command with tab completion

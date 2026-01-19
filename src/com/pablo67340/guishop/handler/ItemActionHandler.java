@@ -7,7 +7,6 @@ import com.pablo67340.guishop.listenable.Menu;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.NameUtil;
 import com.pablo67340.guishop.util.PDCUtil;
-import com.pablo67340.guishop.util.SchedulerUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
@@ -103,6 +102,11 @@ public class ItemActionHandler {
             case SELL_2 -> handleSellAction(player, 1, context);
             case SELL_3 -> handleSellAction(player, 2, context);
             case BACK -> handleBackAction(player, context);
+            
+            // Navigation/pagination types - these are typically handled by the GUI directly
+            // since they need access to the PagedGui instance for page navigation
+            case PAGE_LEFT, PAGE_RIGHT -> false; // Let the Shop/Menu handle these directly
+            case PAGE_STATUS, PLAYER_BALANCE -> false; // Display only items
         };
     }
     
@@ -225,10 +229,9 @@ public class ItemActionHandler {
         Shop shop = new Shop(player, nearestShop, menuInstance);
         shop.loadItems(false);
         
-        player.closeInventory();
-        SchedulerUtil.runAtEntityLater(player, () -> {
-            shop.open(player);
-        }, 1L);
+        // Don't call closeInventory() - openInventory() handles the transition seamlessly
+        // This prevents mouse position reset when switching between inventories
+        shop.open(player);
         
         return true;
     }
@@ -259,17 +262,17 @@ public class ItemActionHandler {
     private static boolean handleBackAction(Player player, ClickContext context) {
         Runnable onBack = context.getOnBack();
         
+        // Don't call closeInventory() - openInventory() handles the transition seamlessly
+        // This prevents mouse position reset when switching between inventories
+        
         if (onBack != null) {
-            player.closeInventory();
-            SchedulerUtil.runAtEntityLater(player, onBack, 1L);
+            // Run the back callback directly (it should open another inventory)
+            onBack.run();
             return true;
         }
         
         // Default: go back to menu
-        player.closeInventory();
-        SchedulerUtil.runAtEntityLater(player, () -> {
-            new Menu(player).open(player);
-        }, 1L);
+        new Menu(player).open(player);
         
         return true;
     }
@@ -285,7 +288,8 @@ public class ItemActionHandler {
         ItemType type = getItemType(item);
         
         return switch (type) {
-            case BLANK, PLAYER_HEAD, ITEM_DISPLAY -> false;
+            case BLANK, PLAYER_HEAD, ITEM_DISPLAY, PAGE_STATUS, PLAYER_BALANCE -> false;
+            case PAGE_LEFT, PAGE_RIGHT -> true; // Navigation actions
             case DUMMY -> {
                 // DUMMY has action only if it has target-shop
                 String targetShop = PDCUtil.getString(item, PDCUtil.KEY_TARGET_SHOP);

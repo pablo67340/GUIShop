@@ -43,10 +43,6 @@ commands-mode: 'REGISTER'
 # NAVIGATION SETTINGS
 # =============================================
 
-# Hide the physical back button in shop inventories
-# When true, players can only use ESC to navigate back
-disable-back-button: false
-
 # ESC key behavior in shop/menu GUIs:
 #   true  = ESC closes the GUI completely
 #   false = ESC returns to the previous menu
@@ -133,15 +129,6 @@ transaction-log: false
 # Available properties: id, shop-name, name, shop-lore, lore, slot
 
 buttons:
-  # Back button - returns to previous menu or closes shop
-  back:
-    id: 'RED_STAINED_GLASS_PANE'
-    shop-name: '&cBack'
-    name: '&cBack'
-    shop-lore: '&fGo back to the menu'
-    lore: '&fClose the menu'
-    slot: 54
-
   # Forward button - go to next page
   forward:
     id: 'GHAST_TEAR'

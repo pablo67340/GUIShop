@@ -14,17 +14,16 @@ public class ButtonConfig {
 
     @Getter
     @Setter
-    public Item backwardButton, forwardButton, backButton, pageIndicatorButton;
+    public Item backwardButton, forwardButton, pageIndicatorButton;
 
     @Getter
     @Setter
-    public int backwardSlot = 48, forwardSlot = 52, backSlot = 54;
+    public int backwardSlot = 48, forwardSlot = 52;
 
     private FileConfiguration config;
 
     public void createButtons() {
         config = GUIShop.getINSTANCE().getConfigManager().getMainConfig();
-        createBackButton();
         createBackwardButton();
         createForwardButton();
         createPageIndicatorButton();
@@ -52,18 +51,6 @@ public class ButtonConfig {
         forwardButton.setItemType(ItemType.DUMMY);
 
         forwardSlot = config.getInt("buttons.forward.slot");
-    }
-
-    protected void createBackButton() {
-        if (config.getConfigurationSection("buttons.back") == null) {
-            backButton = new ItemBuilder().setNames("&cBack").setLores(Collections.singletonList("&fGo back to the menu")).setMaterial("RED_STAINED_GLASS_PANE").setItemType(ItemType.DUMMY).build();
-            return;
-        }
-
-        backButton = Item.deserialize(config.getConfigurationSection("buttons.back").getValues(true), -1, null);
-        backButton.setItemType(ItemType.DUMMY);
-
-        backSlot = config.getInt("buttons.back.slot");
     }
 
     protected void createPageIndicatorButton() {

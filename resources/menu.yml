@@ -44,6 +44,7 @@ Menu:
             - '&7Wood, Stone, and more'
             - '&8━━━━━━━━━━━━━━━━━'
             - '&e▶ Click to browse!'
+            - '&8[Editor: Shift+click to edit shop]'
           target-shop: 'Blocks'
           
         '12':
@@ -55,6 +56,7 @@ Menu:
             - '&7Keep yourself fed!'
             - '&8━━━━━━━━━━━━━━━━━'
             - '&e▶ Click to browse!'
+            - '&8[Editor: Shift+click to edit shop]'
           target-shop: 'Food'
           
         '13':
@@ -66,6 +68,7 @@ Menu:
             - '&7Enchanted gear available!'
             - '&8━━━━━━━━━━━━━━━━━'
             - '&e▶ Click to browse!'
+            - '&8[Editor: Shift+click to edit shop]'
           target-shop: 'Combat'
           
         '14':
@@ -77,6 +80,7 @@ Menu:
             - '&7Everything you need to raid'
             - '&8━━━━━━━━━━━━━━━━━'
             - '&e▶ Click to browse!'
+            - '&8[Editor: Shift+click to edit shop]'
           target-shop: 'Raiding'
           
         '15':
@@ -88,7 +92,59 @@ Menu:
             - '&7Build your grinder!'
             - '&8━━━━━━━━━━━━━━━━━'
             - '&e▶ Click to browse!'
+            - '&8[Editor: Shift+click to edit shop]'
           target-shop: 'Spawners'
+        
+        # =============================================
+        # NAVIGATION ITEMS - Bottom Row (slots 45-53)
+        # These use special types for navigation
+        # For a 6-row (54 slot) inventory, bottom row is 45-53
+        #
+        # EDITOR MODE CONTROLS (/gs edit):
+        #   Left-click: Pick up and move items
+        #   Right-click: Open Item Editor GUI
+        #   Shift+click on PAGE buttons: Navigate pages
+        #   Shift+click on SHOP buttons: Open that shop in editor mode
+        # =============================================
+        
+        # Player Balance Display - Shows player head with balance (bottom left)
+        '45':
+          type: PLAYER_BALANCE
+          name: '&a%player%''s Balance'
+          lore:
+            - '&7Balance: &a%balance%'
+        
+        # Page Navigation - Previous (left of center)
+        '48':
+          type: PAGE_LEFT
+          id: ARROW
+          name: '&7Previous Page'
+          lore:
+            - '&eClick to go back'
+            - '&8[Editor: Shift+click to navigate]'
+            
+        # Page Status - Shows current page number (center)
+        '49':
+          type: PAGE_STATUS
+          id: NETHER_STAR
+          name: '&fPage %page% of %maxpage%'
+          
+        # Page Navigation - Next (right of center)
+        '50':
+          type: PAGE_RIGHT
+          id: ARROW
+          name: '&7Next Page'
+          lore:
+            - '&eClick to continue'
+            - '&8[Editor: Shift+click to navigate]'
+            
+        # Back/Exit Button - Closes the menu (bottom right)
+        '53':
+          type: BACK
+          id: RED_STAINED_GLASS_PANE
+          name: '&c&lClose'
+          lore:
+            - '&7Click to close the menu'
 
 
 ################################

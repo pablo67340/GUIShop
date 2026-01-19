@@ -10,6 +10,17 @@ This page documents all commands and permissions available in GUIShop.
 | `/sell` | - | Open the sell GUI | `guishop.sell` |
 | `/value` | `/val`, `/gvalue` | Check item buy/sell values | `guishop.value` |
 
+### Economy Commands (Internal Economy Only)
+
+When using GUIShop's internal economy (enabled in `economy.yml`):
+
+| Command | Aliases | Description | Permission |
+|---------|---------|-------------|------------|
+| `/bal` | `/balance`, `/money` | Check your balance | `guishop.economy.balance` |
+| `/bal <player>` | - | Check another player's balance | `guishop.economy.balance.others` |
+| `/pay <player> <amount>` | - | Send money to a player | `guishop.economy.pay` |
+| `/togglepay` | - | Toggle payment notifications | `guishop.economy.pay` |
+
 ## Admin Commands
 
 All admin commands use the base command `/guishop` (alias: `/gs`).
@@ -27,8 +38,17 @@ All admin commands use the base command `/guishop` (alias: `/gs`).
 |---------|-------------|------------|
 | `/gs edit` | Enter creator mode for the main menu | `guishop.creator` |
 | `/gs edit menu` | Enter creator mode for the main menu | `guishop.creator` |
+| `/gs edit transaction` | Edit the transaction GUI layout | `guishop.creator` |
 | `/gs edit <shop>` | Enter creator mode for a specific shop | `guishop.creator` |
 | `/gs edit <shop> <page>` | Edit a specific page of a shop | `guishop.creator` |
+
+**Editor Modes:**
+
+| Mode | Command | Description |
+|------|---------|-------------|
+| **Menu Editor** | `/gs edit` or `/gs edit menu` | Edit the main shop menu |
+| **Shop Editor** | `/gs edit <shopname>` | Edit a specific shop |
+| **Transaction Editor** | `/gs edit transaction` | Edit the buy/sell transaction GUI |
 
 **How the In-Game Editor Works:**
 1. Enter creator mode with `/gs edit` or `/gs edit <shop>`
@@ -38,6 +58,24 @@ All admin commands use the base command `/guishop` (alias: `/gs`).
 5. Changes save automatically when you close the inventory
 
 See [In-Game Item Editor](In-Game-Item-Editor) for detailed documentation.
+
+### Economy Admin Commands
+
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/gs eco give <player> <amount>` | Give money to a player | `guishop.admin` |
+| `/gs eco take <player> <amount>` | Take money from a player | `guishop.admin` |
+| `/gs eco set <player> <amount>` | Set a player's balance | `guishop.admin` |
+| `/gs eco balance <player>` | Check a player's balance | `guishop.admin` |
+| `/gs eco reset <player>` | Reset to starting balance | `guishop.admin` |
+
+**Amount Abbreviations:** All economy commands support abbreviated amounts:
+- `1k` = 1,000
+- `1.5m` = 1,500,000
+- `1b` = 1,000,000,000
+- `1t` = 1,000,000,000,000
+
+See [Internal Economy](Internal-Economy) for full documentation.
 
 ### Utility Commands
 

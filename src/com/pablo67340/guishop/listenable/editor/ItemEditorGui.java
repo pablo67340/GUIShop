@@ -394,6 +394,10 @@ public class ItemEditorGui {
             case SELL_1, SELL_2, SELL_3 -> Material.RED_STAINED_GLASS_PANE;
             case BACK -> Material.BARRIER;
             case PLAYER_HEAD -> Material.PLAYER_HEAD;
+            case PAGE_LEFT -> Material.ARROW;
+            case PAGE_RIGHT -> Material.ARROW;
+            case PAGE_STATUS -> Material.NETHER_STAR;
+            case PLAYER_BALANCE -> Material.PLAYER_HEAD;
             default -> Material.CHEST;
         };
         
@@ -410,7 +414,9 @@ public class ItemEditorGui {
             builder.addLoreLine(ChatColor.DARK_GRAY + "BUY_1/2/3, SELL_1/2/3, BACK, PLAYER_HEAD");
         } else {
             builder.addLoreLine(ChatColor.DARK_GRAY + "Available: ITEM, COMMAND, DUMMY,");
-            builder.addLoreLine(ChatColor.DARK_GRAY + "SHOP, BLANK, SHOP_SHORTCUT");
+            builder.addLoreLine(ChatColor.DARK_GRAY + "SHOP, BLANK, SHOP_SHORTCUT,");
+            builder.addLoreLine(ChatColor.DARK_GRAY + "PAGE_LEFT, PAGE_RIGHT, PAGE_STATUS,");
+            builder.addLoreLine(ChatColor.DARK_GRAY + "PLAYER_BALANCE");
         }
         
         builder.addLoreLine("");
@@ -729,10 +735,12 @@ public class ItemEditorGui {
                 ItemType.BACK, ItemType.PLAYER_HEAD
             };
         } else {
-            // For Shop/Menu, only show standard types (not transaction types)
+            // For Shop/Menu, show standard types plus navigation types
             availableTypes = new ItemType[]{
                 ItemType.ITEM, ItemType.COMMAND, ItemType.DUMMY, 
-                ItemType.SHOP, ItemType.BLANK, ItemType.SHOP_SHORTCUT
+                ItemType.SHOP, ItemType.BLANK, ItemType.SHOP_SHORTCUT,
+                ItemType.PAGE_LEFT, ItemType.PAGE_RIGHT, ItemType.PAGE_STATUS,
+                ItemType.PLAYER_BALANCE
             };
         }
         
@@ -745,9 +753,59 @@ public class ItemEditorGui {
             }
         }
         
+        ItemType oldType = itemType;
         itemType = availableTypes[(current + 1) % availableTypes.length];
+        
+        // Auto-transform item when switching to navigation types
+        handleNavigationTypeTransform(oldType);
+        
         buildMainMenu();
         gui.update();
+    }
+    
+    /**
+     * Handle automatic item transformation when switching to navigation types.
+     * This sets appropriate default appearances for navigation items.
+     */
+    private void handleNavigationTypeTransform(ItemType oldType) {
+        switch (itemType) {
+            case PAGE_LEFT -> {
+                // Transform to backward button appearance
+                if (shopDisplayName == null || shopDisplayName.isEmpty() || 
+                    oldType == ItemType.DUMMY || oldType == ItemType.BLANK) {
+                    shopDisplayName = "&7Previous Page";
+                }
+                player.sendMessage(ChatColor.GREEN + "Item type set to PAGE_LEFT - will navigate to previous page.");
+            }
+            case PAGE_RIGHT -> {
+                // Transform to forward button appearance
+                if (shopDisplayName == null || shopDisplayName.isEmpty() || 
+                    oldType == ItemType.DUMMY || oldType == ItemType.BLANK) {
+                    shopDisplayName = "&7Next Page";
+                }
+                player.sendMessage(ChatColor.GREEN + "Item type set to PAGE_RIGHT - will navigate to next page.");
+            }
+            case PAGE_STATUS -> {
+                // Transform to page indicator appearance
+                if (shopDisplayName == null || shopDisplayName.isEmpty() || 
+                    oldType == ItemType.DUMMY || oldType == ItemType.BLANK) {
+                    shopDisplayName = "&fPage %page% of %maxpage%";
+                }
+                player.sendMessage(ChatColor.GREEN + "Item type set to PAGE_STATUS - will show page information.");
+            }
+            case PLAYER_BALANCE -> {
+                // Transform to player head with balance
+                if (shopDisplayName == null || shopDisplayName.isEmpty() || 
+                    oldType == ItemType.DUMMY || oldType == ItemType.BLANK) {
+                    shopDisplayName = "&a%player%'s Balance";
+                }
+                player.sendMessage(ChatColor.GREEN + "Item type set to PLAYER_BALANCE - will show player head with balance.");
+                player.sendMessage(ChatColor.GRAY + "The item will automatically become a player head when saved.");
+            }
+            default -> {
+                // No transformation needed
+            }
+        }
     }
 
     private void editShopLore(boolean clear) {

@@ -328,13 +328,14 @@ public class Shop {
     private void applyButtons(int pageIndex, int maxPages, int rows) {
         GUIShop.getINSTANCE().getLogUtil().debugLog("Applying buttons with page index: " + pageIndex + " max pages: " + maxPages);
 
-        int inventorySize = rows * 9;
         int bottomRowStart = (rows - 1) * 9;
         int centerSlot = bottomRowStart + 4; // Center of bottom row (slot 49 for 6-row)
         int prevSlot = centerSlot - 1; // Left of center
         int nextSlot = centerSlot + 1; // Right of center
-        int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        int backSlot = bottomRowStart + 8; // Bottom right corner
         int playerHeadSlot = bottomRowStart; // Bottom left corner
+        
+        boolean isCreatorMode = GUIShop.getCREATOR().contains(player.getUniqueId());
 
         // Add page indicator in center - always shows (configurable via buttons.page-indicator)
         Item pageIndicatorConfig = Config.getButtonConfig().getPageIndicatorButton();
@@ -343,39 +344,77 @@ public class Shop {
         String indicatorName = pageIndicatorConfig.hasShopName() ? pageIndicatorConfig.getShopName() : "&fPage %page% of %maxpage%";
         pageMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
             indicatorName.replace("%page%", String.valueOf(pageIndex + 1)).replace("%maxpage%", String.valueOf(maxPages))));
+        if (isCreatorMode) {
+            List<String> lore = pageMeta.getLore() != null ? new ArrayList<>(pageMeta.getLore()) : new ArrayList<>();
+            lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+            pageMeta.setLore(lore);
+        }
         pageIndicator.setItemMeta(pageMeta);
         PDCUtil.setString(pageIndicator, PDCUtil.KEY_GUI_ELEMENT, "true");
         GUI.setItem(pageIndex, centerSlot, pageIndicator);
 
-        // Only show navigation buttons if there are multiple pages
-        if (maxPages > 1) {
-            // Add forward button - only if not on last page (configurable via buttons.forward)
-            if (pageIndex < (maxPages - 1)) {
-                ItemStack forwardButton = Config.getButtonConfig().getForwardButton().toItemStack(player, false);
-                PDCUtil.setString(forwardButton, PDCUtil.KEY_GUI_ELEMENT, "true");
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button at slot " + nextSlot);
-                GUI.setItem(pageIndex, nextSlot, forwardButton);
+        // In editor mode, always show navigation buttons so they can be edited
+        // In normal mode, only show if there are multiple pages and we're not at the edge
+        boolean showForwardButton = isCreatorMode || (maxPages > 1 && pageIndex < (maxPages - 1));
+        boolean showBackwardButton = isCreatorMode || (maxPages > 1 && pageIndex > 0);
+        
+        if (showForwardButton) {
+            ItemStack forwardButton = Config.getButtonConfig().getForwardButton().toItemStack(player, false);
+            ItemMeta forwardMeta = forwardButton.getItemMeta();
+            if (isCreatorMode && forwardMeta != null) {
+                List<String> lore = forwardMeta.getLore() != null ? new ArrayList<>(forwardMeta.getLore()) : new ArrayList<>();
+                lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Next Page/Create Page]");
+                forwardMeta.setLore(lore);
+                forwardButton.setItemMeta(forwardMeta);
             }
-
-            // Add backward button - only if not on first page (configurable via buttons.backward)
-            if (pageIndex > 0) {
-                ItemStack backwardButton = Config.getButtonConfig().getBackwardButton().toItemStack(player, false);
-                PDCUtil.setString(backwardButton, PDCUtil.KEY_GUI_ELEMENT, "true");
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button at slot " + prevSlot);
-                GUI.setItem(pageIndex, prevSlot, backwardButton);
-            }
+            PDCUtil.setString(forwardButton, PDCUtil.KEY_GUI_ELEMENT, "true");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding forward button at slot " + nextSlot);
+            GUI.setItem(pageIndex, nextSlot, forwardButton);
         }
 
-        if (!Config.isDisableBackButton()) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button at slot " + backSlot);
-            ItemStack backButtonItem = Config.getButtonConfig().backButton.toItemStack(player, false);
-            PDCUtil.setString(backButtonItem, PDCUtil.KEY_GUI_ELEMENT, "true");
-            GUI.setItem(pageIndex, backSlot, backButtonItem);
+        if (showBackwardButton) {
+            ItemStack backwardButton = Config.getButtonConfig().getBackwardButton().toItemStack(player, false);
+            ItemMeta backwardMeta = backwardButton.getItemMeta();
+            if (isCreatorMode && backwardMeta != null) {
+                List<String> lore = backwardMeta.getLore() != null ? new ArrayList<>(backwardMeta.getLore()) : new ArrayList<>();
+                lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Previous Page]");
+                backwardMeta.setLore(lore);
+                backwardButton.setItemMeta(backwardMeta);
+            }
+            PDCUtil.setString(backwardButton, PDCUtil.KEY_GUI_ELEMENT, "true");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding backward button at slot " + prevSlot);
+            GUI.setItem(pageIndex, prevSlot, backwardButton);
         }
+
+        // Add back button (bottom right) - always show
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button at slot " + backSlot);
+        ItemStack backButtonItem = createBackButton();
+        if (isCreatorMode) {
+            ItemMeta backMeta = backButtonItem.getItemMeta();
+            if (backMeta != null) {
+                List<String> lore = backMeta.getLore() != null ? new ArrayList<>(backMeta.getLore()) : new ArrayList<>();
+                lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Back to Menu]");
+                backMeta.setLore(lore);
+                backButtonItem.setItemMeta(backMeta);
+            }
+        }
+        GUI.setItem(pageIndex, backSlot, backButtonItem);
 
         // Add player head with balance in bottom left
         if (player != null) {
             ItemStack playerHead = createPlayerHead();
+            if (isCreatorMode) {
+                ItemMeta headMeta = playerHead.getItemMeta();
+                if (headMeta != null) {
+                    List<String> lore = headMeta.getLore() != null ? new ArrayList<>(headMeta.getLore()) : new ArrayList<>();
+                    lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                    headMeta.setLore(lore);
+                    playerHead.setItemMeta(headMeta);
+                }
+            }
             GUIShop.getINSTANCE().getLogUtil().debugLog("Adding player head at slot " + playerHeadSlot);
             GUI.setItem(pageIndex, playerHeadSlot, playerHead);
         }
@@ -407,6 +446,25 @@ public class Shop {
         // Mark as GUI element to prevent worth display
         PDCUtil.setString(playerHead, PDCUtil.KEY_GUI_ELEMENT, "true");
         return playerHead;
+    }
+
+    /**
+     * Creates the back button (red glass pane) for returning to menu.
+     */
+    private ItemStack createBackButton() {
+        ItemStack backButton = XMaterial.RED_STAINED_GLASS_PANE.parseItem();
+        ItemMeta meta = backButton.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lBack"));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Return to menu"));
+        meta.setLore(lore);
+        // Set PDC to mark as BACK type
+        meta.getPersistentDataContainer().set(PDCUtil.KEY_GUI_ELEMENT, 
+            org.bukkit.persistence.PersistentDataType.STRING, "true");
+        meta.getPersistentDataContainer().set(PDCUtil.KEY_ITEM_TYPE, 
+            org.bukkit.persistence.PersistentDataType.STRING, ItemType.BACK.name());
+        backButton.setItemMeta(meta);
+        return backButton;
     }
 
     private int calculateSlot(int setSlot, int inventorySize) {
@@ -473,7 +531,7 @@ public class Shop {
         int centerSlot = bottomRowStart + 4; // Center of bottom row
         int prevSlot = centerSlot - 1; // Left of center (ghast tear)
         int nextSlot = centerSlot + 1; // Right of center (ghast tear)
-        int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        int backSlot = bottomRowStart + 8; // Bottom right corner
         int playerHeadSlot = bottomRowStart; // Bottom left corner
 
         // Forward Button (ghast tear right of center)
@@ -487,7 +545,7 @@ public class Shop {
         } else if (event.getSlot() == centerSlot) {
             return;
             // Back Button
-        } else if (event.getSlot() == backSlot && !Config.isDisableBackButton()) {
+        } else if (event.getSlot() == backSlot) {
             if (menuInstance != null && !GUIShop.getCREATOR().contains(player.getUniqueId())) {
                 // Set hasClicked to prevent onClose from also scheduling menu.open()
                 hasClicked = true;
@@ -523,48 +581,83 @@ public class Shop {
     private void creatorTopInventoryClick(InventoryClickEvent e) {
         ItemStack clickedItem = e.getCurrentItem();
         
-        // Calculate button slots - these should still function as buttons, not be stealable
-        int inventorySize = GUI.getRows() * 9;
+        // Calculate button slots
         int bottomRowStart = (GUI.getRows() - 1) * 9;
         int centerSlot = bottomRowStart + 4; // Center of bottom row (nether star)
         int prevSlot = centerSlot - 1; // Left of center (ghast tear)
         int nextSlot = centerSlot + 1; // Right of center (ghast tear)
-        int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+        int backSlot = bottomRowStart + 8; // Bottom right corner
         int playerHeadSlot = bottomRowStart; // Bottom left corner
         
-        // Handle pagination and back buttons (always cancel and process like normal)
-        if (e.getSlot() == nextSlot) {
-            e.setCancelled(true);
-            handleForwardButton();
-            return;
-        } else if (e.getSlot() == prevSlot) {
-            e.setCancelled(true);
-            handleBackwardButton();
-            return;
-        } else if (e.getSlot() == centerSlot) {
-            // Center slot (nether star page indicator) - don't allow modification
-            e.setCancelled(true);
-            return;
-        } else if (e.getSlot() == backSlot && !Config.isDisableBackButton()) {
-            e.setCancelled(true);
-            if (menuInstance != null) {
-                hasClicked = true;
-                menuInstance.open(player);
+        boolean isShiftClick = e.getClick() == ClickType.SHIFT_LEFT || e.getClick() == ClickType.SHIFT_RIGHT;
+        boolean isRightClick = e.getClick() == ClickType.RIGHT;
+        boolean isLeftClick = e.getClick() == ClickType.LEFT;
+        
+        // In editor mode, navigation buttons follow these controls:
+        // - Left-click: Pick up and move (like any other item)
+        // - Right-click: Open Item Editor GUI
+        // - Shift+click: Navigate pages (or create new page if at end)
+        
+        // Handle navigation slots with editor-aware logic
+        if (e.getSlot() == nextSlot || e.getSlot() == prevSlot) {
+            if (isShiftClick) {
+                // Shift+click = Navigate pages
+                e.setCancelled(true);
+                if (e.getSlot() == nextSlot) {
+                    // If we're at the last page, create a new page
+                    if (!GUI.hasNextPage()) {
+                        GUI.addPage();
+                        GUI.setPageRows(GUI.getPageCount() - 1, GUI.getRows());
+                        player.sendMessage(ChatColor.GREEN + "Created new page " + GUI.getPageCount());
+                    }
+                    handleForwardButton();
+                } else {
+                    handleBackwardButton();
+                }
+                return;
+            } else if (isRightClick) {
+                // Right-click = Open Item Editor GUI (handled below with other items)
+                // Don't return, fall through to the editor logic
+            } else if (isLeftClick) {
+                // Left-click = Allow picking up the item (don't cancel, let it fall through)
+                // The item can be moved like any other
             }
-            return;
-        } else if (e.getSlot() == playerHeadSlot) {
-            // Player head slot - don't allow modification
-            e.setCancelled(true);
-            return;
         }
         
-        // Right-click or Shift+click on an existing item = Open Item Editor GUI
+        // Center slot (page indicator) - Shift+click does nothing, Right-click opens editor, Left-click moves
+        if (e.getSlot() == centerSlot) {
+            if (isShiftClick) {
+                e.setCancelled(true);
+                return;
+            }
+            // Right-click and Left-click fall through to normal handling
+        }
+        
+        // Back button - Shift+click goes back to menu, Right-click opens editor, Left-click moves
+        if (e.getSlot() == backSlot) {
+            if (isShiftClick) {
+                e.setCancelled(true);
+                if (menuInstance != null) {
+                    hasClicked = true;
+                    menuInstance.open(player);
+                }
+                return;
+            }
+            // Right-click and Left-click fall through to normal handling
+        }
+        
+        // Player head slot - Shift+click does nothing, Right-click opens editor, Left-click moves
+        if (e.getSlot() == playerHeadSlot) {
+            if (isShiftClick) {
+                e.setCancelled(true);
+                return;
+            }
+            // Right-click and Left-click fall through to normal handling
+        }
+        
+        // Right-click on an existing item = Open Item Editor GUI
         if (clickedItem != null && !clickedItem.getType().isAir()) {
-            boolean isEditClick = e.getClick() == ClickType.RIGHT || 
-                                  e.getClick() == ClickType.SHIFT_LEFT || 
-                                  e.getClick() == ClickType.SHIFT_RIGHT;
-            
-            if (isEditClick) {
+            if (isRightClick) {
                 e.setCancelled(true);
                 clickOverride = true;
                 int currentPageForEditor = GUI.getCurrentPage();
@@ -697,7 +790,7 @@ public class Shop {
             int centerSlot = bottomRowStart + 4; // Center of bottom row (nether star)
             int prevSlot = centerSlot - 1; // Left of center (ghast tear)
             int nextSlot = centerSlot + 1; // Right of center (ghast tear)
-            int backSlot = Math.max(0, calculateSlot(Config.getButtonConfig().getBackSlot(), inventorySize) - 1);
+            int backSlot = bottomRowStart + 8; // Bottom right corner
             int playerHeadSlot = bottomRowStart; // Bottom left corner
             
             org.bukkit.configuration.ConfigurationSection config = 
@@ -981,6 +1074,20 @@ public class Shop {
                         hasClicked = true;
                     }
                     // Otherwise do nothing (decorative)
+                }
+                case PAGE_LEFT -> {
+                    // Navigate to previous page
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing PAGE_LEFT item");
+                    handleBackwardButton();
+                }
+                case PAGE_RIGHT -> {
+                    // Navigate to next page
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing PAGE_RIGHT item");
+                    handleForwardButton();
+                }
+                case PAGE_STATUS, PLAYER_BALANCE -> {
+                    // Display-only items - do nothing on click
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Display item " + item.getItemType() + " - no action");
                 }
                 default -> {
                     GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Item type " + item.getItemType() + " - no action");

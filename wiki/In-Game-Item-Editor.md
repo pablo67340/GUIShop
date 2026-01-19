@@ -10,10 +10,87 @@ Use one of these commands to enter creator mode:
 |---------|-------------|
 | `/gs edit` | Edit the main menu |
 | `/gs edit menu` | Edit the main menu |
+| `/gs edit transaction` | Edit the transaction GUI |
 | `/gs edit <shop>` | Edit a specific shop |
 | `/gs edit <shop> <page>` | Edit a specific page |
 
 **Permission required:** `guishop.creator`
+
+## Editor Modes
+
+GUIShop has three distinct editor modes:
+
+### Menu Editor
+**Command:** `/gs edit` or `/gs edit menu`
+
+Edit the main shop menu where players select which shop to browse. Configure shop icons, decorations, and navigation.
+
+### Shop Editor
+**Command:** `/gs edit <shopname>`
+
+Edit individual shop inventories. Add, remove, or modify items that players can buy and sell.
+
+### Transaction Editor
+**Command:** `/gs edit transaction`
+
+Edit the transaction GUI that appears when players click an item to buy or sell. Customize:
+- Button positions (buy/sell buttons)
+- Decoration items (borders, backgrounds)
+- Player head position (balance display)
+- Back button location
+- Item display position
+
+The transaction editor uses the same controls as other editors but with special item types:
+- **DUMMY** - Decoration items (glass panes, etc.)
+- **BUY_1/2/3** - Buy buttons for each quantity tier
+- **SELL_1/2/3** - Sell buttons for each quantity tier
+- **ITEM_DISPLAY** - Where the item being transacted appears
+- **PLAYER_HEAD** - Player's head with balance info
+- **BACK** - Return to shop button
+
+## Navigation Item Types
+
+These item types can be used in shops and menus for navigation and information display:
+
+| Type | Description | Placeholders |
+|------|-------------|--------------|
+| **PAGE_LEFT** | Previous page button - automatically hidden on first page | None |
+| **PAGE_RIGHT** | Next page button - automatically hidden on last page | None |
+| **PAGE_STATUS** | Page indicator showing current/total pages | `%page%`, `%maxpage%` |
+| **PLAYER_BALANCE** | Player head showing their economy balance | `%player%`, `%balance%` |
+
+### Example Configuration
+
+```yaml
+# In menu.yml or any shop file
+'27':
+  type: PLAYER_BALANCE
+  name: '&a%player%''s Balance'
+  lore:
+    - '&7Balance: &a%balance%'
+    
+'30':
+  type: PAGE_LEFT
+  id: ARROW
+  name: '&7Previous Page'
+  
+'31':
+  type: PAGE_STATUS
+  id: NETHER_STAR
+  name: '&fPage %page% of %maxpage%'
+  
+'32':
+  type: PAGE_RIGHT
+  id: ARROW
+  name: '&7Next Page'
+```
+
+### Automatic Behavior
+
+- **PAGE_LEFT** and **PAGE_RIGHT** buttons automatically hide when not applicable (first/last page)
+- **PLAYER_BALANCE** automatically becomes the player's head with their skin
+- **PAGE_STATUS** updates dynamically with current page numbers
+- All navigation types are marked as GUI elements (no worth display)
 
 ## How It Works
 

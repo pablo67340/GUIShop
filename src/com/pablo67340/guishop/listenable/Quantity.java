@@ -188,11 +188,27 @@ class Quantity {
             multiplier *= 2;
         }
 
-        if (!Config.isDisableBackButton()) {
-            GUI.setItem(44, Config.getButtonConfig().getBackButton().toItemStack(player, false));
-        }
+        // Add back button at slot 44
+        GUI.setItem(44, createBackButton());
 
         return this;
+    }
+
+    /**
+     * Creates the back button (red glass pane) for returning to shop.
+     */
+    private ItemStack createBackButton() {
+        ItemStack backButton = XMaterial.RED_STAINED_GLASS_PANE.parseItem();
+        ItemMeta meta = backButton.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lBack"));
+        java.util.List<String> lore = new java.util.ArrayList<>();
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Return to shop"));
+        meta.setLore(lore);
+        // Mark as GUI element
+        meta.getPersistentDataContainer().set(PDCUtil.KEY_GUI_ELEMENT, 
+            org.bukkit.persistence.PersistentDataType.STRING, "true");
+        backButton.setItemMeta(meta);
+        return backButton;
     }
 
     /**
@@ -206,14 +222,13 @@ class Quantity {
             return;
         }
 
-        if (!Config.isDisableBackButton()) {
-            if (e.getSlot() == 44) {
-                // Set flag to prevent onClose from also opening shop
-                clickedBack = true;
-                // Open shop directly - openInventory() will close current inventory
-                currentShop.open(player);
-                return;
-            }
+        // Back button at slot 44
+        if (e.getSlot() == 44) {
+            // Set flag to prevent onClose from also opening shop
+            clickedBack = true;
+            // Open shop directly - openInventory() will close current inventory
+            currentShop.open(player);
+            return;
         }
 
         if (e.getClickedInventory() == null) {

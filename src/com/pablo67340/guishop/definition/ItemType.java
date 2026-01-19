@@ -18,7 +18,13 @@ public enum ItemType {
     SELL_2,
     SELL_3,
     BACK,
-    PLAYER_HEAD;
+    PLAYER_HEAD,
+    
+    // Navigation/UI slot types (usable in shops and menus)
+    PAGE_LEFT,
+    PAGE_RIGHT,
+    PAGE_STATUS,
+    PLAYER_BALANCE;
     
     /**
      * Check if this type is a transaction GUI slot type.
@@ -26,6 +32,26 @@ public enum ItemType {
     public boolean isTransactionType() {
         return switch (this) {
             case ITEM_DISPLAY, BUY_1, BUY_2, BUY_3, SELL_1, SELL_2, SELL_3, BACK, PLAYER_HEAD -> true;
+            default -> false;
+        };
+    }
+    
+    /**
+     * Check if this type is a navigation/pagination type.
+     */
+    public boolean isNavigationType() {
+        return switch (this) {
+            case PAGE_LEFT, PAGE_RIGHT, PAGE_STATUS, PLAYER_BALANCE, BACK -> true;
+            default -> false;
+        };
+    }
+    
+    /**
+     * Check if this type is a shop/menu item type (not transaction-specific).
+     */
+    public boolean isShopMenuType() {
+        return switch (this) {
+            case ITEM, COMMAND, DUMMY, SHOP, BLANK, SHOP_SHORTCUT, PAGE_LEFT, PAGE_RIGHT, PAGE_STATUS, PLAYER_BALANCE -> true;
             default -> false;
         };
     }

@@ -1577,6 +1577,17 @@ public final class Item implements ConfigurationSerializable {
             GUIShop.getINSTANCE().getLogUtil().debugLog("ITEM DESERIALIZE: Defaulted itemType to SHOP (has prices)");
         }
         
+        // Set default materials for navigation types that don't have an id specified
+        if (item.getMaterial() == null || item.getMaterial().isEmpty()) {
+            switch (item.getItemType()) {
+                case PLAYER_BALANCE -> item.setMaterial("PLAYER_HEAD");
+                case PAGE_STATUS -> item.setMaterial("NETHER_STAR");
+                case PAGE_LEFT, PAGE_RIGHT -> item.setMaterial("ARROW");
+                case BACK -> item.setMaterial("RED_STAINED_GLASS_PANE");
+                default -> {}
+            }
+        }
+        
         return item;
     }
 

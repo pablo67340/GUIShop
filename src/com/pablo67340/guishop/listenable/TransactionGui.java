@@ -7,6 +7,7 @@ import com.cryptomorin.xseries.XSound;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.gui.SimpleGui;
 import com.pablo67340.guishop.statistics.StatisticsManager;
@@ -185,10 +186,8 @@ public class TransactionGui {
         }
         
         // Add back button
-        if (!Config.isDisableBackButton() && backButtonSlot >= 0) {
-            ItemStack backButton = Config.getButtonConfig().getBackButton().toItemStack(player, false);
-            // Mark as GUI element to prevent worth display
-            PDCUtil.setString(backButton, PDCUtil.KEY_GUI_ELEMENT, "true");
+        if (backButtonSlot >= 0) {
+            ItemStack backButton = createBackButton();
             GUI.setItem(backButtonSlot, backButton);
         }
         
@@ -520,6 +519,25 @@ public class TransactionGui {
     }
 
     /**
+     * Creates the back button (red glass pane) for returning to shop.
+     */
+    private ItemStack createBackButton() {
+        ItemStack backButton = XMaterial.RED_STAINED_GLASS_PANE.parseItem();
+        ItemMeta meta = backButton.getItemMeta();
+        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c&lBack"));
+        List<String> lore = new ArrayList<>();
+        lore.add(ChatColor.translateAlternateColorCodes('&', "&7Return to shop"));
+        meta.setLore(lore);
+        // Set PDC to mark as BACK type
+        meta.getPersistentDataContainer().set(PDCUtil.KEY_GUI_ELEMENT, 
+            org.bukkit.persistence.PersistentDataType.STRING, "true");
+        meta.getPersistentDataContainer().set(PDCUtil.KEY_ITEM_TYPE, 
+            org.bukkit.persistence.PersistentDataType.STRING, ItemType.BACK.name());
+        backButton.setItemMeta(meta);
+        return backButton;
+    }
+
+    /**
      * Handles click events in the transaction GUI.
      */
     private void onClick(InventoryClickEvent e) {
@@ -534,7 +552,7 @@ public class TransactionGui {
         int[] quantities = getQuantities();
 
         // Back button
-        if (!Config.isDisableBackButton() && slot == backButtonSlot) {
+        if (slot == backButtonSlot && backButtonSlot >= 0) {
             clickedBack = true;
             currentShop.open(player);
             return;

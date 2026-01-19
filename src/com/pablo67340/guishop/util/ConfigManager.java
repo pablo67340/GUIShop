@@ -41,7 +41,7 @@ public final class ConfigManager {
      */
     @Getter
     @Setter
-    private boolean signsOnly, disableBackButton, disableEscapeBack, alternateSellEnabled, soundEnabled,
+    private boolean signsOnly, disableEscapeBack, alternateSellEnabled, soundEnabled,
             dynamicPricing, debugMode, sellSkullUUID;
 
     /**
@@ -546,9 +546,6 @@ public final class ConfigManager {
         // The title for signs
         Config.getTitlesConfig().setSignTitle(ChatColor.translateAlternateColorCodes('&',
                 Objects.requireNonNull(mainConfig.getString("titles.sign", "&f[&cGUIShop&f]"))));
-
-        // Disable the back button
-        Config.setDisableBackButton(mainConfig.getBoolean("disable-back-button", false));
 
         // Disable the feature to escape back (true = ESC closes GUI completely)
         Config.setDisableEscapeBack(mainConfig.getBoolean("disable-escape-back", true));

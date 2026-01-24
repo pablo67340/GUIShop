@@ -102,6 +102,22 @@ These item types can be used in shops and menus for navigation and information d
 | **Right-click** | Open Item Editor for the clicked item |
 | **Shift+click** | Open Item Editor for the clicked item |
 
+### Navigation Button Controls
+
+Navigation buttons (pagination, back, balance icons) have special controls in editor mode:
+
+| Action | Result |
+|--------|--------|
+| **Left-click** | Pick up and move the button (reposition it) |
+| **Right-click** | Open Item Editor for the button |
+| **Shift+click** | Activate the button (navigate pages, go back, etc.) |
+
+This allows you to:
+- Move navigation buttons to different slots
+- Edit their appearance (icon, name, lore)
+- Still navigate between pages using Shift+click
+- Create new pages by Shift+clicking the forward button on the last page
+
 ### Moving Items Around
 
 Once in creator mode:
@@ -109,7 +125,7 @@ Once in creator mode:
 - Drop items into empty slots to place them
 - Drag items from your player inventory into the shop to add new items
 - Remove items by dragging them back to your inventory
-- Navigation buttons (forward, back, return to menu) still function normally
+- Navigation buttons can be repositioned using left-click
 - All changes are saved automatically when you close the inventory
 
 ### Opening the Item Editor

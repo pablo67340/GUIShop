@@ -57,6 +57,11 @@ All admin commands use the base command `/guishop` (alias: `/gs`).
 4. Click on any setting in the editor to modify it
 5. Changes save automatically when you close the inventory
 
+**Navigation Button Controls (pagination, back, balance):**
+- **Left-click** - Pick up and move the button
+- **Right-click** - Open Item Editor for the button
+- **Shift+click** - Activate the button (navigate pages, go back, etc.)
+
 See [In-Game Item Editor](In-Game-Item-Editor) for detailed documentation.
 
 ### Economy Admin Commands

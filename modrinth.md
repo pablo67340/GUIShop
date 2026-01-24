@@ -199,6 +199,11 @@ GUIShop features a powerful, fully GUI-based item editor that eliminates the nee
 Left-click     - Pick up / place items (works between shop and your inventory)
 Right-click    - Open Item Editor for the clicked item
 Shift+click    - Open Item Editor for the clicked item
+
+Navigation Buttons (pagination, back, balance):
+Left-click     - Pick up and move the button
+Right-click    - Open Item Editor for the button
+Shift+click    - Activate the button (navigate pages, go back, etc.)
 ```
 
 ### Item Editor Features

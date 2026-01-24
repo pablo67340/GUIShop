@@ -301,21 +301,75 @@ public final class GUIShop extends JavaPlugin {
             getLogUtil().log("Currency: " + economyConfig.getCurrencySymbol() + " (" + economyConfig.getCurrencyName() + ")");
             getLogUtil().log("Starting balance: " + economyConfig.formatBalance(economyConfig.getStartingBalance()));
             
-            // Register economy commands (/bal, /pay, /togglepay)
-            EconomyCommands ecoCommands = new EconomyCommands(this);
-            if (getCommand("bal") != null) {
-                getCommand("bal").setExecutor(ecoCommands);
-            }
-            if (getCommand("pay") != null) {
-                getCommand("pay").setExecutor(ecoCommands);
-            }
-            if (getCommand("togglepay") != null) {
-                getCommand("togglepay").setExecutor(ecoCommands);
-            }
-            getLogUtil().log("Economy commands registered: /bal, /balance, /pay, /togglepay");
+            // Register economy commands dynamically (/bal, /pay, /togglepay)
+            // These are only registered when internal economy is enabled
+            registerEconomyCommands();
             
         } catch (Exception e) {
             getLogUtil().log("Failed to initialize internal economy: " + e.getMessage());
+            if (Config.isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    /**
+     * Dynamically registers economy commands (/bal, /pay, /togglepay).
+     * These are only registered when internal economy is enabled to avoid
+     * conflicting with other economy plugins' commands.
+     */
+    private void registerEconomyCommands() {
+        try {
+            EconomyCommands ecoCommands = new EconomyCommands(this);
+            
+            // Get the command map via reflection
+            java.lang.reflect.Field commandMapField = Bukkit.getServer().getClass().getDeclaredField("commandMap");
+            commandMapField.setAccessible(true);
+            org.bukkit.command.CommandMap commandMap = (org.bukkit.command.CommandMap) commandMapField.get(Bukkit.getServer());
+            
+            // Register /bal command with aliases
+            org.bukkit.command.Command balCommand = new org.bukkit.command.Command("bal", 
+                    "Check your balance (internal economy)", 
+                    "/bal [player]", 
+                    java.util.Arrays.asList("balance", "money")) {
+                @Override
+                public boolean execute(org.bukkit.command.CommandSender sender, String label, String[] args) {
+                    return ecoCommands.onCommand(sender, this, label, args);
+                }
+            };
+            balCommand.setPermission("guishop.economy.balance");
+            commandMap.register("guishop", balCommand);
+            
+            // Register /pay command with aliases
+            org.bukkit.command.Command payCommand = new org.bukkit.command.Command("pay", 
+                    "Send money to another player (internal economy)", 
+                    "/pay <player> <amount>", 
+                    java.util.Arrays.asList("send")) {
+                @Override
+                public boolean execute(org.bukkit.command.CommandSender sender, String label, String[] args) {
+                    return ecoCommands.onCommand(sender, this, label, args);
+                }
+            };
+            payCommand.setPermission("guishop.economy.pay");
+            commandMap.register("guishop", payCommand);
+            
+            // Register /togglepay command with aliases
+            org.bukkit.command.Command togglePayCommand = new org.bukkit.command.Command("togglepay", 
+                    "Toggle payment notifications on/off", 
+                    "/togglepay", 
+                    java.util.Arrays.asList("paytoggle")) {
+                @Override
+                public boolean execute(org.bukkit.command.CommandSender sender, String label, String[] args) {
+                    return ecoCommands.onCommand(sender, this, label, args);
+                }
+            };
+            togglePayCommand.setPermission("guishop.economy.pay");
+            commandMap.register("guishop", togglePayCommand);
+            
+            getLogUtil().log("Economy commands registered: /bal, /balance, /money, /pay, /send, /togglepay");
+            
+        } catch (Exception e) {
+            getLogUtil().log("Failed to register economy commands: " + e.getMessage());
             if (Config.isDebugMode()) {
                 e.printStackTrace();
             }

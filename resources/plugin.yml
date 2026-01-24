@@ -49,15 +49,4 @@ commands:
     description: View an Item's Buy or Sell Value.
     permission: guishop.value
     aliases: [val, gvalue]
-  bal:
-    description: Check your balance (internal economy)
-    permission: guishop.economy.balance
-    aliases: [balance, money]
-  pay:
-    description: Send money to another player (internal economy)
-    permission: guishop.economy.pay
-    aliases: [send]
-  togglepay:
-    description: Toggle payment notifications on/off
-    permission: guishop.economy.pay
-    aliases: [paytoggle]
+  # Note: /bal, /pay, /togglepay are dynamically registered only when internal economy is enabled

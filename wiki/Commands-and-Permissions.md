@@ -77,6 +77,19 @@ See [In-Game Item Editor](In-Game-Item-Editor) for detailed documentation.
 
 See [Internal Economy](Internal-Economy) for full documentation.
 
+### Dynamic Pricing Commands
+
+| Command | Description | Permission |
+|---------|-------------|------------|
+| `/gs market status` | Show dynamic pricing system status | `guishop.admin` |
+| `/gs market info <item>` | Check an item's current market status | `guishop.admin` |
+| `/gs market reset <item>` | Reset an item to base price | `guishop.admin` |
+| `/gs market resetall` | Reset all items to base prices | `guishop.admin` |
+
+**Aliases:** `/gs dp`, `/gs dynamicpricing`
+
+See [Dynamic Pricing](Dynamic-Pricing) for full documentation.
+
 ### Utility Commands
 
 | Command | Description | Permission |

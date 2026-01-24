@@ -497,7 +497,17 @@ messages:
   # Message for /guishop iteminfo
   iteminfo:
     # The entry in the list
-    entry: '&7/guishop &eiteminfo &7- &aDisplays comprehensive info about the held item (PDC, enchants, lore, etc.)'
+    entry: '&7/guishop &eiteminfo &7- &aDisplays comprehensive info about the held item'
+
+  # Messages for /guishop eco (internal economy)
+  eco:
+    # The entry in the list
+    entry: '&7/guishop &eeco &7- &aManage internal economy (give/take/set/balance/reset)'
+
+  # Messages for /guishop market (dynamic pricing)
+  market:
+    # The entry in the list
+    entry: '&7/guishop &emarket &7- &aDynamic pricing controls (status/info/reset/resetall)'
 
   # Messages for /guishop ls
   list-shops:

@@ -18,7 +18,7 @@ import java.util.List;
 public class GuishopTabCompleter implements TabCompleter {
 
     private static final List<String> BASE_COMMANDS = Arrays.asList(
-        "reload", "edit", "parsemob", "toggleworth", "iteminfo", "eco"
+        "reload", "edit", "parsemob", "toggleworth", "iteminfo", "eco", "market", "help"
     );
     
     private static final List<String> EDIT_TARGETS = Arrays.asList(
@@ -26,7 +26,11 @@ public class GuishopTabCompleter implements TabCompleter {
     );
     
     private static final List<String> ECO_SUBCOMMANDS = Arrays.asList(
-        "give", "take", "set", "balance", "reset"
+        "give", "take", "set", "balance", "reset", "help"
+    );
+    
+    private static final List<String> MARKET_SUBCOMMANDS = Arrays.asList(
+        "status", "info", "reset", "resetall", "help"
     );
     
     private static final List<String> AMOUNT_SUGGESTIONS = Arrays.asList(
@@ -74,6 +78,13 @@ public class GuishopTabCompleter implements TabCompleter {
                         completions.add(ecoCmd);
                     }
                 }
+            } else if (subCommand.equals("market") || subCommand.equals("dp") || subCommand.equals("dynamicpricing")) {
+                // /gs market <subcommand>
+                for (String marketCmd : MARKET_SUBCOMMANDS) {
+                    if (marketCmd.startsWith(partial)) {
+                        completions.add(marketCmd);
+                    }
+                }
             } else if (subCommand.equals("parsemob")) {
                 // /gs parsemob <entity>
                 for (org.bukkit.entity.EntityType type : org.bukkit.entity.EntityType.values()) {
@@ -102,6 +113,17 @@ public class GuishopTabCompleter implements TabCompleter {
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.getName().toLowerCase().startsWith(partial)) {
                             completions.add(player.getName());
+                        }
+                    }
+                }
+            } else if (subCommand.equals("market") || subCommand.equals("dp") || subCommand.equals("dynamicpricing")) {
+                // /gs market info/reset <item>
+                if (subSubCommand.equals("info") || subSubCommand.equals("reset")) {
+                    // Suggest common materials
+                    for (org.bukkit.Material mat : org.bukkit.Material.values()) {
+                        if (mat.isItem() && !mat.isAir() && mat.name().toLowerCase().startsWith(partial)) {
+                            completions.add(mat.name());
+                            if (completions.size() > 20) break; // Limit suggestions
                         }
                     }
                 }

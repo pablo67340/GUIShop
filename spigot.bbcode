@@ -376,6 +376,50 @@ Statistics are stored in SQLite ([ICODE]plugins/GUIShop/Data/player_statistics.d
 
 [CENTER]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/CENTER]
 
+[SIZE=5][B]Dynamic Pricing System[/B][/SIZE]
+
+GUIShop includes a built-in supply/demand economy system that makes item prices fluctuate based on trading activity.
+
+[SIZE=4][B]How It Works[/B][/SIZE]
+[LIST]
+[*]When items are [B]bought[/B]: Supply decreases → prices increase
+[*]When items are [B]sold[/B]: Supply increases → prices decrease
+[*]Over time: Prices gradually normalize back to base values
+[/LIST]
+
+[SIZE=4][B]Configuration[/B][/SIZE]
+Enable in [ICODE]config.yml[/ICODE]:
+[CODE]dynamic-pricing: true[/CODE]
+
+Configure in [ICODE]dynamicpricing.yml[/ICODE]:
+[CODE]
+price-change-per-item: 0.01    # 1% change per item
+max-price-multiplier: 2.0      # Up to 200% of base price
+min-price-multiplier: 0.5      # Down to 50% of base price
+normalization-rate: 0.001      # How fast prices return to normal
+normalization-interval: 300    # Seconds between normalization ticks
+[/CODE]
+
+[SIZE=4][B]Per-Item Control[/B][/SIZE]
+Exempt specific items from dynamic pricing:
+[CODE]
+'0':
+  id: DIAMOND
+  buy-price: 100
+  sell-price: 50
+  dynamic: false  # Uses static pricing
+[/CODE]
+
+[SIZE=4][B]Admin Commands[/B][/SIZE]
+[LIST]
+[*][ICODE]/gs market status[/ICODE] - View system status
+[*][ICODE]/gs market info <item>[/ICODE] - Check item's market status
+[*][ICODE]/gs market reset <item>[/ICODE] - Reset item to base price
+[*][ICODE]/gs market resetall[/ICODE] - Reset all prices
+[/LIST]
+
+[CENTER]━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━[/CENTER]
+
 [SIZE=5][B]Developer API[/B][/SIZE]
 
 GUIShop provides a comprehensive API for developers to integrate with:

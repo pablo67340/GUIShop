@@ -106,6 +106,104 @@ GUIShopAPI.indicateSoldItems(itemStack, quantity);
 
 This ensures the dynamic pricing system stays in sync.
 
+## Dynamic Pricing API
+
+GUIShop includes a built-in supply/demand system. You can query and control it programmatically.
+
+### Accessing the Dynamic Pricing Manager
+
+```java
+import com.pablo67340.guishop.economy.DynamicPricingManager;
+
+DynamicPricingManager dpManager = DynamicPricingManager.getInstance();
+
+// Check if dynamic pricing is active
+if (dpManager != null && dpManager.isInitialized()) {
+    // Dynamic pricing is active
+}
+```
+
+### Querying Market Data
+
+```java
+// Get current stock level for an item
+// Positive = oversupply, Negative = undersupply, 0 = equilibrium
+int stockLevel = dpManager.getStockLevel("DIAMOND");
+
+// Get current price multipliers (1.0 = base price)
+double buyMultiplier = dpManager.getBuyMultiplier("DIAMOND");   // e.g., 1.5 = 150%
+double sellMultiplier = dpManager.getSellMultiplier("DIAMOND"); // e.g., 0.8 = 80%
+```
+
+### Admin Operations
+
+```java
+// Reset a single item to base price
+dpManager.resetItem("DIAMOND");
+
+// Reset all items to base prices
+dpManager.resetAll();
+```
+
+### Custom Price Provider
+
+You can replace GUIShop's built-in dynamic pricing with your own implementation:
+
+```java
+import com.pablo67340.guishop.api.DynamicPriceProvider;
+import java.math.BigDecimal;
+
+public class MyPriceProvider implements DynamicPriceProvider {
+    
+    @Override
+    public BigDecimal calculateBuyPrice(String item, int quantity, 
+            BigDecimal staticBuyPrice, BigDecimal staticSellPrice) {
+        // Your custom buy price calculation
+        // Return the total price for the given quantity
+        return staticBuyPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+    
+    @Override
+    public BigDecimal calculateSellPrice(String item, int quantity,
+            BigDecimal staticBuyPrice, BigDecimal staticSellPrice) {
+        // Your custom sell price calculation
+        return staticSellPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+    
+    @Override
+    public void buyItem(String item, int quantity) {
+        // Called when items are purchased from the shop
+        // Update your internal economy state
+    }
+    
+    @Override
+    public void sellItem(String item, int quantity) {
+        // Called when items are sold to the shop
+        // Update your internal economy state
+    }
+}
+```
+
+Register your provider with Bukkit's service manager:
+
+```java
+import org.bukkit.plugin.ServicePriority;
+
+@Override
+public void onEnable() {
+    getServer().getServicesManager().register(
+        DynamicPriceProvider.class,
+        new MyPriceProvider(),
+        this,
+        ServicePriority.High
+    );
+}
+```
+
+When GUIShop starts, it will detect your provider and use it instead of the built-in system.
+
+See [Dynamic Pricing](Dynamic-Pricing) for full documentation.
+
 ## Worth Display API
 
 See [Worth Display API](Worth-Display-API) for detailed documentation on:

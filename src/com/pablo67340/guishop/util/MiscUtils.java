@@ -30,6 +30,7 @@ public class MiscUtils {
      * the instance of the dynamic price provider, if dynamic pricing is used
      */
     @Getter
+    @lombok.Setter
     private DynamicPriceProvider DYNAMICPRICING;
     
     /**

@@ -134,9 +134,8 @@ public final class GUIShop extends JavaPlugin {
         this.configManager = new ConfigManager();
         this.logUtil = new LogUtil();
         this.commandManager = new CommandManager();
+        this.miscUtils = new MiscUtils(); // Must be initialized before initConfigs() for dynamic pricing
         this.configManager.initConfigs();
-        
-        this.miscUtils = new MiscUtils();
         
 
         warmup();
@@ -190,6 +189,11 @@ public final class GUIShop extends JavaPlugin {
         // Shutdown statistics system
         if (statisticsManager != null) {
             statisticsManager.shutdown();
+        }
+        
+        // Shutdown built-in dynamic pricing system
+        if (dynamicPricingManager != null) {
+            dynamicPricingManager.shutdown();
         }
         
         // Shutdown internal economy system
@@ -370,6 +374,34 @@ public final class GUIShop extends JavaPlugin {
             
         } catch (Exception e) {
             getLogUtil().log("Failed to register economy commands: " + e.getMessage());
+            if (Config.isDebugMode()) {
+                e.printStackTrace();
+            }
+        }
+    }
+    
+    @Getter
+    private com.pablo67340.guishop.economy.DynamicPricingManager dynamicPricingManager;
+    
+    /**
+     * Initialize the built-in dynamic pricing system.
+     * This is used when no external DynamicPriceProvider is found.
+     */
+    public void initBuiltInDynamicPricing() {
+        try {
+            dynamicPricingManager = new com.pablo67340.guishop.economy.DynamicPricingManager(this);
+            if (dynamicPricingManager.initialize()) {
+                // Set it as the dynamic pricing provider in MiscUtils
+                miscUtils.setDYNAMICPRICING(dynamicPricingManager);
+                getLogUtil().log("Built-in dynamic pricing enabled.");
+                getLogUtil().log("  Price change per item: " + (dynamicPricingManager.getPriceChangePerTransaction() * 100) + "%");
+                getLogUtil().log("  Price bounds: " + (dynamicPricingManager.getMinPriceMultiplier() * 100) + "% - " + (dynamicPricingManager.getMaxPriceMultiplier() * 100) + "%");
+            } else {
+                getLogUtil().log("Failed to initialize built-in dynamic pricing.");
+                dynamicPricingManager = null;
+            }
+        } catch (Exception e) {
+            getLogUtil().log("Error initializing built-in dynamic pricing: " + e.getMessage());
             if (Config.isDebugMode()) {
                 e.printStackTrace();
             }

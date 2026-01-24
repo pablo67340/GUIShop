@@ -637,8 +637,12 @@ public class TransactionGui {
             Sell.roundAndGiveMoney(player, moneyToGive);
             
             // Update dynamic pricing
-            if (item.hasBuyPrice() && Config.isDynamicPricing() && item.isUseDynamicPricing()) {
-                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(item.getItemString(), amountRemoved);
+            if (item.hasBuyPrice() && item.shouldUseDynamicPricing()) {
+                com.pablo67340.guishop.api.DynamicPriceProvider dynamicProvider = 
+                    GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING();
+                if (dynamicProvider != null) {
+                    dynamicProvider.sellItem(item.getItemString(), amountRemoved);
+                }
             }
             
             // Track statistics
@@ -695,11 +699,14 @@ public class TransactionGui {
         Runnable dynamicPricingUpdate = null;
 
         // Calculate price with dynamic pricing if enabled
-        if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+        com.pablo67340.guishop.api.DynamicPriceProvider dynamicProvider = 
+            item.shouldUseDynamicPricing() ? GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING() : null;
+        
+        if (dynamicProvider != null && item.hasSellPrice()) {
             String itemString = item.getItemString();
             int finalQuantity = quantity;
-            dynamicPricingUpdate = () -> GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().buyItem(itemString, finalQuantity);
-            priceToPay = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateBuyPrice(
+            dynamicPricingUpdate = () -> dynamicProvider.buyItem(itemString, finalQuantity);
+            priceToPay = dynamicProvider.calculateBuyPrice(
                 itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
             priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));

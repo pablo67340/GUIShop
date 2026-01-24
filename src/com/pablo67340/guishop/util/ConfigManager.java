@@ -654,10 +654,15 @@ public final class ConfigManager {
         // Separate uuid of heads when selling
         Config.setSellSkullUUID(!mainConfig.contains("skull-uuid-selling") || mainConfig.getBoolean("skull-uuid-selling", true));
 
-        // Disables dynamic pricing if no provider was found
-        if (Config.isDynamicPricing() && !GUIShop.getINSTANCE().getMiscUtils().setupDynamicPricing()) {
-            GUIShop.getINSTANCE().getLogUtil().log("Could not find a DynamicPriceProvider! Disabling dynamic pricing...");
-            Config.setDynamicPricing(false);
+        // Setup dynamic pricing - try external provider first, then use built-in
+        if (Config.isDynamicPricing()) {
+            if (GUIShop.getINSTANCE().getMiscUtils().setupDynamicPricing()) {
+                GUIShop.getINSTANCE().getLogUtil().log("Using external DynamicPriceProvider.");
+            } else {
+                // No external provider - use built-in supply/demand system
+                GUIShop.getINSTANCE().getLogUtil().log("No external DynamicPriceProvider found. Using built-in supply/demand system.");
+                GUIShop.getINSTANCE().initBuiltInDynamicPricing();
+            }
         }
 
         // Increase item display name

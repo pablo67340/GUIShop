@@ -1,0 +1,75 @@
+##################################################
+##                                              ##
+##  Dynamic Pricing Configuration               ##
+##                                              ##
+##  GUIShop's built-in supply/demand system     ##
+##                                              ##
+##################################################
+#
+# When dynamic pricing is enabled, item prices fluctuate
+# based on server-wide buy/sell activity:
+#
+#   - Items that are bought frequently become more expensive
+#   - Items that are sold frequently become cheaper
+#   - Prices gradually normalize back to base values over time
+#
+# GUIShop includes a built-in supply/demand system. External
+# plugins can override this via the DynamicPriceProvider API.
+#
+##################################################
+
+# Enable or disable dynamic pricing
+# When disabled, all items use their static buy/sell prices
+enabled: false
+
+# =============================================
+# PRICE ADJUSTMENT SETTINGS
+# =============================================
+
+# How much the price changes per item bought/sold (as decimal)
+# 0.01 = 1% change per item
+# 0.005 = 0.5% change per item (slower fluctuation)
+# 0.02 = 2% change per item (faster fluctuation)
+price-change-per-item: 0.01
+
+# Maximum price multiplier (how high prices can go)
+# 2.0 = prices can go up to 200% of base price
+# 1.5 = prices can go up to 150% of base price
+max-price-multiplier: 2.0
+
+# Minimum price multiplier (how low prices can go)
+# 0.5 = prices can go as low as 50% of base price
+# 0.25 = prices can go as low as 25% of base price
+min-price-multiplier: 0.5
+
+# =============================================
+# MARKET NORMALIZATION
+# =============================================
+
+# How quickly prices normalize back to base (per tick)
+# This is the percentage of the stock imbalance that is corrected each tick
+# 0.001 = 0.1% of the imbalance is corrected each tick
+# 0.01 = 1% of the imbalance is corrected each tick (faster normalization)
+normalization-rate: 0.001
+
+# How often normalization runs (in seconds)
+# 300 = every 5 minutes, prices move toward equilibrium
+# 60 = every minute (faster normalization)
+# 600 = every 10 minutes (slower normalization)
+normalization-interval: 300
+
+# =============================================
+# PER-ITEM OVERRIDES
+# =============================================
+# You can override settings for specific items
+# Uncomment and modify as needed:
+#
+# item-overrides:
+#   DIAMOND:
+#     price-change-per-item: 0.005  # More stable price
+#     max-price-multiplier: 1.5
+#     min-price-multiplier: 0.75
+#   DIRT:
+#     price-change-per-item: 0.02   # More volatile
+#     max-price-multiplier: 3.0
+#     min-price-multiplier: 0.25

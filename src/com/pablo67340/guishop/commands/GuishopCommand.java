@@ -670,6 +670,9 @@ public class GuishopCommand implements CommandExecutor {
             } else if (args[0].equalsIgnoreCase("eco") || args[0].equalsIgnoreCase("economy")) {
                 // Economy management commands
                 handleEcoCommand(commandSender, args);
+            } else if (args[0].equalsIgnoreCase("market") || args[0].equalsIgnoreCase("dp") || args[0].equalsIgnoreCase("dynamicpricing")) {
+                // Dynamic pricing / market commands
+                handleMarketCommand(commandSender, args);
             } else {
                 PlayerListener.INSTANCE.printUsage(player);
             }
@@ -1582,5 +1585,147 @@ public class GuishopCommand implements CommandExecutor {
             new Text(ChatColor.YELLOW + "Click to copy full YAML block:\n" + ChatColor.WHITE + copyValue)));
         
         player.spigot().sendMessage(labelComponent);
+    }
+    
+    /**
+     * Handle /gs market subcommands for dynamic pricing management.
+     */
+    private void handleMarketCommand(CommandSender sender, String[] args) {
+        com.pablo67340.guishop.economy.DynamicPricingManager dpManager = 
+            GUIShop.getINSTANCE().getDynamicPricingManager();
+        
+        // Check if dynamic pricing is enabled
+        if (!Config.isDynamicPricing()) {
+            sender.sendMessage(ChatColor.RED + "Dynamic pricing is not enabled. Set 'dynamic-pricing: true' in config.yml");
+            return;
+        }
+        
+        if (dpManager == null || !dpManager.isInitialized()) {
+            sender.sendMessage(ChatColor.RED + "Dynamic pricing system is not initialized.");
+            return;
+        }
+        
+        // /gs market help or /gs market
+        if (args.length < 2 || args[1].equalsIgnoreCase("help")) {
+            sendMarketHelp(sender);
+            return;
+        }
+        
+        // Check permissions for admin commands
+        if (!sender.hasPermission("guishop.admin") && !sender.isOp()) {
+            sender.sendMessage(ChatColor.RED + "You don't have permission to manage the market.");
+            return;
+        }
+        
+        switch (args[1].toLowerCase()) {
+            case "info", "check" -> handleMarketInfo(sender, args, dpManager);
+            case "reset" -> handleMarketReset(sender, args, dpManager);
+            case "resetall" -> handleMarketResetAll(sender, dpManager);
+            case "status" -> handleMarketStatus(sender, dpManager);
+            default -> sendMarketHelp(sender);
+        }
+    }
+    
+    private void sendMarketHelp(CommandSender sender) {
+        sender.sendMessage(ChatColor.GOLD + "=== GUIShop Dynamic Pricing ===");
+        sender.sendMessage(ChatColor.YELLOW + "/gs market info <item>" + ChatColor.GRAY + " - Check an item's market status");
+        sender.sendMessage(ChatColor.YELLOW + "/gs market reset <item>" + ChatColor.GRAY + " - Reset an item to base price");
+        sender.sendMessage(ChatColor.YELLOW + "/gs market resetall" + ChatColor.GRAY + " - Reset all items to base prices");
+        sender.sendMessage(ChatColor.YELLOW + "/gs market status" + ChatColor.GRAY + " - Show market system status");
+    }
+    
+    private void handleMarketInfo(CommandSender sender, String[] args, 
+            com.pablo67340.guishop.economy.DynamicPricingManager dpManager) {
+        if (args.length < 3) {
+            // If player, use held item
+            if (sender instanceof Player player) {
+                ItemStack held = player.getInventory().getItemInMainHand();
+                if (held.getType().isAir()) {
+                    sender.sendMessage(ChatColor.RED + "Usage: /gs market info <item> or hold an item");
+                    return;
+                }
+                String itemKey = held.getType().toString();
+                showItemMarketInfo(sender, itemKey, dpManager);
+            } else {
+                sender.sendMessage(ChatColor.RED + "Usage: /gs market info <item>");
+            }
+            return;
+        }
+        
+        String itemKey = args[2].toUpperCase();
+        showItemMarketInfo(sender, itemKey, dpManager);
+    }
+    
+    private void showItemMarketInfo(CommandSender sender, String itemKey,
+            com.pablo67340.guishop.economy.DynamicPricingManager dpManager) {
+        int stockLevel = dpManager.getStockLevel(itemKey);
+        double buyMult = dpManager.getBuyMultiplier(itemKey);
+        double sellMult = dpManager.getSellMultiplier(itemKey);
+        
+        sender.sendMessage(ChatColor.GOLD + "=== Market Info: " + ChatColor.YELLOW + itemKey + ChatColor.GOLD + " ===");
+        sender.sendMessage(ChatColor.GRAY + "Stock Level: " + formatStock(stockLevel));
+        sender.sendMessage(ChatColor.GRAY + "Buy Price Multiplier: " + formatMultiplier(buyMult));
+        sender.sendMessage(ChatColor.GRAY + "Sell Price Multiplier: " + formatMultiplier(sellMult));
+        
+        if (stockLevel < 0) {
+            sender.sendMessage(ChatColor.AQUA + "Status: High demand (undersupply)");
+        } else if (stockLevel > 0) {
+            sender.sendMessage(ChatColor.GREEN + "Status: Low demand (oversupply)");
+        } else {
+            sender.sendMessage(ChatColor.WHITE + "Status: Equilibrium");
+        }
+    }
+    
+    private String formatStock(int stock) {
+        if (stock < 0) {
+            return ChatColor.RED + "" + stock + " (undersupply)";
+        } else if (stock > 0) {
+            return ChatColor.GREEN + "+" + stock + " (oversupply)";
+        } else {
+            return ChatColor.WHITE + "0 (balanced)";
+        }
+    }
+    
+    private String formatMultiplier(double mult) {
+        int percent = (int) (mult * 100);
+        if (mult < 1.0) {
+            return ChatColor.GREEN.toString() + percent + "% (cheaper)";
+        } else if (mult > 1.0) {
+            return ChatColor.RED.toString() + percent + "% (more expensive)";
+        } else {
+            return ChatColor.WHITE + "100% (base price)";
+        }
+    }
+    
+    private void handleMarketReset(CommandSender sender, String[] args,
+            com.pablo67340.guishop.economy.DynamicPricingManager dpManager) {
+        if (args.length < 3) {
+            sender.sendMessage(ChatColor.RED + "Usage: /gs market reset <item>");
+            return;
+        }
+        
+        String itemKey = args[2].toUpperCase();
+        dpManager.resetItem(itemKey);
+        sender.sendMessage(ChatColor.GREEN + "Reset " + itemKey + " to base price.");
+    }
+    
+    private void handleMarketResetAll(CommandSender sender,
+            com.pablo67340.guishop.economy.DynamicPricingManager dpManager) {
+        dpManager.resetAll();
+        sender.sendMessage(ChatColor.GREEN + "Reset all item prices to base values.");
+    }
+    
+    private void handleMarketStatus(CommandSender sender,
+            com.pablo67340.guishop.economy.DynamicPricingManager dpManager) {
+        sender.sendMessage(ChatColor.GOLD + "=== Dynamic Pricing Status ===");
+        sender.sendMessage(ChatColor.GRAY + "Enabled: " + ChatColor.GREEN + "Yes");
+        sender.sendMessage(ChatColor.GRAY + "Price change per item: " + ChatColor.YELLOW + 
+            (dpManager.getPriceChangePerTransaction() * 100) + "%");
+        sender.sendMessage(ChatColor.GRAY + "Price bounds: " + ChatColor.YELLOW + 
+            (int)(dpManager.getMinPriceMultiplier() * 100) + "% - " + 
+            (int)(dpManager.getMaxPriceMultiplier() * 100) + "%");
+        sender.sendMessage(ChatColor.GRAY + "Normalization rate: " + ChatColor.YELLOW + 
+            (dpManager.getNormalizationRate() * 100) + "% every " + 
+            dpManager.getNormalizationInterval() + "s");
     }
 }

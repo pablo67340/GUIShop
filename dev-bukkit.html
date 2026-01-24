@@ -361,6 +361,51 @@ hide-armor-slots: true
 
 <hr />
 
+<h2>Dynamic Pricing System</h2>
+
+<p>GUIShop includes a built-in supply/demand economy system that makes item prices fluctuate based on trading activity.</p>
+
+<h3>How It Works</h3>
+<ul>
+<li>When items are <strong>bought</strong>: Supply decreases → prices increase</li>
+<li>When items are <strong>sold</strong>: Supply increases → prices decrease</li>
+<li>Over time: Prices gradually normalize back to base values</li>
+</ul>
+
+<h3>Configuration</h3>
+<p>Enable in <code>config.yml</code>:</p>
+<pre>dynamic-pricing: true</pre>
+
+<p>Configure in <code>dynamicpricing.yml</code>:</p>
+<pre>
+price-change-per-item: 0.01    # 1% change per item
+max-price-multiplier: 2.0      # Up to 200% of base price
+min-price-multiplier: 0.5      # Down to 50% of base price
+normalization-rate: 0.001      # How fast prices return to normal
+normalization-interval: 300    # Seconds between normalization ticks
+</pre>
+
+<h3>Per-Item Control</h3>
+<p>Exempt specific items from dynamic pricing:</p>
+<pre>
+'0':
+  id: DIAMOND
+  buy-price: 100
+  sell-price: 50
+  dynamic: false  # Uses static pricing
+</pre>
+
+<h3>Admin Commands</h3>
+<table>
+<tr><th>Command</th><th>Description</th></tr>
+<tr><td><code>/gs market status</code></td><td>View system status</td></tr>
+<tr><td><code>/gs market info &lt;item&gt;</code></td><td>Check item's market status</td></tr>
+<tr><td><code>/gs market reset &lt;item&gt;</code></td><td>Reset item to base price</td></tr>
+<tr><td><code>/gs market resetall</code></td><td>Reset all prices</td></tr>
+</table>
+
+<hr />
+
 <h2>Developer API</h2>
 
 <p>GUIShop provides a comprehensive API for developers to integrate with:</p>

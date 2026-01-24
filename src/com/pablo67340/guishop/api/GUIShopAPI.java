@@ -1,7 +1,6 @@
 package com.pablo67340.guishop.api;
 
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.definition.SellType;
 import com.pablo67340.guishop.listenable.Sell;
@@ -176,9 +175,12 @@ public abstract class GUIShopAPI {
             }
         }
 
-        if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+        if (shopItem != null && shopItem.shouldUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
-            GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().buyItem(itemString, quantity);
+            DynamicPriceProvider dynamicProvider = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING();
+            if (dynamicProvider != null) {
+                dynamicProvider.buyItem(itemString, quantity);
+            }
         }
     }
 
@@ -209,9 +211,12 @@ public abstract class GUIShopAPI {
             }
         }
 
-        if (shopItem != null && Config.isDynamicPricing() && shopItem.isUseDynamicPricing() && shopItem.hasBuyPrice()
+        if (shopItem != null && shopItem.shouldUseDynamicPricing() && shopItem.hasBuyPrice()
                 && shopItem.hasSellPrice()) {
-            GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(itemString, quantity);
+            DynamicPriceProvider dynamicProvider = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING();
+            if (dynamicProvider != null) {
+                dynamicProvider.sellItem(itemString, quantity);
+            }
         }
     }
 

@@ -38,12 +38,14 @@ public final class PlayerListener implements Listener {
 
     private final String[] commandsEntryList = {
         "reload",
-        "parsemob",
         "edit",
-        "list-shops",
-        "value",
+        "eco",
+        "market",
+        "iteminfo",
         "toggleworth",
-        "iteminfo"};
+        "parsemob",
+        "value",
+        "list-shops"};
 
     /**
      * Opens the shop menu for a player.

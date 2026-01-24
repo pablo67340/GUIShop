@@ -309,12 +309,14 @@ class Quantity {
         Runnable dynamicPricingUpdate = null;
 
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (Config.isDynamicPricing() && item.isUseDynamicPricing() && item.hasSellPrice()) {
+        com.pablo67340.guishop.api.DynamicPriceProvider dynamicProvider = 
+            item.shouldUseDynamicPricing() ? GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING() : null;
+        
+        if (dynamicProvider != null && item.hasSellPrice()) {
             String itemString = item.getItemString();
             int finalQuantity = quantity;
-            dynamicPricingUpdate = () -> GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().buyItem(itemString, finalQuantity);
-
-            priceToPay = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+            dynamicPricingUpdate = () -> dynamicProvider.buyItem(itemString, finalQuantity);
+            priceToPay = dynamicProvider.calculateBuyPrice(itemString, quantity, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
         } else {
             priceToPay = item.getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
         }

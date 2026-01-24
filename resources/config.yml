@@ -65,7 +65,8 @@ enable-sound: true
 ingame-config: true
 
 # Enable dynamic pricing (prices change based on supply/demand)
-# Requires additional setup in dynamicpricing.yml
+# When enabled, prices fluctuate based on server-wide buy/sell activity.
+# Configure settings in dynamicpricing.yml
 dynamic-pricing: false
 
 

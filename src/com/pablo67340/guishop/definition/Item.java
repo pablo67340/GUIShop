@@ -3,6 +3,7 @@ package com.pablo67340.guishop.definition;
 import com.cryptomorin.xseries.XEnchantment;
 import com.cryptomorin.xseries.XMaterial;
 import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.util.PDCUtil;
@@ -90,11 +91,13 @@ public final class Item implements ConfigurationSerializable {
     private Object sellPrice;
 
     /**
-     * Whether this item, specifically, uses dynamic pricing
+     * Whether this item, specifically, uses dynamic pricing.
+     * Defaults to true - items inherit global dynamic pricing setting.
+     * Set to false to exempt this specific item from dynamic pricing.
      */
     @Getter
     @Setter
-    private boolean useDynamicPricing;
+    private boolean useDynamicPricing = true;
 
     @Getter
     @Setter
@@ -316,9 +319,12 @@ public final class Item implements ConfigurationSerializable {
      */
     public BigDecimal calculateBuyPrice(int quantity) {
         // sell price must be defined and nonzero for dynamic pricing to work
-        if (Config.isDynamicPricing() && isUseDynamicPricing() && hasSellPrice()) {
-            return GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
-                    getSellPriceAsDecimal());
+        if (shouldUseDynamicPricing() && hasSellPrice()) {
+            DynamicPriceProvider provider = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING();
+            if (provider != null) {
+                return provider.calculateBuyPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
+                        getSellPriceAsDecimal());
+            }
         }
         // default to fixed pricing
         return getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
@@ -336,10 +342,12 @@ public final class Item implements ConfigurationSerializable {
      */
     public BigDecimal calculateSellPrice(int quantity) {
         // buy price must be defined for dynamic pricing to work
-        if (Config.isDynamicPricing() && isUseDynamicPricing() && hasBuyPrice()) {
-
-            return GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().calculateSellPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
-                    getSellPriceAsDecimal());
+        if (shouldUseDynamicPricing() && hasBuyPrice()) {
+            DynamicPriceProvider provider = GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING();
+            if (provider != null) {
+                return provider.calculateSellPrice(getItemString(), quantity, getBuyPriceAsDecimal(),
+                        getSellPriceAsDecimal());
+            }
         }
         // default to fixed pricing
         return getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
@@ -1387,6 +1395,18 @@ public final class Item implements ConfigurationSerializable {
         Double price = PDCUtil.getDouble(item, PDCUtil.KEY_SELL_PRICE);
         return price != null ? BigDecimal.valueOf(price) : null;
     }
+    
+    /**
+     * Check if this item should use dynamic pricing.
+     * Returns true only if:
+     * 1. Dynamic pricing is globally enabled in config.yml
+     * 2. This specific item has not opted out via dynamic: false
+     * 
+     * @return true if this item should use dynamic pricing
+     */
+    public boolean shouldUseDynamicPricing() {
+        return Config.isDynamicPricing() && useDynamicPricing;
+    }
 
     public static Item deserialize(Map<String, Object> serialized, Integer slot, String shop) {
         GUIShop.getINSTANCE().getLogUtil().debugLog("ITEM DESERIALIZE: Loading from config at slot " + slot + " in " + shop);
@@ -1484,6 +1504,10 @@ public final class Item implements ConfigurationSerializable {
             } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
                 item.setItemType(ItemType.SHOP_SHORTCUT);
                 item.setTargetShop(entry.getValue().toString());
+            } else if (entry.getKey().equalsIgnoreCase("dynamic") || entry.getKey().equalsIgnoreCase("use-dynamic-pricing")) {
+                // Per-item dynamic pricing override
+                // false = this item uses static pricing even when dynamic pricing is enabled globally
+                item.setUseDynamicPricing(Boolean.parseBoolean(entry.getValue().toString()));
             } else if (entry.getKey().equalsIgnoreCase("enchantments")) {
                 // Clean up trailing commas/spaces and handle both comma and space separators
                 String enchantStr = ((String) entry.getValue()).replaceAll("[,\\s]+$", "").trim();
@@ -1647,6 +1671,11 @@ public final class Item implements ConfigurationSerializable {
         }
         if (hasTargetShop()) {
             serialized.put("target-shop", targetShop);
+        }
+        // Only serialize dynamic pricing if explicitly disabled (false)
+        // Items default to true (use dynamic pricing), so we only need to save when false
+        if (!useDynamicPricing) {
+            serialized.put("dynamic", false);
         }
         if (hasEnchantments()) {
             StringBuilder parsed = new StringBuilder();

@@ -213,11 +213,15 @@ public class AltSell {
             }
         }
         
+        // Get dynamic pricing provider once for efficiency
+        com.pablo67340.guishop.api.DynamicPriceProvider dynamicProvider = 
+            subjectItem.shouldUseDynamicPricing() ? GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING() : null;
+        
         if (amountRemoved >= amountToSell) {
             Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amountToSell));
             // buy price must be defined for dynamic pricing to work
-            if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
-                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amountToSell);
+            if (subjectItem.hasBuyPrice() && dynamicProvider != null) {
+                dynamicProvider.sellItem(subjectItem.getItemString(), amountToSell);
             }
 
             GUIShop.getINSTANCE().getLogUtil().transactionLog(
@@ -225,8 +229,8 @@ public class AltSell {
         } else if (amountRemoved > 0) {
             // Partial sell - sold what we could
             Sell.roundAndGiveMoney(player, subjectItem.calculateSellPrice(amountRemoved));
-            if (subjectItem.hasBuyPrice() && Config.isDynamicPricing()) {
-                GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING().sellItem(subjectItem.getItemString(), amountRemoved);
+            if (subjectItem.hasBuyPrice() && dynamicProvider != null) {
+                dynamicProvider.sellItem(subjectItem.getItemString(), amountRemoved);
             }
             GUIShop.getINSTANCE().getLogUtil().transactionLog(
                     "Player " + player.getName() + " sold " + amountRemoved + " items (partial, wanted " + amountToSell + ") for " + subjectItem.calculateSellPrice(amountRemoved) + ". Item: \n" + itemStack.getType());

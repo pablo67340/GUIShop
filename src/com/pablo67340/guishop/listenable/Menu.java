@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.listenable;
 
 import com.cryptomorin.xseries.XMaterial;
+import com.cryptomorin.xseries.XSound;
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.definition.*;
@@ -826,6 +827,12 @@ public final class Menu {
                     clickingPlayer.closeInventory();
                     return;
                 }
+                case COMMAND -> {
+                    // COMMAND items execute directly with payment - bypass unified handler
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing COMMAND item directly from menu");
+                    executeCommandItem(clickingPlayer, clickedItem);
+                    return;
+                }
                 default -> {
                     // Continue to unified handler
                 }
@@ -890,6 +897,105 @@ public final class Menu {
             }
         } else {
             GUIShop.getINSTANCE().getLogUtil().log("Error: Target shop of clicked item not specified. Please add target-shop to the item in menu.yml to fix this.");
+        }
+    }
+    
+    /**
+     * Execute a COMMAND type item with proper payment handling.
+     * This method handles command items placed in the menu.
+     */
+    private void executeCommandItem(Player player, Item item) {
+        // Check permission
+        if (item.hasPermission()) {
+            com.pablo67340.guishop.definition.Permission permission = item.getPermission();
+            if (permission.doesntHavePermission(player)) {
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-item-permission");
+                return;
+            }
+        }
+
+        BigDecimal priceToPay;
+
+        Runnable dynamicPricingUpdate = null;
+
+        // Dynamic pricing support
+        com.pablo67340.guishop.api.DynamicPriceProvider dynamicProvider = 
+            item.shouldUseDynamicPricing() ? GUIShop.getINSTANCE().getMiscUtils().getDYNAMICPRICING() : null;
+        
+        if (dynamicProvider != null && item.hasSellPrice()) {
+            String itemString = item.getItemString();
+            dynamicPricingUpdate = () -> dynamicProvider.buyItem(itemString, 1);
+            priceToPay = dynamicProvider.calculateBuyPrice(itemString, 1, item.getBuyPriceAsDecimal(), item.getSellPriceAsDecimal());
+        } else {
+            priceToPay = item.getBuyPriceAsDecimal();
+        }
+
+        // Process payment and execute commands
+        if (GUIShop.getINSTANCE().getMiscUtils().getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
+            // Execute commands - on Folia, console commands must run on the global region scheduler
+            final Runnable dynamicUpdate = dynamicPricingUpdate;
+            final Player commandPlayer = player;
+            
+            for (String str : item.getCommands()) {
+                boolean isSudo = str.startsWith("sudo=");
+                String rawCommand = isSudo ? str.substring(5).trim() : str.trim();
+                // Remove leading slash if present
+                if (rawCommand.startsWith("/")) {
+                    rawCommand = rawCommand.substring(1);
+                }
+                String processedCommand = GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(rawCommand, player, item);
+                
+                final String finalCommand = processedCommand;
+                final boolean runAsPlayer = isSudo;
+                
+                if (runAsPlayer) {
+                    // Player commands - use performCommand which handles Folia threading internally
+                    try {
+                        player.performCommand(finalCommand);
+                    } catch (Exception e) {
+                        GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Failed to execute player command: " + finalCommand);
+                        GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Reason: " + e.getMessage());
+                        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "command-error");
+                    }
+                } else {
+                    // Console commands on Folia need to run on the global region scheduler
+                    SchedulerUtil.runTask(() -> {
+                        try {
+                            org.bukkit.Bukkit.getServer().dispatchCommand(org.bukkit.Bukkit.getConsoleSender(), finalCommand);
+                        } catch (Exception e) {
+                            GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Failed to execute console command: " + finalCommand);
+                            GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Reason: " + e.getMessage());
+                            SchedulerUtil.runAtEntity(commandPlayer, () -> {
+                                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandPlayer, "command-error");
+                            });
+                        }
+                    });
+                }
+            }
+            
+            if (Config.isSoundEnabled()) {
+                try {
+                    player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
+                } catch (Exception ignored) {}
+            }
+            
+            if (dynamicUpdate != null) {
+                dynamicUpdate.run();
+            }
+
+            GUIShop.getINSTANCE().getLogUtil().transactionLog("Player " + player.getName() + " bought command " + item.getMaterial() + " from menu for " + priceToPay.toPlainString() + " money!");
+            
+            // Track purchase statistics
+            com.pablo67340.guishop.statistics.StatisticsManager statsManager = com.pablo67340.guishop.statistics.StatisticsManager.getInstance();
+            if (statsManager != null && statsManager.isAvailable()) {
+                statsManager.recordPurchase(player, item.getMaterial(), 1, priceToPay);
+            }
+        } else {
+            String currencyPrefix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix");
+            String currencySuffix = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
+            String amount = currencyPrefix + priceToPay + currencySuffix;
+
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-enough-money", amount);
         }
     }
 

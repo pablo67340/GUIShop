@@ -84,6 +84,12 @@ public class MiscUtils {
             String playerWorld = player.getLocation().getWorld() != null ? player.getLocation().getWorld().getName() : "unknown";
             String playerBalance = getECONOMY().format(getECONOMY().getBalance(player));
 
+            // Common shorthand placeholders (many plugins use these)
+            string = replaceCaseInsensitive(string, "%player%", playerName);
+            string = replaceCaseInsensitive(string, "{PLAYER}", playerName);
+            string = replaceCaseInsensitive(string, "{PLAYER_NAME}", playerName);
+            
+            // Standard GUIShop placeholders
             string = replaceCaseInsensitive(string, "%player_name%", playerName);
             string = replaceCaseInsensitive(string, "%player_uuid%", playerUuid);
             string = replaceCaseInsensitive(string, "%player_world%", playerWorld);

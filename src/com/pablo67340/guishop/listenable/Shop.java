@@ -921,11 +921,17 @@ public class Shop {
         }
 
         if (GUIShop.getINSTANCE().getMiscUtils().getECONOMY().withdrawPlayer(player, priceToPay.doubleValue()).transactionSuccess()) {
-            boolean allCommandsSucceeded = true;
+            // Execute commands - on Folia, console commands must run on the global region scheduler
+            final Runnable dynamicUpdate = dynamicPricingUpdate;
+            final Player commandPlayer = player;
             
             for (String str : item.getCommands()) {
                 boolean isSudo = str.startsWith("sudo=");
                 String rawCommand = isSudo ? str.substring(5).trim() : str.trim();
+                // Remove leading slash if present
+                if (rawCommand.startsWith("/")) {
+                    rawCommand = rawCommand.substring(1);
+                }
                 String processedCommand = GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(rawCommand, player, item);
                 
                 // Check for unresolved placeholders (indicates wrong format was used)
@@ -933,29 +939,45 @@ public class Shop {
                     GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Unresolved placeholders in command: " + processedCommand);
                     GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Make sure to use %placeholder% or {placeholder} format (e.g., %player_name% or {player_name})");
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "command-error");
-                    allCommandsSucceeded = false;
                     continue;
                 }
                 
-                try {
-                    Bukkit.getServer().dispatchCommand(isSudo ? player : Bukkit.getConsoleSender(), processedCommand);
-                } catch (Exception e) {
-                    // Log the error gracefully without dumping a stack trace
-                    GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Failed to execute command: " + processedCommand);
-                    GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Reason: " + e.getMessage());
-                    GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "command-error");
-                    allCommandsSucceeded = false;
+                final String finalCommand = processedCommand;
+                final boolean runAsPlayer = isSudo;
+                
+                if (runAsPlayer) {
+                    // Player commands - use performCommand which handles Folia threading internally
+                    try {
+                        player.performCommand(finalCommand);
+                    } catch (Exception e) {
+                        GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Failed to execute player command: " + finalCommand);
+                        GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Reason: " + e.getMessage());
+                        GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "command-error");
+                    }
+                } else {
+                    // Console commands on Folia need to run on the global region scheduler
+                    SchedulerUtil.runTask(() -> {
+                        try {
+                            Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), finalCommand);
+                        } catch (Exception e) {
+                            GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Failed to execute console command: " + finalCommand);
+                            GUIShop.getINSTANCE().getLogUtil().log("[Command Error] Reason: " + e.getMessage());
+                            SchedulerUtil.runAtEntity(commandPlayer, () -> {
+                                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandPlayer, "command-error");
+                            });
+                        }
+                    });
                 }
             }
             
-            if (allCommandsSucceeded && Config.isSoundEnabled()) {
+            if (Config.isSoundEnabled()) {
                 try {
                     player.playSound(player.getLocation(), XSound.matchXSound(Config.getSound()).get().parseSound(), 1, 1);
                 } catch (Exception ignored) {}
             }
             
-            if (dynamicPricingUpdate != null) {
-                dynamicPricingUpdate.run();
+            if (dynamicUpdate != null) {
+                dynamicUpdate.run();
             }
 
             GUIShop.getINSTANCE().getLogUtil().transactionLog("Player " + player.getName() + " bought command " + item.getMaterial() + " in shop " + getShop() + " for " + priceToPay.toPlainString() + " money!");
@@ -977,27 +999,28 @@ public class Shop {
     /**
      * Check if a command string has unresolved placeholders.
      * Detects patterns like %something% or {something} that weren't replaced.
+     * 
+     * Note: This is intentionally conservative - we only flag common GUIShop placeholders
+     * that should have been replaced. Other %% or {} patterns might be valid PlaceholderAPI
+     * placeholders or command syntax.
      */
     private boolean hasUnresolvedPlaceholders(String command) {
-        // Check for %placeholder% patterns (but ignore PlaceholderAPI's %% escape)
-        if (command.matches(".*%[a-zA-Z_]+%.*")) {
-            // Could be PlaceholderAPI placeholders, check for common GUIShop ones
-            String lower = command.toLowerCase();
-            if (lower.contains("%player_name%") || lower.contains("%player_uuid%") || 
-                lower.contains("%player_world%") || lower.contains("%player_balance%") ||
-                lower.contains("%buy_price%") || lower.contains("%sell_price%")) {
-                return true;
-            }
+        String lower = command.toLowerCase();
+        
+        // Check for GUIShop-specific placeholders that should have been replaced
+        // Player placeholders (short and long forms)
+        if (lower.contains("%player%") || lower.contains("{player}") ||
+            lower.contains("%player_name%") || lower.contains("{player_name}") ||
+            lower.contains("%player_uuid%") || lower.contains("{player_uuid}") || 
+            lower.contains("%player_world%") || lower.contains("{player_world}") || 
+            lower.contains("%player_balance%") || lower.contains("{player_balance}")) {
+            return true;
         }
         
-        // Check for {placeholder} patterns
-        if (command.matches(".*\\{[a-zA-Z_]+\\}.*")) {
-            String lower = command.toLowerCase();
-            if (lower.contains("{player_name}") || lower.contains("{player_uuid}") || 
-                lower.contains("{player_world}") || lower.contains("{player_balance}") ||
-                lower.contains("{buy_price}") || lower.contains("{sell_price}")) {
-                return true;
-            }
+        // Price placeholders
+        if (lower.contains("%buy_price%") || lower.contains("{buy_price}") ||
+            lower.contains("%sell_price%") || lower.contains("{sell_price}")) {
+            return true;
         }
         
         return false;
@@ -1050,13 +1073,9 @@ public class Shop {
                     shopItem(item, event);
                 }
                 case COMMAND -> {
-                    // Use unified handler for commands
-                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing COMMAND item via unified handler");
-                    if (!com.pablo67340.guishop.handler.ItemActionHandler.handleClick(
-                            player, event.getCurrentItem(), event.getSlot(), event.getClick(), context)) {
-                        // Fallback to original command handling
-                        commandItem(item);
-                    }
+                    // COMMAND items bypass TransactionGui - they execute commands directly with payment
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("CLICK: Processing COMMAND item directly");
+                    commandItem(item);
                 }
                 case SHOP_SHORTCUT -> {
                     // Use unified handler for shop navigation

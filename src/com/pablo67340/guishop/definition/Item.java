@@ -120,6 +120,14 @@ public final class Item implements ConfigurationSerializable {
     @Getter
     @Setter
     private List<String> commands;
+    
+    /**
+     * Whether commands should be run as the player (sudo) instead of console.
+     * Defaults to false (run as console).
+     */
+    @Getter
+    @Setter
+    private boolean sudo = false;
 
     /**
      * The enchantsments on this {@link Item}.
@@ -1501,6 +1509,9 @@ public final class Item implements ConfigurationSerializable {
                 } else {
                     item.setCommands(Collections.singletonList(entry.getValue().toString()));
                 }
+            } else if (entry.getKey().equalsIgnoreCase("sudo")) {
+                // Whether commands run as player (true) or console (false)
+                item.setSudo(Boolean.parseBoolean(entry.getValue().toString()));
             } else if (entry.getKey().equalsIgnoreCase("target-shop")) {
                 item.setItemType(ItemType.SHOP_SHORTCUT);
                 item.setTargetShop(entry.getValue().toString());
@@ -1668,6 +1679,10 @@ public final class Item implements ConfigurationSerializable {
         }
         if (hasCommands()) {
             serialized.put("commands", commands);
+            // Only serialize sudo if true (defaults to false)
+            if (sudo) {
+                serialized.put("sudo", true);
+            }
         }
         if (hasTargetShop()) {
             serialized.put("target-shop", targetShop);

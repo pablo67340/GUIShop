@@ -2,10 +2,10 @@
 
 ![GUIShop Banner](https://bryces.site/guishop/banner.jpg)
 
-# GUIShop
+# GUIShop v${project.version}
 ### The Ultimate GUI-Based Shop Plugin for Minecraft Servers
 
-*Fully compatible with Paper/Spigot/Folia 1.21.11*
+*Fully compatible with ${supported.platforms} ${mc.version.range}*
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/pablo67340/GUIShop)
 [![Wiki](https://img.shields.io/badge/Wiki-Documentation-green)](https://github.com/pablo67340/GUIShop/wiki)
@@ -277,17 +277,31 @@ hide-armor-slots: true
 ## Advanced Item Types
 
 ### Command Items
-Sell commands that execute when purchased:
+Sell commands that execute when purchased. Use placeholders like `{PLAYER_NAME}`, `{PLAYER_UUID}`, `{PLAYER_WORLD}`, or any PlaceholderAPI placeholder:
+
 ```yaml
 '19':
   type: COMMAND
   id: NETHER_STAR
   shop-name: '&6VIP Rank'
   buy-price: 10000
+  sudo: false          # Run as console (default) or as player (true)
   commands:
     - 'lp user {PLAYER_NAME} parent set vip'
     - 'broadcast {PLAYER_NAME} purchased VIP!'
 ```
+
+**Available Placeholders:**
+| Placeholder | Description |
+|-------------|-------------|
+| `{PLAYER_NAME}` | Player's name |
+| `{PLAYER_UUID}` | Player's UUID |
+| `{PLAYER_WORLD}` | Player's current world |
+| `{PLAYER_BALANCE}` | Player's economy balance |
+
+All placeholders also work in `%placeholder%` format. PlaceholderAPI placeholders are also supported if PAPI is installed.
+
+**Sudo Mode:** Set `sudo: true` to run commands as the player instead of console. Useful for commands that check player permissions or are player-only.
 
 ### Enchanted Books
 ```yaml

@@ -2,7 +2,7 @@
 
 The ultimate GUI-based shop plugin for Minecraft servers. Say goodbye to confusing sign shops and chest-based systems. GUIShop provides players with an intuitive shopping experience while giving administrators complete control over pricing, items, and layout.
 
-**Fully compatible with Paper/Spigot/Folia 1.13 - 1.21.11**
+**Fully compatible with Paper/Spigot/Folia/Bukkit 1.13 - 1.21.11**
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/pablo67340/GUIShop)
 [![Wiki](https://img.shields.io/badge/Wiki-Documentation-green)](https://github.com/pablo67340/GUIShop/wiki)
@@ -135,6 +135,8 @@ GUIShop features a powerful GUI-based editor:
 - [Quick Start Guide](https://github.com/pablo67340/GUIShop/wiki/Quick-Start-Guide)
 - [Shop Configuration](https://github.com/pablo67340/GUIShop/wiki/Shop-Configuration)
 - [In-Game Item Editor](https://github.com/pablo67340/GUIShop/wiki/In-Game-Item-Editor)
+- [Command Items](https://github.com/pablo67340/GUIShop/wiki/Command-Items)
+- [Dynamic Pricing](https://github.com/pablo67340/GUIShop/wiki/Dynamic-Pricing)
 - [Special Item Configurations](https://github.com/pablo67340/GUIShop/wiki/Special-Item-Configurations)
 - [Internal Economy](https://github.com/pablo67340/GUIShop/wiki/Internal-Economy)
 - [Worth Display](https://github.com/pablo67340/GUIShop/wiki/Worth-Display-Configuration)

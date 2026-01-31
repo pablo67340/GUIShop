@@ -937,8 +937,7 @@ public final class Menu {
             final Player commandPlayer = player;
             
             for (String str : item.getCommands()) {
-                boolean isSudo = str.startsWith("sudo=");
-                String rawCommand = isSudo ? str.substring(5).trim() : str.trim();
+                String rawCommand = str.trim();
                 // Remove leading slash if present
                 if (rawCommand.startsWith("/")) {
                     rawCommand = rawCommand.substring(1);
@@ -946,9 +945,8 @@ public final class Menu {
                 String processedCommand = GUIShop.getINSTANCE().getMiscUtils().placeholderIfy(rawCommand, player, item);
                 
                 final String finalCommand = processedCommand;
-                final boolean runAsPlayer = isSudo;
                 
-                if (runAsPlayer) {
+                if (item.isSudo()) {
                     // Player commands - use performCommand which handles Folia threading internally
                     try {
                         player.performCommand(finalCommand);

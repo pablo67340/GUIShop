@@ -63,6 +63,7 @@ public class ItemEditorGui {
     private List<String> shopLore;
     private List<String> buyLore;
     private List<String> commands;
+    private boolean sudo;  // Whether commands run as player (true) or console (false)
     private String skullUuid;
     private String potionInfo;
     private String fireworkInfo;
@@ -176,6 +177,10 @@ public class ItemEditorGui {
             commands = new ArrayList<>();
         }
         
+        // Sudo (whether commands run as player)
+        String sudoStr = PDCUtil.getString(item, PDCUtil.KEY_SUDO);
+        sudo = "true".equalsIgnoreCase(sudoStr);
+        
         // For Transaction GUI items, also check KEY_SLOT_TYPE for the item type
         if ("Transaction".equalsIgnoreCase(shopName)) {
             String slotType = PDCUtil.getString(item, TransactionEditor.KEY_SLOT_TYPE);
@@ -260,15 +265,16 @@ public class ItemEditorGui {
         // Row 4: Commands & Special
         gui.setItem(28, createListButton("commands", commands, Material.COMMAND_BLOCK,
             "&cCommands", "Commands to run on purchase (COMMAND type)"));
-        gui.setItem(29, createStringButton("targetshop", targetShop, Material.ENDER_PEARL,
+        gui.setItem(29, createSudoButton());
+        gui.setItem(30, createStringButton("targetshop", targetShop, Material.ENDER_PEARL,
             "&6Target Shop", "Shop to open when clicked (DUMMY type)"));
-        gui.setItem(30, createStringButton("mobtype", mobType, Material.SPAWNER,
+        gui.setItem(31, createStringButton("mobtype", mobType, Material.SPAWNER,
             "&4Mob Type", "Entity type for spawners"));
 
         // Row 4: More options
-        gui.setItem(32, createStringButton("skulluuid", skullUuid, Material.PLAYER_HEAD,
+        gui.setItem(33, createStringButton("skulluuid", skullUuid, Material.PLAYER_HEAD,
             "&fSkull UUID", "Player UUID or Base64 texture"));
-        gui.setItem(33, createStringButton("permission", permission, Material.IRON_BARS,
+        gui.setItem(34, createStringButton("permission", permission, Material.IRON_BARS,
             "&7Permission", "Required permission to buy"));
 
         // Row 6: Actions
@@ -465,6 +471,24 @@ public class ItemEditorGui {
     }
 
     /**
+     * Create the sudo toggle button.
+     */
+    private ItemStack createSudoButton() {
+        Material material = sudo ? Material.LIME_DYE : Material.GRAY_DYE;
+        String status = sudo ? ChatColor.GREEN + "Enabled (Run as Player)" : ChatColor.RED + "Disabled (Run as Console)";
+        
+        return new ItemStackBuilder(material)
+            .setName(ChatColor.GOLD + "Sudo Mode")
+            .addLoreLine(ChatColor.GRAY + "Run commands as player")
+            .addLoreLine(ChatColor.GRAY + "instead of console")
+            .addLoreLine("")
+            .addLoreLine(ChatColor.GRAY + "Current: " + status)
+            .addLoreLine("")
+            .addLoreLine(ChatColor.YELLOW + "Click to toggle")
+            .build();
+    }
+
+    /**
      * Create the potion info button.
      */
     private ItemStack createPotionButton() {
@@ -570,14 +594,16 @@ public class ItemEditorGui {
                 case 24 -> openFireworkEditor(event.isRightClick());
                 // Commands (right-click to clear)
                 case 28 -> editCommands(event.isRightClick());
+                // Sudo toggle
+                case 29 -> toggleSudo();
                 // Target Shop (right-click to clear)
-                case 29 -> editTargetShop(event.isRightClick());
+                case 30 -> editTargetShop(event.isRightClick());
                 // Mob Type (right-click to clear)
-                case 30 -> editMobType(event.isRightClick());
+                case 31 -> editMobType(event.isRightClick());
                 // Skull UUID (right-click to clear)
-                case 32 -> editSkullUuid(event.isRightClick());
+                case 33 -> editSkullUuid(event.isRightClick());
                 // Permission (right-click to clear)
-                case 33 -> editPermission(event.isRightClick());
+                case 34 -> editPermission(event.isRightClick());
                 // Save
                 case 45 -> saveAndClose();
                 // Reset
@@ -864,7 +890,7 @@ public class ItemEditorGui {
         player.closeInventory();
         ChatInputHandler.getInstance().requestInput(player,
             "Enter a command to run on purchase:\n" +
-            ChatColor.GRAY + "(Without /, use {PLAYER_NAME} for player name)",
+            ChatColor.GRAY + "(Without /, use {PLAYER_NAME} or {PLAYER_UUID} for placeholders)",
             input -> {
                 commands.add(input);
                 open();
@@ -872,6 +898,14 @@ public class ItemEditorGui {
             this::open,
             60
         );
+    }
+    
+    private void toggleSudo() {
+        sudo = !sudo;
+        String status = sudo ? ChatColor.GREEN + "enabled (run as player)" : ChatColor.RED + "disabled (run as console)";
+        player.sendMessage(ChatColor.YELLOW + "Sudo mode " + status);
+        buildMainMenu();
+        gui.update();
     }
 
     private void editTargetShop(boolean clear) {
@@ -1104,6 +1138,13 @@ public class ItemEditorGui {
             PDCUtil.setString(item, PDCUtil.KEY_COMMANDS, String.join("::", commands));
         } else {
             PDCUtil.removeKey(item, PDCUtil.KEY_COMMANDS);
+        }
+        
+        // Sudo (only save if true, false is default)
+        if (sudo) {
+            PDCUtil.setString(item, PDCUtil.KEY_SUDO, "true");
+        } else {
+            PDCUtil.removeKey(item, PDCUtil.KEY_SUDO);
         }
         
         // Save directly to config based on whether this is a shop or menu item

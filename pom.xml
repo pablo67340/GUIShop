@@ -6,11 +6,22 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <mainClass>${project.groupId}.${project.artifactId}</mainClass>
         <api.version>17</api.version>
+        
+        <!-- ========== DOCUMENTATION VARIABLES ========== -->
+        <!-- Update these when releasing new versions -->
+        <mc.version.min>1.13</mc.version.min>
+        <mc.version.max>1.21.11</mc.version.max>
+        <mc.version.range>${mc.version.min} - ${mc.version.max}</mc.version.range>
+        <java.version.min>17</java.version.min>
+        <supported.platforms>Paper/Spigot/Folia/Bukkit</supported.platforms>
+        <discord.invite>https://discord.gg/wm6zMzdBwf</discord.invite>
+        <spigot.resource.id>2451</spigot.resource.id>
+        <!-- ============================================= -->
     </properties>
     <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.3.8</version>
+    <version>9.3.9</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -235,6 +246,25 @@
                         <filtering>true</filtering>
                         <includes>
                             <include>*.yml</include>
+                        </includes>
+                    </resource>
+                    <!-- Wiki and marketing docs with placeholder filtering -->
+                    <resource>
+                        <directory>${project.basedir}</directory>
+                        <targetPath>../processed-docs</targetPath>
+                        <filtering>true</filtering>
+                        <includes>
+                            <include>spigot.bbcode</include>
+                            <include>modrinth.md</include>
+                            <include>dev-bukkit.html</include>
+                        </includes>
+                    </resource>
+                    <resource>
+                        <directory>${project.basedir}/wiki</directory>
+                        <targetPath>../processed-docs/wiki</targetPath>
+                        <filtering>true</filtering>
+                        <includes>
+                            <include>*.md</include>
                         </includes>
                     </resource>
                 </resources>

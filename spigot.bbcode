@@ -1,10 +1,10 @@
 [CENTER]
 [IMG]https://bryces.site/guishop/banner.jpg[/IMG]
 
-[SIZE=6][B]GUIShop[/B][/SIZE]
+[SIZE=6][B]GUIShop v${project.version}[/B][/SIZE]
 [SIZE=4]The Ultimate GUI-Based Shop Plugin for Minecraft Servers[/SIZE]
 
-[SIZE=3][I]Fully compatible with Paper/Spigot/Folia 1.21.11[/I][/SIZE]
+[SIZE=3][I]Fully compatible with ${supported.platforms} ${mc.version.range}[/I][/SIZE]
 
 [URL='https://github.com/pablo67340/GUIShop'][IMG]https://img.shields.io/badge/GitHub-Repository-blue[/IMG][/URL]
 [URL='https://github.com/pablo67340/GUIShop/wiki'][IMG]https://img.shields.io/badge/Wiki-Documentation-green[/IMG][/URL]
@@ -269,17 +269,30 @@ hide-armor-slots: true
 [SIZE=5][B]Advanced Item Types[/B][/SIZE]
 
 [SIZE=4][B]Command Items[/B][/SIZE]
-Sell commands that execute when purchased:
+Sell commands that execute when purchased. Use placeholders like [ICODE]{PLAYER_NAME}[/ICODE], [ICODE]{PLAYER_UUID}[/ICODE], [ICODE]{PLAYER_WORLD}[/ICODE], or any PlaceholderAPI placeholder:
+
 [CODE]
 '19':
   type: COMMAND
   id: NETHER_STAR
   shop-name: '&6VIP Rank'
   buy-price: 10000
+  sudo: false          # Run as console (default) or as player (true)
   commands:
     - 'lp user {PLAYER_NAME} parent set vip'
     - 'broadcast {PLAYER_NAME} purchased VIP!'
 [/CODE]
+
+[B]Available Placeholders:[/B]
+[LIST]
+[*][ICODE]{PLAYER_NAME}[/ICODE] or [ICODE]%player_name%[/ICODE] - Player's name
+[*][ICODE]{PLAYER_UUID}[/ICODE] or [ICODE]%player_uuid%[/ICODE] - Player's UUID
+[*][ICODE]{PLAYER_WORLD}[/ICODE] or [ICODE]%player_world%[/ICODE] - Current world
+[*][ICODE]{PLAYER_BALANCE}[/ICODE] or [ICODE]%player_balance%[/ICODE] - Economy balance
+[*]Any PlaceholderAPI placeholder (if PAPI installed)
+[/LIST]
+
+[B]Sudo Mode:[/B] Set [ICODE]sudo: true[/ICODE] to run commands as the player instead of console. Useful for commands that check player permissions or are player-only.
 
 [SIZE=4][B]Enchanted Books[/B][/SIZE]
 [CODE]

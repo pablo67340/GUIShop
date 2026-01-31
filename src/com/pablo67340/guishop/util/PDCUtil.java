@@ -41,6 +41,9 @@ public class PDCUtil {
     // Commands
     public static final NamespacedKey KEY_COMMANDS = new NamespacedKey(NAMESPACE, "commands");
     
+    // Sudo (whether commands run as player or console)
+    public static final NamespacedKey KEY_SUDO = new NamespacedKey(NAMESPACE, "sudo");
+    
     // Enchantments (stored as string)
     public static final NamespacedKey KEY_ENCHANTMENTS = new NamespacedKey(NAMESPACE, "enchantments");
     

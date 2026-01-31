@@ -88,6 +88,9 @@ public class MiscUtils {
             string = replaceCaseInsensitive(string, "%player%", playerName);
             string = replaceCaseInsensitive(string, "{PLAYER}", playerName);
             string = replaceCaseInsensitive(string, "{PLAYER_NAME}", playerName);
+            string = replaceCaseInsensitive(string, "{PLAYER_UUID}", playerUuid);
+            string = replaceCaseInsensitive(string, "{PLAYER_WORLD}", playerWorld);
+            string = replaceCaseInsensitive(string, "{PLAYER_BALANCE}", playerBalance);
             
             // Standard GUIShop placeholders
             string = replaceCaseInsensitive(string, "%player_name%", playerName);

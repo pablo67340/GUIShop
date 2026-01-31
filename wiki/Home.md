@@ -1,5 +1,7 @@
 # GUIShop Wiki
 
+**Current Version:** ${project.version}
+
 Welcome to the official GUIShop documentation. This wiki covers everything you need to know about setting up, configuring, and extending GUIShop for your Minecraft server.
 
 ## Table of Contents
@@ -14,6 +16,8 @@ Welcome to the official GUIShop documentation. This wiki covers everything you n
 - [Configuration Overview](Configuration-Overview)
 - [Shop Configuration](Shop-Configuration)
 - [Menu Configuration](Menu-Configuration)
+- [Command Items](Command-Items)
+- [Dynamic Pricing](Dynamic-Pricing)
 - [Internal Economy](Internal-Economy)
 - [Messages Configuration](Messages-Configuration)
 - [Worth Display Configuration](Worth-Display-Configuration)
@@ -38,9 +42,9 @@ Welcome to the official GUIShop documentation. This wiki covers everything you n
 ## Version Compatibility
 
 GUIShop is compatible with:
-- Minecraft 1.13 through 1.21.11
-- Paper, Spigot, Folia, Bukkit and forks
-- Java 17+
+- Minecraft ${mc.version.range}
+- ${supported.platforms} and forks
+- Java ${java.version.min}+
 
 ## Dependencies
 

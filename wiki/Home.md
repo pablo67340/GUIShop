@@ -38,8 +38,8 @@ Welcome to the official GUIShop documentation. This wiki covers everything you n
 ## Version Compatibility
 
 GUIShop is compatible with:
-- Minecraft 1.13 through 1.21.10
-- Paper, Spigot, and forks
+- Minecraft 1.13 through 1.21.11
+- Paper, Spigot, Folia, Bukkit and forks
 - Java 17+
 
 ## Dependencies

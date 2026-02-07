@@ -51,7 +51,7 @@ public enum ItemType {
      */
     public boolean isShopMenuType() {
         return switch (this) {
-            case ITEM, COMMAND, DUMMY, SHOP, BLANK, SHOP_SHORTCUT, PAGE_LEFT, PAGE_RIGHT, PAGE_STATUS, PLAYER_BALANCE -> true;
+            case ITEM, COMMAND, DUMMY, SHOP, BLANK, SHOP_SHORTCUT, PAGE_LEFT, PAGE_RIGHT, PAGE_STATUS, PLAYER_BALANCE, BACK -> true;
             default -> false;
         };
     }

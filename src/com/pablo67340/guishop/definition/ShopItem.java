@@ -14,6 +14,12 @@ import java.util.Map;
 public class ShopItem implements Cloneable {
 
     Map<String, ShopPage> pages = new LinkedHashMap<>();
+    
+    /**
+     * Configured number of rows for this shop's inventory (1-6).
+     * If not set (0), rows are calculated dynamically based on item count.
+     */
+    private int configuredRows = 0;
 
     public int getHighestPageSlot(String page) {
         return pages.get(page).getHighestSlot();

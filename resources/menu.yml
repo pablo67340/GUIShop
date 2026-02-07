@@ -3,32 +3,60 @@
 #                                                                         #
 # This file defines the main shop menu that players see when using /shop  #
 #                                                                         #
-# STRUCTURE:                                                              #
-# Menu:                                                                   #
-#   pages:                                                                #
-#     Page0:                                                              #
-#       items:                                                            #
-#         'slot_number':    # Slot 0-53 (0 = top-left, 53 = bottom-right) #
-#           id: MATERIAL    # Bukkit material name                        #
-#           name: '&aName'  # Display name with color codes               #
-#           lore:           # Item description                            #
-#             - 'Line 1'                                                  #
-#           target-shop: 'ShopName'  # Shop to open when clicked          #
-#                                                                         #
-# SLOTS LAYOUT (6-row inventory):                                         #
-#   Row 0: 0  1  2  3  4  5  6  7  8                                      #
-#   Row 1: 9  10 11 12 13 14 15 16 17                                     #
-#   Row 2: 18 19 20 21 22 23 24 25 26                                     #
-#   Row 3: 27 28 29 30 31 32 33 34 35                                     #
-#   Row 4: 36 37 38 39 40 41 42 43 44                                     #
-#   Row 5: 45 46 47 48 49 50 51 52 53  (Pagination row)                   #
-#                                                                         #
-# TIP: Center items using slots 11-15 for a row of 5, or 10-16 for 7     #
+# ======================== ROWS CONFIGURATION ============================
+# Rows can be set at two levels:
+#   1. Menu-level (under 'Menu:'): Sets default rows for ALL pages
+#   2. Page-level (under each 'PageX:'): Overrides menu-level for that page
+#
+# Hierarchy: Page-level > Menu-level > Auto-calculate (based on items)
+#
+# If neither is set, rows auto-calculate from the highest slot used.
+# At least one level should be set for predictable inventory sizes.
+#
+# Rows determine max slot:
+#   1 row  = slots 0-8    (max slot: 8)
+#   2 rows = slots 0-17   (max slot: 17)
+#   3 rows = slots 0-26   (max slot: 26)
+#   4 rows = slots 0-35   (max slot: 35)
+#   5 rows = slots 0-44   (max slot: 44)
+#   6 rows = slots 0-53   (max slot: 53) <-- Default, full inventory
+#
+# Items with slots exceeding the row limit will be logged as errors
+# and displayed as warnings to admin players in-game.
+#
+# ========================= STRUCTURE ====================================
+# Menu:
+#   rows: 6                   # Optional: Default rows for all pages (1-6)
+#   pages:
+#     Page0:
+#       rows: 6               # Optional: Override rows for this page
+#       items:
+#         'slot_number':      # Slot 0 to (rows*9 - 1)
+#           id: MATERIAL      # Bukkit material name
+#           name: '&aName'    # Display name with color codes
+#           lore:             # Item description
+#             - 'Line 1'
+#           target-shop: 'ShopName'  # Shop to open when clicked
+#
+# ========================= SLOTS LAYOUT =================================
+# For a 6-row (54 slot) inventory:
+#   Row 0: 0  1  2  3  4  5  6  7  8
+#   Row 1: 9  10 11 12 13 14 15 16 17
+#   Row 2: 18 19 20 21 22 23 24 25 26
+#   Row 3: 27 28 29 30 31 32 33 34 35
+#   Row 4: 36 37 38 39 40 41 42 43 44
+#   Row 5: 45 46 47 48 49 50 51 52 53  (Pagination row)
+#
+# TIP: Center items using slots 11-15 for a row of 5, or 10-16 for 7
 ###########################################################################
 
 Menu:
+  # Default rows for all pages (1-6). Can be overridden per-page.
+  rows: 6
   pages:
     Page0:
+      # This page uses menu-level rows (6), but you can override here:
+      # rows: 4
       items:
         # =============================================
         # SHOP ICONS - Centered on Row 1 (slots 11-15)
@@ -113,30 +141,6 @@ Menu:
           name: '&a%player%''s Balance'
           lore:
             - '&7Balance: &a%balance%'
-        
-        # Page Navigation - Previous (left of center)
-        '48':
-          type: PAGE_LEFT
-          id: ARROW
-          name: '&7Previous Page'
-          lore:
-            - '&eClick to go back'
-            - '&8[Editor: Shift+click to navigate]'
-            
-        # Page Status - Shows current page number (center)
-        '49':
-          type: PAGE_STATUS
-          id: NETHER_STAR
-          name: '&fPage %page% of %maxpage%'
-          
-        # Page Navigation - Next (right of center)
-        '50':
-          type: PAGE_RIGHT
-          id: ARROW
-          name: '&7Next Page'
-          lore:
-            - '&eClick to continue'
-            - '&8[Editor: Shift+click to navigate]'
             
         # Back/Exit Button - Closes the menu (bottom right)
         '53':

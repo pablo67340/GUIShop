@@ -422,7 +422,7 @@ public class ItemEditorGui {
             builder.addLoreLine(ChatColor.DARK_GRAY + "Available: ITEM, COMMAND, DUMMY,");
             builder.addLoreLine(ChatColor.DARK_GRAY + "SHOP, BLANK, SHOP_SHORTCUT,");
             builder.addLoreLine(ChatColor.DARK_GRAY + "PAGE_LEFT, PAGE_RIGHT, PAGE_STATUS,");
-            builder.addLoreLine(ChatColor.DARK_GRAY + "PLAYER_BALANCE");
+            builder.addLoreLine(ChatColor.DARK_GRAY + "PLAYER_BALANCE, BACK");
         }
         
         builder.addLoreLine("");
@@ -766,7 +766,7 @@ public class ItemEditorGui {
                 ItemType.ITEM, ItemType.COMMAND, ItemType.DUMMY, 
                 ItemType.SHOP, ItemType.BLANK, ItemType.SHOP_SHORTCUT,
                 ItemType.PAGE_LEFT, ItemType.PAGE_RIGHT, ItemType.PAGE_STATUS,
-                ItemType.PLAYER_BALANCE
+                ItemType.PLAYER_BALANCE, ItemType.BACK
             };
         }
         
@@ -827,6 +827,14 @@ public class ItemEditorGui {
                 }
                 player.sendMessage(ChatColor.GREEN + "Item type set to PLAYER_BALANCE - will show player head with balance.");
                 player.sendMessage(ChatColor.GRAY + "The item will automatically become a player head when saved.");
+            }
+            case BACK -> {
+                // Transform to back/close button appearance
+                if (shopDisplayName == null || shopDisplayName.isEmpty() || 
+                    oldType == ItemType.DUMMY || oldType == ItemType.BLANK) {
+                    shopDisplayName = "&c&lBack";
+                }
+                player.sendMessage(ChatColor.GREEN + "Item type set to BACK - will go back to menu or close inventory.");
             }
             default -> {
                 // No transformation needed

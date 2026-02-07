@@ -53,6 +53,11 @@ public class Shop {
     private final Player player;
 
     private Boolean shopMissing = false;
+    
+    /**
+     * List of out-of-bounds item warnings to display when shop opens.
+     */
+    private final java.util.List<String> outOfBoundsWarnings = new java.util.ArrayList<>();
 
     /**
      * The constructor for a {@link Shop}.
@@ -128,6 +133,18 @@ public class Shop {
         }
         this.setTitle(shopTitle);
         shopItem = new ShopItem();
+        
+        // Read configured rows (1-6, default 0 = auto-calculate)
+        int configuredRows = shopConfig.getInt("rows", 0);
+        if (configuredRows > 0) {
+            if (configuredRows < 1 || configuredRows > 6) {
+                logShopError("Shop '" + shop + "' has invalid 'rows: " + configuredRows + "'. Must be 1-6. Using auto-calculation.");
+                configuredRows = 0;
+            } else {
+                shopItem.setConfiguredRows(configuredRows);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Shop '" + shop + "' configured with " + configuredRows + " rows");
+            }
+        }
 
         ConfigurationSection pagesConfig = shopConfig.getConfigurationSection("pages");
         if (pagesConfig == null) {
@@ -142,6 +159,23 @@ public class Shop {
 
         for (String pageKey : pagesConfig.getKeys(false)) {
             ShopPage page = new ShopPage();
+            
+            // Read per-page rows (overrides shop-level rows)
+            int pageRows = pagesConfig.getInt(pageKey + ".rows", 0);
+            if (pageRows > 0) {
+                if (pageRows < 1 || pageRows > 6) {
+                    logShopError("Shop '" + shop + "' > " + pageKey + " has invalid 'rows: " + pageRows + "'. Must be 1-6.");
+                    pageRows = 0;
+                } else {
+                    page.setConfiguredRows(pageRows);
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Shop '" + shop + "' > " + pageKey + " configured with " + pageRows + " rows");
+                }
+            }
+            
+            // Determine effective rows for this page (page-level > shop-level > default 6)
+            int effectiveRows = page.getConfiguredRows() > 0 ? page.getConfiguredRows() 
+                : (shopItem.getConfiguredRows() > 0 ? shopItem.getConfiguredRows() : 6);
+            
             ConfigurationSection itemsSection = pagesConfig.getConfigurationSection(pageKey + ".items");
 
             if (itemsSection == null) {
@@ -184,6 +218,16 @@ public class Shop {
                 if (item == null) {
                     logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "' returned null item. Check the item configuration.");
                     continue;
+                }
+                
+                // Validate slot is within configured row bounds
+                int maxSlot = effectiveRows * 9 - 1;
+                if (slot > maxSlot) {
+                    String warning = pageKey + " > Slot " + slot + " (" + item.getMaterial() + ") is out of bounds! Max slot for " + 
+                        effectiveRows + " rows is " + maxSlot + ".";
+                    logShopError("Shop '" + shop + "' > " + warning);
+                    outOfBoundsWarnings.add(warning);
+                    continue; // Skip this item - don't add to shop
                 }
                 
                 GUIShop.getINSTANCE().getLogUtil().debugLog("LOAD: Item " + item.getMaterial() + " at slot " + slotKey + 
@@ -271,24 +315,33 @@ public class Shop {
 
     private void loadShop() {
         if (this.GUI == null) {
-            // Calculate dynamic row count based on item count (7 items per row with side padding)
-            int maxItemsOnPage = 0;
-            for (ShopPage page : shopItem.getPages().values()) {
-                int itemCount = 0;
-                for (Item item : page.getItems().values()) {
-                    if (item.getItemType() != ItemType.BLANK) {
-                        itemCount++;
+            int initialRows;
+            
+            // Use configured rows if specified, otherwise auto-calculate
+            if (shopItem.getConfiguredRows() > 0) {
+                initialRows = shopItem.getConfiguredRows();
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Using configured rows: " + initialRows);
+            } else {
+                // Calculate dynamic row count based on item count (7 items per row with side padding)
+                int maxItemsOnPage = 0;
+                for (ShopPage page : shopItem.getPages().values()) {
+                    int itemCount = 0;
+                    for (Item item : page.getItems().values()) {
+                        if (item.getItemType() != ItemType.BLANK) {
+                            itemCount++;
+                        }
+                    }
+                    if (itemCount > maxItemsOnPage) {
+                        maxItemsOnPage = itemCount;
                     }
                 }
-                if (itemCount > maxItemsOnPage) {
-                    maxItemsOnPage = itemCount;
-                }
+                
+                // Calculate rows: top buffer + item rows + bottom buffer + pagination
+                // 1-7 items = 4 rows, 8-14 items = 5 rows, 15-21 items = 6 rows
+                int itemRows = (int) Math.ceil(maxItemsOnPage / 7.0);
+                initialRows = Math.min(6, Math.max(4, itemRows + 3)); // +1 top buffer, +1 bottom buffer, +1 pagination
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Auto-calculated rows: " + initialRows);
             }
-            
-            // Calculate rows: top buffer + item rows + bottom buffer + pagination
-            // 1-7 items = 4 rows, 8-14 items = 5 rows, 15-21 items = 6 rows
-            int itemRows = (int) Math.ceil(maxItemsOnPage / 7.0);
-            int initialRows = Math.min(6, Math.max(4, itemRows + 3)); // +1 top buffer, +1 bottom buffer, +1 pagination
 
             String guiTitle = ChatColor.translateAlternateColorCodes('&', 
                     Config.getTitlesConfig().getShopTitle().replace("%shopname%", title));
@@ -301,11 +354,17 @@ public class Shop {
                 // Add a new page
                 GUI.addPage();
 
-                int rows = initialRows;
+                // Use page-level rows if configured, otherwise shop-level, otherwise auto-calculated
+                ShopPage shopPage = entry.getValue();
+                int rows = shopPage.getConfiguredRows() > 0 ? shopPage.getConfiguredRows() 
+                    : (shopItem.getConfiguredRows() > 0 ? shopItem.getConfiguredRows() : initialRows);
                 GUI.setPageRows(pageIndex, rows);
 
                 // Add items to the page
-                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Loading page " + entry.getKey() + " with " + entry.getValue().getItems().size() + " items");
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Loading page " + entry.getKey() + " with " + entry.getValue().getItems().size() + " items, rows=" + rows);
+                
+                int maxPages = shopItem.getPages().size();
+                boolean isCreatorMode = GUIShop.getCREATOR().contains(player.getUniqueId());
                 
                 for (Item item : entry.getValue().getItems().values()) {
                     if (item.getItemType() == ItemType.BLANK) {
@@ -314,8 +373,18 @@ public class Shop {
                     GUIShop.getINSTANCE().getLogUtil().debugLog("LOADSHOP: Item " + item.getMaterial() + " at slot " + item.getSlot() + 
                         " hasBuyPrice=" + item.hasBuyPrice() + " hasSellPrice=" + item.hasSellPrice() +
                         " type=" + item.getItemType());
-                    ItemStack itemStack = item.toItemStack(player, false);
-                    GUI.setItem(pageIndex, item.getSlot(), itemStack);
+                    
+                    // Handle navigation items with dynamic content
+                    if (item.getItemType().isNavigationType()) {
+                        ItemStack navItem = processNavigationItem(item, pageIndex, maxPages, isCreatorMode);
+                        if (navItem != null) {
+                            GUI.setItem(pageIndex, item.getSlot(), navItem);
+                        }
+                        // If null, item should be hidden (e.g., PAGE_LEFT on first page)
+                    } else {
+                        ItemStack itemStack = item.toItemStack(player, false);
+                        GUI.setItem(pageIndex, item.getSlot(), itemStack);
+                    }
                 }
 
                 // Apply navigation buttons
@@ -325,6 +394,129 @@ public class Shop {
         }
     }
 
+    /**
+     * Process a navigation item from YAML config with dynamic content.
+     * Returns null if the item should be hidden (e.g., PAGE_LEFT on first page).
+     */
+    private ItemStack processNavigationItem(Item item, int pageIndex, int maxPages, boolean isCreatorMode) {
+        ItemType type = item.getItemType();
+        
+        // Determine if pagination buttons should be visible
+        boolean canGoBack = pageIndex > 0;
+        boolean canGoForward = pageIndex < (maxPages - 1);
+        
+        // In non-editor mode, hide pagination buttons when they can't be used
+        if (!isCreatorMode) {
+            if (type == ItemType.PAGE_LEFT && !canGoBack) {
+                return null; // Hide left arrow on first page
+            }
+            if (type == ItemType.PAGE_RIGHT && !canGoForward) {
+                return null; // Hide right arrow on last page
+            }
+        }
+        
+        // Create the item from config
+        ItemStack itemStack = item.toItemStack(player, false);
+        if (itemStack == null) {
+            return null;
+        }
+        
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) {
+            return itemStack;
+        }
+        
+        // Apply dynamic placeholders for page status
+        if (type == ItemType.PAGE_STATUS) {
+            String displayName = meta.getDisplayName();
+            if (displayName != null && !displayName.isEmpty()) {
+                displayName = displayName
+                    .replace("%page%", String.valueOf(pageIndex + 1))
+                    .replace("%maxpage%", String.valueOf(maxPages));
+                meta.setDisplayName(displayName);
+            }
+            // Also apply to lore
+            if (meta.getLore() != null) {
+                List<String> updatedLore = new ArrayList<>();
+                for (String line : meta.getLore()) {
+                    updatedLore.add(line
+                        .replace("%page%", String.valueOf(pageIndex + 1))
+                        .replace("%maxpage%", String.valueOf(maxPages)));
+                }
+                meta.setLore(updatedLore);
+            }
+        }
+        
+        // Apply dynamic content for player balance
+        if (type == ItemType.PLAYER_BALANCE && player != null) {
+            double balance = GUIShop.getINSTANCE().getMiscUtils().getECONOMY().getBalance(player);
+            String formattedBalance = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
+                + GUIShop.getINSTANCE().getMiscUtils().economyFormat(BigDecimal.valueOf(balance))
+                + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
+            
+            String displayName = meta.getDisplayName();
+            if (displayName != null) {
+                displayName = displayName
+                    .replace("%player%", player.getName())
+                    .replace("%balance%", formattedBalance);
+                meta.setDisplayName(displayName);
+            }
+            if (meta.getLore() != null) {
+                List<String> updatedLore = new ArrayList<>();
+                for (String line : meta.getLore()) {
+                    updatedLore.add(line
+                        .replace("%player%", player.getName())
+                        .replace("%balance%", formattedBalance));
+                }
+                meta.setLore(updatedLore);
+            }
+            
+            // If it's a player head, set the owner
+            if (meta instanceof SkullMeta skullMeta) {
+                skullMeta.setOwningPlayer(player);
+            }
+        }
+        
+        // Add editor mode lore hints
+        if (isCreatorMode) {
+            List<String> lore = meta.getLore() != null ? new ArrayList<>(meta.getLore()) : new ArrayList<>();
+            lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+            
+            // Add type-specific hints
+            switch (type) {
+                case PAGE_LEFT -> lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Previous Page]");
+                case PAGE_RIGHT -> lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Next Page/Create Page]");
+                case BACK -> lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Back to Menu]");
+                default -> {}
+            }
+            meta.setLore(lore);
+        }
+        
+        itemStack.setItemMeta(meta);
+        
+        // Mark as GUI element to prevent worth display
+        PDCUtil.setString(itemStack, PDCUtil.KEY_GUI_ELEMENT, "true");
+        
+        return itemStack;
+    }
+    
+    /**
+     * Check if a navigation item of a given type exists in the current page config.
+     */
+    private boolean hasConfiguredNavItem(int pageIndex, ItemType navType) {
+        String pageKey = "Page" + pageIndex;
+        if (shopItem == null || !shopItem.getPages().containsKey(pageKey)) {
+            return false;
+        }
+        ShopPage page = shopItem.getPages().get(pageKey);
+        for (Item item : page.getItems().values()) {
+            if (item.getItemType() == navType) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     private void applyButtons(int pageIndex, int maxPages, int rows) {
         GUIShop.getINSTANCE().getLogUtil().debugLog("Applying buttons with page index: " + pageIndex + " max pages: " + maxPages);
 
@@ -336,29 +528,39 @@ public class Shop {
         int playerHeadSlot = bottomRowStart; // Bottom left corner
         
         boolean isCreatorMode = GUIShop.getCREATOR().contains(player.getUniqueId());
+        
+        // Check if navigation items are already configured in YAML
+        boolean hasConfiguredPageStatus = hasConfiguredNavItem(pageIndex, ItemType.PAGE_STATUS);
+        boolean hasConfiguredPageLeft = hasConfiguredNavItem(pageIndex, ItemType.PAGE_LEFT);
+        boolean hasConfiguredPageRight = hasConfiguredNavItem(pageIndex, ItemType.PAGE_RIGHT);
+        boolean hasConfiguredBack = hasConfiguredNavItem(pageIndex, ItemType.BACK);
+        boolean hasConfiguredBalance = hasConfiguredNavItem(pageIndex, ItemType.PLAYER_BALANCE);
 
-        // Add page indicator in center - always shows (configurable via buttons.page-indicator)
-        Item pageIndicatorConfig = Config.getButtonConfig().getPageIndicatorButton();
-        ItemStack pageIndicator = pageIndicatorConfig.toItemStack(player, false);
-        ItemMeta pageMeta = pageIndicator.getItemMeta();
-        String indicatorName = pageIndicatorConfig.hasShopName() ? pageIndicatorConfig.getShopName() : "&fPage %page% of %maxpage%";
-        pageMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
-            indicatorName.replace("%page%", String.valueOf(pageIndex + 1)).replace("%maxpage%", String.valueOf(maxPages))));
-        if (isCreatorMode) {
-            List<String> lore = pageMeta.getLore() != null ? new ArrayList<>(pageMeta.getLore()) : new ArrayList<>();
-            lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
-            pageMeta.setLore(lore);
+        // Only add page indicator if not already configured in YAML
+        if (!hasConfiguredPageStatus) {
+            Item pageIndicatorConfig = Config.getButtonConfig().getPageIndicatorButton();
+            ItemStack pageIndicator = pageIndicatorConfig.toItemStack(player, false);
+            ItemMeta pageMeta = pageIndicator.getItemMeta();
+            String indicatorName = pageIndicatorConfig.hasShopName() ? pageIndicatorConfig.getShopName() : "&fPage %page% of %maxpage%";
+            pageMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
+                indicatorName.replace("%page%", String.valueOf(pageIndex + 1)).replace("%maxpage%", String.valueOf(maxPages))));
+            if (isCreatorMode) {
+                List<String> lore = pageMeta.getLore() != null ? new ArrayList<>(pageMeta.getLore()) : new ArrayList<>();
+                lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                pageMeta.setLore(lore);
+            }
+            pageIndicator.setItemMeta(pageMeta);
+            PDCUtil.setString(pageIndicator, PDCUtil.KEY_GUI_ELEMENT, "true");
+            GUI.setItem(pageIndex, centerSlot, pageIndicator);
         }
-        pageIndicator.setItemMeta(pageMeta);
-        PDCUtil.setString(pageIndicator, PDCUtil.KEY_GUI_ELEMENT, "true");
-        GUI.setItem(pageIndex, centerSlot, pageIndicator);
 
         // In editor mode, always show navigation buttons so they can be edited
         // In normal mode, only show if there are multiple pages and we're not at the edge
         boolean showForwardButton = isCreatorMode || (maxPages > 1 && pageIndex < (maxPages - 1));
         boolean showBackwardButton = isCreatorMode || (maxPages > 1 && pageIndex > 0);
         
-        if (showForwardButton) {
+        // Only add forward button if not already configured in YAML
+        if (showForwardButton && !hasConfiguredPageRight) {
             ItemStack forwardButton = Config.getButtonConfig().getForwardButton().toItemStack(player, false);
             ItemMeta forwardMeta = forwardButton.getItemMeta();
             if (isCreatorMode && forwardMeta != null) {
@@ -373,7 +575,8 @@ public class Shop {
             GUI.setItem(pageIndex, nextSlot, forwardButton);
         }
 
-        if (showBackwardButton) {
+        // Only add backward button if not already configured in YAML
+        if (showBackwardButton && !hasConfiguredPageLeft) {
             ItemStack backwardButton = Config.getButtonConfig().getBackwardButton().toItemStack(player, false);
             ItemMeta backwardMeta = backwardButton.getItemMeta();
             if (isCreatorMode && backwardMeta != null) {
@@ -388,23 +591,25 @@ public class Shop {
             GUI.setItem(pageIndex, prevSlot, backwardButton);
         }
 
-        // Add back button (bottom right) - always show
-        GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button at slot " + backSlot);
-        ItemStack backButtonItem = createBackButton();
-        if (isCreatorMode) {
-            ItemMeta backMeta = backButtonItem.getItemMeta();
-            if (backMeta != null) {
-                List<String> lore = backMeta.getLore() != null ? new ArrayList<>(backMeta.getLore()) : new ArrayList<>();
-                lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
-                lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Back to Menu]");
-                backMeta.setLore(lore);
-                backButtonItem.setItemMeta(backMeta);
+        // Only add back button if not already configured in YAML
+        if (!hasConfiguredBack) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Adding back button at slot " + backSlot);
+            ItemStack backButtonItem = createBackButton();
+            if (isCreatorMode) {
+                ItemMeta backMeta = backButtonItem.getItemMeta();
+                if (backMeta != null) {
+                    List<String> lore = backMeta.getLore() != null ? new ArrayList<>(backMeta.getLore()) : new ArrayList<>();
+                    lore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                    lore.add(ChatColor.DARK_GRAY + "[Shift+Click=Back to Menu]");
+                    backMeta.setLore(lore);
+                    backButtonItem.setItemMeta(backMeta);
+                }
             }
+            GUI.setItem(pageIndex, backSlot, backButtonItem);
         }
-        GUI.setItem(pageIndex, backSlot, backButtonItem);
 
-        // Add player head with balance in bottom left
-        if (player != null) {
+        // Only add player head if not already configured in YAML
+        if (player != null && !hasConfiguredBalance) {
             ItemStack playerHead = createPlayerHead();
             if (isCreatorMode) {
                 ItemMeta headMeta = playerHead.getItemMeta();
@@ -511,6 +716,16 @@ public class Shop {
             GUI.setAllowBottomInventoryClick(true);
         }
         GUI.setCloseHandler(this::onClose);
+        
+        // Display out-of-bounds warnings to admin players
+        if (!outOfBoundsWarnings.isEmpty() && player.hasPermission("guishop.admin")) {
+            player.sendMessage(ChatColor.RED + "⚠ Shop Configuration Errors:");
+            for (String warning : outOfBoundsWarnings) {
+                player.sendMessage(ChatColor.RED + "  • " + warning);
+            }
+            player.sendMessage(ChatColor.GRAY + "Fix these in shops/" + shop + ".yml or increase the 'rows' setting.");
+        }
+        
         GUI.show(player);
         return true;
     }

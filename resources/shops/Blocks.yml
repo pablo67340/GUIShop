@@ -3,6 +3,24 @@
 #                                                                         #
 # Building materials - wood, stone, glass, and decorative blocks         #
 #                                                                         #
+# SHOP STRUCTURE:                                                         #
+#   title: 'Name'       # Display title at top of inventory (required)   #
+#   rows: 6             # Shop-level rows (optional, applies to all pages)#
+#   pages:              # Container for all pages                        #
+#     Page0:                                                              #
+#       rows: 6         # Page-level rows (optional, overrides shop-level)#
+#       items:          # Container for items on this page               #
+#                                                                         #
+# ROWS CONFIG (1-6):                                                      #
+#   - Set at SHOP level to apply same size to ALL pages (shorthand)      #
+#   - Set at PAGE level to override for specific pages                   #
+#   - If neither set, rows auto-calculate based on item count            #
+#                                                                         #
+# SLOT LIMITS BY ROWS:                                                    #
+#   1 row = slots 0-8    |  4 rows = slots 0-35                          #
+#   2 rows = slots 0-17  |  5 rows = slots 0-44                          #
+#   3 rows = slots 0-26  |  6 rows = slots 0-53                          #
+#                                                                         #
 # ITEM STRUCTURE:                                                         #
 #   'slot':                                                               #
 #     type: SHOP        # SHOP, COMMAND, DUMMY, or BLANK                  #
@@ -14,17 +32,24 @@
 #     lore:             # Custom lore lines (optional)                   #
 #       - '&7Description'                                                 #
 #                                                                         #
-# SLOTS: Use 10-16 (row 1), 19-25 (row 2), 28-34 (row 3) for 7 items/row #
+# SLOTS: Use 10-16 (row 2), 19-25 (row 3), 28-34 (row 4) for 7 items/row #
 ###########################################################################
 
 # Shop title - displayed at top of inventory
 title: '&8&lBlocks'
+
+# Shop-level rows (optional) - applies to ALL pages as default
+# Uncomment to set a default for all pages, or set rows per-page below
+# rows: 6
 
 pages:
   # =============================================
   # PAGE 0 - Wood Logs, Planks, Stone Variants
   # =============================================
   Page0:
+    # Page-level rows (1-6) - overrides shop-level if set
+    # Omit to use shop-level rows, or auto-calculate if neither is set
+    rows: 6
     items:
       # --- Row 1: Wood Logs ---
       '10':
@@ -136,11 +161,38 @@ pages:
         id: CHISELED_STONE_BRICKS
         buy-price: 15.0
         sell-price: 3.0
+      
+      # --- Navigation Items (Bottom Row, Center) ---
+      '48':
+        type: PAGE_LEFT
+        id: ARROW
+        name: '&7Previous Page'
+        lore:
+          - '&eClick to go back'
+          - '&8[Editor: Shift+click to navigate]'
+      '49':
+        type: PAGE_STATUS
+        id: NETHER_STAR
+        name: '&fPage %page% of %maxpage%'
+      '50':
+        type: PAGE_RIGHT
+        id: ARROW
+        name: '&7Next Page'
+        lore:
+          - '&eClick to continue'
+          - '&8[Editor: Shift+click to navigate]'
+      '53':
+        type: BACK
+        id: RED_STAINED_GLASS_PANE
+        name: '&c&lBack to Menu'
+        lore:
+          - '&7Click to return to menu'
 
   # =============================================
   # PAGE 1 - Deepslate, Earth, Terracotta
   # =============================================
   Page1:
+    rows: 6
     items:
       # --- Row 1: Deepslate Variants ---
       '10':
@@ -252,11 +304,38 @@ pages:
         id: WHITE_GLAZED_TERRACOTTA
         buy-price: 20.0
         sell-price: 5.0
+      
+      # --- Navigation Items (Bottom Row, Center) ---
+      '48':
+        type: PAGE_LEFT
+        id: ARROW
+        name: '&7Previous Page'
+        lore:
+          - '&eClick to go back'
+          - '&8[Editor: Shift+click to navigate]'
+      '49':
+        type: PAGE_STATUS
+        id: NETHER_STAR
+        name: '&fPage %page% of %maxpage%'
+      '50':
+        type: PAGE_RIGHT
+        id: ARROW
+        name: '&7Next Page'
+        lore:
+          - '&eClick to continue'
+          - '&8[Editor: Shift+click to navigate]'
+      '53':
+        type: BACK
+        id: RED_STAINED_GLASS_PANE
+        name: '&c&lBack to Menu'
+        lore:
+          - '&7Click to return to menu'
 
   # =============================================
   # PAGE 2 - Glass, Nether, Special Blocks
   # =============================================
   Page2:
+    rows: 6
     items:
       # --- Row 1: Glass and Light Blocks ---
       '10':
@@ -368,11 +447,38 @@ pages:
         id: PRISMARINE
         buy-price: 15.0
         sell-price: 3.0
+      
+      # --- Navigation Items (Bottom Row, Center) ---
+      '48':
+        type: PAGE_LEFT
+        id: ARROW
+        name: '&7Previous Page'
+        lore:
+          - '&eClick to go back'
+          - '&8[Editor: Shift+click to navigate]'
+      '49':
+        type: PAGE_STATUS
+        id: NETHER_STAR
+        name: '&fPage %page% of %maxpage%'
+      '50':
+        type: PAGE_RIGHT
+        id: ARROW
+        name: '&7Next Page'
+        lore:
+          - '&eClick to continue'
+          - '&8[Editor: Shift+click to navigate]'
+      '53':
+        type: BACK
+        id: RED_STAINED_GLASS_PANE
+        name: '&c&lBack to Menu'
+        lore:
+          - '&7Click to return to menu'
 
   # =============================================
   # PAGE 3 - Quartz, Copper, Misc
   # =============================================
   Page3:
+    rows: 6
     items:
       # --- Row 1: Quartz and Prismarine ---
       '10':
@@ -484,3 +590,29 @@ pages:
         id: SNOW_BLOCK
         buy-price: 10.0
         sell-price: 2.0
+      
+      # --- Navigation Items (Bottom Row, Center) ---
+      '48':
+        type: PAGE_LEFT
+        id: ARROW
+        name: '&7Previous Page'
+        lore:
+          - '&eClick to go back'
+          - '&8[Editor: Shift+click to navigate]'
+      '49':
+        type: PAGE_STATUS
+        id: NETHER_STAR
+        name: '&fPage %page% of %maxpage%'
+      '50':
+        type: PAGE_RIGHT
+        id: ARROW
+        name: '&7Next Page'
+        lore:
+          - '&eClick to continue'
+          - '&8[Editor: Shift+click to navigate]'
+      '53':
+        type: BACK
+        id: RED_STAINED_GLASS_PANE
+        name: '&c&lBack to Menu'
+        lore:
+          - '&7Click to return to menu'

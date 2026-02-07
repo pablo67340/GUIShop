@@ -15,4 +15,12 @@ public class ShopPage {
     @Setter
     @Getter
     int highestSlot = 0;
+    
+    /**
+     * Configured rows for this specific page (1-6).
+     * If 0, uses shop-level rows or auto-calculates.
+     */
+    @Setter
+    @Getter
+    int configuredRows = 0;
 }

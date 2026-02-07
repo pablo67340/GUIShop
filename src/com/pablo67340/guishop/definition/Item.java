@@ -747,7 +747,8 @@ public final class Item implements ConfigurationSerializable {
 
             List<String> itemLore = new ArrayList<>();
 
-            if (!isMenu) {
+            // Only add buy/sell lore for actual shop items, not navigation types
+            if (!isMenu && !getItemType().isNavigationType()) {
                 itemLore.add(getBuyLore(1));
                 itemLore.add(getSellLore(1));
             }

@@ -3,6 +3,11 @@
 #                                                                         #
 # Mob spawners to build your grinder                                      #
 #                                                                         #
+# ROWS CONFIG (1-6):                                                      #
+#   - Set at SHOP level (below) to apply same size to ALL pages          #
+#   - Set at PAGE level to override for specific pages                   #
+#   - If neither set, rows auto-calculate based on item count            #
+#                                                                         #
 # SPAWNER FORMAT:                                                         #
 #   'slot':                                                               #
 #     type: SHOP                                                          #
@@ -14,14 +19,18 @@
 #     lore:                                                               #
 #       - '&7Spawns zombies'                                              #
 #                                                                         #
-# SLOTS: Use 11-15 (row 1) for 5 centered items                          #
+# SLOTS: Use 11-15 (row 2) for 5 centered items                          #
 ###########################################################################
 
 # Shop title - displayed at top of inventory
 title: '&8&lSpawners'
 
+# Shop-level rows - applies to ALL pages (can be overridden per-page)
+rows: 6
+
 pages:
   Page0:
+    # rows: 6  # Uncomment to override shop-level rows for this page only
     items:
       # --- Centered Spawners (5 items in slots 11-15) ---
       '11':
@@ -74,3 +83,17 @@ pages:
         lore:
           - '&7Spawns iron golems'
           - '&7Massive iron production!'
+      
+      # --- Navigation Items (Bottom Row) ---
+      '45':
+        type: PLAYER_BALANCE
+        id: PLAYER_HEAD
+        name: '&a%player%''s Balance'
+        lore:
+          - '&7Balance: &a%balance%'
+      '53':
+        type: BACK
+        id: RED_STAINED_GLASS_PANE
+        name: '&c&lBack to Menu'
+        lore:
+          - '&7Click to return to menu'

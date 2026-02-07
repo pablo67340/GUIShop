@@ -39,6 +39,11 @@ public final class Menu {
     private MenuItem menuItem;
 
     private final Player player;
+    
+    /**
+     * List of out-of-bounds item warnings to display when menu opens.
+     */
+    private final java.util.List<String> outOfBoundsWarnings = new java.util.ArrayList<>();
 
     /**
      * A {@link Map} that will store our {@link Shop}s when the server first
@@ -106,6 +111,18 @@ public final class Menu {
             createFallbackMenu("Missing 'pages' section in menu.yml");
             return;
         }
+        
+        // Read menu-level rows (1-6, default 0 = auto-calculate)
+        int menuConfiguredRows = menuSection.getInt("rows", 0);
+        if (menuConfiguredRows > 0) {
+            if (menuConfiguredRows < 1 || menuConfiguredRows > 6) {
+                logMenuError("Menu has invalid 'rows: " + menuConfiguredRows + "'. Must be 1-6. Using auto-calculation.");
+                menuConfiguredRows = 0;
+            } else {
+                menuItem.setConfiguredRows(menuConfiguredRows);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("Menu configured with " + menuConfiguredRows + " rows");
+            }
+        }
 
         GUIShop.getINSTANCE().getLogUtil().debugLog("Loading items for Menu");
         int pageIndex = 0;
@@ -113,6 +130,23 @@ public final class Menu {
 
         for (String pageKey : pagesConfig.getKeys(false)) {
             MenuPage page = new MenuPage();
+            
+            // Read per-page rows (overrides menu-level rows)
+            int pageRows = pagesConfig.getInt(pageKey + ".rows", 0);
+            if (pageRows > 0) {
+                if (pageRows < 1 || pageRows > 6) {
+                    logMenuError("Menu > " + pageKey + " has invalid 'rows: " + pageRows + "'. Must be 1-6.");
+                    pageRows = 0;
+                } else {
+                    page.setConfiguredRows(pageRows);
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("Menu > " + pageKey + " configured with " + pageRows + " rows");
+                }
+            }
+            
+            // Determine effective rows for this page (page-level > menu-level > default 6)
+            int effectiveRows = page.getConfiguredRows() > 0 ? page.getConfiguredRows() 
+                : (menuItem.getConfiguredRows() > 0 ? menuItem.getConfiguredRows() : 6);
+            
             ConfigurationSection itemsSection = pagesConfig.getConfigurationSection(pageKey + ".items");
 
             if (itemsSection == null) {
@@ -164,6 +198,16 @@ public final class Menu {
                 if (item == null) {
                     logMenuError("Menu > " + pageKey + " > Slot '" + slotKey + "' returned null item. Check the item configuration.");
                     continue;
+                }
+                
+                // Validate slot is within configured row bounds
+                int maxSlot = effectiveRows * 9 - 1;
+                if (slot > maxSlot) {
+                    String warning = pageKey + " > Slot " + slot + " (" + item.getMaterial() + ") is out of bounds! Max slot for " + 
+                        effectiveRows + " rows is " + maxSlot + ".";
+                    logMenuError("Menu > " + warning);
+                    outOfBoundsWarnings.add(warning);
+                    continue; // Skip this item - don't add to menu
                 }
 
                 page.getItems().put(Integer.toString(item.getSlot()), item);
@@ -235,21 +279,30 @@ public final class Menu {
 
     private void loadMenu() {
         if (this.GUI == null) {
-            // Calculate dynamic row count based on HIGHEST SLOT NUMBER used
-            // This ensures navigation items at high slots (like 45-53) are visible
-            int highestSlot = 0;
-            for (MenuPage page : menuItem.getPages().values()) {
-                for (Item item : page.getItems().values()) {
-                    if (item.getItemType() != ItemType.BLANK && item.getSlot() > highestSlot) {
-                        highestSlot = item.getSlot();
+            int initialRows;
+            
+            // Use configured rows if specified, otherwise auto-calculate
+            if (menuItem.getConfiguredRows() > 0) {
+                initialRows = menuItem.getConfiguredRows();
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADMENU: Using configured rows: " + initialRows);
+            } else {
+                // Calculate dynamic row count based on HIGHEST SLOT NUMBER used
+                // This ensures navigation items at high slots (like 45-53) are visible
+                int highestSlot = 0;
+                for (MenuPage page : menuItem.getPages().values()) {
+                    for (Item item : page.getItems().values()) {
+                        if (item.getItemType() != ItemType.BLANK && item.getSlot() > highestSlot) {
+                            highestSlot = item.getSlot();
+                        }
                     }
                 }
+                
+                // Calculate rows needed to fit the highest slot (add 1 because slots are 0-indexed)
+                // Minimum 4 rows, maximum 6 rows
+                int rowsNeeded = (int) Math.ceil((highestSlot + 1) / 9.0);
+                initialRows = Math.min(6, Math.max(4, rowsNeeded));
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOADMENU: Auto-calculated rows: " + initialRows);
             }
-            
-            // Calculate rows needed to fit the highest slot (add 1 because slots are 0-indexed)
-            // Minimum 4 rows, maximum 6 rows
-            int rowsNeeded = (int) Math.ceil((highestSlot + 1) / 9.0);
-            int initialRows = Math.min(6, Math.max(4, rowsNeeded));
 
             String title;
             if (hasMultiplePages()) {
@@ -273,7 +326,10 @@ public final class Menu {
                 // Add a new page
                 GUI.addPage();
 
-                int rows = initialRows;
+                // Use page-level rows if configured, otherwise menu-level, otherwise auto-calculated
+                MenuPage menuPage = entry.getValue();
+                int rows = menuPage.getConfiguredRows() > 0 ? menuPage.getConfiguredRows() 
+                    : (menuItem.getConfiguredRows() > 0 ? menuItem.getConfiguredRows() : initialRows);
                 GUI.setPageRows(pageIndex, rows);
 
                 // Add items to the page
@@ -703,6 +759,16 @@ public final class Menu {
         
         GUI.setCloseHandler(this::onClose);
         GUI.show(player);
+        
+        // Display out-of-bounds warnings to admins
+        if (!outOfBoundsWarnings.isEmpty() && player.hasPermission("guishop.admin")) {
+            player.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "[GUIShop] " + ChatColor.YELLOW + 
+                outOfBoundsWarnings.size() + " item(s) out of bounds in menu.yml:");
+            for (String warning : outOfBoundsWarnings) {
+                player.sendMessage(ChatColor.RED + "  - " + warning);
+            }
+            player.sendMessage(ChatColor.GRAY + "These items are not displayed. Increase 'rows' or reduce slot numbers.");
+        }
     }
 
     /**

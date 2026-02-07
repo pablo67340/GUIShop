@@ -8,8 +8,12 @@ The menu is the first screen players see when opening the shop. It contains navi
 
 ```yaml
 Menu:
+  # Menu-level rows (optional) - applies to ALL pages as default
+  rows: 6
   pages:
     Page0:
+      # Page-level rows (optional) - overrides menu-level for this page
+      # rows: 4
       items:
         '0':
           id: GRASS_BLOCK
@@ -22,6 +26,40 @@ Menu:
           name: '&bTools Shop'
           target-shop: 'Tools'
 ```
+
+## Menu Properties
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `rows` | No* | Menu-level rows (1-6). Applies to all pages |
+| `pages` | Yes | Map of pages containing items |
+
+## Page Properties
+
+| Property | Required | Description |
+|----------|----------|-------------|
+| `rows` | No* | Page-level rows (1-6). Overrides menu-level |
+| `items` | Yes | Map of slot numbers to item configurations |
+
+**\*Rows Configuration:**
+- Set `rows` at **menu level** as a shorthand to apply the same size to all pages
+- Set `rows` at **page level** to override for specific pages
+- If neither is set, rows auto-calculate based on item count (minimum 4, maximum 6)
+
+## Inventory Rows
+
+The `rows` setting determines the inventory size:
+
+| Rows | Max Slot | Total Slots |
+|------|----------|-------------|
+| 1 | 8 | 9 |
+| 2 | 17 | 18 |
+| 3 | 26 | 27 |
+| 4 | 35 | 36 |
+| 5 | 44 | 45 |
+| 6 | 53 | 54 |
+
+Items with slots exceeding the row limit will not be displayed. Admins will see in-game warnings.
 
 ## Item Properties
 
@@ -76,6 +114,7 @@ Create multiple pages by adding `Page1`, `Page2`, etc:
 
 ```yaml
 Menu:
+  rows: 6  # Default for all pages
   pages:
     Page0:
       items:
@@ -84,6 +123,7 @@ Menu:
           name: '&bPage 1 Shop'
           target-shop: 'Shop1'
     Page1:
+      rows: 4  # This page has fewer rows
       items:
         '13':
           id: EMERALD
@@ -132,18 +172,21 @@ Navigation buttons are automatically added when multiple pages exist.
 Menu slots are numbered 0-53 for a 6-row inventory:
 
 ```
- 0  1  2  3  4  5  6  7  8
- 9 10 11 12 13 14 15 16 17
-18 19 20 21 22 23 24 25 26
-27 28 29 30 31 32 33 34 35
-36 37 38 39 40 41 42 43 44
-45 46 47 48 49 50 51 52 53
+Row 0:  0  1  2  3  4  5  6  7  8
+Row 1:  9 10 11 12 13 14 15 16 17
+Row 2: 18 19 20 21 22 23 24 25 26
+Row 3: 27 28 29 30 31 32 33 34 35
+Row 4: 36 37 38 39 40 41 42 43 44
+Row 5: 45 46 47 48 49 50 51 52 53  (Navigation)
 ```
+
+**Note:** If you set `rows: 4`, only slots 0-35 are available. Items in higher slots will be ignored.
 
 ## Complete Example
 
 ```yaml
 Menu:
+  rows: 6  # 6-row inventory for all pages
   pages:
     Page0:
       items:

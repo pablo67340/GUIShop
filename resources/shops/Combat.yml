@@ -3,19 +3,28 @@
 #                                                                         #
 # Weapons, armor, and combat gear - some with enchantments!              #
 #                                                                         #
+# ROWS CONFIG (1-6):                                                      #
+#   - Set at SHOP level (below) to apply same size to ALL pages          #
+#   - Set at PAGE level to override for specific pages                   #
+#   - If neither set, rows auto-calculate based on item count            #
+#                                                                         #
 # ENCHANTMENT FORMAT:                                                     #
 #   enchantments: 'SHARPNESS:5 UNBREAKING:3 FIRE_ASPECT:2'               #
 #   Space-separated ENCHANT:LEVEL pairs                                  #
 #   See Dictionary/enchantment-names.txt for valid names                 #
 #                                                                         #
-# SLOTS: Use 10-16 (row 1), 19-25 (row 2), 28-34 (row 3) for 7 items/row #
+# SLOTS: Use 10-16 (row 2), 19-25 (row 3), 28-34 (row 4) for 7 items/row #
 ###########################################################################
 
 # Shop title - displayed at top of inventory
 title: '&8&lCombat'
 
+# Shop-level rows - applies to ALL pages (can be overridden per-page)
+rows: 6
+
 pages:
   Page0:
+    # rows: 6  # Uncomment to override shop-level rows for this page only
     items:
       # --- Row 1: Swords and Ranged Weapons ---
       '10':
@@ -103,3 +112,17 @@ pages:
         id: END_CRYSTAL
         buy-price: 150.0
         sell-price: 30.0
+      
+      # --- Navigation Items (Bottom Row) ---
+      '45':
+        type: PLAYER_BALANCE
+        id: PLAYER_HEAD
+        name: '&a%player%''s Balance'
+        lore:
+          - '&7Balance: &a%balance%'
+      '53':
+        type: BACK
+        id: RED_STAINED_GLASS_PANE
+        name: '&c&lBack to Menu'
+        lore:
+          - '&7Click to return to menu'

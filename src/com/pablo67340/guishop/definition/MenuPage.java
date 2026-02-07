@@ -18,4 +18,12 @@ public class MenuPage {
     @Setter
     @Getter
     int highestSlot = 0;
+    
+    /**
+     * Configured rows for this specific page (1-6).
+     * If 0, uses menu-level rows or auto-calculates.
+     */
+    @Setter
+    @Getter
+    int configuredRows = 0;
 }

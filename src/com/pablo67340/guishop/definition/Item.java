@@ -866,59 +866,7 @@ public final class Item implements ConfigurationSerializable {
                     }
 
                     itemStack.setItemMeta(itemMeta);
-                    
-                    // Store all data in PDC
-                    if (hasBuyPrice()) {
-                        PDCUtil.setDouble(itemStack, PDCUtil.KEY_BUY_PRICE, getBuyPriceAsDecimal().doubleValue());
-                    }
-                    if (hasSellPrice()) {
-                        PDCUtil.setDouble(itemStack, PDCUtil.KEY_SELL_PRICE, getSellPriceAsDecimal().doubleValue());
-                    }
-                    if (hasBuyName()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_BUY_NAME, getBuyName());
-                    }
-                    if (hasShopName()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_SHOP_NAME, getShopName());
-                    }
-                    if (hasName()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_NAME, getName());
-                    }
-                    if (hasMobType()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_MOB_TYPE, getMobType());
-                    }
-                    if (hasEnchantments()) {
-                        StringBuilder itemEnchantments = new StringBuilder();
-                        for (String str : getEnchantments()) {
-                            itemEnchantments.append(str).append(",");
-                        }
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_ENCHANTMENTS, itemEnchantments.toString());
-                    }
-                    if (hasShopLore()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_SHOP_LORE_LINES, String.join("::", getShopLore()));
-                    }
-                    if (hasBuyLore()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_BUY_LORE_LINES, String.join("::", getBuyLore()));
-                    }
-                    if (hasLore()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_LORE_LINES, String.join("::", getLore()));
-                    }
-                    if (hasCommands()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_COMMANDS, String.join("::", getCommands()));
-                    }
-                    if (hasSkullUUID()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_SKULL_UUID, getSkullUUID());
-                    }
-                    if (getQuantityValue() != null) {
-                        PDCUtil.setInteger(itemStack, PDCUtil.KEY_QUANTITY, getQuantityValue().getQuantity());
-                    }
-                    if (hasPotion()) {
-                        String[] values = {getPotionInfo().getType(), getPotionInfo().getSplash().toString(), getPotionInfo().getExtended().toString(), getPotionInfo().getUpgraded().toString()};
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_POTION, String.join("::", values));
-                    }
-                    if (hasPermission()) {
-                        PDCUtil.setString(itemStack, PDCUtil.KEY_PERMISSION, getPermission().getPermission());
-                    }
-                    PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, getItemType().toString());
+                    // PDC operations moved to after final setItemMeta to prevent overwrites
                 }
             }
 

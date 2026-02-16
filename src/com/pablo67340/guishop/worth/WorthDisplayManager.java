@@ -377,11 +377,21 @@ public class WorthDisplayManager {
         // Check if player has an inventory open
         if (player.getOpenInventory() != null) {
             // Skip all GUIShop inventories (Menu, Shop, etc.) - no worth display in shop GUIs
-            if (player.getOpenInventory().getTopInventory().getHolder() instanceof GUIHolder) {
-                if (WorthConfig.isDebug()) {
-                    plugin.getLogUtil().debugLog("BLACKLIST CHECK: Skipping GUIShop inventory");
+            // Note: On Folia, getHolder() can throw/log errors if called from async Netty thread
+            // because it tries to access world data. Only check holder on main thread.
+            if (org.bukkit.Bukkit.isPrimaryThread()) {
+                if (player.getOpenInventory().getTopInventory().getHolder() instanceof GUIHolder) {
+                    if (WorthConfig.isDebug()) {
+                        plugin.getLogUtil().debugLog("BLACKLIST CHECK: Skipping GUIShop inventory");
+                    }
+                    return true;
                 }
-                return true;
+            } else {
+                // On async thread (Netty IO), we can't safely check holder
+                // Rely on title-based blacklisting instead
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("BLACKLIST CHECK: Skipped holder check (async thread)");
+                }
             }
             
             // Note: We allow worth lore in creative inventory - it displays correctly

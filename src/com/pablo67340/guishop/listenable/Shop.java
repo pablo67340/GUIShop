@@ -497,6 +497,9 @@ public class Shop {
         // Mark as GUI element to prevent worth display
         PDCUtil.setString(itemStack, PDCUtil.KEY_GUI_ELEMENT, "true");
         
+        // Store the item type in PDC so ItemEditorGui can read it correctly
+        PDCUtil.setString(itemStack, PDCUtil.KEY_ITEM_TYPE, type.name());
+        
         return itemStack;
     }
     

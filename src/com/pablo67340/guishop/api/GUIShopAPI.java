@@ -2,6 +2,7 @@ package com.pablo67340.guishop.api;
 
 import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.definition.Item;
+import com.pablo67340.guishop.definition.ItemSellReturn;
 import com.pablo67340.guishop.definition.SellType;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.economy.EconomyManager;
@@ -9,7 +10,10 @@ import com.pablo67340.guishop.statistics.PlayerStats;
 import com.pablo67340.guishop.statistics.StatisticsManager;
 import com.pablo67340.guishop.worth.WorthDisplayManager;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.block.Block;
+import org.bukkit.block.Container;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.math.BigDecimal;
@@ -745,6 +749,156 @@ public abstract class GUIShopAPI {
             return true; // Default enabled
         }
         return manager.togglePayNotifications(uuid);
+    }
+    
+    // ==================== CONTAINER SELLING API ====================
+    
+    /**
+     * Sells all items in a container (chest, barrel, shulker box, etc.) for a player.
+     * <br><br>
+     * This method will:
+     * <ul>
+     *   <li>Iterate through all items in the container</li>
+     *   <li>Sell items that can be sold (have a sell price and player has permission)</li>
+     *   <li>Remove sold items from the container</li>
+     *   <li>Leave unsellable items in the container</li>
+     *   <li>Give the player the total money from sold items</li>
+     *   <li>Send appropriate messages to the player</li>
+     * </ul>
+     * <br>
+     * This follows the same behavior as the regular /sell GUI, not the alt-sell system.
+     *
+     * @param player the player who is selling the items
+     * @param block the block that contains the inventory (must be a Container like chest, barrel, etc.)
+     * @return the result of the sell operation, or null if the block is not a valid container
+     */
+    public static ItemSellReturn sellChest(Player player, Block block) {
+        return sellChest(player, block, true);
+    }
+    
+    /**
+     * Sells all items in a container (chest, barrel, shulker box, etc.) for a player.
+     * <br><br>
+     * This method will:
+     * <ul>
+     *   <li>Iterate through all items in the container</li>
+     *   <li>Sell items that can be sold (have a sell price and player has permission)</li>
+     *   <li>Remove sold items from the container</li>
+     *   <li>Leave unsellable items in the container</li>
+     *   <li>Give the player the total money from sold items</li>
+     *   <li>Optionally send messages to the player</li>
+     * </ul>
+     * <br>
+     * This follows the same behavior as the regular /sell GUI, not the alt-sell system.
+     *
+     * @param player the player who is selling the items
+     * @param block the block that contains the inventory (must be a Container like chest, barrel, etc.)
+     * @param sendMessages whether to send sell/cant-sell messages to the player
+     * @return the result of the sell operation, or null if the block is not a valid container
+     */
+    public static ItemSellReturn sellChest(Player player, Block block, boolean sendMessages) {
+        if (block == null) {
+            return null;
+        }
+        
+        // Check if the block is a container
+        if (!(block.getState() instanceof Container)) {
+            if (sendMessages) {
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-a-container");
+            }
+            return null;
+        }
+        
+        Container container = (Container) block.getState();
+        Inventory inventory = container.getInventory();
+        
+        return sellInventory(player, inventory, sendMessages);
+    }
+    
+    /**
+     * Sells all items in an inventory for a player.
+     * <br><br>
+     * This method will:
+     * <ul>
+     *   <li>Iterate through all items in the inventory</li>
+     *   <li>Sell items that can be sold (have a sell price and player has permission)</li>
+     *   <li>Remove sold items from the inventory</li>
+     *   <li>Leave unsellable items in the inventory</li>
+     *   <li>Give the player the total money from sold items</li>
+     *   <li>Send appropriate messages to the player</li>
+     * </ul>
+     * <br>
+     * This follows the same behavior as the regular /sell GUI, not the alt-sell system.
+     *
+     * @param player the player who is selling the items
+     * @param inventory the inventory to sell items from
+     * @return the result of the sell operation
+     */
+    public static ItemSellReturn sellInventory(Player player, Inventory inventory) {
+        return sellInventory(player, inventory, true);
+    }
+    
+    /**
+     * Sells all items in an inventory for a player.
+     * <br><br>
+     * This method will:
+     * <ul>
+     *   <li>Iterate through all items in the inventory</li>
+     *   <li>Sell items that can be sold (have a sell price and player has permission)</li>
+     *   <li>Remove sold items from the inventory</li>
+     *   <li>Leave unsellable items in the inventory</li>
+     *   <li>Give the player the total money from sold items</li>
+     *   <li>Optionally send messages to the player</li>
+     * </ul>
+     * <br>
+     * This follows the same behavior as the regular /sell GUI, not the alt-sell system.
+     *
+     * @param player the player who is selling the items
+     * @param inventory the inventory to sell items from
+     * @param sendMessages whether to send sell/cant-sell messages to the player
+     * @return the result of the sell operation
+     */
+    public static ItemSellReturn sellInventory(Player player, Inventory inventory, boolean sendMessages) {
+        if (inventory == null) {
+            return new ItemSellReturn(new java.util.ArrayList<>(), new java.util.ArrayList<>(), false, 0, BigDecimal.ZERO);
+        }
+        
+        // Get all items from the inventory
+        ItemStack[] contents = inventory.getContents();
+        
+        // Determine the sell type based on inventory size
+        SellType sellType;
+        int size = inventory.getSize();
+        if (size <= 27) {
+            sellType = SellType.CHEST;
+        } else if (size <= 54) {
+            sellType = SellType.DOUBLE_CHEST;
+        } else {
+            sellType = SellType.UNKNOWN;
+        }
+        
+        // Use the existing sell logic
+        ItemSellReturn result = Sell.sellItems(player, contents, sellType);
+        
+        // Clear the inventory
+        inventory.clear();
+        
+        // Put back unsold items
+        for (ItemStack unsold : result.getNotSold()) {
+            if (unsold != null && !unsold.getType().isAir()) {
+                inventory.addItem(unsold);
+            }
+        }
+        
+        // Send messages if enabled
+        if (sendMessages) {
+            if (result.getCouldntSell() && result.getColdntSellCount() > 0) {
+                GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "cant-sell", result.getColdntSellCount());
+            }
+            // Note: The sell message is already sent by Sell.roundAndGiveMoney()
+        }
+        
+        return result;
     }
 
 }

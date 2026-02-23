@@ -47,6 +47,9 @@ messages:
   # The message when a player can't sell their things
   # Placeholders: %count%
   cant-sell: '&c%count% item(s) of your items failed to sell &fand have been returned to your inventory.'
+  
+  # Shown when trying to sell from a block that is not a container
+  not-a-container: '&cThat block is not a valid container (chest, barrel, etc.).'
 
   # The message when a player can't buy an item
   cant-buy: '&cSorry, but you are not able to buy that item.'

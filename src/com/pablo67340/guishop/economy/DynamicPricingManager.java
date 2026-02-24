@@ -36,7 +36,10 @@ public class DynamicPricingManager implements DynamicPriceProvider {
     private final com.pablo67340.guishop.util.SchedulerUtil.TaskHolder normalizationTask = 
         new com.pablo67340.guishop.util.SchedulerUtil.TaskHolder();
     
-    // Configuration
+    // Per-item override settings
+    private final ConcurrentHashMap<String, ItemPriceOverride> itemOverrides = new ConcurrentHashMap<>();
+    
+    // Configuration (global defaults)
     @Getter private double priceChangePerTransaction = 0.01; // 1% change per item
     @Getter private double maxPriceMultiplier = 2.0; // Max 200% of base price
     @Getter private double minPriceMultiplier = 0.5; // Min 50% of base price
@@ -44,6 +47,21 @@ public class DynamicPricingManager implements DynamicPriceProvider {
     @Getter private int normalizationInterval = 300; // Seconds between normalization ticks
     
     private boolean initialized = false;
+    
+    /**
+     * Holds per-item override settings for dynamic pricing.
+     */
+    private static class ItemPriceOverride {
+        final double priceChangePerItem;
+        final double maxMultiplier;
+        final double minMultiplier;
+        
+        ItemPriceOverride(double priceChangePerItem, double maxMultiplier, double minMultiplier) {
+            this.priceChangePerItem = priceChangePerItem;
+            this.maxMultiplier = maxMultiplier;
+            this.minMultiplier = minMultiplier;
+        }
+    }
     
     public DynamicPricingManager(GUIShop plugin) {
         this.plugin = plugin;
@@ -112,11 +130,33 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         org.bukkit.configuration.file.FileConfiguration config = 
             org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(configFile);
         
+        // Load global defaults
         priceChangePerTransaction = config.getDouble("price-change-per-item", 0.01);
         maxPriceMultiplier = config.getDouble("max-price-multiplier", 2.0);
         minPriceMultiplier = config.getDouble("min-price-multiplier", 0.5);
         normalizationRate = config.getDouble("normalization-rate", 0.001);
         normalizationInterval = config.getInt("normalization-interval", 300);
+        
+        // Load per-item overrides
+        itemOverrides.clear();
+        org.bukkit.configuration.ConfigurationSection overridesSection = config.getConfigurationSection("item-overrides");
+        if (overridesSection != null) {
+            for (String itemKey : overridesSection.getKeys(false)) {
+                org.bukkit.configuration.ConfigurationSection itemSection = overridesSection.getConfigurationSection(itemKey);
+                if (itemSection != null) {
+                    // Use global defaults if not specified for this item
+                    double itemPriceChange = itemSection.getDouble("price-change-per-item", priceChangePerTransaction);
+                    double itemMaxMult = itemSection.getDouble("max-price-multiplier", maxPriceMultiplier);
+                    double itemMinMult = itemSection.getDouble("min-price-multiplier", minPriceMultiplier);
+                    
+                    // Store with uppercase key for consistent lookup
+                    itemOverrides.put(itemKey.toUpperCase(), new ItemPriceOverride(itemPriceChange, itemMaxMult, itemMinMult));
+                    plugin.getLogUtil().debugLog("Loaded item override for " + itemKey.toUpperCase() + 
+                        ": priceChange=" + itemPriceChange + ", maxMult=" + itemMaxMult + ", minMult=" + itemMinMult);
+                }
+            }
+            plugin.getLogUtil().log("Loaded " + itemOverrides.size() + " item-specific dynamic pricing overrides");
+        }
     }
     
     /**
@@ -193,21 +233,38 @@ public class DynamicPricingManager implements DynamicPriceProvider {
      * Calculate price multiplier based on stock level.
      * Positive stock = oversupply = lower buy price, higher sell price
      * Negative stock = undersupply = higher buy price, lower sell price
+     * 
+     * @param item the item key (material name)
+     * @param stockLevel current stock level
+     * @param isBuyPrice true for buy price calculation, false for sell price
      */
-    private double calculateMultiplier(int stockLevel, boolean isBuyPrice) {
+    private double calculateMultiplier(String item, int stockLevel, boolean isBuyPrice) {
+        // Get per-item settings or use global defaults
+        double priceChange = priceChangePerTransaction;
+        double maxMult = maxPriceMultiplier;
+        double minMult = minPriceMultiplier;
+        
+        ItemPriceOverride override = itemOverrides.get(item.toUpperCase());
+        if (override != null) {
+            priceChange = override.priceChangePerItem;
+            maxMult = override.maxMultiplier;
+            minMult = override.minMultiplier;
+            plugin.getLogUtil().debugLog("Using override for " + item + ": priceChange=" + priceChange);
+        }
+        
         // For buy prices, undersupply (negative stock) increases price
         // For sell prices, oversupply (positive stock) decreases price  
         double multiplier;
         if (isBuyPrice) {
             // Buying: negative stock = high demand = price goes UP
-            multiplier = 1.0 - (stockLevel * priceChangePerTransaction);
+            multiplier = 1.0 - (stockLevel * priceChange);
         } else {
             // Selling: positive stock = oversupply = price goes DOWN
-            multiplier = 1.0 - (stockLevel * priceChangePerTransaction);
+            multiplier = 1.0 - (stockLevel * priceChange);
         }
         
         // Clamp to min/max bounds
-        multiplier = Math.max(minPriceMultiplier, Math.min(maxPriceMultiplier, multiplier));
+        multiplier = Math.max(minMult, Math.min(maxMult, multiplier));
         
         return multiplier;
     }
@@ -219,13 +276,13 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         }
         
         int stockLevel = stockCache.getOrDefault(item, 0);
-        double multiplier = calculateMultiplier(stockLevel, true);
+        double multiplier = calculateMultiplier(item, stockLevel, true);
         
         BigDecimal adjustedPrice = staticBuyPrice.multiply(BigDecimal.valueOf(multiplier));
         BigDecimal totalPrice = adjustedPrice.multiply(BigDecimal.valueOf(quantity));
         
         plugin.getLogUtil().debugLog("Dynamic buy price for " + item + " (qty=" + quantity + 
-            ", stock=" + stockLevel + ", mult=" + String.format("%.2f", multiplier) + 
+            ", stock=" + stockLevel + ", mult=" + String.format("%.4f", multiplier) + 
             "): " + staticBuyPrice + " -> " + adjustedPrice + " (total: " + totalPrice + ")");
         
         return totalPrice.setScale(2, RoundingMode.HALF_UP);
@@ -238,13 +295,13 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         }
         
         int stockLevel = stockCache.getOrDefault(item, 0);
-        double multiplier = calculateMultiplier(stockLevel, false);
+        double multiplier = calculateMultiplier(item, stockLevel, false);
         
         BigDecimal adjustedPrice = staticSellPrice.multiply(BigDecimal.valueOf(multiplier));
         BigDecimal totalPrice = adjustedPrice.multiply(BigDecimal.valueOf(quantity));
         
         plugin.getLogUtil().debugLog("Dynamic sell price for " + item + " (qty=" + quantity + 
-            ", stock=" + stockLevel + ", mult=" + String.format("%.2f", multiplier) + 
+            ", stock=" + stockLevel + ", mult=" + String.format("%.4f", multiplier) + 
             "): " + staticSellPrice + " -> " + adjustedPrice + " (total: " + totalPrice + ")");
         
         return totalPrice.setScale(2, RoundingMode.HALF_UP);
@@ -325,14 +382,14 @@ public class DynamicPricingManager implements DynamicPriceProvider {
      * Get the current price multiplier for an item.
      */
     public double getBuyMultiplier(String item) {
-        return calculateMultiplier(stockCache.getOrDefault(item, 0), true);
+        return calculateMultiplier(item, stockCache.getOrDefault(item, 0), true);
     }
     
     /**
      * Get the current sell price multiplier for an item.
      */
     public double getSellMultiplier(String item) {
-        return calculateMultiplier(stockCache.getOrDefault(item, 0), false);
+        return calculateMultiplier(item, stockCache.getOrDefault(item, 0), false);
     }
     
     /**

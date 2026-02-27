@@ -13,7 +13,7 @@ The ultimate GUI-based shop plugin for Minecraft servers. Say goodbye to confusi
 
 - **Easy-to-Use GUI System** - Players browse shops through clean, organized inventory menus
 - **Multi-Page Shops** - Create shops with unlimited pages for large item catalogs
-- **Dynamic Pricing** - Optional supply/demand based pricing system
+- **Dynamic Pricing** - Optional supply/demand system with per-item overrides and linked pricing (DIAMOND_BLOCK affects DIAMOND prices)
 - **Worth Display System** - Shows item sell values directly in item lore (requires PacketEvents)
 - **Full GUI-Based Item Editor** - Edit prices, names, enchantments through intuitive GUIs
 - **Drag-and-Drop Shop Building** - Place and rearrange items by simply dragging them

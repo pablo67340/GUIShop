@@ -96,6 +96,94 @@ When dynamic pricing is enabled globally, all items use dynamic pricing by defau
 
 **Note:** You only need to add `dynamic: false` to items you want to exempt. Items without this key automatically use dynamic pricing when it's globally enabled.
 
+## Item-Specific Overrides
+
+You can configure different price volatility settings for specific items in `dynamicpricing.yml`:
+
+```yaml
+item-overrides:
+  DIAMOND:
+    price-change-per-item: 0.005  # More stable (0.5% per item)
+    max-price-multiplier: 1.5     # Max 150% of base
+    min-price-multiplier: 0.75    # Min 75% of base
+  
+  DIRT:
+    price-change-per-item: 0.02   # More volatile (2% per item)
+    max-price-multiplier: 3.0     # Max 300% of base
+    min-price-multiplier: 0.25    # Min 25% of base
+```
+
+| Override Key | Description |
+|--------------|-------------|
+| `price-change-per-item` | Price change per item for this specific item |
+| `max-price-multiplier` | Maximum price multiplier for this item |
+| `min-price-multiplier` | Minimum price multiplier for this item |
+
+## Linked Pricing (affects)
+
+One of the most powerful features is **linked pricing**, where buying or selling one item can affect the prices of related items. This creates realistic market relationships based on crafting recipes or resource chains.
+
+### How It Works
+
+When you buy or sell an item with linked pricing configured, the stock levels of related items are also adjusted based on the configured multiplier:
+
+- **Multiplier of 9.0**: Buying 1 DIAMOND_BLOCK affects DIAMOND prices as if 9 diamonds were bought
+- **Multiplier of 0.5**: The effect is halved
+- **Multiplier of 1.0**: 1:1 effect
+
+### Configuration Example
+
+```yaml
+item-overrides:
+  # Diamond blocks affect diamond prices (crafting relationship)
+  DIAMOND_BLOCK:
+    price-change-per-item: 0.05
+    affects:
+      DIAMOND: 9.0           # 1 block = 9 diamonds in crafting
+      DIAMOND_ORE: 1.0       # Also affects ore prices
+  
+  # Iron blocks affect iron-related items
+  IRON_BLOCK:
+    affects:
+      IRON_INGOT: 9.0        # 1 block = 9 ingots
+      RAW_IRON: 9.0          # Also affects raw iron
+  
+  # Food crafting relationships
+  BREAD:
+    affects:
+      WHEAT: 3.0             # 1 bread = 3 wheat in crafting
+  
+  # Complex recipes
+  CAKE:
+    affects:
+      WHEAT: 3.0
+      SUGAR: 2.0
+      EGG: 1.0
+      MILK_BUCKET: 3.0
+```
+
+### Example Scenario: Linked Diamond Economy
+
+With the configuration above:
+
+1. Player buys 10 DIAMOND_BLOCK
+2. DIAMOND_BLOCK stock decreases by 10 (price increases)
+3. DIAMOND stock also decreases by 90 (10 × 9.0 multiplier)
+4. DIAMOND_ORE stock decreases by 10 (10 × 1.0 multiplier)
+5. All three items become more expensive!
+
+This simulates real economic effects where buying processed materials also affects raw material prices.
+
+### Use Cases
+
+| Relationship Type | Example |
+|-------------------|---------|
+| **Crafting (compressed)** | DIAMOND_BLOCK → DIAMOND (×9) |
+| **Smelting** | IRON_INGOT → RAW_IRON (×1) |
+| **Brewing ingredients** | POTION → BLAZE_POWDER, NETHER_WART |
+| **Food recipes** | CAKE → WHEAT, SUGAR, EGG |
+| **Tool materials** | DIAMOND_PICKAXE → DIAMOND (×3), STICK (×2) |
+
 ## Data Storage
 
 Dynamic pricing data is stored in `plugins/GUIShop/Data/dynamic_pricing.db` (SQLite database).

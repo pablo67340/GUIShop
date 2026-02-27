@@ -55,11 +55,16 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         final double priceChangePerItem;
         final double maxMultiplier;
         final double minMultiplier;
+        // Linked items: when this item is bought/sold, these items are also affected
+        // Key = item name, Value = multiplier (e.g., DIAMOND_BLOCK affects DIAMOND with multiplier 9.0)
+        final java.util.Map<String, Double> affects;
         
-        ItemPriceOverride(double priceChangePerItem, double maxMultiplier, double minMultiplier) {
+        ItemPriceOverride(double priceChangePerItem, double maxMultiplier, double minMultiplier, 
+                          java.util.Map<String, Double> affects) {
             this.priceChangePerItem = priceChangePerItem;
             this.maxMultiplier = maxMultiplier;
             this.minMultiplier = minMultiplier;
+            this.affects = affects != null ? affects : new java.util.HashMap<>();
         }
     }
     
@@ -139,6 +144,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         
         // Load per-item overrides
         itemOverrides.clear();
+        int totalLinks = 0;
         org.bukkit.configuration.ConfigurationSection overridesSection = config.getConfigurationSection("item-overrides");
         if (overridesSection != null) {
             for (String itemKey : overridesSection.getKeys(false)) {
@@ -149,13 +155,28 @@ public class DynamicPricingManager implements DynamicPriceProvider {
                     double itemMaxMult = itemSection.getDouble("max-price-multiplier", maxPriceMultiplier);
                     double itemMinMult = itemSection.getDouble("min-price-multiplier", minPriceMultiplier);
                     
+                    // Load linked items (affects section)
+                    java.util.Map<String, Double> affects = new java.util.HashMap<>();
+                    org.bukkit.configuration.ConfigurationSection affectsSection = itemSection.getConfigurationSection("affects");
+                    if (affectsSection != null) {
+                        for (String affectedItem : affectsSection.getKeys(false)) {
+                            double multiplier = affectsSection.getDouble(affectedItem, 1.0);
+                            affects.put(affectedItem.toUpperCase(), multiplier);
+                            totalLinks++;
+                            plugin.getLogUtil().debugLog("  -> " + itemKey.toUpperCase() + " affects " + 
+                                affectedItem.toUpperCase() + " with multiplier " + multiplier);
+                        }
+                    }
+                    
                     // Store with uppercase key for consistent lookup
-                    itemOverrides.put(itemKey.toUpperCase(), new ItemPriceOverride(itemPriceChange, itemMaxMult, itemMinMult));
+                    itemOverrides.put(itemKey.toUpperCase(), new ItemPriceOverride(itemPriceChange, itemMaxMult, itemMinMult, affects));
                     plugin.getLogUtil().debugLog("Loaded item override for " + itemKey.toUpperCase() + 
-                        ": priceChange=" + itemPriceChange + ", maxMult=" + itemMaxMult + ", minMult=" + itemMinMult);
+                        ": priceChange=" + itemPriceChange + ", maxMult=" + itemMaxMult + ", minMult=" + itemMinMult +
+                        ", affects=" + affects.size() + " items");
                 }
             }
-            plugin.getLogUtil().log("Loaded " + itemOverrides.size() + " item-specific dynamic pricing overrides");
+            plugin.getLogUtil().log("Loaded " + itemOverrides.size() + " item-specific dynamic pricing overrides" +
+                (totalLinks > 0 ? " with " + totalLinks + " linked price relationships" : ""));
         }
     }
     
@@ -321,6 +342,9 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         
         plugin.getLogUtil().debugLog("Item bought: " + item + " x" + quantity + 
             " (stock: " + currentStock + " -> " + newStock + ")");
+        
+        // Apply linked price effects to related items
+        applyLinkedPriceEffects(item, quantity, true);
     }
     
     @Override
@@ -337,6 +361,50 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         
         plugin.getLogUtil().debugLog("Item sold: " + item + " x" + quantity + 
             " (stock: " + currentStock + " -> " + newStock + ")");
+        
+        // Apply linked price effects to related items
+        applyLinkedPriceEffects(item, quantity, false);
+    }
+    
+    /**
+     * Apply price effects to linked items when an item is bought or sold.
+     * For example, buying DIAMOND_BLOCK can affect DIAMOND prices.
+     * 
+     * @param item the item that was bought/sold
+     * @param quantity the quantity bought/sold
+     * @param isBuy true if bought, false if sold
+     */
+    private void applyLinkedPriceEffects(String item, int quantity, boolean isBuy) {
+        ItemPriceOverride override = itemOverrides.get(item.toUpperCase());
+        if (override == null || override.affects.isEmpty()) {
+            return;
+        }
+        
+        for (var entry : override.affects.entrySet()) {
+            String affectedItem = entry.getKey();
+            double multiplier = entry.getValue();
+            
+            // Calculate the effective quantity change for the affected item
+            int effectiveQuantity = (int) Math.round(quantity * multiplier);
+            if (effectiveQuantity == 0) continue;
+            
+            int currentStock = stockCache.getOrDefault(affectedItem, 0);
+            int newStock;
+            
+            if (isBuy) {
+                // Buying the source item decreases supply of affected item
+                newStock = currentStock - effectiveQuantity;
+            } else {
+                // Selling the source item increases supply of affected item
+                newStock = currentStock + effectiveQuantity;
+            }
+            
+            stockCache.put(affectedItem, newStock);
+            
+            plugin.getLogUtil().debugLog("Linked price effect: " + item + " " + (isBuy ? "buy" : "sell") + 
+                " affected " + affectedItem + " (multiplier=" + multiplier + 
+                ", effectiveQty=" + effectiveQuantity + ", stock: " + currentStock + " -> " + newStock + ")");
+        }
     }
     
     /**

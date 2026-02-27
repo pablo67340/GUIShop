@@ -402,6 +402,31 @@ normalization-rate: 0.001      # How fast prices return to normal
 normalization-interval: 300    # Seconds between normalization ticks
 </pre>
 
+<h3>Per-Item Overrides</h3>
+<p>Configure different volatility settings for specific items:</p>
+<pre>
+item-overrides:
+  DIAMOND:
+    price-change-per-item: 0.005  # More stable (0.5% per item)
+    max-price-multiplier: 1.5
+    min-price-multiplier: 0.75
+</pre>
+
+<h3>Linked Pricing</h3>
+<p>Make items affect other items' prices - perfect for crafting relationships:</p>
+<pre>
+item-overrides:
+  DIAMOND_BLOCK:
+    affects:
+      DIAMOND: 9.0           # 1 block = 9 diamonds in crafting
+      DIAMOND_ORE: 1.0       # Also affects ore prices
+  
+  BREAD:
+    affects:
+      WHEAT: 3.0             # 1 bread = 3 wheat in crafting
+</pre>
+<p>When a player buys 1 DIAMOND_BLOCK, DIAMOND prices change as if 9 diamonds were bought. This creates realistic economic relationships!</p>
+
 <h3>Per-Item Control</h3>
 <p>Exempt specific items from dynamic pricing:</p>
 <pre>

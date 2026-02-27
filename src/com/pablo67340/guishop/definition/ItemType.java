@@ -47,6 +47,18 @@ public enum ItemType {
     }
     
     /**
+     * Check if this type is a purchasable item that should show buy/sell lore.
+     * Only ITEM and COMMAND types are actual purchasable items.
+     * All other types (SHOP, SHOP_SHORTCUT, DUMMY, BLANK, navigation, etc.) are not purchasable.
+     */
+    public boolean isPurchasable() {
+        return switch (this) {
+            case ITEM, COMMAND -> true;
+            default -> false;
+        };
+    }
+    
+    /**
      * Check if this type is a shop/menu item type (not transaction-specific).
      */
     public boolean isShopMenuType() {

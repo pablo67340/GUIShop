@@ -96,13 +96,19 @@ This avoids needing to reload from disk and ensures instant updates.
 
 ## Item Type Rules
 
-| Type | Has Prices | Has Commands | Has Target Shop | Behavior |
-|------|------------|--------------|-----------------|----------|
-| DUMMY | No | No | No | Decoration only, no interaction |
-| SHOP | Yes | No | No | Can be bought/sold |
-| COMMAND | Maybe | Yes | No | Runs commands on purchase |
-| SHOP_SHORTCUT | No | No | Yes | Opens another shop |
+| Type | Purchasable | Has Prices | Has Commands | Has Target Shop | Behavior |
+|------|-------------|------------|--------------|-----------------|----------|
+| SHOP | Yes | Yes | No | No | Standard purchasable item (default) |
+| ITEM | Yes | Yes | No | No | Alias for SHOP |
+| COMMAND | Yes | Maybe | Yes | No | Runs commands on purchase |
+| SHOP_SHORTCUT | No | No | No | Yes | Opens another shop |
+| DUMMY | No | No | No | No | Decoration only |
+| BLANK | No | No | No | No | Empty slot |
 
 **Auto-conversion in ItemEditorGui.saveAndClose():**
 - If DUMMY but has prices → becomes SHOP
-- If SHOP but no prices/commands/target → becomes DUMMY
+- If SHOP/ITEM but no prices/commands/target → becomes DUMMY
+
+**isPurchasable() returns true for:** SHOP, ITEM, COMMAND
+- These types show buy/sell price lore
+- All other types do NOT show price lore

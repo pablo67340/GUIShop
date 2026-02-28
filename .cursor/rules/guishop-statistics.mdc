@@ -118,6 +118,10 @@ GUIShopAPI.getServerTopBoughtItems(limit) // Map<String, Long> material -> quant
 // Per-player Top Items
 GUIShopAPI.getPlayerTopSoldItems(player, limit)   // Map<String, Long> material -> quantity
 GUIShopAPI.getPlayerTopBoughtItems(player, limit) // Map<String, Long> material -> quantity
+
+// Selling API
+GUIShopAPI.sellChest(player, block)      // Sell all items in a chest block
+GUIShopAPI.sellInventory(player, inv)    // Sell all items in an Inventory
 ```
 
 ## PlayerStats Class

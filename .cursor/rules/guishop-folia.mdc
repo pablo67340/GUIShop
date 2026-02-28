@@ -78,6 +78,21 @@ SchedulerUtil.runTaskAsync(() -> {
 });
 ```
 
+### DO NOT call inventory.getHolder() on async threads
+```java
+// BAD - throws IllegalStateException on Folia
+SchedulerUtil.runTaskAsync(() -> {
+    InventoryHolder holder = inventory.getHolder();  // CRASHES on Folia
+});
+
+// GOOD - check thread first
+if (Bukkit.isPrimaryThread()) {
+    InventoryHolder holder = inventory.getHolder();
+}
+```
+
+This is a Folia-specific restriction where world/entity access must happen on the owning region's thread.
+
 ## File References
 
 | File | Scheduler Usage |

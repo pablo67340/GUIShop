@@ -1186,16 +1186,13 @@ public class GuishopCommand implements CommandExecutor {
     }
 
     /**
-     * Gets the NBT data of an ItemStack as a string using reflection.
-     * Works across different Minecraft versions by trying multiple approaches.
+     * Gets the NBT/component data of an ItemStack as a string.
+     * Uses Paper's getAsString() or Bukkit serialization as fallback.
      */
     private String getNbtAsString(ItemStack item) {
         if (item == null || item.getType().isAir()) {
             return null;
         }
-
-        // Try multiple methods to get NBT string
-        String nbt = null;
 
         // Method 1: Try Paper's ItemMeta.getAsString() (Paper 1.18.2+)
         try {
@@ -1204,7 +1201,7 @@ public class GuishopCommand implements CommandExecutor {
                 java.lang.reflect.Method getAsString = meta.getClass().getMethod("getAsString");
                 Object result = getAsString.invoke(meta);
                 if (result != null) {
-                    nbt = result.toString();
+                    String nbt = result.toString();
                     if (!nbt.equals("{}")) {
                         return nbt;
                     }
@@ -1214,29 +1211,7 @@ public class GuishopCommand implements CommandExecutor {
             // Not Paper or method not available
         }
 
-        // Method 2: Try CraftItemStack -> NMS ItemStack -> getTag/getComponents
-        try {
-            // Get CraftItemStack class
-            String version = getServerVersion();
-            Class<?> craftItemStackClass = Class.forName("org.bukkit.craftbukkit." + version + ".inventory.CraftItemStack");
-            
-            // Convert to NMS ItemStack
-            java.lang.reflect.Method asNMSCopy = craftItemStackClass.getMethod("asNMSCopy", ItemStack.class);
-            Object nmsItem = asNMSCopy.invoke(null, item);
-            
-            if (nmsItem != null) {
-                // Try different methods based on version
-                // 1.20.5+ uses components, older uses NBT tags
-                nbt = tryGetNbtFromNmsItem(nmsItem);
-                if (nbt != null && !nbt.isEmpty() && !nbt.equals("{}")) {
-                    return nbt;
-                }
-            }
-        } catch (Exception e) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("NBT extraction method 2 failed: " + e.getMessage());
-        }
-
-        // Method 3: Try using Bukkit's serialization as a fallback
+        // Method 2: Try using Bukkit's serialization as a fallback
         try {
             Map<String, Object> serialized = item.serialize();
             // Remove basic fields to show only interesting data
@@ -1249,70 +1224,6 @@ public class GuishopCommand implements CommandExecutor {
         }
 
         return null;
-    }
-
-    /**
-     * Try to extract NBT string from NMS ItemStack using various methods.
-     */
-    private String tryGetNbtFromNmsItem(Object nmsItem) {
-        // Try getTag() for 1.20.4 and below
-        try {
-            java.lang.reflect.Method getTag = nmsItem.getClass().getMethod("getTag");
-            Object tag = getTag.invoke(nmsItem);
-            if (tag != null) {
-                return tag.toString();
-            }
-        } catch (Exception ignored) {
-        }
-
-        // Try u() or similar obfuscated method names (varies by version)
-        for (String methodName : new String[]{"u", "v", "w", "getOrCreateTag", "save"}) {
-            try {
-                java.lang.reflect.Method method = nmsItem.getClass().getMethod(methodName);
-                Object result = method.invoke(nmsItem);
-                if (result != null) {
-                    String str = result.toString();
-                    if (str.contains("{") && str.contains("}")) {
-                        return str;
-                    }
-                }
-            } catch (Exception ignored) {
-            }
-        }
-
-        // Try getComponents() for 1.20.5+
-        try {
-            java.lang.reflect.Method getComponents = nmsItem.getClass().getMethod("getComponents");
-            Object components = getComponents.invoke(nmsItem);
-            if (components != null) {
-                return components.toString();
-            }
-        } catch (Exception ignored) {
-        }
-
-        // Try a() method (common obfuscated name)
-        try {
-            java.lang.reflect.Method[] methods = nmsItem.getClass().getMethods();
-            for (java.lang.reflect.Method m : methods) {
-                if (m.getParameterCount() == 0 && m.getReturnType().getSimpleName().contains("Tag")) {
-                    Object result = m.invoke(nmsItem);
-                    if (result != null) {
-                        return result.toString();
-                    }
-                }
-            }
-        } catch (Exception ignored) {
-        }
-
-        return null;
-    }
-
-    /**
-     * Gets the server version string (e.g., "v1_21_R1").
-     */
-    private String getServerVersion() {
-        String packageName = org.bukkit.Bukkit.getServer().getClass().getPackage().getName();
-        return packageName.substring(packageName.lastIndexOf('.') + 1);
     }
 
     /**
@@ -1596,7 +1507,7 @@ public class GuishopCommand implements CommandExecutor {
         
         // Check if dynamic pricing is enabled
         if (!Config.isDynamicPricing()) {
-            sender.sendMessage(ChatColor.RED + "Dynamic pricing is not enabled. Set 'dynamic-pricing: true' in config.yml");
+            sender.sendMessage(ChatColor.RED + "Dynamic pricing is not enabled. Set 'enabled: true' in dynamicpricing.yml");
             return;
         }
         

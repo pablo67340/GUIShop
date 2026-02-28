@@ -1053,6 +1053,7 @@ public class Shop {
                         // Parse and save the new item
                         Item newItem = Item.parse(item, slot, shop);
                         // Default to DUMMY type for decoration items (no prices)
+                        // Use SHOP type for purchasable items (has buy/sell prices)
                         if (!newItem.hasBuyPrice() && !newItem.hasSellPrice()) {
                             newItem.setItemType(ItemType.DUMMY);
                         } else {

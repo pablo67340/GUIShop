@@ -1,7 +1,5 @@
 package com.pablo67340.guishop.util;
 
-import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.properties.Property;
 import com.pablo67340.guishop.GUIShop;
 import org.bukkit.Bukkit;
 import org.bukkit.inventory.ItemStack;
@@ -16,11 +14,8 @@ import org.json.simple.parser.ParseException;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.net.HttpURLConnection;
-import java.net.URL;
+import java.net.URI;
 import java.util.Base64;
 import java.util.UUID;
 
@@ -72,7 +67,7 @@ public class SkullCreator {
             String url = (String)skin.get("url");
             PlayerProfile profile = Bukkit.createPlayerProfile(UUID.fromString(uid), "aaaa");
             PlayerTextures playerTextures = profile.getTextures();
-            playerTextures.setSkin(new URL(url));
+            playerTextures.setSkin(URI.create(url).toURL());
             return profile;
         }catch(Exception ex){
             ex.printStackTrace();
@@ -92,7 +87,7 @@ public class SkullCreator {
         } else {
             try {
                 GUIShop.getINSTANCE().getLogUtil().debugLog("PlayerHead: " + uuid + " not cached. Grabbing skin and caching.");
-                URL url = new URL("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid);
+                java.net.URL url = URI.create("https://sessionserver.mojang.com/session/minecraft/profile/" + uuid).toURL();
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.setRequestProperty("User-Agent", "Mozilla/5.0");

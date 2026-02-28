@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -170,6 +171,12 @@ public final class ConfigManager {
 
         if (!transactionFile.exists()) {
             GUIShop.getINSTANCE().saveResource("transaction.yml", false);
+        }
+        
+        // Always create dynamicpricing.yml so users can configure it before enabling
+        File dynamicPricingFile = new File(GUIShop.getINSTANCE().getDataFolder(), "dynamicpricing.yml");
+        if (!dynamicPricingFile.exists()) {
+            GUIShop.getINSTANCE().saveResource("dynamicpricing.yml", false);
         }
 
         // Initialize shops folder
@@ -642,8 +649,11 @@ public final class ConfigManager {
         Config.getAltSellConfig().setCancelName(ChatColor.translateAlternateColorCodes('&',
                 mainConfig.getString("alt-sell.cancel-name", "&c&lCancel")));
 
-        // If dynamic pricing should be enabled
-        Config.setDynamicPricing(mainConfig.getBoolean("dynamic-pricing", false));
+        // Load dynamic pricing enabled status from dynamicpricing.yml (not config.yml)
+        File dynamicPricingFile = new File(GUIShop.getINSTANCE().getDataFolder(), "dynamicpricing.yml");
+        org.bukkit.configuration.file.FileConfiguration dynamicPricingConfig = 
+            org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(dynamicPricingFile);
+        Config.setDynamicPricing(dynamicPricingConfig.getBoolean("enabled", false));
 
         // If debug should be enabled
         Config.setDebugMode(mainConfig.getBoolean("debug-mode", false));
@@ -802,8 +812,79 @@ public final class ConfigManager {
 
         // Debug mode for worth system
         WorthConfig.setDebug(worthConfig.getBoolean("debug", false));
+        
+        // Auto-add GUIShop inventory titles to the blacklist
+        autoBlacklistGuiShopInventories();
 
         GUIShop.getINSTANCE().getLogUtil().debugLog("Worth config loaded. Enabled: " + WorthConfig.isEnabled());
+    }
+    
+    /**
+     * Automatically adds all GUIShop inventory titles to the worth display blacklist.
+     * This ensures worth lore is never shown inside GUIShop menus, shops, transaction GUIs, etc.
+     */
+    private void autoBlacklistGuiShopInventories() {
+        List<String> blacklist = new ArrayList<>(WorthConfig.getBlacklistedInventories());
+        int initialSize = blacklist.size();
+        
+        // Get titles from TitlesConfig
+        com.pablo67340.guishop.config.TitlesConfig titles = Config.getTitlesConfig();
+        if (titles != null) {
+            // Add all GUIShop inventory titles (strip color codes for matching)
+            addToBlacklistIfNotPresent(blacklist, titles.getMenuTitle());
+            addToBlacklistIfNotPresent(blacklist, titles.getShopTitle());
+            addToBlacklistIfNotPresent(blacklist, titles.getSellTitle());
+            addToBlacklistIfNotPresent(blacklist, titles.getQtyTitle());
+            addToBlacklistIfNotPresent(blacklist, titles.getTransactionTitle());
+            addToBlacklistIfNotPresent(blacklist, titles.getValueTitle());
+        }
+        
+        // Also add the editor prefix to catch all editor mode inventories
+        addToBlacklistIfNotPresent(blacklist, "[Editor]");
+        
+        // Add alt-sell title from config if it exists
+        String altSellTitle = Config.getAltSellConfig() != null ? Config.getAltSellConfig().getTitle() : null;
+        if (altSellTitle != null) {
+            addToBlacklistIfNotPresent(blacklist, altSellTitle);
+        }
+        
+        WorthConfig.setBlacklistedInventories(blacklist);
+        
+        int added = blacklist.size() - initialSize;
+        if (added > 0) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Auto-added " + added + " GUIShop inventory titles to worth display blacklist");
+        }
+    }
+    
+    /**
+     * Adds a title to the blacklist if it's not already present.
+     * Strips color codes and removes placeholder patterns for cleaner matching.
+     */
+    private void addToBlacklistIfNotPresent(List<String> blacklist, String title) {
+        if (title == null || title.isEmpty()) return;
+        
+        // Strip color codes and common placeholders for base matching
+        String strippedBase = org.bukkit.ChatColor.stripColor(
+            org.bukkit.ChatColor.translateAlternateColorCodes('&', title));
+        
+        // Remove common placeholders that vary at runtime
+        final String stripped = strippedBase.replaceAll("%[a-zA-Z_]+%", "").trim();
+        
+        // Only add if there's something meaningful left and not already present
+        if (!stripped.isEmpty() && stripped.length() >= 3) {
+            boolean alreadyExists = blacklist.stream()
+                .anyMatch(existing -> {
+                    String existingStripped = org.bukkit.ChatColor.stripColor(
+                        org.bukkit.ChatColor.translateAlternateColorCodes('&', existing));
+                    return existingStripped.equalsIgnoreCase(stripped) 
+                        || stripped.contains(existingStripped) 
+                        || existingStripped.contains(stripped);
+                });
+            
+            if (!alreadyExists) {
+                blacklist.add(stripped);
+            }
+        }
     }
 
 }

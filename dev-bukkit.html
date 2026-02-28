@@ -161,7 +161,7 @@ shops:
     pages:
       Page0:
         '0':
-          type: SHOP              # Item type (SHOP, COMMAND, BLANK, DUMMY)
+          type: SHOP              # Item type (SHOP, COMMAND, SHOP_SHORTCUT, DUMMY, BLANK)
           id: STONE               # Material ID
           buy-price: 10.0         # Price to buy (or 'false' to disable)
           sell-price: 5.0         # Price to sell (or 'false' to disable)
@@ -206,7 +206,7 @@ Shift+click    - Activate the button (navigate pages, go back, etc.)
 
 <ul>
 <li><strong>Buy/Sell Prices</strong> - Set prices with support for abbreviated formats (1k, 1.5M, 100B)</li>
-<li><strong>Item Type</strong> - Switch between SHOP, COMMAND, and DUMMY types</li>
+<li><strong>Item Type</strong> - Switch between ITEM, COMMAND, SHOP, SHOP_SHORTCUT, and DUMMY types</li>
 <li><strong>Display Names</strong> - Set shop display name and purchased item name</li>
 <li><strong>Custom Lore</strong> - Add descriptive lore lines to items</li>
 <li><strong>Enchantments</strong> - Add/remove enchantments through a visual enchantment picker</li>

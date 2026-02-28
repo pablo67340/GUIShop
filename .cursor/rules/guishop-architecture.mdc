@@ -16,7 +16,7 @@ GUIShop is a Minecraft Bukkit/Spigot plugin that provides GUI-based shops. This 
 - `ShopItem.java` - Container for a shop's pages
 - `ShopPage.java` - Container for items on a single page
 - `MenuItem.java` / `MenuPage.java` - Same structure for the main menu
-- `ItemType.java` - Enum: SHOP, COMMAND, DUMMY, BLANK, ITEM, SHOP_SHORTCUT
+- `ItemType.java` - Enum for item behaviors (see ItemType Reference below)
 
 ### GUI Framework (`src/com/pablo67340/guishop/gui/`)
 - `SimpleGui.java` - Base GUI with click handlers
@@ -57,11 +57,12 @@ GUIShop.getCREATOR()
 
 ## Configuration Files
 - `config.yml` - Main settings (loaded into `Config.java` static fields)
-- `shops.yml` - All shop definitions
+- `shops/*.yml` - Individual shop files (folder-based structure)
 - `menu.yml` - Main menu definition
 - `messages.yml` - Player-facing messages
 - `worth.yml` - Worth display settings
 - `economy.yml` - Internal economy settings (optional)
+- `dynamicpricing.yml` - Dynamic pricing configuration (supply/demand)
 
 ## Economy System (`src/com/pablo67340/guishop/economy/`)
 - `EconomyConfig.java` - Configuration from `economy.yml`
@@ -77,6 +78,25 @@ GUIShop.getCREATOR()
 - `player_balances.db` - Internal economy balances (SQLite)
 - `player_statistics.db` - Shop transaction statistics (SQLite)
 
+## ItemType Reference
+
+| Type | Purchasable | Description |
+|------|-------------|-------------|
+| `SHOP` | Yes | Standard purchasable item (default for items with prices) |
+| `ITEM` | Yes | Alias for SHOP (also purchasable) |
+| `COMMAND` | Yes | Executes commands on purchase, item not given |
+| `SHOP_SHORTCUT` | No | Links to another shop via `target-shop` |
+| `DUMMY` | No | Decorative item, no interaction |
+| `BLANK` | No | Empty slot, no item rendered |
+
+**Navigation types (for shop/menu UI):**
+- `PAGE_LEFT`, `PAGE_RIGHT`, `PAGE_STATUS` - Pagination controls
+- `PLAYER_BALANCE` - Shows player's balance
+- `BACK` - Return to previous menu
+
+**Transaction GUI types:**
+- `ITEM_DISPLAY`, `BUY_1/2/3`, `SELL_1/2/3`, `PLAYER_HEAD`
+
 ## PDC (Persistent Data Container) Usage
 All GUIShop item data is stored in PDC, managed by `PDCUtil.java`:
 - `guishop:item_type` - SHOP, DUMMY, COMMAND, etc.
@@ -90,3 +110,14 @@ All GUIShop item data is stored in PDC, managed by `PDCUtil.java`:
 - `guishop:firework` - Firework info string
 - `guishop:commands` - Commands to run on purchase
 - `guishop:target_shop` - For SHOP_SHORTCUT items
+- `guishop:sudo` - Run commands as player (Boolean)
+
+## Dynamic Pricing System (`src/com/pablo67340/guishop/economy/`)
+- `DynamicPricingManager.java` - Supply/demand price calculations
+- `dynamicpricing.yml` - Configuration for dynamic pricing
+- SQLite persistence for stock levels
+
+## Build Notes
+- Plugin uses `paperweight-mappings-namespace: mojang+yarn` manifest entry
+- This prevents Paper's PluginRemapper from unnecessarily remapping the JAR
+- No NMS/CraftBukkit code is used - pure Bukkit API

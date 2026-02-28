@@ -105,13 +105,22 @@ This covers non-standard item types that require special configuration.
   id: NETHER_STAR
   buy-price: 1000
   shop-name: "&6&lSpecial Reward"
+  sudo: false  # false=console (default), true=run as player
   commands:
     - "give {PLAYER_NAME} diamond 64"
     - "broadcast {PLAYER_NAME} bought the special reward!"
 ```
 
-- Commands run as CONSOLE
-- `{PLAYER_NAME}` placeholder replaced with buyer's name
+**Command Placeholders:**
+- `{PLAYER_NAME}` - Player's username
+- `{PLAYER_UUID}` - Player's UUID
+- `{PLAYER_WORLD}` - Player's current world name
+- `{PLAYER_BALANCE}` - Player's economy balance
+
+**Sudo Mode:**
+- `sudo: false` (default) - Commands run as CONSOLE
+- `sudo: true` - Commands run as the player (useful for permission-based commands)
+
 - Item is NOT given to player (only commands run)
 
 ## Shop Shortcuts (Menu Navigation)
@@ -151,3 +160,43 @@ This covers non-standard item types that require special configuration.
 ```
 
 - Space-separated Bukkit ItemFlag names
+
+## Navigation Items
+
+These are used in shop/menu configs for GUI navigation:
+
+```yaml
+# Pagination - usually in bottom row (slots 45-53)
+'48':
+  type: PAGE_LEFT
+  id: ARROW
+  name: "&ePrevious Page"
+
+'49':
+  type: PAGE_STATUS
+  id: NETHER_STAR
+  name: "&7Page {CURRENT_PAGE} of {TOTAL_PAGES}"
+
+'50':
+  type: PAGE_RIGHT
+  id: ARROW
+  name: "&eNext Page"
+
+# Player balance display
+'45':
+  type: PLAYER_BALANCE
+  id: GOLD_INGOT
+  name: "&6Balance: {PLAYER_BALANCE}"
+
+# Back button (returns to menu from shop)
+'53':
+  type: BACK
+  id: RED_STAINED_GLASS_PANE
+  name: "&cBack"
+```
+
+**Notes:**
+- Navigation items don't show buy/sell lore (not purchasable)
+- `PAGE_LEFT`/`PAGE_RIGHT` auto-hide when on first/last page
+- `{CURRENT_PAGE}`, `{TOTAL_PAGES}`, `{PLAYER_BALANCE}` are replaced dynamically
+- `rows: N` config (1-6) determines available slots per page

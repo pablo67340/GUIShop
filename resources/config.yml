@@ -64,12 +64,6 @@ enable-sound: true
 # Enable the in-game shop creator/editor (/gs edit)
 ingame-config: true
 
-# Enable dynamic pricing (prices change based on supply/demand)
-# When enabled, prices fluctuate based on server-wide buy/sell activity.
-# Configure settings in dynamicpricing.yml
-dynamic-pricing: false
-
-
 # =============================================
 # ITEM VISIBILITY
 # =============================================

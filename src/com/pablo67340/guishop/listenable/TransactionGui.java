@@ -662,8 +662,8 @@ public class TransactionGui {
                 } catch (Exception ignored) {}
             }
             
-            // Refresh the GUI to update player balance display
-            refreshPlayerHead();
+            // Refresh the GUI to update balance and prices (dynamic pricing)
+            refreshGui();
         } else {
             GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "alt-sell-not-enough", quantity);
         }
@@ -761,8 +761,8 @@ public class TransactionGui {
                 statsManager.recordPurchase(player, item.getMaterial(), quantity, priceToPay);
             }
             
-            // Refresh the GUI to update player balance display
-            refreshPlayerHead();
+            // Refresh the GUI to update balance and prices (dynamic pricing)
+            refreshGui();
         } else {
             GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "not-enough-money", amount);
         }
@@ -773,6 +773,37 @@ public class TransactionGui {
      */
     private void refreshPlayerHead() {
         createPlayerHead();
+    }
+    
+    /**
+     * Refreshes the buy/sell buttons to show updated dynamic prices.
+     * Called after each transaction when dynamic pricing is enabled.
+     */
+    private void refreshPriceButtons() {
+        // Refresh sell buttons with new prices
+        if (item.hasSellPrice()) {
+            createSellButtons();
+        }
+        
+        // Refresh buy buttons with new prices
+        if (item.hasBuyPrice()) {
+            createBuyButtons();
+        }
+        
+        // Also refresh the center display item as it shows buy/sell prices
+        if (itemDisplaySlot >= 0) {
+            ItemStack displayItem = createDisplayItem();
+            GUI.setItem(itemDisplaySlot, displayItem);
+        }
+    }
+    
+    /**
+     * Refreshes the entire transaction GUI after a transaction.
+     * Updates balance, prices, and display item.
+     */
+    private void refreshGui() {
+        refreshPlayerHead();
+        refreshPriceButtons();
         GUI.update();
     }
 }

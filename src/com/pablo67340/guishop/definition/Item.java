@@ -1556,7 +1556,7 @@ public final class Item implements ConfigurationSerializable {
         }
         
         // If item type is still DUMMY but has buy/sell prices, default to SHOP
-        // This handles items in config that don't have an explicit type: SHOP line
+        // This handles items in config that don't have an explicit type line
         if (item.getItemType() == ItemType.DUMMY && (item.hasBuyPrice() || item.hasSellPrice())) {
             item.setItemType(ItemType.SHOP);
             GUIShop.getINSTANCE().getLogUtil().debugLog("ITEM DESERIALIZE: Defaulted itemType to SHOP (has prices)");

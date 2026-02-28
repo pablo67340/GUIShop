@@ -149,6 +149,54 @@ CREATE TABLE player_preferences (
 
 Cached in `StatisticsManager.payNotificationsCache` for online players.
 
+## Dynamic Pricing System
+
+Optional supply/demand-based pricing that adjusts item prices based on transaction volume.
+
+### Key Classes
+- `DynamicPricingManager.java` - Price calculation and stock tracking
+- SQLite persistence in `plugins/GUIShop/Data/dynamic_pricing.db`
+
+### Configuration (`dynamicpricing.yml`)
+
+```yaml
+enabled: true  # Master switch (ONLY location for this setting)
+
+price-change-per-item: 0.001  # Default: 0.1% change per item
+max-price-multiplier: 2.0     # Maximum 2x base price
+min-price-multiplier: 0.5     # Minimum 0.5x base price
+decay-rate: 0.001             # How fast prices normalize
+decay-interval-minutes: 60    # How often decay runs
+
+item-overrides:
+  DIAMOND:
+    price-change-per-item: 0.01
+    max-price-multiplier: 3.0
+    min-price-multiplier: 0.3
+  DIAMOND_BLOCK:
+    price-change-per-item: 0.01
+    affects:  # Linked pricing
+      - item: DIAMOND
+        multiplier: 0.111  # 1/9 ratio
+```
+
+### Per-Item Disable
+In shop configs, add `use-dynamic-pricing: false` to exclude specific items:
+```yaml
+'5':
+  type: SHOP
+  id: BEDROCK
+  buy-price: 1000
+  use-dynamic-pricing: false  # Always static price
+```
+
+### Market Commands
+```
+/gs market info <item>    - Show current price multiplier
+/gs market reset <item>   - Reset item to base price (admin)
+/gs market resetall       - Reset all prices (admin)
+```
+
 ## Common Issues
 
 **Economy not working:**
@@ -163,3 +211,8 @@ Cached in `StatisticsManager.payNotificationsCache` for online players.
 **Balance limits not enforced:**
 - Check `maximum-balance` setting
 - Check `allow-negative` and `minimum-balance` settings
+
+**Dynamic pricing not applying overrides:**
+- Check `dynamicpricing.yml` has correct YAML indentation
+- Item name must be exact Bukkit Material name (e.g., `DIAMOND` not `diamond`)
+- `enabled: true` must be in `dynamicpricing.yml` (not config.yml)

@@ -243,3 +243,86 @@ public void onEnable() {
     getMiscUtils().setupEconomy();  // Now finds our economy
 }
 ```
+
+## Pitfall: PluginRemapper Triggering on Paper
+
+**Problem:** Paper shows `[PluginRemapper] Remapping plugin 'GUIShop.jar'...` on startup.
+
+**Cause:** Paper detects NMS/CraftBukkit strings in bytecode and attempts remapping.
+
+**Fix (multiple steps):**
+1. Remove all NMS/CraftBukkit reflection code
+2. Add manifest entry to tell Paper to skip remapping:
+```xml
+<!-- In maven-jar-plugin -->
+<manifestEntries>
+    <paperweight-mappings-namespace>mojang+yarn</paperweight-mappings-namespace>
+</manifestEntries>
+
+<!-- In maven-shade-plugin transformers -->
+<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+    <manifestEntries>
+        <paperweight-mappings-namespace>mojang+yarn</paperweight-mappings-namespace>
+    </manifestEntries>
+</transformer>
+```
+
+## Pitfall: Buy/Sell Lore Not Showing on SHOP Items
+
+**Problem:** Items with `type: SHOP` don't show buy/sell price lore.
+
+**Cause:** `ItemType.isPurchasable()` wasn't returning true for `SHOP`.
+
+**Fix:** Ensure `isPurchasable()` includes SHOP:
+```java
+public boolean isPurchasable() {
+    return switch (this) {
+        case ITEM, SHOP, COMMAND -> true;
+        default -> false;
+    };
+}
+```
+
+## Pitfall: Folia TickThread Error on Async Inventory Access
+
+**Problem:** `IllegalStateException: Cannot read world asynchronously` from `inventory.getHolder()`.
+
+**Cause:** Called `getHolder()` on a non-primary thread (Folia requirement).
+
+**Fix:** Check thread before accessing:
+```java
+if (!Bukkit.isPrimaryThread()) {
+    return false;  // Can't safely check holder on async thread
+}
+InventoryHolder holder = inventory.getHolder();
+```
+
+## Pattern: Dynamic Pricing with Linked Items
+
+Configure items that affect other items' prices:
+```yaml
+item-overrides:
+  DIAMOND_BLOCK:
+    price-change-per-item: 0.01
+    affects:
+      - item: DIAMOND
+        multiplier: 0.111  # 1/9 - block contains 9 diamonds
+```
+
+## Pattern: Navigation Items in Config
+
+Shop/menu YAML supports configurable navigation with `rows`:
+```yaml
+rows: 6  # 1-6 rows (9-54 slots)
+pages:
+  '1':
+    items:
+      '45':
+        type: PLAYER_BALANCE
+      '49':
+        type: PAGE_STATUS
+      '53':
+        type: BACK
+```
+
+Items placed beyond the configured row count are ignored with a warning.

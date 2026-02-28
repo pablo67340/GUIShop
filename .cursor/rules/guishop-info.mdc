@@ -56,11 +56,12 @@ Close shop → saveCreatorInventory() → Remove from CREATOR set
 | File | Purpose |
 |------|---------|
 | `config.yml` | Main settings, loaded into `Config.java` |
-| `shops.yml` | Shop definitions (pages, items, prices) |
+| `shops/*.yml` | Individual shop files (folder-based) |
 | `menu.yml` | Main menu layout |
 | `messages.yml` | Player-facing messages |
 | `worth.yml` | Worth display settings (requires PacketEvents) |
 | `economy.yml` | Internal economy settings (optional) |
+| `dynamicpricing.yml` | Supply/demand pricing (optional) |
 
 ## Database Files (`plugins/GUIShop/Data/`)
 
@@ -68,6 +69,7 @@ Close shop → saveCreatorInventory() → Remove from CREATOR set
 |------|---------|
 | `player_balances.db` | Internal economy balances (SQLite) |
 | `player_statistics.db` | Shop transaction history (SQLite) |
+| `dynamic_pricing.db` | Dynamic pricing stock levels (SQLite) |
 
 ## Singleton Managers
 
@@ -77,6 +79,7 @@ Close shop → saveCreatorInventory() → Remove from CREATOR set
 | `EconomyConfig` | `EconomyConfig.getInstance()` |
 | `StatisticsManager` | `StatisticsManager.getInstance()` |
 | `WorthDisplayManager` | `GUIShop.getINSTANCE().getWorthDisplayManager()` |
+| `DynamicPricingManager` | `DynamicPricingManager.getInstance()` |
 
 ## Common Debugging
 
@@ -105,3 +108,15 @@ Close shop → saveCreatorInventory() → Remove from CREATOR set
    - Check PacketEvents is installed
    - Check `worth.yml` has `enabled: true`
    - Enable debug mode to see packet handling logs
+
+7. **Buy/sell price lore not showing?**
+   - Check `ItemType.isPurchasable()` includes the item's type
+   - SHOP, ITEM, COMMAND are purchasable; DUMMY, BLANK, SHOP_SHORTCUT are not
+
+8. **Dynamic pricing not applying item overrides?**
+   - Check `dynamicpricing.yml` has `enabled: true`
+   - Check item-overrides uses exact Material names (e.g., `DIAMOND`)
+
+9. **PluginRemapper triggering on Paper?**
+   - Check manifest has `paperweight-mappings-namespace: mojang+yarn`
+   - Ensure no NMS/CraftBukkit reflection code in plugin

@@ -64,7 +64,7 @@ pages:
 
 | Property | Description | Example |
 |----------|-------------|---------|
-| `type` | Item type | `SHOP`, `COMMAND`, `BLANK`, `DUMMY` |
+| `type` | Item type | `SHOP`, `COMMAND`, `SHOP_SHORTCUT`, `DUMMY`, `BLANK` |
 | `shop-name` | Display name in shop | `'&6Diamond Sword'` |
 | `buy-name` | Name on purchased item | `'&bMy Sword'` |
 | `shop-lore` | Lore shown in shop | List of strings |
@@ -77,7 +77,7 @@ pages:
 ## Item Types
 
 ### SHOP (Default)
-Standard purchasable/sellable item.
+Standard purchasable/sellable item. Shows buy/sell prices in lore.
 
 ```yaml
 '0':
@@ -112,22 +112,33 @@ Executes commands when purchased. The item is not given to the player.
 
 See [Command Items](Command-Items) for more details.
 
-### BLANK
-Empty slot with no functionality.
+### SHOP_SHORTCUT
+Links to another shop. Used for navigation between shops.
 
 ```yaml
 '2':
-  type: BLANK
+  type: SHOP_SHORTCUT
+  id: COMPASS
+  shop-name: '&eGo to Tools'
+  target-shop: 'Tools'
 ```
 
 ### DUMMY
-Decorative item that cannot be purchased.
+Decorative item that cannot be purchased. Used for visual elements like borders or dividers.
 
 ```yaml
 '3':
   type: DUMMY
   id: GRAY_STAINED_GLASS_PANE
   shop-name: ' '
+```
+
+### BLANK
+Empty slot with no item or functionality.
+
+```yaml
+'4':
+  type: BLANK
 ```
 
 ## Inventory Rows

@@ -146,7 +146,7 @@ public class ItemEditorGui {
             }
         } else {
             // No type in PDC - check if this is a fresh item
-            // If it has prices, default to SHOP; otherwise DUMMY (decoration)
+            // If it has prices, default to SHOP (purchasable); otherwise DUMMY (decoration)
             if (buyPrice instanceof BigDecimal || sellPrice instanceof BigDecimal) {
                 itemType = ItemType.SHOP;
             } else {
@@ -1062,7 +1062,7 @@ public class ItemEditorGui {
         GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: buyPrice=" + buyPrice + " (type=" + (buyPrice != null ? buyPrice.getClass().getSimpleName() : "null") + ")");
         GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: sellPrice=" + sellPrice + " (type=" + (sellPrice != null ? sellPrice.getClass().getSimpleName() : "null") + ")");
         
-        // AUTO-CONVERT: DUMMY items with prices should become SHOP items
+        // AUTO-CONVERT: DUMMY items with prices should become SHOP (purchasable)
         // This is the root fix - a DUMMY item with prices is an invalid state
         boolean hasPrices = (buyPrice instanceof BigDecimal) || (sellPrice instanceof BigDecimal);
         if (itemType == ItemType.DUMMY && hasPrices) {
@@ -1070,11 +1070,11 @@ public class ItemEditorGui {
             itemType = ItemType.SHOP;
         }
         
-        // AUTO-CONVERT: SHOP items with no prices should become DUMMY items (unless they have commands/target-shop)
+        // AUTO-CONVERT: SHOP/ITEM types with no prices should become DUMMY items (unless they have commands/target-shop)
         boolean hasCommands = commands != null && !commands.isEmpty();
         boolean hasTargetShop = targetShop != null && !targetShop.isEmpty();
-        if (itemType == ItemType.SHOP && !hasPrices && !hasCommands && !hasTargetShop) {
-            GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Auto-converting SHOP to DUMMY (no prices/commands/target)");
+        if ((itemType == ItemType.SHOP || itemType == ItemType.ITEM) && !hasPrices && !hasCommands && !hasTargetShop) {
+            GUIShop.getINSTANCE().getLogUtil().debugLog("EDITOR SAVE: Auto-converting " + itemType + " to DUMMY (no prices/commands/target)");
             itemType = ItemType.DUMMY;
         }
         

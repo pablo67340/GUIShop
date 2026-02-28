@@ -79,6 +79,17 @@ private String stripForComparison(String input) {
 
 This handles complex titles with unicode and color codes.
 
+### Auto-Blacklisting GUIShop Inventories
+
+GUIShop automatically blacklists its own inventory titles:
+- All shop names from `shops/*.yml`
+- Menu title from `menu.yml`
+- Transaction GUI title
+- Sell GUI title
+- Value GUI title
+
+This is done in `ConfigManager.autoBlacklistGuiShopInventories()` on plugin enable.
+
 ## Common Issues
 
 **Worth not showing:**
@@ -98,3 +109,8 @@ This handles complex titles with unicode and color codes.
 - Worth display works in creative inventory
 - Special CREATIVE_INVENTORY_ACTION packet handler adds worth to items taken from creative
 - updateInventory() calls are skipped for creative players to prevent desync
+
+**Folia TickThread errors:**
+- `inventory.getHolder()` cannot be called on async threads in Folia
+- `shouldSkipPlayerInventory()` checks `Bukkit.isPrimaryThread()` first
+- If on async thread, returns false (allows worth processing to continue)

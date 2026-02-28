@@ -7,8 +7,6 @@
         <mainClass>${project.groupId}.${project.artifactId}</mainClass>
         <api.version>17</api.version>
         
-        <!-- ========== DOCUMENTATION VARIABLES ========== -->
-        <!-- Update these when releasing new versions -->
         <mc.version.min>1.13</mc.version.min>
         <mc.version.max>1.21.11</mc.version.max>
         <mc.version.range>${mc.version.min} - ${mc.version.max}</mc.version.range>
@@ -16,16 +14,13 @@
         <supported.platforms>Paper/Spigot/Folia/Bukkit</supported.platforms>
         <discord.invite>https://discord.gg/wm6zMzdBwf</discord.invite>
         <spigot.resource.id>2451</spigot.resource.id>
-        <!-- ============================================= -->
     </properties>
-    <!-- Project information -->
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.4.1</version>
+    <version>9.4.2</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
-    <!-- Organization -->
     <organization>
         <name>pablo67340</name>
         <url>https://github.com/pablo67340</url>
@@ -125,8 +120,6 @@
             <version>1.21.10-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <!--Bukkit
-        API -->
         <dependency>
             <groupId>com.github.milkbowl</groupId>
             <artifactId>vault</artifactId>
@@ -156,18 +149,11 @@
             <version>1.1.1</version>
         </dependency>
         <dependency>
-            <groupId>com.mojang</groupId>
-            <artifactId>authlib</artifactId>
-            <version>3.13.56</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
             <groupId>com.github.retrooper</groupId>
             <artifactId>packetevents-spigot</artifactId>
             <version>2.7.0</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Folia/Paper/Spigot scheduler compatibility -->
         <dependency>
             <groupId>com.tcoded</groupId>
             <artifactId>FoliaLib</artifactId>
@@ -214,14 +200,6 @@
                         </includes>
                     </resource>
                     <resource>
-                        <directory>${project.basedir}/resources/META-INF</directory>
-                        <targetPath>META-INF</targetPath>
-                        <filtering>false</filtering>
-                        <includes>
-                            <include>.mojang-mapped</include>
-                        </includes>
-                    </resource>
-                    <resource>
                         <directory>${project.basedir}/resources/Dictionary</directory>
                         <filtering>true</filtering>
                         <includes>
@@ -248,7 +226,6 @@
                             <include>*.yml</include>
                         </includes>
                     </resource>
-                    <!-- Wiki and marketing docs with placeholder filtering -->
                     <resource>
                         <directory>${project.basedir}</directory>
                         <targetPath>../processed-docs</targetPath>
@@ -303,9 +280,22 @@
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-jar-plugin</artifactId>
+                        <version>3.3.0</version>
+                        <configuration>
+                            <archive>
+                                <manifestEntries>
+                                    <paperweight-mappings-namespace>mojang+yarn</paperweight-mappings-namespace>
+                                </manifestEntries>
+                            </archive>
+                        </configuration>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-shade-plugin</artifactId>
                         <version>3.3.0</version>
                         <configuration>
+                            <minimizeJar>true</minimizeJar>
                             <relocations>
                                 <relocation>
                                     <pattern>com.cryptomorin.xseries</pattern>
@@ -315,39 +305,62 @@
                                     <pattern>com.tcoded.folialib</pattern>
                                     <shadedPattern>com.pablo67340.guishop.shade.folialib</shadedPattern>
                                 </relocation>
+                                <relocation>
+                                    <pattern>org.json.simple</pattern>
+                                    <shadedPattern>com.pablo67340.guishop.shade.json</shadedPattern>
+                                </relocation>
                             </relocations>
                             <artifactSet>
                                 <includes>
-                                    <include>com.pablo67340.GUIShop</include>
-                                    <include>com.github.cryptomorin:XSeries:jar:</include>
-                                    <include>com.mojang:authlib:jar:</include>
-                                    <include>com.tcoded:FoliaLib:jar:</include>
+                                    <include>com.pablo67340.GUIShop:*</include>
+                                    <include>com.github.cryptomorin:XSeries</include>
+                                    <include>com.tcoded:FoliaLib</include>
+                                    <include>com.googlecode.json-simple:json-simple</include>
                                 </includes>
                             </artifactSet>
                             <filters>
+                                <!-- XSeries: Only include the specific classes we use -->
                                 <filter>
-                                    <artifact>*:*</artifact>
+                                    <artifact>com.github.cryptomorin:XSeries</artifact>
+                                    <includes>
+                                        <!-- Core classes we directly use -->
+                                        <include>com/cryptomorin/xseries/XMaterial.class</include>
+                                        <include>com/cryptomorin/xseries/XMaterial$*.class</include>
+                                        <include>com/cryptomorin/xseries/XSound.class</include>
+                                        <include>com/cryptomorin/xseries/XSound$*.class</include>
+                                        <include>com/cryptomorin/xseries/XEnchantment.class</include>
+                                        <include>com/cryptomorin/xseries/XEnchantment$*.class</include>
+                                        <include>com/cryptomorin/xseries/XPotion.class</include>
+                                        <include>com/cryptomorin/xseries/XPotion$*.class</include>
+                                        <!-- Required base utilities -->
+                                        <include>com/cryptomorin/xseries/base/XBase.class</include>
+                                        <include>com/cryptomorin/xseries/base/XModule.class</include>
+                                        <include>com/cryptomorin/xseries/base/XModuleMetadata.class</include>
+                                        <include>com/cryptomorin/xseries/base/XRegistry.class</include>
+                                        <include>com/cryptomorin/xseries/base/XRegistry$*.class</include>
+                                        <include>com/cryptomorin/xseries/base/annotations/*.class</include>
+                                        <!-- Core reflection only - no ASM/proxy/NMS -->
+                                        <include>com/cryptomorin/xseries/reflection/XReflection.class</include>
+                                    </includes>
+                                </filter>
+                                <!-- FoliaLib: Keep all classes (loaded via reflection) -->
+                                <filter>
+                                    <artifact>com.tcoded:FoliaLib</artifact>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
                                     <excludes>
-                                        <exclude>com/cryptomorin/xseries/XBiome*</exclude>
-                                        <exclude>com/cryptomorin/xseries/NMSExtras*</exclude>
-                                        <exclude>com/cryptomorin/xseries/NoteBlockMusic*</exclude>
-                                        <exclude>com/cryptomorin/xseries/ReflectionUtils*</exclude>
-                                        <exclude>com/cryptomorin/xseries/SkullCacheListener*</exclude>
-                                        <exclude>com/cryptomorin/xseries/SkullUtils*</exclude>
-                                        <exclude>com/cryptomorin/xseries/XBlock*</exclude>
-                                        <exclude>com/cryptomorin/xseries/XEntity*</exclude>
-                                        <exclude>com/cryptomorin/xseries/XItemStack*</exclude>
-                                        <exclude>com/cryptomorin/xseries/XMaterialUtil*</exclude>
-                                        <exclude>com/cryptomorin/xseries/messages/ActionBar*</exclude>
-                                        <exclude>com/cryptomorin/xseries/messages/Titles*</exclude>
-                                        <exclude>com/cryptomorin/xseries/particles/ParticleDisplay*</exclude>
-                                        <exclude>com/cryptomorin/xseries/particles/XParticle*</exclude>
-                                        <exclude>com/cryptomorin/xseries/unused/BossBar*</exclude>
-                                        <exclude>com/cryptomorin/xseries/unused/ZEnchantment*</exclude>
-                                        <exclude>fonts/*</exclude>
+                                        <exclude>META-INF/maven/**</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <manifestEntries>
+                                        <paperweight-mappings-namespace>mojang+yarn</paperweight-mappings-namespace>
+                                    </manifestEntries>
+                                </transformer>
+                            </transformers>
                         </configuration>
                         <executions>
                             <execution>

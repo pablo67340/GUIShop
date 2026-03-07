@@ -79,9 +79,40 @@ public class TransactionGui {
     private int playerHeadSlot = -1;
     private int backButtonSlot = -1;
     
-    // Quantity amounts - loaded from config
+    // Quantity amounts - intelligently scaled based on item's max stack size
     private int[] getQuantities() {
-        return Config.getTransactionGuiConfig().getQuantities();
+        int maxStackSize = getItemMaxStackSize();
+        
+        if (maxStackSize >= 64) {
+            // Standard stackable items: 1, 32, 64
+            return Config.getTransactionGuiConfig().getQuantities();
+        } else if (maxStackSize == 1) {
+            // Unstackable items (tools, armor): 1, 1, 1
+            return new int[]{1, 1, 1};
+        } else {
+            // Items with custom max stack sizes (ender pearls=16, eggs=16, etc.)
+            // Scale: 1, half, max
+            int half = Math.max(1, maxStackSize / 2);
+            return new int[]{1, half, maxStackSize};
+        }
+    }
+    
+    /**
+     * Gets the max stack size for the current item being transacted.
+     */
+    private int getItemMaxStackSize() {
+        if (item == null || item.getMaterial() == null) {
+            return 64;
+        }
+        try {
+            Optional<XMaterial> material = XMaterial.matchXMaterial(item.getMaterial());
+            if (material.isPresent() && material.get().parseMaterial() != null) {
+                return material.get().parseMaterial().getMaxStackSize();
+            }
+        } catch (Exception e) {
+            // Fall back to default
+        }
+        return 64;
     }
     
     /**

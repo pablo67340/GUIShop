@@ -591,16 +591,28 @@ public final class Menu {
             + GUIShop.getINSTANCE().getMiscUtils().economyFormat(BigDecimal.valueOf(balance))
             + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
         
-        // Use item's configured name or default
-        String name = item.hasShopName() ? item.getShopName() : Config.getTitlesConfig().getTransactionBalanceTitle();
+        // Use item's configured name from YAML (check 'name' field first, then 'shop-name', then default)
+        String name;
+        if (item.hasName()) {
+            name = item.getName();
+        } else if (item.hasShopName()) {
+            name = item.getShopName();
+        } else {
+            name = Config.getTitlesConfig().getTransactionBalanceTitle();
+        }
         skullMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&', 
             name.replace("%player%", player.getName()).replace("%balance%", formattedBalance)));
         
-        // Use item's configured lore or default (check both shopLore and lore)
+        // Use item's configured lore from YAML (check 'lore' field first, then 'shop-lore', then default)
         List<String> lore = new ArrayList<>();
-        List<String> sourceLore = item.getShopLore() != null && !item.getShopLore().isEmpty() 
-            ? item.getShopLore() 
-            : (item.getLore() != null && !item.getLore().isEmpty() ? item.getLore() : null);
+        List<String> sourceLore;
+        if (item.getLore() != null && !item.getLore().isEmpty()) {
+            sourceLore = item.getLore();
+        } else if (item.getShopLore() != null && !item.getShopLore().isEmpty()) {
+            sourceLore = item.getShopLore();
+        } else {
+            sourceLore = null;
+        }
         
         if (sourceLore != null) {
             for (String line : sourceLore) {

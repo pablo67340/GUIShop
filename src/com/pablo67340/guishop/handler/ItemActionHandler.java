@@ -224,6 +224,17 @@ public class ItemActionHandler {
             return true;
         }
         
+        // Check permission for the shop
+        boolean hasShopPerm = GUIShop.getINSTANCE().getMiscUtils().getPerms()
+            .playerHas(player, "guishop.shop." + nearestShop.toLowerCase());
+        boolean hasWildcard = GUIShop.getINSTANCE().getMiscUtils().getPerms()
+            .playerHas(player, "guishop.shop.*");
+        
+        if (!hasShopPerm && !hasWildcard && !player.isOp()) {
+            GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "no-permission");
+            return true;
+        }
+        
         // Create menu instance for shop navigation
         Menu menuInstance = new Menu(player);
         Shop shop = new Shop(player, nearestShop, menuInstance);

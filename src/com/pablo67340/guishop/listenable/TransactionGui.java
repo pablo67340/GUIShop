@@ -64,6 +64,12 @@ public class TransactionGui {
      * Flag to track if player clicked back button (to prevent onClose from reopening shop)
      */
     private boolean clickedBack = false;
+    
+    /**
+     * The page index the player was on when opening this TransactionGui.
+     * Used to return to the same page when going back.
+     */
+    private final int returnPage;
 
     // Dynamic slot positions loaded from config
     private int guiRows = 3;
@@ -125,6 +131,7 @@ public class TransactionGui {
         this.item = item;
         this.currentShop = shop;
         this.player = player;
+        this.returnPage = shop.getCurrentPage();
     }
 
     /**
@@ -554,7 +561,9 @@ public class TransactionGui {
         // Back button
         if (slot == backButtonSlot && backButtonSlot >= 0) {
             clickedBack = true;
-            currentShop.open(player);
+            // Efficiently refresh only dynamic pricing lore without full reload
+            currentShop.refreshDynamicPrices();
+            currentShop.openAtPage(player, returnPage);
             return;
         }
 
@@ -597,7 +606,11 @@ public class TransactionGui {
         }
         
         if ((!Config.isDisableEscapeBack() || !Config.isDisableEscapeBackQuantity()) && !GUIShop.getINSTANCE().isReload) {
-            SchedulerUtil.runAtEntityLater(player, () -> currentShop.open(player), 1L);
+            SchedulerUtil.runAtEntityLater(player, () -> {
+                // Efficiently refresh only dynamic pricing lore without full reload
+                currentShop.refreshDynamicPrices();
+                currentShop.openAtPage(player, returnPage);
+            }, 1L);
         }
     }
 

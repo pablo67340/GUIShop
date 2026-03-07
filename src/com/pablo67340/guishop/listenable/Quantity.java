@@ -64,11 +64,18 @@ class Quantity {
      * Flag to track if player clicked back button (to prevent onClose from reopening shop)
      */
     private boolean clickedBack = false;
+    
+    /**
+     * The page index the player was on when opening this Quantity GUI.
+     * Used to return to the same page when going back.
+     */
+    private final int returnPage;
 
     Quantity(Item item, Shop shop, Player input) {
         this.item = item;
         this.currentShop = shop;
         this.player = input;
+        this.returnPage = shop.getCurrentPage();
     }
 
     /**
@@ -226,8 +233,9 @@ class Quantity {
         if (e.getSlot() == 44) {
             // Set flag to prevent onClose from also opening shop
             clickedBack = true;
-            // Open shop directly - openInventory() will close current inventory
-            currentShop.open(player);
+            // Efficiently refresh only dynamic pricing lore without full reload
+            currentShop.refreshDynamicPrices();
+            currentShop.openAtPage(player, returnPage);
             return;
         }
 
@@ -258,7 +266,11 @@ class Quantity {
         }
         
         if ((!Config.isDisableEscapeBack() || !Config.isDisableEscapeBackQuantity()) && !GUIShop.getINSTANCE().isReload) {
-            SchedulerUtil.runAtEntityLater(player, () -> currentShop.open(player), 1L);
+            SchedulerUtil.runAtEntityLater(player, () -> {
+                // Efficiently refresh only dynamic pricing lore without full reload
+                currentShop.refreshDynamicPrices();
+                currentShop.openAtPage(player, returnPage);
+            }, 1L);
         }
     }
 

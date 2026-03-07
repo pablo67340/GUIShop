@@ -447,34 +447,70 @@ public class Shop {
             }
         }
         
-        // Apply dynamic content for player balance
+        // Apply dynamic content for player balance - create a player head like Menu.java does
         if (type == ItemType.PLAYER_BALANCE && player != null) {
+            // Create a fresh player head, matching Menu.java's createPlayerBalanceItem approach
+            itemStack = XMaterial.PLAYER_HEAD.parseItem();
+            SkullMeta skullMeta = (SkullMeta) itemStack.getItemMeta();
+            skullMeta.setOwningPlayer(player);
+            
             double balance = GUIShop.getINSTANCE().getMiscUtils().getECONOMY().getBalance(player);
             String formattedBalance = GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
                 + GUIShop.getINSTANCE().getMiscUtils().economyFormat(BigDecimal.valueOf(balance))
                 + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
             
-            String displayName = meta.getDisplayName();
-            if (displayName != null) {
-                displayName = displayName
-                    .replace("%player%", player.getName())
-                    .replace("%balance%", formattedBalance);
-                meta.setDisplayName(displayName);
+            // Use item's configured name from the shop YAML (check 'name' first, then 'shop-name', then default)
+            String displayName;
+            if (item.hasName()) {
+                displayName = item.getName();
+            } else if (item.hasShopName()) {
+                displayName = item.getShopName();
+            } else {
+                displayName = Config.getTitlesConfig().getTransactionBalanceTitle();
             }
-            if (meta.getLore() != null) {
-                List<String> updatedLore = new ArrayList<>();
-                for (String line : meta.getLore()) {
-                    updatedLore.add(line
-                        .replace("%player%", player.getName())
-                        .replace("%balance%", formattedBalance));
-                }
-                meta.setLore(updatedLore);
+            skullMeta.setDisplayName(ChatColor.translateAlternateColorCodes('&',
+                displayName.replace("%player%", player.getName()).replace("%balance%", formattedBalance)));
+            
+            // Use item's configured lore from the shop YAML (check 'lore' first, then 'shop-lore', then default)
+            List<String> lore = new ArrayList<>();
+            List<String> sourceLore;
+            if (item.getLore() != null && !item.getLore().isEmpty()) {
+                sourceLore = item.getLore();
+            } else if (item.getShopLore() != null && !item.getShopLore().isEmpty()) {
+                sourceLore = item.getShopLore();
+            } else {
+                sourceLore = null;
             }
             
-            // If it's a player head, set the owner
-            if (meta instanceof SkullMeta skullMeta) {
-                skullMeta.setOwningPlayer(player);
+            if (sourceLore != null) {
+                for (String line : sourceLore) {
+                    lore.add(ChatColor.translateAlternateColorCodes('&',
+                        line.replace("%player%", player.getName()).replace("%balance%", formattedBalance)));
+                }
+            } else {
+                lore.add(ChatColor.translateAlternateColorCodes('&',
+                    Config.getTitlesConfig().getTransactionBalanceLore().replace("%balance%", formattedBalance)));
             }
+            skullMeta.setLore(lore);
+            
+            // Set PDC on skull meta
+            skullMeta.getPersistentDataContainer().set(PDCUtil.KEY_GUI_ELEMENT,
+                org.bukkit.persistence.PersistentDataType.STRING, "true");
+            skullMeta.getPersistentDataContainer().set(PDCUtil.KEY_ITEM_TYPE,
+                org.bukkit.persistence.PersistentDataType.STRING, ItemType.PLAYER_BALANCE.name());
+            
+            itemStack.setItemMeta(skullMeta);
+            
+            // Add editor mode hints if needed
+            if (isCreatorMode) {
+                ItemMeta editMeta = itemStack.getItemMeta();
+                List<String> editLore = editMeta.getLore() != null ? new ArrayList<>(editMeta.getLore()) : new ArrayList<>();
+                editLore.add(ChatColor.DARK_GRAY + "[Editor: Left=Move, Right=Edit]");
+                editMeta.setLore(editLore);
+                itemStack.setItemMeta(editMeta);
+            }
+            
+            return itemStack;
         }
         
         // Add editor mode lore hints
@@ -1384,5 +1420,68 @@ public class Shop {
      */
     public int getCurrentPage() {
         return GUI != null ? GUI.getCurrentPage() : 0;
+    }
+    
+    /**
+     * Efficiently refresh only the dynamic pricing lore on items without rebuilding the entire GUI.
+     * This is much more performant than loadItems(false) when only prices need updating.
+     */
+    public void refreshDynamicPrices() {
+        if (GUI == null || shopItem == null || !Config.isDynamicPricing()) {
+            return;
+        }
+        
+        GUIShop.getINSTANCE().getLogUtil().debugLog("Refreshing dynamic prices for shop: " + shop);
+        
+        int pageIndex = 0;
+        for (Map.Entry<String, ShopPage> entry : shopItem.getPages().entrySet()) {
+            ShopPage shopPage = entry.getValue();
+            
+            for (Map.Entry<String, Item> itemEntry : shopPage.getItems().entrySet()) {
+                Item item = itemEntry.getValue();
+                
+                // Only refresh items that use dynamic pricing and have prices
+                if (!item.shouldUseDynamicPricing()) {
+                    continue;
+                }
+                if (!item.hasBuyPrice() && !item.hasSellPrice()) {
+                    continue;
+                }
+                
+                // Skip navigation items - they don't have prices
+                if (item.getItemType() != null && item.getItemType().isNavigationType()) {
+                    continue;
+                }
+                
+                // Rebuild just this item's ItemStack with fresh prices
+                ItemStack refreshedItem = item.toItemStack(player, false);
+                if (refreshedItem != null && item.getSlot() != null) {
+                    GUI.setItem(pageIndex, item.getSlot(), refreshedItem);
+                }
+            }
+            pageIndex++;
+        }
+        
+        // Refresh the current page display
+        if (GUI.getInventory() != null) {
+            GUI.loadCurrentPage();
+        }
+    }
+    
+    /**
+     * Open the shop at a specific page.
+     * 
+     * @param player The player to open for
+     * @param pageIndex The page to open (0-indexed)
+     * @return true if successful
+     */
+    public boolean openAtPage(Player player, int pageIndex) {
+        if (!open(player)) {
+            return false;
+        }
+        if (pageIndex > 0 && GUI != null) {
+            GUI.goToPage(pageIndex);
+        }
+        return true;
     }
 }

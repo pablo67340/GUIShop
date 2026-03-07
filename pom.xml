@@ -17,7 +17,7 @@
     </properties>
     <groupId>com.pablo67340.GUIShop</groupId>
     <artifactId>GUIShop</artifactId>
-    <version>9.4.3a</version>
+    <version>9.4.3b</version>
     <name>GUIShop</name>
     <url>https://www.spigotmc.org/resources/guishop.2451/</url>
     <description>This plugin is the ultimate solution to all the signs, the chests, the glitches.</description>
@@ -332,15 +332,12 @@
                                         <include>com/cryptomorin/xseries/XEnchantment$*.class</include>
                                         <include>com/cryptomorin/xseries/XPotion.class</include>
                                         <include>com/cryptomorin/xseries/XPotion$*.class</include>
-                                        <!-- Required base utilities -->
-                                        <include>com/cryptomorin/xseries/base/XBase.class</include>
-                                        <include>com/cryptomorin/xseries/base/XModule.class</include>
-                                        <include>com/cryptomorin/xseries/base/XModuleMetadata.class</include>
-                                        <include>com/cryptomorin/xseries/base/XRegistry.class</include>
-                                        <include>com/cryptomorin/xseries/base/XRegistry$*.class</include>
-                                        <include>com/cryptomorin/xseries/base/annotations/*.class</include>
+                                        <!-- Required base utilities - include ALL base classes -->
+                                        <include>com/cryptomorin/xseries/base/*.class</include>
+                                        <include>com/cryptomorin/xseries/base/**/*.class</include>
                                         <!-- Core reflection only - no ASM/proxy/NMS -->
                                         <include>com/cryptomorin/xseries/reflection/XReflection.class</include>
+                                        <include>com/cryptomorin/xseries/reflection/XReflection$*.class</include>
                                     </includes>
                                 </filter>
                                 <!-- FoliaLib: Keep all classes (loaded via reflection) -->

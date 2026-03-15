@@ -9,6 +9,7 @@ import com.github.retrooper.packetevents.protocol.packettype.PacketType;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerSetSlot;
 import com.github.retrooper.packetevents.wrapper.play.server.WrapperPlayServerWindowItems;
 import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.definition.Item;
 import com.pablo67340.guishop.gui.GUIHolder;
@@ -376,7 +377,19 @@ public class WorthDisplayManager {
     private boolean shouldSkipPlayerInventory(Player player) {
         // Check if player has an inventory open
         if (player.getOpenInventory() != null) {
-            // Skip all GUIShop inventories (Menu, Shop, etc.) - no worth display in shop GUIs
+            String title = player.getOpenInventory().getTitle();
+            
+            // ALLOW the Sell GUI - players want to see worth on items they're about to sell!
+            String sellTitle = ChatColor.stripColor(Config.getTitlesConfig().getSellTitle());
+            String strippedTitle = ChatColor.stripColor(title);
+            if (strippedTitle.equalsIgnoreCase(sellTitle)) {
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("BLACKLIST CHECK: Allowing Sell GUI (worth display enabled)");
+                }
+                return false; // DON'T skip - show worth in sell GUI
+            }
+            
+            // Skip all OTHER GUIShop inventories (Menu, Shop, etc.) - no worth display in shop GUIs
             // Note: On Folia, getHolder() can throw/log errors if called from async Netty thread
             // because it tries to access world data. Only check holder on main thread.
             if (org.bukkit.Bukkit.isPrimaryThread()) {
@@ -397,7 +410,7 @@ public class WorthDisplayManager {
             // Note: We allow worth lore in creative inventory - it displays correctly
             // Only the updateInventory() calls are skipped for creative mode to avoid desync
             
-            String title = player.getOpenInventory().getTitle();
+            // title already defined at top of method
             if (title != null) {
                 // Strip color codes and normalize for comparison
                 String normalizedTitle = stripForComparison(title);

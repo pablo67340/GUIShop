@@ -116,6 +116,41 @@ potion-info:
     upgraded: false
 ```
 
+### Tipped Arrows
+Tipped arrows also use `potion-info` to specify the arrow effect. Use `id: TIPPED_ARROW` and configure the potion type.
+
+```yaml
+'3':
+  type: SHOP
+  id: TIPPED_ARROW
+  buy-price: 50
+  sell-price: 10
+  shop-name: '&dArrow of Healing'
+  potion-info:
+    type: HEALING
+    splash: false
+    lingering: false
+    extended: false
+    upgraded: true
+```
+
+```yaml
+'4':
+  type: SHOP
+  id: TIPPED_ARROW
+  buy-price: 75
+  sell-price: 15
+  shop-name: '&cArrow of Poison'
+  potion-info:
+    type: POISON
+    splash: false
+    lingering: false
+    extended: true
+    upgraded: false
+```
+
+> **Note:** For tipped arrows, `splash` and `lingering` should both be `false`. These flags only apply to potion bottles.
+
 ### Supported Potion Type Aliases
 GUIShop supports multiple names for the same potion type for convenience:
 

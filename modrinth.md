@@ -362,6 +362,23 @@ Configure potions with the `potion-info` section. Supports regular, splash, and 
 | `extended` | Extended duration version |
 | `upgraded` | Level II/stronger effect version |
 
+### Tipped Arrows
+Tipped arrows also use `potion-info` to specify the arrow effect:
+```yaml
+# Tipped Arrow (Healing)
+'24':
+  type: SHOP
+  id: TIPPED_ARROW
+  buy-price: 50
+  sell-price: 10
+  potion-info:
+    type: HEALING
+    splash: false
+    lingering: false
+    extended: false
+    upgraded: true
+```
+
 ### Spawners
 Native spawner support with any valid entity type (use `/gs parsemob <type>` to validate):
 ```yaml

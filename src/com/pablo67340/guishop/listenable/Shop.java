@@ -283,7 +283,12 @@ public class Shop {
             // Determine the actual material key based on potion type
             if (item.hasPotion()) {
                 PotionInfo potionInfo = item.getPotionInfo();
-                if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
+                String baseMaterial = item.getMaterial().toUpperCase();
+                
+                // TIPPED_ARROW uses potion-info but keeps its own material type
+                if (baseMaterial.equals("TIPPED_ARROW")) {
+                    parsedItem = XMaterial.matchXMaterial("TIPPED_ARROW").get().parseItem();
+                } else if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
                     parsedItem = XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem();
                 } else if (potionInfo.getLingering() != null && potionInfo.getLingering()) {
                     parsedItem = XMaterial.matchXMaterial("LINGERING_POTION").get().parseItem();

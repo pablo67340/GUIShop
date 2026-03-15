@@ -1150,10 +1150,15 @@ public final class Item implements ConfigurationSerializable {
                 return false;
             }
         } else {
-            // For potion items, check the specific potion type (POTION, SPLASH_POTION, LINGERING_POTION)
+            // For potion items, check the specific type (POTION, SPLASH_POTION, LINGERING_POTION, TIPPED_ARROW)
             PotionInfo potionInfo = getPotionInfo();
             Material expectedMaterial;
-            if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
+            String baseMaterial = getMaterial().toUpperCase();
+            
+            // TIPPED_ARROW uses potion-info but keeps its own material type
+            if (baseMaterial.equals("TIPPED_ARROW")) {
+                expectedMaterial = XMaterial.matchXMaterial("TIPPED_ARROW").get().parseMaterial();
+            } else if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
                 expectedMaterial = XMaterial.matchXMaterial("SPLASH_POTION").get().parseMaterial();
             } else if (potionInfo.getLingering() != null && potionInfo.getLingering()) {
                 expectedMaterial = XMaterial.matchXMaterial("LINGERING_POTION").get().parseMaterial();

@@ -337,6 +337,23 @@ hide-armor-slots: true
 <tr><td><code>upgraded</code></td><td>Level II/stronger effect version</td></tr>
 </table>
 
+<h3>Tipped Arrows</h3>
+<p>Tipped arrows also use <code>potion-info</code> to specify the arrow effect:</p>
+<pre>
+# Tipped Arrow (Healing)
+'24':
+  type: SHOP
+  id: TIPPED_ARROW
+  buy-price: 50
+  sell-price: 10
+  potion-info:
+    type: HEALING
+    splash: false
+    lingering: false
+    extended: false
+    upgraded: true
+</pre>
+
 <h3>Spawners</h3>
 <p>Native spawner support with any valid entity type (use <code>/gs parsemob &lt;type&gt;</code> to validate):</p>
 <pre>

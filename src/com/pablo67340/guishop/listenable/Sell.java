@@ -78,11 +78,18 @@ public final class Sell {
             List<Item> itemList = GUIShop.getINSTANCE().getITEMTABLE().get(item.getType().toString());
 
             if (itemList != null) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("SELL: Found " + itemList.size() + " registered items for " + item.getType());
                 for (Item itm : itemList) {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("SELL: Checking against shop item: " + itm.getMaterial() + 
+                        " hasPotion=" + itm.hasPotion() + 
+                        (itm.hasPotion() ? " potionInfo=" + itm.getPotionInfo().getType() : ""));
                     if (itm.isItemFromItemStack(item)) {
+                        GUIShop.getINSTANCE().getLogUtil().debugLog("SELL: Match found!");
                         shopItem = itm;
                     }
                 }
+            } else {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("SELL: No items registered for " + item.getType() + " in ITEMTABLE");
             }
 
             if (shopItem == null || !shopItem.hasSellPrice() || (!GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop." + shopItem.getShop()) && !GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(player, "guishop.shop.*")) || (shopItem.hasPermission() && shopItem.getPermission().doesntHavePermission(player))) {

@@ -288,7 +288,9 @@ hide-armor-slots: true
 </pre>
 
 <h3>Potions</h3>
+<p>Configure potions with the <code>potion-info</code> section. Supports regular, splash, and lingering potions.</p>
 <pre>
+# Regular Potion (Extended Speed)
 '21':
   type: SHOP
   id: POTION
@@ -296,9 +298,44 @@ hide-armor-slots: true
   potion-info:
     type: SPEED
     splash: false
+    lingering: false
+    extended: true
+    upgraded: false
+
+# Splash Potion (Healing II)
+'22':
+  type: SHOP
+  id: SPLASH_POTION
+  buy-price: 600
+  potion-info:
+    type: HEALING
+    splash: true
+    lingering: false
+    extended: false
+    upgraded: true
+
+# Lingering Potion
+'23':
+  type: SHOP
+  id: LINGERING_POTION
+  buy-price: 700
+  potion-info:
+    type: POISON
+    splash: false
+    lingering: true
     extended: true
     upgraded: false
 </pre>
+
+<p><strong>Potion Info Fields:</strong></p>
+<table>
+<tr><th>Field</th><th>Description</th></tr>
+<tr><td><code>type</code></td><td>Potion effect (SPEED, HEALING, STRENGTH, POISON, etc.)</td></tr>
+<tr><td><code>splash</code></td><td>Whether it's a splash potion</td></tr>
+<tr><td><code>lingering</code></td><td>Whether it's a lingering potion</td></tr>
+<tr><td><code>extended</code></td><td>Extended duration version</td></tr>
+<tr><td><code>upgraded</code></td><td>Level II/stronger effect version</td></tr>
+</table>
 
 <h3>Spawners</h3>
 <p>Native spawner support with any valid entity type (use <code>/gs parsemob &lt;type&gt;</code> to validate):</p>

@@ -511,14 +511,25 @@ public final class Item implements ConfigurationSerializable {
         }
 
         String typeName = info.getType().toUpperCase();
+        String originalTypeName = typeName;
         
-        // Map old potion names to new 1.20.5+ names
+        // Map old/alternative potion names to new 1.20.5+ names
         switch (typeName) {
             case "SPEED": typeName = "SWIFTNESS"; break;
-            case "INSTANT_HEAL": typeName = "HEALING"; break;
-            case "INSTANT_DAMAGE": typeName = "HARMING"; break;
-            case "JUMP": typeName = "LEAPING"; break;
+            case "INSTANT_HEAL": 
+            case "INSTANT_HEALTH":
+            case "HEALTH": 
+                typeName = "HEALING"; break;
+            case "INSTANT_DAMAGE": 
+            case "DAMAGE": 
+                typeName = "HARMING"; break;
+            case "JUMP": 
+            case "JUMP_BOOST": 
+                typeName = "LEAPING"; break;
             case "REGEN": typeName = "REGENERATION"; break;
+            case "INCREASE_DAMAGE":
+            case "DAMAGE_BOOST":
+                typeName = "STRENGTH"; break;
         }
 
         // Build the full type name with prefix for extended/upgraded variants
@@ -529,15 +540,22 @@ public final class Item implements ConfigurationSerializable {
             fullTypeName = "STRONG_" + typeName;
         }
 
+        GUIShop.getINSTANCE().getLogUtil().debugLog("RESOLVE POTION: config=" + originalTypeName + 
+            " -> mapped=" + typeName + " -> full=" + fullTypeName);
+
         // Try to find the potion type
         try {
-            return PotionType.valueOf(fullTypeName);
+            PotionType result = PotionType.valueOf(fullTypeName);
+            GUIShop.getINSTANCE().getLogUtil().debugLog("RESOLVE POTION: Found " + result);
+            return result;
         } catch (IllegalArgumentException e) {
             // If the prefixed version doesn't exist, try the base name
             try {
-                return PotionType.valueOf(typeName);
+                PotionType result = PotionType.valueOf(typeName);
+                GUIShop.getINSTANCE().getLogUtil().debugLog("RESOLVE POTION: Found base " + result);
+                return result;
             } catch (IllegalArgumentException e2) {
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Could not resolve potion type: " + info.getType() + 
+                GUIShop.getINSTANCE().getLogUtil().log("Could not resolve potion type: " + info.getType() + 
                     " (tried: " + fullTypeName + ", " + typeName + ")");
                 return null;
             }
@@ -668,8 +686,21 @@ public final class Item implements ConfigurationSerializable {
             String potion = PDCUtil.getString(itemStack, PDCUtil.KEY_POTION);
             if (potion != null) {
                 String[] splitInfo = potion.split("::");
-                item.setPotionInfo(
-                        new PotionInfo(splitInfo[0], Boolean.parseBoolean(splitInfo[1]), Boolean.parseBoolean(splitInfo[2]), Boolean.parseBoolean(splitInfo[3])));
+                // Handle both old format (4 values) and new format (5 values with lingering)
+                if (splitInfo.length >= 5) {
+                    item.setPotionInfo(new PotionInfo(
+                        splitInfo[0], 
+                        Boolean.parseBoolean(splitInfo[1]), 
+                        Boolean.parseBoolean(splitInfo[2]),  // lingering
+                        Boolean.parseBoolean(splitInfo[3]), 
+                        Boolean.parseBoolean(splitInfo[4])));
+                } else {
+                    item.setPotionInfo(new PotionInfo(
+                        splitInfo[0], 
+                        Boolean.parseBoolean(splitInfo[1]), 
+                        Boolean.parseBoolean(splitInfo[2]), 
+                        Boolean.parseBoolean(splitInfo[3])));
+                }
             }
 
             Integer quantity = PDCUtil.getInteger(itemStack, PDCUtil.KEY_QUANTITY);
@@ -928,8 +959,11 @@ public final class Item implements ConfigurationSerializable {
             if (hasPotion()) {
                 PotionInfo potionInfo = getPotionInfo();
 
-                if (potionInfo.getSplash()) {
+                if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
                     itemStack = new ItemStack(Material.SPLASH_POTION);
+                    itemStack.setItemMeta(itemMeta);
+                } else if (potionInfo.getLingering() != null && potionInfo.getLingering()) {
+                    itemStack = new ItemStack(Material.LINGERING_POTION);
                     itemStack.setItemMeta(itemMeta);
                 }
 
@@ -1085,7 +1119,13 @@ public final class Item implements ConfigurationSerializable {
             PDCUtil.setInteger(itemStack, PDCUtil.KEY_QUANTITY, getQuantityValue().getQuantity());
         }
         if (hasPotion()) {
-            String[] values = {getPotionInfo().getType(), getPotionInfo().getSplash().toString(), getPotionInfo().getExtended().toString(), getPotionInfo().getUpgraded().toString()};
+            String[] values = {
+                getPotionInfo().getType(), 
+                getPotionInfo().getSplash().toString(),
+                String.valueOf(getPotionInfo().getLingering() != null && getPotionInfo().getLingering()),
+                getPotionInfo().getExtended().toString(), 
+                getPotionInfo().getUpgraded().toString()
+            };
             PDCUtil.setString(itemStack, PDCUtil.KEY_POTION, String.join("::", values));
         }
         if (hasPermission()) {
@@ -1110,7 +1150,18 @@ public final class Item implements ConfigurationSerializable {
                 return false;
             }
         } else {
-            if (input.getType() != XMaterial.matchXMaterial(getMaterial()).get().parseMaterial() && input.getType() != XMaterial.matchXMaterial("SPLASH_POTION").get().parseMaterial()) {
+            // For potion items, check the specific potion type (POTION, SPLASH_POTION, LINGERING_POTION)
+            PotionInfo potionInfo = getPotionInfo();
+            Material expectedMaterial;
+            if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
+                expectedMaterial = XMaterial.matchXMaterial("SPLASH_POTION").get().parseMaterial();
+            } else if (potionInfo.getLingering() != null && potionInfo.getLingering()) {
+                expectedMaterial = XMaterial.matchXMaterial("LINGERING_POTION").get().parseMaterial();
+            } else {
+                expectedMaterial = XMaterial.matchXMaterial("POTION").get().parseMaterial();
+            }
+            
+            if (input.getType() != expectedMaterial) {
                 return false;
             }
         }
@@ -1162,12 +1213,21 @@ public final class Item implements ConfigurationSerializable {
             PotionType inputType = pm.getBasePotionType();
             PotionType expectedType = resolvePotionType(getPotionInfo());
             
+            GUIShop.getINSTANCE().getLogUtil().debugLog("POTION MATCH: Input type=" + inputType + 
+                ", Expected type=" + expectedType + 
+                " (config: type=" + getPotionInfo().getType() + 
+                ", extended=" + getPotionInfo().getExtended() + 
+                ", upgraded=" + getPotionInfo().getUpgraded() + ")");
+            
             if (inputType == null || expectedType == null) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("POTION MATCH: Failed - null type");
                 return false;
             }
             if (inputType != expectedType) {
+                GUIShop.getINSTANCE().getLogUtil().debugLog("POTION MATCH: Failed - types don't match");
                 return false;
             }
+            GUIShop.getINSTANCE().getLogUtil().debugLog("POTION MATCH: Success!");
         }
         if (hasNBT()) {
             // Check if input item has the same custom-nbt stored in PDC
@@ -1206,8 +1266,10 @@ public final class Item implements ConfigurationSerializable {
         if (hasPotion()) {
             PotionInfo pi = getPotionInfo();
 
-            if (pi.getSplash()) {
+            if (pi.getSplash() != null && pi.getSplash()) {
                 itemStack = new ItemStack(Material.SPLASH_POTION);
+            } else if (pi.getLingering() != null && pi.getLingering()) {
+                itemStack = new ItemStack(Material.LINGERING_POTION);
             }
             PotionMeta pm = (PotionMeta) itemStack.getItemMeta();
             PotionType potionType = resolvePotionType(pi);
@@ -1506,6 +1568,7 @@ public final class Item implements ConfigurationSerializable {
                 item.setPotionInfo(new PotionInfo(
                         potionInfo.get("type") != null ? potionInfo.get("type").toString() : "FIRE_RESISTANCE",
                         potionInfo.get("splash") != null && Boolean.parseBoolean(potionInfo.get("splash").toString()),
+                        potionInfo.get("lingering") != null && Boolean.parseBoolean(potionInfo.get("lingering").toString()),
                         potionInfo.get("extended") != null && Boolean.parseBoolean(potionInfo.get("extended").toString()),
                         potionInfo.get("upgraded") != null && Boolean.parseBoolean(potionInfo.get("upgraded").toString())));
             } else if (entry.getKey().equalsIgnoreCase("firework-info")) {
@@ -1659,6 +1722,7 @@ public final class Item implements ConfigurationSerializable {
             Map<String, Object> pInfo = new HashMap<>();
             pInfo.put("type", this.potionInfo.getType());
             pInfo.put("splash", this.potionInfo.getSplash());
+            pInfo.put("lingering", this.potionInfo.getLingering());
             pInfo.put("extended", this.potionInfo.getExtended());
             pInfo.put("upgraded", this.potionInfo.getUpgraded());
             serialized.put("potion-info", pInfo);

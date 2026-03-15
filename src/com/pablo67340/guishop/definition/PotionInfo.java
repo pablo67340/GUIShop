@@ -13,6 +13,15 @@ public class PotionInfo {
         this.upgraded = upgraded;
         this.extended = extended;
         this.splash = splash;
+        this.lingering = false;
+    }
+    
+    public PotionInfo(String type, boolean splash, boolean lingering, boolean extended, boolean upgraded) {
+        this.type = type;
+        this.upgraded = upgraded;
+        this.extended = extended;
+        this.splash = splash;
+        this.lingering = lingering;
     }
 
     @Getter
@@ -21,5 +30,5 @@ public class PotionInfo {
 
     @Getter
     @Setter
-    private Boolean extended, splash, upgraded;
+    private Boolean extended, splash, upgraded, lingering;
 }

@@ -313,7 +313,10 @@ All placeholders also work in `%placeholder%` format. PlaceholderAPI placeholder
 ```
 
 ### Potions
+Configure potions with the `potion-info` section. Supports regular, splash, and lingering potions.
+
 ```yaml
+# Regular Potion (Extended Speed)
 '21':
   type: SHOP
   id: POTION
@@ -321,9 +324,43 @@ All placeholders also work in `%placeholder%` format. PlaceholderAPI placeholder
   potion-info:
     type: SPEED
     splash: false
+    lingering: false
+    extended: true
+    upgraded: false
+
+# Splash Potion (Healing II)
+'22':
+  type: SHOP
+  id: SPLASH_POTION
+  buy-price: 600
+  potion-info:
+    type: HEALING
+    splash: true
+    lingering: false
+    extended: false
+    upgraded: true
+
+# Lingering Potion
+'23':
+  type: SHOP
+  id: LINGERING_POTION
+  buy-price: 700
+  potion-info:
+    type: POISON
+    splash: false
+    lingering: true
     extended: true
     upgraded: false
 ```
+
+**Potion Info Fields:**
+| Field | Description |
+|-------|-------------|
+| `type` | Potion effect (SPEED, HEALING, STRENGTH, POISON, etc.) |
+| `splash` | Whether it's a splash potion |
+| `lingering` | Whether it's a lingering potion |
+| `extended` | Extended duration version |
+| `upgraded` | Level II/stronger effect version |
 
 ### Spawners
 Native spawner support with any valid entity type (use `/gs parsemob <type>` to validate):

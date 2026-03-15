@@ -304,7 +304,10 @@ Sell commands that execute when purchased. Use placeholders like [ICODE]{PLAYER_
 [/CODE]
 
 [SIZE=4][B]Potions[/B][/SIZE]
+Configure potions with the [ICODE]potion-info[/ICODE] section. Supports regular, splash, and lingering potions.
+
 [CODE]
+# Regular Potion (Extended Speed)
 '21':
   type: SHOP
   id: POTION
@@ -312,9 +315,43 @@ Sell commands that execute when purchased. Use placeholders like [ICODE]{PLAYER_
   potion-info:
     type: SPEED
     splash: false
+    lingering: false
+    extended: true
+    upgraded: false
+
+# Splash Potion (Healing II)
+'22':
+  type: SHOP
+  id: SPLASH_POTION
+  buy-price: 600
+  potion-info:
+    type: HEALING
+    splash: true
+    lingering: false
+    extended: false
+    upgraded: true
+
+# Lingering Potion
+'23':
+  type: SHOP
+  id: LINGERING_POTION
+  buy-price: 700
+  potion-info:
+    type: POISON
+    splash: false
+    lingering: true
     extended: true
     upgraded: false
 [/CODE]
+
+[B]Potion Info Fields:[/B]
+[LIST]
+[*][ICODE]type[/ICODE] - Potion effect (SPEED, HEALING, STRENGTH, POISON, etc.)
+[*][ICODE]splash[/ICODE] - Splash potion (true/false)
+[*][ICODE]lingering[/ICODE] - Lingering potion (true/false)
+[*][ICODE]extended[/ICODE] - Extended duration (true/false)
+[*][ICODE]upgraded[/ICODE] - Level II/stronger effect (true/false)
+[/LIST]
 
 [SIZE=4][B]Spawners[/B][/SIZE]
 Native spawner support with any valid entity type (use [ICODE]/gs parsemob <type>[/ICODE] to validate):

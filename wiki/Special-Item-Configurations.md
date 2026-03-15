@@ -58,6 +58,7 @@ Configure potions using the `potion-info` property.
 potion-info:
   type: POTION_TYPE
   splash: true/false
+  lingering: true/false
   extended: true/false
   upgraded: true/false
 ```
@@ -66,10 +67,13 @@ potion-info:
 |-------|-------------|--------|
 | type | The potion effect type | See list below |
 | splash | Whether it's a splash potion | `true` or `false` |
-| extended | Extended duration | `true` or `false` |
-| upgraded | Upgraded (stronger effect) | `true` or `false` |
+| lingering | Whether it's a lingering potion | `true` or `false` |
+| extended | Extended duration (Level I+) | `true` or `false` |
+| upgraded | Upgraded/stronger effect (Level II) | `true` or `false` |
 
-### Example
+> **Note:** `splash` and `lingering` are mutually exclusive. Set only one to `true`. The `id` field should match the potion type: `POTION`, `SPLASH_POTION`, or `LINGERING_POTION`.
+
+### Example - Regular Potion
 ```yaml
 '0':
   type: SHOP
@@ -79,22 +83,27 @@ potion-info:
   potion-info:
     type: SPEED
     splash: false
+    lingering: false
     extended: true
     upgraded: false
 ```
 
-### Splash and Lingering Potions
+### Splash Potions
 ```yaml
 '1':
   type: SHOP
   id: SPLASH_POTION
   buy-price: 300
   potion-info:
-    type: INSTANT_HEAL
+    type: HEALING          # Also accepts: INSTANT_HEAL, INSTANT_HEALTH
     splash: true
+    lingering: false
     extended: false
-    upgraded: true
+    upgraded: true         # Level II (stronger healing)
+```
 
+### Lingering Potions
+```yaml
 '2':
   type: SHOP
   id: LINGERING_POTION
@@ -102,9 +111,22 @@ potion-info:
   potion-info:
     type: POISON
     splash: false
+    lingering: true
     extended: true
     upgraded: false
 ```
+
+### Supported Potion Type Aliases
+GUIShop supports multiple names for the same potion type for convenience:
+
+| Config Name | Also Accepts |
+|-------------|--------------|
+| HEALING | INSTANT_HEAL, INSTANT_HEALTH, HEALTH |
+| HARMING | INSTANT_DAMAGE, DAMAGE |
+| SWIFTNESS | SPEED |
+| LEAPING | JUMP, JUMP_BOOST |
+| REGENERATION | REGEN |
+| STRENGTH | INCREASE_DAMAGE, DAMAGE_BOOST |
 
 ### Common Potion Types
 

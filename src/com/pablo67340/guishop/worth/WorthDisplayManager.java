@@ -834,19 +834,37 @@ public class WorthDisplayManager {
      */
     private Item findShopItem(ItemStack item) {
         String materialKey = Item.getItemStringForItemStack(item);
-        
+
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("FIND_SHOP_ITEM: Looking for " + materialKey + 
+                " (type=" + item.getType() + ")");
+        }
+
         List<Item> itemList = plugin.getITEMTABLE().get(materialKey);
-        
+
         if (itemList == null) {
             itemList = plugin.getITEMTABLE().get(item.getType().toString());
+            if (WorthConfig.isDebug() && itemList != null) {
+                plugin.getLogUtil().debugLog("FIND_SHOP_ITEM: Found via fallback key " + item.getType());
+            }
         }
 
         if (itemList == null || itemList.isEmpty()) {
+            if (WorthConfig.isDebug()) {
+                plugin.getLogUtil().debugLog("FIND_SHOP_ITEM: No items registered for " + materialKey);
+            }
             return null;
+        }
+
+        if (WorthConfig.isDebug()) {
+            plugin.getLogUtil().debugLog("FIND_SHOP_ITEM: Found " + itemList.size() + " candidates for " + materialKey);
         }
 
         for (Item shopItem : itemList) {
             if (shopItem.isItemFromItemStack(item)) {
+                if (WorthConfig.isDebug()) {
+                    plugin.getLogUtil().debugLog("FIND_SHOP_ITEM: Match found - " + shopItem.getMaterial());
+                }
                 return shopItem;
             }
         }

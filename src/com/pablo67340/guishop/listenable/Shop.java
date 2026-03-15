@@ -220,22 +220,29 @@ public class Shop {
                     continue;
                 }
                 
-                // Validate slot is within configured row bounds
-                int maxSlot = effectiveRows * 9 - 1;
-                if (slot > maxSlot) {
-                    String warning = pageKey + " > Slot " + slot + " (" + item.getMaterial() + ") is out of bounds! Max slot for " + 
-                        effectiveRows + " rows is " + maxSlot + ".";
-                    logShopError("Shop '" + shop + "' > " + warning);
-                    outOfBoundsWarnings.add(warning);
-                    continue; // Skip this item - don't add to shop
-                }
-                
-                GUIShop.getINSTANCE().getLogUtil().debugLog("LOAD: Item " + item.getMaterial() + " at slot " + slotKey + 
+                GUIShop.getINSTANCE().getLogUtil().debugLog("LOAD: Item " + item.getMaterial() + " at slot " + slotKey +
                     " type=" + item.getItemType() + " buyPrice=" + (item.hasBuyPrice() ? item.getBuyPriceAsDecimal() : "none"));
 
-                // Register sellable items
+                // Register sellable items FIRST (even if out of bounds for display)
+                // This allows "Worth" shops to have items just for selling without needing display slots
                 if (item.hasSellPrice()) {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("REGISTER: Item " + item.getMaterial() +
+                        " has sell-price " + item.getSellPriceAsDecimal() +
+                        ", hasPotion=" + item.hasPotion());
                     registerSellableItem(item, pageKey, slotKey);
+                } else {
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("SKIP REGISTER: Item " + item.getMaterial() +
+                        " has no sell-price");
+                }
+
+                // Validate slot is within configured row bounds for DISPLAY purposes
+                int maxSlot = effectiveRows * 9 - 1;
+                if (slot > maxSlot) {
+                    String warning = pageKey + " > Slot " + slot + " (" + item.getMaterial() + ") is out of bounds for display! Max slot for " +
+                        effectiveRows + " rows is " + maxSlot + ". Item is still registered as sellable.";
+                    GUIShop.getINSTANCE().getLogUtil().debugLog("OUT_OF_BOUNDS: " + warning);
+                    outOfBoundsWarnings.add(warning);
+                    continue; // Skip adding to GUI, but item is already registered for selling
                 }
 
                 // Add to page if appropriate
@@ -273,8 +280,16 @@ public class Shop {
             String materialKey;
             ItemStack parsedItem;
             
-            if (item.hasPotion() && item.getPotionInfo().getSplash()) {
-                parsedItem = XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem();
+            // Determine the actual material key based on potion type
+            if (item.hasPotion()) {
+                PotionInfo potionInfo = item.getPotionInfo();
+                if (potionInfo.getSplash() != null && potionInfo.getSplash()) {
+                    parsedItem = XMaterial.matchXMaterial("SPLASH_POTION").get().parseItem();
+                } else if (potionInfo.getLingering() != null && potionInfo.getLingering()) {
+                    parsedItem = XMaterial.matchXMaterial("LINGERING_POTION").get().parseItem();
+                } else {
+                    parsedItem = XMaterial.matchXMaterial("POTION").get().parseItem();
+                }
             } else {
                 parsedItem = XMaterial.matchXMaterial(item.getMaterial()).get().parseItem();
             }
@@ -288,13 +303,16 @@ public class Shop {
             
             materialKey = parsedItem.getType().toString();
             
-            List<Item> items = GUIShop.getINSTANCE().getITEMTABLE().get(item.getMaterial());
+            // Look up using the SAME key we're storing under (materialKey, not item.getMaterial())
+            List<Item> items = GUIShop.getINSTANCE().getITEMTABLE().get(materialKey);
             if (items == null) {
                 items = new ArrayList<>();
             }
             items.add(item);
 
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + " as sellable.");
+            GUIShop.getINSTANCE().getLogUtil().debugLog("Registering " + item.getMaterial() + 
+                (item.hasPotion() ? " (potion: " + item.getPotionInfo().getType() + ")" : "") +
+                " as sellable under key: " + materialKey);
             GUIShop.getINSTANCE().getITEMTABLE().put(materialKey, items);
         } catch (NoSuchElementException e) {
             logShopError("Shop '" + shop + "' > " + pageKey + " > Slot '" + slotKey + "': Material '" + item.getMaterial() + "' is not valid for this server version.");

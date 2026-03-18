@@ -37,6 +37,13 @@ public class EconomyManager {
     }
     
     /**
+     * Reset the singleton instance. Used during hard reload.
+     */
+    public static void resetInstance() {
+        instance = null;
+    }
+    
+    /**
      * Initialize the database connection and create tables.
      */
     public boolean initialize() {

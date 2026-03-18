@@ -84,6 +84,13 @@ public class WorthDisplayManager {
         this.plugin = plugin;
         instance = this;
     }
+    
+    /**
+     * Reset the singleton instance. Used during hard reload.
+     */
+    public static void resetInstance() {
+        instance = null;
+    }
 
     // ==================== Per-Player Worth Toggle API ====================
 

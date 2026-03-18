@@ -75,6 +75,13 @@ public class DynamicPricingManager implements DynamicPriceProvider {
     }
     
     /**
+     * Reset the singleton instance. Used during hard reload.
+     */
+    public static void resetInstance() {
+        instance = null;
+    }
+    
+    /**
      * Initialize the dynamic pricing database and load configuration.
      */
     public boolean initialize() {

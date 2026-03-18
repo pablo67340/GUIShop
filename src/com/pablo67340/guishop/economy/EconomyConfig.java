@@ -73,6 +73,13 @@ public class EconomyConfig {
     }
     
     /**
+     * Reset the singleton instance. Used during hard reload.
+     */
+    public static void resetInstance() {
+        instance = null;
+    }
+    
+    /**
      * Load or create the economy.yml configuration.
      */
     public void load() {

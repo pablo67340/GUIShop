@@ -27,6 +27,17 @@ public class GuiListener implements Listener {
         }
         return instance;
     }
+    
+    /**
+     * Clear all active GUIs and reset the singleton instance. Used during hard reload.
+     */
+    public static void resetInstance() {
+        if (instance != null) {
+            instance.activeGuis.clear();
+            org.bukkit.event.HandlerList.unregisterAll(instance);
+        }
+        instance = null;
+    }
 
     /**
      * Register a GUI to receive events.

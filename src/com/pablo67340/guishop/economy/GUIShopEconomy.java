@@ -12,22 +12,37 @@ import java.util.UUID;
 
 /**
  * Vault Economy implementation for GUIShop's internal economy.
+ * 
+ * NOTE: This class does NOT cache EconomyManager or EconomyConfig references.
+ * It always fetches them dynamically via getInstance() to support hot-reloading.
  */
 public class GUIShopEconomy implements Economy {
     
     private final GUIShop plugin;
-    private final EconomyManager manager;
-    private final EconomyConfig config;
     
     public GUIShopEconomy(GUIShop plugin) {
         this.plugin = plugin;
-        this.manager = EconomyManager.getInstance();
-        this.config = EconomyConfig.getInstance();
+    }
+    
+    /**
+     * Get the current EconomyManager instance (supports hot-reload).
+     */
+    private EconomyManager getManager() {
+        return EconomyManager.getInstance();
+    }
+    
+    /**
+     * Get the current EconomyConfig instance (supports hot-reload).
+     */
+    private EconomyConfig getConfig() {
+        return EconomyConfig.getInstance();
     }
     
     @Override
     public boolean isEnabled() {
-        return config.isEnabled() && manager != null && manager.isAvailable();
+        EconomyConfig config = getConfig();
+        EconomyManager manager = getManager();
+        return config != null && config.isEnabled() && manager != null && manager.isAvailable();
     }
     
     @Override
@@ -42,33 +57,34 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public int fractionalDigits() {
-        return config.getDecimalPlaces();
+        return getConfig().getDecimalPlaces();
     }
     
     @Override
     public String format(double amount) {
-        return config.formatBalance(BigDecimal.valueOf(amount));
+        return getConfig().formatBalance(BigDecimal.valueOf(amount));
     }
     
     @Override
     public String currencyNamePlural() {
-        return config.getCurrencyNamePlural();
+        return getConfig().getCurrencyNamePlural();
     }
     
     @Override
     public String currencyNameSingular() {
-        return config.getCurrencyName();
+        return getConfig().getCurrencyName();
     }
     
     // ==================== Account Methods ====================
     
     @Override
     public boolean hasAccount(OfflinePlayer player) {
-        return manager.hasAccount(player.getUniqueId());
+        return getManager().hasAccount(player.getUniqueId());
     }
     
     @Override
     public boolean hasAccount(String playerName) {
+        EconomyManager manager = getManager();
         UUID uuid = manager.getUUIDByUsername(playerName);
         return uuid != null && manager.hasAccount(uuid);
     }
@@ -86,7 +102,7 @@ public class GUIShopEconomy implements Economy {
     @Override
     public boolean createPlayerAccount(OfflinePlayer player) {
         String name = player.getName() != null ? player.getName() : player.getUniqueId().toString();
-        return manager.createAccount(player.getUniqueId(), name);
+        return getManager().createAccount(player.getUniqueId(), name);
     }
     
     @Override
@@ -109,11 +125,12 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public double getBalance(OfflinePlayer player) {
-        return manager.getBalance(player.getUniqueId()).doubleValue();
+        return getManager().getBalance(player.getUniqueId()).doubleValue();
     }
     
     @Override
     public double getBalance(String playerName) {
+        EconomyManager manager = getManager();
         UUID uuid = manager.getUUIDByUsername(playerName);
         if (uuid == null) return 0;
         return manager.getBalance(uuid).doubleValue();
@@ -131,11 +148,12 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public boolean has(OfflinePlayer player, double amount) {
-        return manager.has(player.getUniqueId(), BigDecimal.valueOf(amount));
+        return getManager().has(player.getUniqueId(), BigDecimal.valueOf(amount));
     }
     
     @Override
     public boolean has(String playerName, double amount) {
+        EconomyManager manager = getManager();
         UUID uuid = manager.getUUIDByUsername(playerName);
         if (uuid == null) return false;
         return manager.has(uuid, BigDecimal.valueOf(amount));
@@ -165,6 +183,8 @@ public class GUIShopEconomy implements Economy {
                 EconomyResponse.ResponseType.FAILURE, "Player does not have an account");
         }
         
+        EconomyManager manager = getManager();
+        EconomyConfig config = getConfig();
         BigDecimal amountBD = BigDecimal.valueOf(amount);
         
         if (!manager.has(player.getUniqueId(), amountBD) && !config.isAllowNegativeBalance()) {
@@ -210,7 +230,7 @@ public class GUIShopEconomy implements Economy {
             createPlayerAccount(player);
         }
         
-        boolean success = manager.deposit(player.getUniqueId(), BigDecimal.valueOf(amount));
+        boolean success = getManager().deposit(player.getUniqueId(), BigDecimal.valueOf(amount));
         
         if (success) {
             return new EconomyResponse(amount, getBalance(player), 

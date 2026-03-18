@@ -39,6 +39,16 @@ public class ChatInputHandler implements Listener {
         }
         return instance;
     }
+    
+    /**
+     * Reset the singleton instance. Used during hard reload.
+     */
+    public static void resetInstance() {
+        if (instance != null) {
+            instance.unregister();
+        }
+        instance = null;
+    }
 
     /**
      * Register this listener if not already registered.

@@ -11,10 +11,12 @@ import com.pablo67340.guishop.listenable.PlayerListener;
 import com.pablo67340.guishop.listenable.Sell;
 import com.pablo67340.guishop.listenable.Shop;
 import com.pablo67340.guishop.gui.GuiListener;
+import com.pablo67340.guishop.economy.DynamicPricingManager;
 import com.pablo67340.guishop.economy.EconomyCommands;
 import com.pablo67340.guishop.economy.EconomyConfig;
 import com.pablo67340.guishop.economy.EconomyManager;
 import com.pablo67340.guishop.economy.GUIShopEconomy;
+import com.pablo67340.guishop.listenable.editor.ChatInputHandler;
 import com.pablo67340.guishop.statistics.GUIShopPlaceholderExpansion;
 import com.pablo67340.guishop.statistics.StatisticsManager;
 import net.milkbowl.vault.economy.Economy;
@@ -77,6 +79,13 @@ public final class GUIShop extends JavaPlugin {
      */
     @Getter
     public static final List<UUID> CREATOR = new ArrayList<>();
+    
+    /**
+     * A {@link Set} that tracks players who have item info debug mode enabled.
+     * When enabled, inventory interactions will log PDC/NBT data to console.
+     */
+    @Getter
+    public static final Set<UUID> ITEM_INFO_DEBUG = new HashSet<>();
 
     public static final RowChart rowChart = new RowChart();
 
@@ -468,9 +477,11 @@ public final class GUIShop extends JavaPlugin {
     public void reload(CommandSender sender, boolean ignoreCreator) {
         this.setIsReload(true);
         boolean hadErrors = false;
+        long startTime = System.currentTimeMillis();
         
-        // Close all GUIShop inventories for online players
-        // Must do this BEFORE clearing data to avoid NPEs
+        getLogUtil().log("Starting hard reload - destroying and recreating all systems...");
+        
+        // ========== PHASE 1: Close all GUIShop inventories ==========
         try {
             String menuTitle = Config.getTitlesConfig().getMenuTitle().replace("%page-number%", "");
             String shopTitle = Config.getTitlesConfig().getShopTitle().replace("%shopname%", "");
@@ -489,72 +500,178 @@ public final class GUIShop extends JavaPlugin {
                         || title.contains(altSellTitle)
                         || title.contains(valueTitle);
             }).forEach(Player::closeInventory);
+            getLogUtil().debugLog("Closed all GUIShop inventories");
         } catch (Exception e) {
             getLogUtil().debugLog("Error closing inventories during reload: " + e.getMessage());
         }
 
-        // Clear all cached data
+        // ========== PHASE 2: Shutdown all singletons ==========
+        
+        // Shutdown worth display system
+        try {
+            if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
+                worthDisplayManager.unregister();
+            }
+            WorthDisplayManager.resetInstance();
+            worthDisplayManager = null;
+            getLogUtil().debugLog("Worth display manager shutdown");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error shutting down worth display: " + e.getMessage());
+        }
+        
+        // Shutdown statistics system
+        try {
+            if (statisticsManager != null) {
+                statisticsManager.shutdown();
+            }
+            StatisticsManager.resetInstance();
+            statisticsManager = null;
+            getLogUtil().debugLog("Statistics manager shutdown");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error shutting down statistics: " + e.getMessage());
+        }
+        
+        // Shutdown dynamic pricing system
+        try {
+            if (dynamicPricingManager != null) {
+                dynamicPricingManager.shutdown();
+            }
+            DynamicPricingManager.resetInstance();
+            dynamicPricingManager = null;
+            getLogUtil().debugLog("Dynamic pricing manager shutdown");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error shutting down dynamic pricing: " + e.getMessage());
+        }
+        
+        // Shutdown economy manager
+        try {
+            if (economyManager != null) {
+                economyManager.shutdown();
+            }
+            EconomyManager.resetInstance();
+            economyManager = null;
+            getLogUtil().debugLog("Economy manager shutdown");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error shutting down economy manager: " + e.getMessage());
+        }
+        
+        // Reset economy config
+        try {
+            EconomyConfig.resetInstance();
+            economyConfig = null;
+            getLogUtil().debugLog("Economy config reset");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error resetting economy config: " + e.getMessage());
+        }
+        
+        // Reset GUI listener
+        try {
+            GuiListener.resetInstance();
+            getLogUtil().debugLog("GUI listener reset");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error resetting GUI listener: " + e.getMessage());
+        }
+        
+        // Reset chat input handler
+        try {
+            ChatInputHandler.resetInstance();
+            getLogUtil().debugLog("Chat input handler reset");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Error resetting chat input handler: " + e.getMessage());
+        }
+
+        // ========== PHASE 3: Clear all cached data ==========
         ITEMTABLE.clear();
         BUY_COMMANDS.clear();
         SELL_COMMANDS.clear();
         loadedShops.clear();
         loadedMenu = null;
+        ITEM_INFO_DEBUG.clear();
 
         if (!ignoreCreator) {
             CREATOR.clear();
         }
+        getLogUtil().debugLog("All caches cleared");
 
-        // Reload all configuration files and defaults
+        // ========== PHASE 4: Reload configuration files ==========
         try {
-        configManager.reloadConfigs();
+            configManager.reloadConfigs();
+            getLogUtil().debugLog("Configs reloaded");
         } catch (Exception e) {
             getLogUtil().log("[Critical] Failed to reload configs: " + e.getMessage());
             hadErrors = true;
         }
 
+        // ========== PHASE 5: Reinitialize all systems ==========
+        
+        // Reinitialize GUI listener
+        try {
+            getServer().getPluginManager().registerEvents(GuiListener.getInstance(), this);
+            getLogUtil().debugLog("GUI listener reinitialized");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Failed to reinitialize GUI listener: " + e.getMessage());
+            hadErrors = true;
+        }
+        
+        // Reinitialize internal economy
+        try {
+            initInternalEconomy();
+            getLogUtil().debugLog("Internal economy reinitialized");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Failed to reinitialize internal economy: " + e.getMessage());
+        }
+
         // Reload all shops and menu items (warmup)
-        // This is wrapped in try-catch inside warmup() itself
         warmup();
 
         // ALWAYS re-register commands, even if config loading failed
-        // This ensures /gs reload is still available to fix config issues
         try {
-        CommandsMode cmdMode = Config.getCommandsMode();
-        commandManager.unregisterAll();
+            CommandsMode cmdMode = Config.getCommandsMode();
+            commandManager.unregisterAll();
 
-        if (cmdMode == CommandsMode.REGISTER) {
-            commandManager.registerCommands();
-        }
-
-        // Handle command interception
-        if (cmdMode == CommandsMode.INTERCEPT) {
-            CommandsInterceptor.register();
-        } else {
-            CommandsInterceptor.unregister();
+            if (cmdMode == CommandsMode.REGISTER) {
+                commandManager.registerCommands();
             }
+
+            // Handle command interception
+            if (cmdMode == CommandsMode.INTERCEPT) {
+                CommandsInterceptor.register();
+            } else {
+                CommandsInterceptor.unregister();
+            }
+            getLogUtil().debugLog("Commands reregistered");
         } catch (Exception e) {
             getLogUtil().log("[Warning] Failed to register commands: " + e.getMessage());
             hadErrors = true;
         }
 
-        // Reload worth display system
+        // Reinitialize worth display system
         try {
-        if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
-            worthDisplayManager.unregister();
-        }
-        initWorthDisplay();
+            initWorthDisplay();
+            getLogUtil().debugLog("Worth display reinitialized");
         } catch (Exception e) {
             getLogUtil().log("[Warning] Failed to reload worth display: " + e.getMessage());
         }
+        
+        // Reinitialize statistics system
+        try {
+            initStatistics();
+            getLogUtil().debugLog("Statistics system reinitialized");
+        } catch (Exception e) {
+            getLogUtil().log("[Warning] Failed to reinitialize statistics: " + e.getMessage());
+        }
 
+        // ========== PHASE 6: Report results ==========
+        long elapsed = System.currentTimeMillis() - startTime;
+        
         if (hadErrors) {
-            logUtil.log("GUIShop reloaded with errors! Check the logs above.");
+            logUtil.log("GUIShop hard reload completed with errors in " + elapsed + "ms! Check the logs above.");
             if (sender != null) {
                 getMiscUtils().sendPrefix(sender, "reload.execute");
                 sender.sendMessage(ChatColor.RED + "[GUIShop] Reload completed with errors - check console!");
             }
         } else {
-            logUtil.log("GUIShop reloaded successfully!");
+            logUtil.log("GUIShop hard reload completed successfully in " + elapsed + "ms!");
             if (sender != null) {
                 getMiscUtils().sendPrefix(sender, "reload.execute");
             }

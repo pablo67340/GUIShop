@@ -665,8 +665,21 @@ public class GuishopCommand implements CommandExecutor {
                 // Force refresh inventory to apply the change immediately
                 player.updateInventory();
             } else if (args[0].equalsIgnoreCase("iteminfo") || args[0].equalsIgnoreCase("ii") || args[0].equalsIgnoreCase("info")) {
-                // Display comprehensive item information
-                printItemInfo(player);
+                // Check for toggle subcommand
+                if (args.length >= 2 && args[1].equalsIgnoreCase("toggle")) {
+                    UUID uuid = player.getUniqueId();
+                    if (GUIShop.getITEM_INFO_DEBUG().contains(uuid)) {
+                        GUIShop.getITEM_INFO_DEBUG().remove(uuid);
+                        player.sendMessage(ChatColor.GREEN + "[GUIShop] " + ChatColor.GRAY + "Item info debug mode " + ChatColor.RED + "DISABLED" + ChatColor.GRAY + ". Inventory interactions will no longer be logged.");
+                    } else {
+                        GUIShop.getITEM_INFO_DEBUG().add(uuid);
+                        player.sendMessage(ChatColor.GREEN + "[GUIShop] " + ChatColor.GRAY + "Item info debug mode " + ChatColor.GREEN + "ENABLED" + ChatColor.GRAY + ". Inventory interactions will now log PDC/NBT data to console.");
+                        player.sendMessage(ChatColor.GRAY + "Try stacking items or moving them around to see their data compared.");
+                    }
+                } else {
+                    // Display comprehensive item information for held item
+                    printItemInfo(player);
+                }
             } else if (args[0].equalsIgnoreCase("eco") || args[0].equalsIgnoreCase("economy")) {
                 // Economy management commands
                 handleEcoCommand(commandSender, args);

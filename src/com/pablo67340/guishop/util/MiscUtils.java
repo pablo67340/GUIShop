@@ -176,7 +176,7 @@ public class MiscUtils {
      * @return If the main hand is null
      */
     public boolean isMainHandNull(Player player) {
-        if (XMaterial.supports(0)) {
+        if (XMaterial.supports(1, 9)) {
             if (player.getEquipment() != null) {
                 return player.getEquipment().getItemInMainHand().getType() == Material.AIR;
             }

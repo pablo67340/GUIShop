@@ -140,7 +140,13 @@ public class StatisticsManager {
      * Check if statistics tracking is available.
      */
     public boolean isAvailable() {
-        return connection != null;
+        if (connection == null) return false;
+        try {
+            if (connection.isClosed()) return false;
+        } catch (SQLException e) {
+            return false;
+        }
+        return true;
     }
     
     // ==================== Stats Recording ====================
@@ -204,6 +210,8 @@ public class StatisticsManager {
     }
     
     private void recordTransaction(UUID uuid, String material, int quantity, BigDecimal price, String type) {
+        if (!isAvailable()) return;
+        
         String sql = "INSERT INTO item_transactions (uuid, material, quantity, price, type, timestamp) VALUES (?, ?, ?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, uuid.toString());
@@ -214,7 +222,10 @@ public class StatisticsManager {
             pstmt.setLong(6, System.currentTimeMillis());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to record transaction: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to record transaction: " + msg);
+            }
         }
     }
     
@@ -251,6 +262,8 @@ public class StatisticsManager {
     private PlayerStats loadStats(UUID uuid) {
         PlayerStats stats = new PlayerStats(uuid);
         
+        if (!isAvailable()) return stats;
+        
         // Load basic stats
         String sql = "SELECT total_spent, total_earned, items_bought, items_sold FROM player_stats WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -264,7 +277,10 @@ public class StatisticsManager {
                 stats.setItemsSold(rs.getInt("items_sold"));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to load player stats: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to load player stats: " + msg);
+            }
         }
         
         // Load top items
@@ -276,6 +292,8 @@ public class StatisticsManager {
     
     private Map<String, Integer> loadTopItems(UUID uuid, String type) {
         Map<String, Integer> items = new LinkedHashMap<>();
+        
+        if (!isAvailable()) return items;
         
         String sql = """
             SELECT material, SUM(quantity) as total_qty 
@@ -295,13 +313,18 @@ public class StatisticsManager {
                 items.put(rs.getString("material"), rs.getInt("total_qty"));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to load top items: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to load top items: " + msg);
+            }
         }
         
         return items;
     }
     
     private void saveStats(PlayerStats stats) {
+        if (!isAvailable()) return;
+        
         String sql = """
             INSERT INTO player_stats (uuid, total_spent, total_earned, items_bought, items_sold)
             VALUES (?, ?, ?, ?, ?)
@@ -320,7 +343,10 @@ public class StatisticsManager {
             pstmt.setInt(5, stats.getItemsSold());
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to save player stats: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to save player stats: " + msg);
+            }
         }
     }
     
@@ -403,6 +429,7 @@ public class StatisticsManager {
      */
     public List<Map.Entry<UUID, BigDecimal>> getTopSpenders(int limit) {
         List<Map.Entry<UUID, BigDecimal>> result = new ArrayList<>();
+        if (!isAvailable()) return result;
         
         String sql = "SELECT uuid, total_spent FROM player_stats ORDER BY total_spent DESC LIMIT ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -415,7 +442,10 @@ public class StatisticsManager {
                 result.add(new AbstractMap.SimpleEntry<>(uuid, spent));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get top spenders: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get top spenders: " + msg);
+            }
         }
         
         return result;
@@ -426,6 +456,7 @@ public class StatisticsManager {
      */
     public List<Map.Entry<UUID, BigDecimal>> getTopEarners(int limit) {
         List<Map.Entry<UUID, BigDecimal>> result = new ArrayList<>();
+        if (!isAvailable()) return result;
         
         String sql = "SELECT uuid, total_earned FROM player_stats ORDER BY total_earned DESC LIMIT ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -438,7 +469,10 @@ public class StatisticsManager {
                 result.add(new AbstractMap.SimpleEntry<>(uuid, earned));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get top earners: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get top earners: " + msg);
+            }
         }
         
         return result;
@@ -472,7 +506,10 @@ public class StatisticsManager {
                 result.put(rs.getString("material"), rs.getLong("total_qty"));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get server top sold items: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get server top sold items: " + msg);
+            }
         }
         
         return result;
@@ -504,7 +541,10 @@ public class StatisticsManager {
                 result.put(rs.getString("material"), rs.getLong("total_qty"));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get server top bought items: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get server top bought items: " + msg);
+            }
         }
         
         return result;
@@ -540,7 +580,10 @@ public class StatisticsManager {
                 result.put(rs.getString("material"), rs.getLong("total_qty"));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get player top sold items: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get player top sold items: " + msg);
+            }
         }
         
         return result;
@@ -574,7 +617,10 @@ public class StatisticsManager {
                 result.put(rs.getString("material"), rs.getLong("total_qty"));
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get player top bought items: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get player top bought items: " + msg);
+            }
         }
         
         return result;
@@ -587,6 +633,8 @@ public class StatisticsManager {
         if (!isAvailable()) return;
         
         SchedulerUtil.runTaskAsync(() -> {
+            if (!isAvailable()) return;
+            
             try {
                 // Delete from both tables
                 try (PreparedStatement pstmt = connection.prepareStatement("DELETE FROM player_stats WHERE uuid = ?")) {
@@ -602,7 +650,10 @@ public class StatisticsManager {
                 cache.remove(uuid);
                 
             } catch (SQLException e) {
-                plugin.getLogUtil().log("Failed to reset stats: " + e.getMessage());
+                String msg = e.getMessage();
+                if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                    plugin.getLogUtil().log("Failed to reset stats: " + msg);
+                }
             }
         });
     }
@@ -654,6 +705,8 @@ public class StatisticsManager {
         
         // Save to database asynchronously
         SchedulerUtil.runTaskAsync(() -> {
+            if (!isAvailable()) return;
+            
             String sql = """
                 INSERT INTO player_preferences (uuid, pay_notifications) VALUES (?, ?)
                 ON CONFLICT(uuid) DO UPDATE SET pay_notifications = ?
@@ -664,7 +717,10 @@ public class StatisticsManager {
                 pstmt.setInt(3, enabled ? 1 : 0);
                 pstmt.executeUpdate();
             } catch (SQLException e) {
-                plugin.getLogUtil().log("Failed to save pay notifications: " + e.getMessage());
+                String msg = e.getMessage();
+                if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                    plugin.getLogUtil().log("Failed to save pay notifications: " + msg);
+                }
             }
         });
     }
@@ -697,8 +753,8 @@ public class StatisticsManager {
             } else {
                 payNotificationsCache.put(uuid, true); // Default enabled
             }
-        } catch (SQLException e) {
-            plugin.getLogUtil().debugLog("Failed to load preferences: " + e.getMessage());
+        } catch (SQLException ignored) {
+            // Silently ignore - normal during plugin reload
         }
     }
     

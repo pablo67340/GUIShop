@@ -1,6 +1,8 @@
 package com.pablo67340.guishop.statistics;
 
 import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.economy.EconomyConfig;
+import com.pablo67340.guishop.economy.EconomyManager;
 import com.pablo67340.guishop.util.MathUtil;
 import com.pablo67340.guishop.util.NameUtil;
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
@@ -12,11 +14,17 @@ import java.math.BigDecimal;
 import java.util.UUID;
 
 /**
- * PlaceholderAPI expansion for GUIShop statistics.
+ * PlaceholderAPI expansion for GUIShop statistics and economy.
  * 
  * Available placeholders:
  * 
- * Money placeholders:
+ * Balance placeholders (requires internal economy enabled):
+ * - %guishop_balance% - Player balance (formatted with currency symbol)
+ * - %guishop_balance_raw% - Player balance (raw number)
+ * - %guishop_balance_formatted% - Player balance (abbreviated: $1.5K, $2M)
+ * - %guishop_balance_commas% - Player balance (with commas: $1,500)
+ * 
+ * Statistics placeholders:
  * - %guishop_total_spent% - Total money spent (with commas)
  * - %guishop_total_spent_formatted% - Total money spent (abbreviated: 1.5K, 2M)
  * - %guishop_total_earned% - Total money earned (with commas)
@@ -79,16 +87,53 @@ public class GUIShopPlaceholderExpansion extends PlaceholderExpansion {
             return null;
         }
         
+        UUID uuid = player.getUniqueId();
+        
+        // Balance placeholders (uses singleton pattern - survives reloads)
+        String lowerParams = params.toLowerCase();
+        if (lowerParams.startsWith("balance")) {
+            EconomyManager ecoManager = EconomyManager.getInstance();
+            EconomyConfig ecoConfig = EconomyConfig.getInstance();
+            
+            if (ecoManager == null) {
+                plugin.getLogUtil().debugLog("Placeholder balance: EconomyManager is null");
+                return "$0";
+            }
+            if (!ecoManager.isAvailable()) {
+                plugin.getLogUtil().debugLog("Placeholder balance: EconomyManager not available");
+                return "$0";
+            }
+            if (ecoConfig == null) {
+                plugin.getLogUtil().debugLog("Placeholder balance: EconomyConfig is null");
+                return "$0";
+            }
+            
+            BigDecimal balance = ecoManager.getBalance(uuid);
+            plugin.getLogUtil().debugLog("Placeholder balance for " + player.getName() + ": " + balance);
+            
+            switch (lowerParams) {
+                case "balance":
+                    return ecoConfig.formatBalance(balance);
+                case "balance_raw":
+                    return balance.toPlainString();
+                case "balance_formatted":
+                    return ecoConfig.getCurrencySymbol() + MathUtil.formatAbbreviated(balance);
+                case "balance_commas":
+                    return ecoConfig.getCurrencySymbol() + MathUtil.formatWithCommas(balance);
+                default:
+                    return ecoConfig.formatBalance(balance);
+            }
+        }
+        
         StatisticsManager statsManager = StatisticsManager.getInstance();
         if (statsManager == null || !statsManager.isAvailable()) {
             return "N/A";
         }
         
-        UUID uuid = player.getUniqueId();
         PlayerStats stats = statsManager.getStats(uuid);
         
         // Money placeholders
-        switch (params.toLowerCase()) {
+        switch (lowerParams) {
             case "total_spent":
                 return MathUtil.formatWithCommas(stats.getTotalSpent());
             case "total_spent_formatted":
@@ -120,12 +165,12 @@ public class GUIShopPlaceholderExpansion extends PlaceholderExpansion {
         }
         
         // Top bought items
-        if (params.toLowerCase().startsWith("top_bought_")) {
+        if (lowerParams.startsWith("top_bought_")) {
             return handleTopItem(params.substring(11), stats, true);
         }
         
         // Top sold items
-        if (params.toLowerCase().startsWith("top_sold_")) {
+        if (lowerParams.startsWith("top_sold_")) {
             return handleTopItem(params.substring(9), stats, false);
         }
         

@@ -57,34 +57,41 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public int fractionalDigits() {
-        return getConfig().getDecimalPlaces();
+        EconomyConfig config = getConfig();
+        return config != null ? config.getDecimalPlaces() : 2;
     }
     
     @Override
     public String format(double amount) {
-        return getConfig().formatBalance(BigDecimal.valueOf(amount));
+        EconomyConfig config = getConfig();
+        return config != null ? config.formatBalance(BigDecimal.valueOf(amount)) : String.format("$%.2f", amount);
     }
     
     @Override
     public String currencyNamePlural() {
-        return getConfig().getCurrencyNamePlural();
+        EconomyConfig config = getConfig();
+        return config != null ? config.getCurrencyNamePlural() : "Dollars";
     }
     
     @Override
     public String currencyNameSingular() {
-        return getConfig().getCurrencyName();
+        EconomyConfig config = getConfig();
+        return config != null ? config.getCurrencyName() : "Dollar";
     }
     
     // ==================== Account Methods ====================
     
     @Override
     public boolean hasAccount(OfflinePlayer player) {
-        return getManager().hasAccount(player.getUniqueId());
+        EconomyManager manager = getManager();
+        if (manager == null || !manager.isAvailable()) return false;
+        return manager.hasAccount(player.getUniqueId());
     }
     
     @Override
     public boolean hasAccount(String playerName) {
         EconomyManager manager = getManager();
+        if (manager == null || !manager.isAvailable()) return false;
         UUID uuid = manager.getUUIDByUsername(playerName);
         return uuid != null && manager.hasAccount(uuid);
     }
@@ -101,8 +108,10 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public boolean createPlayerAccount(OfflinePlayer player) {
+        EconomyManager manager = getManager();
+        if (manager == null || !manager.isAvailable()) return false;
         String name = player.getName() != null ? player.getName() : player.getUniqueId().toString();
-        return getManager().createAccount(player.getUniqueId(), name);
+        return manager.createAccount(player.getUniqueId(), name);
     }
     
     @Override
@@ -125,12 +134,24 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public double getBalance(OfflinePlayer player) {
-        return getManager().getBalance(player.getUniqueId()).doubleValue();
+        EconomyManager manager = getManager();
+        if (manager == null) {
+            plugin.getLogUtil().debugLog("getBalance: EconomyManager is null for " + player.getName());
+            return 0;
+        }
+        if (!manager.isAvailable()) {
+            plugin.getLogUtil().debugLog("getBalance: EconomyManager not available for " + player.getName());
+            return 0;
+        }
+        double balance = manager.getBalance(player.getUniqueId()).doubleValue();
+        plugin.getLogUtil().debugLog("getBalance: " + player.getName() + " = " + balance);
+        return balance;
     }
     
     @Override
     public double getBalance(String playerName) {
         EconomyManager manager = getManager();
+        if (manager == null || !manager.isAvailable()) return 0;
         UUID uuid = manager.getUUIDByUsername(playerName);
         if (uuid == null) return 0;
         return manager.getBalance(uuid).doubleValue();
@@ -148,12 +169,15 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public boolean has(OfflinePlayer player, double amount) {
-        return getManager().has(player.getUniqueId(), BigDecimal.valueOf(amount));
+        EconomyManager manager = getManager();
+        if (manager == null || !manager.isAvailable()) return false;
+        return manager.has(player.getUniqueId(), BigDecimal.valueOf(amount));
     }
     
     @Override
     public boolean has(String playerName, double amount) {
         EconomyManager manager = getManager();
+        if (manager == null || !manager.isAvailable()) return false;
         UUID uuid = manager.getUUIDByUsername(playerName);
         if (uuid == null) return false;
         return manager.has(uuid, BigDecimal.valueOf(amount));
@@ -173,6 +197,14 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public EconomyResponse withdrawPlayer(OfflinePlayer player, double amount) {
+        EconomyManager manager = getManager();
+        EconomyConfig config = getConfig();
+        
+        if (manager == null || !manager.isAvailable() || config == null) {
+            return new EconomyResponse(0, 0, 
+                EconomyResponse.ResponseType.FAILURE, "Economy system not available");
+        }
+        
         if (amount < 0) {
             return new EconomyResponse(0, getBalance(player), 
                 EconomyResponse.ResponseType.FAILURE, "Cannot withdraw negative amount");
@@ -183,8 +215,6 @@ public class GUIShopEconomy implements Economy {
                 EconomyResponse.ResponseType.FAILURE, "Player does not have an account");
         }
         
-        EconomyManager manager = getManager();
-        EconomyConfig config = getConfig();
         BigDecimal amountBD = BigDecimal.valueOf(amount);
         
         if (!manager.has(player.getUniqueId(), amountBD) && !config.isAllowNegativeBalance()) {
@@ -221,6 +251,13 @@ public class GUIShopEconomy implements Economy {
     
     @Override
     public EconomyResponse depositPlayer(OfflinePlayer player, double amount) {
+        EconomyManager manager = getManager();
+        
+        if (manager == null || !manager.isAvailable()) {
+            return new EconomyResponse(0, 0, 
+                EconomyResponse.ResponseType.FAILURE, "Economy system not available");
+        }
+        
         if (amount < 0) {
             return new EconomyResponse(0, getBalance(player), 
                 EconomyResponse.ResponseType.FAILURE, "Cannot deposit negative amount");
@@ -230,7 +267,7 @@ public class GUIShopEconomy implements Economy {
             createPlayerAccount(player);
         }
         
-        boolean success = getManager().deposit(player.getUniqueId(), BigDecimal.valueOf(amount));
+        boolean success = manager.deposit(player.getUniqueId(), BigDecimal.valueOf(amount));
         
         if (success) {
             return new EconomyResponse(amount, getBalance(player), 

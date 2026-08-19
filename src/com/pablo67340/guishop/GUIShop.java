@@ -91,6 +91,8 @@ public final class GUIShop extends JavaPlugin {
 
     @Getter
     public CommandManager commandManager;
+    
+    private GUIShopPlaceholderExpansion placeholderExpansion;
 
     @Getter
     public ConfigManager configManager;
@@ -190,6 +192,22 @@ public final class GUIShop extends JavaPlugin {
             logUtil.flushLogs();
         }
 
+        // IMPORTANT: Reset static instances FIRST so getInstance() returns null
+        // This prevents "connection closed" errors during plugin reload
+        WorthDisplayManager.resetInstance();
+        StatisticsManager.resetInstance();
+        DynamicPricingManager.resetInstance();
+        EconomyManager.resetInstance();
+        EconomyConfig.resetInstance();
+        GuiListener.resetInstance();
+        ChatInputHandler.resetInstance();
+
+        // Unregister PlaceholderAPI expansion
+        if (placeholderExpansion != null) {
+            placeholderExpansion.unregister();
+            placeholderExpansion = null;
+        }
+        
         // Unregister worth display system
         if (worthDisplayManager != null && worthDisplayManager.isRegistered()) {
             worthDisplayManager.unregister();
@@ -242,8 +260,19 @@ public final class GUIShop extends JavaPlugin {
             
             // Register PlaceholderAPI expansion if available
             if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-                new GUIShopPlaceholderExpansion(this).register();
+                // Unregister old expansion first (important for PlugMan reloads)
+                if (placeholderExpansion != null) {
+                    placeholderExpansion.unregister();
+                }
+                placeholderExpansion = new GUIShopPlaceholderExpansion(this);
+                placeholderExpansion.register();
                 getLogUtil().log("PlaceholderAPI expansion registered.");
+            }
+            
+            // Load stats for all currently online players (important for PlugMan reloads)
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                statisticsManager.loadPlayerCache(player);
+                statisticsManager.loadPreferencesCache(player.getUniqueId());
             }
             
         } catch (Exception e) {
@@ -317,6 +346,16 @@ public final class GUIShop extends JavaPlugin {
             // Register economy commands dynamically (/bal, /pay, /togglepay)
             // These are only registered when internal economy is enabled
             registerEconomyCommands();
+            
+            // Load balances for all currently online players (important for PlugMan reloads)
+            int loadedCount = 0;
+            for (Player player : Bukkit.getOnlinePlayers()) {
+                economyManager.loadPlayerCache(player);
+                loadedCount++;
+            }
+            if (loadedCount > 0) {
+                getLogUtil().log("Loaded economy cache for " + loadedCount + " online player(s).");
+            }
             
         } catch (Exception e) {
             getLogUtil().log("Failed to initialize internal economy: " + e.getMessage());

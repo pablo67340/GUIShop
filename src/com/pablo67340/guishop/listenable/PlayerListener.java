@@ -44,6 +44,7 @@ public final class PlayerListener implements Listener {
     private final String[] commandsEntryList = {
         "reload",
         "edit",
+        "open",
         "eco",
         "market",
         "iteminfo",
@@ -248,12 +249,29 @@ public final class PlayerListener implements Listener {
         
         ItemMeta meta = item.getItemMeta();
         if (meta != null) {
+            GUIShop.getINSTANCE().getLogUtil().log("  MetaType: " + meta.getClass().getSimpleName());
+            
             if (meta.hasDisplayName()) {
-                GUIShop.getINSTANCE().getLogUtil().log("  DisplayName: " + meta.getDisplayName());
+                GUIShop.getINSTANCE().getLogUtil().log("  DisplayName: '" + meta.getDisplayName() + "'");
             }
+            
+            // IMPORTANT: Check if lore is actually embedded in the item (not just packet-displayed)
             if (meta.hasLore()) {
-                GUIShop.getINSTANCE().getLogUtil().log("  Lore: " + meta.getLore());
+                java.util.List<String> lore = meta.getLore();
+                GUIShop.getINSTANCE().getLogUtil().log("  ACTUAL Lore in ItemMeta (" + lore.size() + " lines):");
+                for (int i = 0; i < lore.size(); i++) {
+                    GUIShop.getINSTANCE().getLogUtil().log("    [" + i + "]: " + lore.get(i));
+                }
+                // Check if worth lore is baked in
+                boolean hasWorthLore = lore.stream().anyMatch(line -> 
+                    line.toLowerCase().contains("worth") || line.contains("$"));
+                if (hasWorthLore) {
+                    GUIShop.getINSTANCE().getLogUtil().log("  *** WARNING: Worth lore appears to be BAKED INTO the actual item! ***");
+                }
+            } else {
+                GUIShop.getINSTANCE().getLogUtil().log("  Lore: (none in actual ItemMeta)");
             }
+            
             if (meta.hasCustomModelData()) {
                 GUIShop.getINSTANCE().getLogUtil().log("  CustomModelData: " + meta.getCustomModelData());
             }
@@ -263,6 +281,9 @@ public final class PlayerListener implements Listener {
             if (!meta.getItemFlags().isEmpty()) {
                 GUIShop.getINSTANCE().getLogUtil().log("  ItemFlags: " + meta.getItemFlags());
             }
+            if (meta.isUnbreakable()) {
+                GUIShop.getINSTANCE().getLogUtil().log("  Unbreakable: true");
+            }
             if (meta instanceof org.bukkit.inventory.meta.Damageable) {
                 org.bukkit.inventory.meta.Damageable damageable = (org.bukkit.inventory.meta.Damageable) meta;
                 if (damageable.hasDamage()) {
@@ -270,10 +291,18 @@ public final class PlayerListener implements Listener {
                 }
             }
             
+            // Check for attribute modifiers
+            try {
+                var attrs = meta.getAttributeModifiers();
+                if (attrs != null && !attrs.isEmpty()) {
+                    GUIShop.getINSTANCE().getLogUtil().log("  AttributeModifiers: " + attrs);
+                }
+            } catch (Exception ignored) {}
+            
             // Log PDC data
             PersistentDataContainer pdc = meta.getPersistentDataContainer();
             if (!pdc.isEmpty()) {
-                GUIShop.getINSTANCE().getLogUtil().log("  PDC Keys:");
+                GUIShop.getINSTANCE().getLogUtil().log("  PDC Keys (" + pdc.getKeys().size() + "):");
                 for (NamespacedKey key : pdc.getKeys()) {
                     String value = getPDCValue(pdc, key);
                     GUIShop.getINSTANCE().getLogUtil().log("    " + key.toString() + " = " + value);
@@ -281,6 +310,32 @@ public final class PlayerListener implements Listener {
             } else {
                 GUIShop.getINSTANCE().getLogUtil().log("  PDC: (empty)");
             }
+            
+            // Compare ItemMeta lore vs Serialized lore
+            try {
+                java.util.Map<String, Object> serial = item.serialize();
+                serial.remove("amount");
+                GUIShop.getINSTANCE().getLogUtil().log("  SerialHash: " + serial.hashCode());
+                
+                // Check if serialization has lore that ItemMeta doesn't show
+                String serialStr = serial.toString();
+                boolean serialHasLore = serialStr.contains("lore") || serialStr.contains("Worth");
+                boolean metaHasLore = meta.hasLore();
+                
+                if (serialHasLore && !metaHasLore) {
+                    GUIShop.getINSTANCE().getLogUtil().log("  *** WEIRD: Serialization has lore but ItemMeta.hasLore()=false! ***");
+                    GUIShop.getINSTANCE().getLogUtil().log("  Serial keys: " + serial.keySet());
+                    if (serial.containsKey("meta")) {
+                        GUIShop.getINSTANCE().getLogUtil().log("  Serial meta: " + serial.get("meta"));
+                    }
+                    if (serial.containsKey("components")) {
+                        GUIShop.getINSTANCE().getLogUtil().log("  Serial components: " + serial.get("components"));
+                    }
+                }
+            } catch (Exception e) {
+                GUIShop.getINSTANCE().getLogUtil().log("  Serial error: " + e.getMessage());
+            }
+            
         } else {
             GUIShop.getINSTANCE().getLogUtil().log("  Meta: null");
         }
@@ -288,17 +343,20 @@ public final class PlayerListener implements Listener {
     
     /**
      * Compare two items and log their differences.
+     * Note: Lore is SKIPPED because worth lore is packet-based and doesn't affect isSimilar().
      */
     private void compareItems(ItemStack item1, ItemStack item2) {
         ItemMeta meta1 = item1.getItemMeta();
         ItemMeta meta2 = item2.getItemMeta();
+        
+        boolean foundDifference = false;
         
         if (meta1 == null && meta2 == null) {
             GUIShop.getINSTANCE().getLogUtil().log("  Both metas are null - should stack");
             return;
         }
         if (meta1 == null || meta2 == null) {
-            GUIShop.getINSTANCE().getLogUtil().log("  One meta is null, other is not");
+            GUIShop.getINSTANCE().getLogUtil().log("  DIFF: One meta is null, other is not (meta1=" + (meta1 != null) + ", meta2=" + (meta2 != null) + ")");
             return;
         }
         
@@ -307,18 +365,15 @@ public final class PlayerListener implements Listener {
         String name2 = meta2.hasDisplayName() ? meta2.getDisplayName() : "(none)";
         if (!name1.equals(name2)) {
             GUIShop.getINSTANCE().getLogUtil().log("  DIFF DisplayName: '" + name1 + "' vs '" + name2 + "'");
+            foundDifference = true;
         }
         
-        // Compare lore
-        String lore1 = meta1.hasLore() ? meta1.getLore().toString() : "(none)";
-        String lore2 = meta2.hasLore() ? meta2.getLore().toString() : "(none)";
-        if (!lore1.equals(lore2)) {
-            GUIShop.getINSTANCE().getLogUtil().log("  DIFF Lore: '" + lore1 + "' vs '" + lore2 + "'");
-        }
+        // SKIP lore comparison - worth lore is packet-based and doesn't affect stacking
         
         // Compare enchants
         if (!meta1.getEnchants().equals(meta2.getEnchants())) {
             GUIShop.getINSTANCE().getLogUtil().log("  DIFF Enchants: " + meta1.getEnchants() + " vs " + meta2.getEnchants());
+            foundDifference = true;
         }
         
         // Compare custom model data
@@ -328,6 +383,42 @@ public final class PlayerListener implements Listener {
             GUIShop.getINSTANCE().getLogUtil().log("  DIFF CustomModelData: " + 
                 (hasCmd1 ? meta1.getCustomModelData() : "none") + " vs " + 
                 (hasCmd2 ? meta2.getCustomModelData() : "none"));
+            foundDifference = true;
+        }
+        
+        // Compare damage (for damageable items)
+        if (meta1 instanceof org.bukkit.inventory.meta.Damageable && meta2 instanceof org.bukkit.inventory.meta.Damageable) {
+            org.bukkit.inventory.meta.Damageable d1 = (org.bukkit.inventory.meta.Damageable) meta1;
+            org.bukkit.inventory.meta.Damageable d2 = (org.bukkit.inventory.meta.Damageable) meta2;
+            if (d1.getDamage() != d2.getDamage()) {
+                GUIShop.getINSTANCE().getLogUtil().log("  DIFF Damage: " + d1.getDamage() + " vs " + d2.getDamage());
+                foundDifference = true;
+            }
+        }
+        
+        // Compare unbreakable flag
+        if (meta1.isUnbreakable() != meta2.isUnbreakable()) {
+            GUIShop.getINSTANCE().getLogUtil().log("  DIFF Unbreakable: " + meta1.isUnbreakable() + " vs " + meta2.isUnbreakable());
+            foundDifference = true;
+        }
+        
+        // Compare item flags
+        if (!meta1.getItemFlags().equals(meta2.getItemFlags())) {
+            GUIShop.getINSTANCE().getLogUtil().log("  DIFF ItemFlags: " + meta1.getItemFlags() + " vs " + meta2.getItemFlags());
+            foundDifference = true;
+        }
+        
+        // Compare attribute modifiers
+        try {
+            var attrs1 = meta1.getAttributeModifiers();
+            var attrs2 = meta2.getAttributeModifiers();
+            boolean attrsEqual = (attrs1 == null && attrs2 == null) || (attrs1 != null && attrs1.equals(attrs2));
+            if (!attrsEqual) {
+                GUIShop.getINSTANCE().getLogUtil().log("  DIFF AttributeModifiers: " + attrs1 + " vs " + attrs2);
+                foundDifference = true;
+            }
+        } catch (Exception e) {
+            // Attribute modifiers API might not exist on older versions
         }
         
         // Compare PDC
@@ -347,12 +438,79 @@ public final class PlayerListener implements Listener {
                 String val2 = getPDCValue(pdc2, key);
                 if (!val1.equals(val2)) {
                     GUIShop.getINSTANCE().getLogUtil().log("  DIFF PDC[" + key + "]: '" + val1 + "' vs '" + val2 + "'");
+                    foundDifference = true;
                 }
             } else if (has1) {
                 GUIShop.getINSTANCE().getLogUtil().log("  DIFF PDC[" + key + "]: '" + getPDCValue(pdc1, key) + "' vs (missing)");
+                foundDifference = true;
             } else {
                 GUIShop.getINSTANCE().getLogUtil().log("  DIFF PDC[" + key + "]: (missing) vs '" + getPDCValue(pdc2, key) + "'");
+                foundDifference = true;
             }
+        }
+        
+        // Compare actual lore from ItemMeta (not serialized)
+        java.util.List<String> lore1 = meta1.hasLore() ? meta1.getLore() : java.util.Collections.emptyList();
+        java.util.List<String> lore2 = meta2.hasLore() ? meta2.getLore() : java.util.Collections.emptyList();
+        if (!lore1.equals(lore2)) {
+            GUIShop.getINSTANCE().getLogUtil().log("  DIFF ACTUAL Lore in ItemMeta:");
+            GUIShop.getINSTANCE().getLogUtil().log("    Item1: " + lore1);
+            GUIShop.getINSTANCE().getLogUtil().log("    Item2: " + lore2);
+            // Check if this is worth lore
+            boolean item1HasWorth = lore1.stream().anyMatch(l -> l.toLowerCase().contains("worth") || l.contains("$"));
+            boolean item2HasWorth = lore2.stream().anyMatch(l -> l.toLowerCase().contains("worth") || l.contains("$"));
+            if (item1HasWorth || item2HasWorth) {
+                GUIShop.getINSTANCE().getLogUtil().log("  *** THIS IS WORTH LORE BAKED INTO ITEMS - THIS IS A BUG! ***");
+            }
+            foundDifference = true;
+        }
+        
+        // Try to serialize and compare raw data (skip lore-related keys since we handle them above)
+        try {
+            java.util.Map<String, Object> serial1 = item1.serialize();
+            java.util.Map<String, Object> serial2 = item2.serialize();
+            
+            // Remove fields that are expected to differ or handled separately
+            serial1.remove("amount");
+            serial2.remove("amount");
+            
+            if (!serial1.equals(serial2)) {
+                GUIShop.getINSTANCE().getLogUtil().log("  DIFF Serialized data differs (for additional context):");
+                
+                // Find keys that differ
+                java.util.Set<String> allSerialKeys = new java.util.HashSet<>();
+                allSerialKeys.addAll(serial1.keySet());
+                allSerialKeys.addAll(serial2.keySet());
+                
+                for (String key : allSerialKeys) {
+                    Object v1 = serial1.get(key);
+                    Object v2 = serial2.get(key);
+                    if (v1 == null && v2 == null) continue;
+                    if (v1 == null || v2 == null || !v1.equals(v2)) {
+                        // Skip if it's just lore/components difference (already reported above)
+                        String v1Str = String.valueOf(v1);
+                        String v2Str = String.valueOf(v2);
+                        if ((v1Str.contains("lore") || v2Str.contains("lore")) && foundDifference) {
+                            continue; // Already reported lore difference
+                        }
+                        GUIShop.getINSTANCE().getLogUtil().log("    [" + key + "]: " + v1 + " vs " + v2);
+                        foundDifference = true;
+                    }
+                }
+            }
+        } catch (Exception e) {
+            GUIShop.getINSTANCE().getLogUtil().log("  Could not compare serialized data: " + e.getMessage());
+        }
+        
+        // Final summary
+        if (!foundDifference) {
+            GUIShop.getINSTANCE().getLogUtil().log("  WARNING: No obvious difference found but isSimilar() = false!");
+            GUIShop.getINSTANCE().getLogUtil().log("  This could indicate hidden NBT data or version-specific metadata.");
+            GUIShop.getINSTANCE().getLogUtil().log("  Meta class types: " + meta1.getClass().getSimpleName() + " vs " + meta2.getClass().getSimpleName());
+            
+            // Try comparing the meta objects directly for more info
+            GUIShop.getINSTANCE().getLogUtil().log("  meta1.equals(meta2) = " + meta1.equals(meta2));
+            GUIShop.getINSTANCE().getLogUtil().log("  meta1.hashCode = " + meta1.hashCode() + ", meta2.hashCode = " + meta2.hashCode());
         }
     }
     

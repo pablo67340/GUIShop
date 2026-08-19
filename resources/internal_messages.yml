@@ -619,6 +619,21 @@ messages:
     # The entry in the list
     entry: '&7/guishop &enbt {nbt} &7- &aSet an item''s NBT. Must be a valid one!'
 
+  # Message for /guishop open
+  open:
+    # The entry in the list
+    entry: '&7/guishop &eopen {player} [shop] &7- &aOpen a shop or the menu for a player'
+
+  # Messages for /guishop eco
+  eco:
+    # The entry in the list
+    entry: '&7/guishop &eeco &7- &aManage internal economy (give/take/set/balance/reset)'
+
+  # Messages for /guishop market
+  market:
+    # The entry in the list
+    entry: '&7/guishop &emarket &7- &aDynamic pricing controls (status/info/reset/resetall)'
+
   # Message for /guishop iteminfo
   iteminfo:
     # The entry in the list

@@ -113,7 +113,21 @@ public class EconomyManager {
      * Check if the economy system is available.
      */
     public boolean isAvailable() {
-        return connection != null && EconomyConfig.getInstance().isEnabled();
+        if (connection == null) {
+            return false;
+        }
+        try {
+            if (connection.isClosed()) {
+                return false;
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+        EconomyConfig config = EconomyConfig.getInstance();
+        if (config == null) {
+            return false;
+        }
+        return config.isEnabled();
     }
     
     // ==================== Account Management ====================
@@ -122,6 +136,8 @@ public class EconomyManager {
      * Check if a player has an account.
      */
     public boolean hasAccount(UUID uuid) {
+        if (!isAvailable()) return false;
+        
         if (balanceCache.containsKey(uuid)) {
             return true;
         }
@@ -132,7 +148,10 @@ public class EconomyManager {
             ResultSet rs = pstmt.executeQuery();
             return rs.next();
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to check account: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to check account: " + msg);
+            }
             return false;
         }
     }
@@ -141,11 +160,16 @@ public class EconomyManager {
      * Create a new account with the starting balance.
      */
     public boolean createAccount(UUID uuid, String username) {
+        if (!isAvailable()) return false;
+        
         if (hasAccount(uuid)) {
             return false;
         }
         
-        BigDecimal startingBalance = EconomyConfig.getInstance().getStartingBalance();
+        EconomyConfig config = EconomyConfig.getInstance();
+        if (config == null) return false;
+        
+        BigDecimal startingBalance = config.getStartingBalance();
         
         String sql = "INSERT INTO player_balances (uuid, username, balance, last_seen) VALUES (?, ?, ?, ?)";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
@@ -158,7 +182,10 @@ public class EconomyManager {
             balanceCache.put(uuid, startingBalance);
             return true;
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to create account: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to create account: " + msg);
+            }
             return false;
         }
     }
@@ -169,12 +196,21 @@ public class EconomyManager {
      * Get a player's balance.
      */
     public BigDecimal getBalance(UUID uuid) {
+        // Check if system is available (prevents errors during plugin unload/reload)
+        if (!isAvailable()) {
+            plugin.getLogUtil().debugLog("getBalance: System not available for " + uuid);
+            return BigDecimal.ZERO;
+        }
+        
         // Check cache first
         if (balanceCache.containsKey(uuid)) {
-            return balanceCache.get(uuid);
+            BigDecimal cached = balanceCache.get(uuid);
+            plugin.getLogUtil().debugLog("getBalance: Cache hit for " + uuid + " = " + cached);
+            return cached;
         }
         
         // Load from database
+        plugin.getLogUtil().debugLog("getBalance: Cache miss for " + uuid + ", querying DB");
         String sql = "SELECT balance FROM player_balances WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, uuid.toString());
@@ -182,6 +218,7 @@ public class EconomyManager {
             
             if (rs.next()) {
                 BigDecimal balance = BigDecimal.valueOf(rs.getDouble("balance"));
+                plugin.getLogUtil().debugLog("getBalance: DB returned " + balance + " for " + uuid);
                 
                 // Cache if player is online
                 Player player = Bukkit.getPlayer(uuid);
@@ -190,9 +227,16 @@ public class EconomyManager {
                 }
                 
                 return balance;
+            } else {
+                plugin.getLogUtil().debugLog("getBalance: No DB row for " + uuid);
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to get balance: " + e.getMessage());
+            // Silently ignore connection closed errors (normal during plugin reload)
+            // Only log actual errors
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to get balance: " + msg);
+            }
         }
         
         return BigDecimal.ZERO;
@@ -202,7 +246,10 @@ public class EconomyManager {
      * Set a player's balance.
      */
     public boolean setBalance(UUID uuid, BigDecimal amount) {
+        if (!isAvailable()) return false;
+        
         EconomyConfig config = EconomyConfig.getInstance();
+        if (config == null) return false;
         
         // Enforce balance limits
         if (amount.compareTo(config.getMaximumBalance()) > 0) {
@@ -223,6 +270,8 @@ public class EconomyManager {
     }
     
     private boolean saveBalance(UUID uuid, BigDecimal amount) {
+        if (!isAvailable()) return false;
+        
         String sql = "UPDATE player_balances SET balance = ?, last_seen = ? WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setDouble(1, amount.doubleValue());
@@ -231,7 +280,10 @@ public class EconomyManager {
             int updated = pstmt.executeUpdate();
             return updated > 0;
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to save balance: " + e.getMessage());
+            String msg = e.getMessage();
+            if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                plugin.getLogUtil().log("Failed to save balance: " + msg);
+            }
             return false;
         }
     }
@@ -249,6 +301,8 @@ public class EconomyManager {
      * @return true if successful, false if insufficient funds or not allowed
      */
     public boolean withdraw(UUID uuid, BigDecimal amount) {
+        if (!isAvailable()) return false;
+        
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             return false; // Can't withdraw negative
         }
@@ -257,6 +311,7 @@ public class EconomyManager {
         BigDecimal newBalance = balance.subtract(amount);
         
         EconomyConfig config = EconomyConfig.getInstance();
+        if (config == null) return false;
         
         // Check if withdrawal would put below minimum
         if (!config.isAllowNegativeBalance() && newBalance.compareTo(BigDecimal.ZERO) < 0) {
@@ -275,6 +330,8 @@ public class EconomyManager {
      * @return true if successful
      */
     public boolean deposit(UUID uuid, BigDecimal amount) {
+        if (!isAvailable()) return false;
+        
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
             return false; // Can't deposit negative
         }
@@ -291,12 +348,16 @@ public class EconomyManager {
      * Load player balance into cache when they join.
      */
     public void loadPlayerCache(Player player) {
-        if (!isAvailable()) return;
+        if (!isAvailable()) {
+            plugin.getLogUtil().debugLog("loadPlayerCache: Economy not available for " + player.getName());
+            return;
+        }
         
         UUID uuid = player.getUniqueId();
         
         // Create account if doesn't exist
         if (!hasAccount(uuid)) {
+            plugin.getLogUtil().debugLog("loadPlayerCache: Creating new account for " + player.getName());
             createAccount(uuid, player.getName());
         } else {
             // Update username in case it changed
@@ -305,6 +366,7 @@ public class EconomyManager {
             // Load balance into cache
             BigDecimal balance = getBalance(uuid);
             balanceCache.put(uuid, balance);
+            plugin.getLogUtil().debugLog("loadPlayerCache: Loaded " + player.getName() + " with balance " + balance);
         }
     }
     
@@ -323,6 +385,8 @@ public class EconomyManager {
     }
     
     private void updateUsername(UUID uuid, String username) {
+        if (!isAvailable()) return;
+        
         String sql = "UPDATE player_balances SET username = ?, last_seen = ? WHERE uuid = ?";
         try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
             pstmt.setString(1, username);
@@ -344,17 +408,22 @@ public class EconomyManager {
             return online.getUniqueId();
         }
         
-        // Check database
-        String sql = "SELECT uuid FROM player_balances WHERE LOWER(username) = LOWER(?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, username);
-            ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next()) {
-                return UUID.fromString(rs.getString("uuid"));
+        // Check database if available
+        if (isAvailable()) {
+            String sql = "SELECT uuid FROM player_balances WHERE LOWER(username) = LOWER(?)";
+            try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
+                pstmt.setString(1, username);
+                ResultSet rs = pstmt.executeQuery();
+                
+                if (rs.next()) {
+                    return UUID.fromString(rs.getString("uuid"));
+                }
+            } catch (SQLException e) {
+                String msg = e.getMessage();
+                if (msg != null && !msg.toLowerCase().contains("closed") && !msg.toLowerCase().contains("shutdown")) {
+                    plugin.getLogUtil().log("Failed to lookup UUID: " + msg);
+                }
             }
-        } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to lookup UUID: " + e.getMessage());
         }
         
         // Fall back to Bukkit offline player

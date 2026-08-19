@@ -17,10 +17,12 @@ import com.pablo67340.guishop.listenable.editor.TransactionEditor;
 import com.pablo67340.guishop.util.ItemUtil;
 import com.pablo67340.guishop.util.NameUtil;
 import com.pablo67340.guishop.util.PDCUtil;
+import com.pablo67340.guishop.util.SchedulerUtil;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.HoverEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 import net.md_5.bungee.api.chat.hover.content.Text;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.Command;
@@ -92,6 +94,8 @@ public class GuishopCommand implements CommandExecutor {
                     GUIShop.getINSTANCE().reload(commandSender, false);
                 } else if (args[0].equalsIgnoreCase("eco") || args[0].equalsIgnoreCase("economy")) {
                     handleEcoCommand(commandSender, args);
+                } else if (args[0].equalsIgnoreCase("open") || args[0].equalsIgnoreCase("o")) {
+                    handleOpenCommand(commandSender, args);
                 } else {
                     GUIShop.getINSTANCE().getMiscUtils().sendPrefix(commandSender, "only-player");
                 }
@@ -680,6 +684,9 @@ public class GuishopCommand implements CommandExecutor {
                     // Display comprehensive item information for held item
                     printItemInfo(player);
                 }
+            } else if (args[0].equalsIgnoreCase("open") || args[0].equalsIgnoreCase("o")) {
+                // Open a shop or the menu on behalf of another player
+                handleOpenCommand(commandSender, args);
             } else if (args[0].equalsIgnoreCase("eco") || args[0].equalsIgnoreCase("economy")) {
                 // Economy management commands
                 handleEcoCommand(commandSender, args);
@@ -695,6 +702,56 @@ public class GuishopCommand implements CommandExecutor {
         return true;
     }
     
+    /**
+     * Handle /gs open &lt;player&gt; [shop] - opens a shop, or the main menu when no
+     * shop is given, on behalf of another player. Usable from the console.
+     */
+    private void handleOpenCommand(CommandSender sender, String[] args) {
+        if (args.length < 2) {
+            sender.sendMessage(ChatColor.RED + "Usage: /gs open <player> [shop]");
+            sender.sendMessage(ChatColor.GRAY + "Leave out the shop name to open the main menu.");
+            return;
+        }
+
+        Player target = Bukkit.getPlayerExact(args[1]);
+        if (target == null) {
+            sender.sendMessage(ChatColor.RED + "Player '" + args[1] + "' is not online.");
+            return;
+        }
+
+        // Mirror the checks the GUI performs so the sender gets a reason instead of
+        // the target silently receiving a denial message
+        if (!GUIShop.getINSTANCE().getMiscUtils().getPerms().playerHas(target, "guishop.use") && !target.isOp()) {
+            sender.sendMessage(ChatColor.RED + target.getName() + " is missing the guishop.use permission.");
+            return;
+        }
+
+        if (Config.getDisabledWorlds().contains(target.getWorld().getName())) {
+            sender.sendMessage(ChatColor.RED + "Shops are disabled in " + target.getName() + "'s world ("
+                    + target.getWorld().getName() + ").");
+            return;
+        }
+
+        if (args.length < 3) {
+            SchedulerUtil.runAtEntity(target, () -> PlayerListener.INSTANCE.openMenu(target));
+            sender.sendMessage(ChatColor.GREEN + "Opened the shop menu for " + target.getName() + ".");
+            return;
+        }
+
+        String shop = NameUtil.nearestShop(args[2]);
+        if (shop == null) {
+            sender.sendMessage(ChatColor.RED + "No shop matching '" + args[2] + "' was found.");
+            Set<String> shopNames = GUIShop.getINSTANCE().getConfigManager().getShopNames();
+            if (shopNames != null && !shopNames.isEmpty()) {
+                sender.sendMessage(ChatColor.GRAY + "Available shops: " + ChatColor.YELLOW + String.join(", ", shopNames));
+            }
+            return;
+        }
+
+        SchedulerUtil.runAtEntity(target, () -> new Menu(target).openShop(target, shop));
+        sender.sendMessage(ChatColor.GREEN + "Opened shop '" + shop + "' for " + target.getName() + ".");
+    }
+
     /**
      * Handle /gs eco subcommands.
      */

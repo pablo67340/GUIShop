@@ -18,7 +18,7 @@ import java.util.List;
 public class GuishopTabCompleter implements TabCompleter {
 
     private static final List<String> BASE_COMMANDS = Arrays.asList(
-        "reload", "edit", "parsemob", "toggleworth", "iteminfo", "eco", "market", "help"
+        "reload", "edit", "open", "parsemob", "toggleworth", "iteminfo", "eco", "market", "help"
     );
     
     private static final List<String> EDIT_TARGETS = Arrays.asList(
@@ -85,6 +85,13 @@ public class GuishopTabCompleter implements TabCompleter {
                         completions.add(marketCmd);
                     }
                 }
+            } else if (subCommand.equals("open") || subCommand.equals("o")) {
+                // /gs open <player>
+                for (Player player : Bukkit.getOnlinePlayers()) {
+                    if (player.getName().toLowerCase().startsWith(partial)) {
+                        completions.add(player.getName());
+                    }
+                }
             } else if (subCommand.equals("parsemob")) {
                 // /gs parsemob <entity>
                 for (org.bukkit.entity.EntityType type : org.bukkit.entity.EntityType.values()) {
@@ -113,6 +120,16 @@ public class GuishopTabCompleter implements TabCompleter {
                     for (Player player : Bukkit.getOnlinePlayers()) {
                         if (player.getName().toLowerCase().startsWith(partial)) {
                             completions.add(player.getName());
+                        }
+                    }
+                }
+            } else if (subCommand.equals("open") || subCommand.equals("o")) {
+                // /gs open <player> <shop>
+                java.util.Set<String> shopNames = GUIShop.getINSTANCE().getConfigManager().getShopNames();
+                if (shopNames != null) {
+                    for (String shop : shopNames) {
+                        if (shop.toLowerCase().startsWith(partial)) {
+                            completions.add(shop);
                         }
                     }
                 }

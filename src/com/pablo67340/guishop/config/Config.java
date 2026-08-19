@@ -15,7 +15,7 @@ public final class Config {
     @Setter
     private static boolean signsOnly, disableEscapeBack, soundEnabled,
             dynamicPricing, debugMode, sellSkullUUID, disableEscapeBackQuantity, transactionLog, hideNonBuyable,
-            abbreviatePrices;
+            abbreviatePrices, showMarketInfo;
 
     /**
      * The commands mode, determines whether to intercept commands, register

@@ -692,6 +692,9 @@ public final class ConfigManager {
         // Abbreviate prices in shop lore (e.g., 1.5k instead of 1500)
         Config.setAbbreviatePrices(mainConfig.getBoolean("abbreviate-prices", true));
 
+        // Show price movement on shop items whose live price differs from the base price
+        Config.setShowMarketInfo(mainConfig.getBoolean("show-market-info", false));
+
         // Register commands
         if (Config.getCommandsMode() == CommandsMode.INTERCEPT) {
             CommandsInterceptor.register();
@@ -717,6 +720,20 @@ public final class ConfigManager {
         }
 
         Config.getLoreConfig().lores.putAll(lores);
+
+        // Market templates are absent from config.yml files created before this
+        // feature existed, so fall back to defaults rather than silently ignoring
+        // show-market-info
+        Map<String, String> marketDefaults = Map.of(
+                "buy-market", "&fBuy: &m%base_amount%&r %trend% &c%amount%",
+                "sell-market", "&fSell: &m%base_amount%&r %trend% &c%amount%",
+                "trend-up", "&a\u25B2%change_percent%",
+                "trend-down", "&c\u25BC%change_percent%");
+
+        for (Map.Entry<String, String> entry : marketDefaults.entrySet()) {
+            Config.getLoreConfig().lores.putIfAbsent(entry.getKey(),
+                    ChatColor.translateAlternateColorCodes('&', entry.getValue()));
+        }
     }
 
     public void initDictionary() {

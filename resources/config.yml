@@ -76,6 +76,15 @@ hide-non-buyable: false
 # Display prices in abbreviated format (1.5k, 2.5M) instead of full numbers
 abbreviate-prices: true
 
+# Show market price movement on shop items
+# When an item's live price differs from its configured base price, its buy/sell
+# lore uses the 'buy-market'/'sell-market' templates below, which can show the
+# original price, the percent change and a trend arrow.
+# Items sitting at their base price, including all statically priced items,
+# keep their normal price line.
+# Requires dynamic pricing to be enabled in dynamicpricing.yml to have any effect.
+show-market-info: false
+
 
 # =============================================
 # SIGN SHOP
@@ -261,6 +270,21 @@ lores:
   free: '&fBuy: &aFREE'
   cannot-buy: '&cCannot buy'
   cannot-sell: '&cCannot sell'
+
+  # Market price display (only used when show-market-info is true, and only for
+  # items whose live price has moved away from their configured base price)
+  # Placeholders:
+  #   %amount%          - current price
+  #   %base_amount%     - original configured price
+  #   %change_amount%   - how much the price moved, as money
+  #   %change_percent%  - how much the price moved, as a percent (e.g. 17.00%)
+  #   %trend%           - the trend-up or trend-down text below
+  buy-market: '&fBuy: &m%base_amount%&r %trend% &c%amount%'
+  sell-market: '&fSell: &m%base_amount%&r %trend% &c%amount%'
+
+  # Trend indicators, substituted into %trend% above
+  trend-up: '&a▲%change_percent%'
+  trend-down: '&c▼%change_percent%'
   
   # Item properties (shown in creator mode)
   nbt: '&fNBT: &c%nbt%'

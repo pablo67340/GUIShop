@@ -32,6 +32,7 @@ import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
@@ -376,10 +377,9 @@ public final class Item implements ConfigurationSerializable {
         if (hasBuyPrice()) {
             BigDecimal buyPriceAsDouble = getBuyPriceAsDecimal();
             if (buyPriceAsDouble.compareTo(BigDecimal.ZERO) > 0) {
-                return Config.getLoreConfig().lores.get("buy").replace("%amount%",
-                        GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
-                                + GUIShop.getINSTANCE().getMiscUtils().economyFormat(calculateBuyPrice(quantity))
-                                + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
+                return buildPriceLore("buy", "buy-market",
+                        buyPriceAsDouble.multiply(BigDecimal.valueOf(quantity)),
+                        calculateBuyPrice(quantity));
             }
             return Config.getLoreConfig().lores.get("free");
         }
@@ -398,12 +398,60 @@ public final class Item implements ConfigurationSerializable {
      */
     public String getSellLore(int quantity) {
         if (hasSellPrice()) {
-            return Config.getLoreConfig().lores.get("sell").replace("%amount%",
-                    GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
-                            + GUIShop.getINSTANCE().getMiscUtils().economyFormat(calculateSellPrice(quantity))
-                            + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix"));
+            return buildPriceLore("sell", "sell-market",
+                    getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity)),
+                    calculateSellPrice(quantity));
         }
         return Config.getLoreConfig().lores.get("cannot-sell");
+    }
+
+    /**
+     * Builds a price lore line. <br>
+     * When market info is enabled and the live price has drifted away from the
+     * configured base price, the market template is used so the original price,
+     * the percent change and a trend indicator can be shown. Otherwise the plain
+     * template is used, which is always the case for statically priced items.
+     *
+     * @param plainKey the lore key for the standard price line
+     * @param marketKey the lore key for the market price line
+     * @param baseTotal the configured price for the given quantity
+     * @param currentTotal the live price for the given quantity
+     * @return the price lore
+     */
+    private String buildPriceLore(String plainKey, String marketKey, BigDecimal baseTotal, BigDecimal currentTotal) {
+        String currentAmount = formatCurrency(currentTotal);
+        String marketTemplate = Config.getLoreConfig().lores.get(marketKey);
+
+        if (!Config.isShowMarketInfo() || marketTemplate == null
+                || baseTotal.compareTo(BigDecimal.ZERO) <= 0
+                || baseTotal.compareTo(currentTotal) == 0) {
+            return Config.getLoreConfig().lores.get(plainKey).replace("%amount%", currentAmount);
+        }
+
+        BigDecimal difference = currentTotal.subtract(baseTotal);
+        BigDecimal percent = difference.abs().multiply(BigDecimal.valueOf(100))
+                .divide(baseTotal, 2, RoundingMode.HALF_UP);
+        String trend = Config.getLoreConfig().lores
+                .getOrDefault(difference.signum() > 0 ? "trend-up" : "trend-down", "");
+
+        // Trend is substituted first so its own placeholders resolve below
+        return marketTemplate.replace("%trend%", trend)
+                .replace("%amount%", currentAmount)
+                .replace("%base_amount%", formatCurrency(baseTotal))
+                .replace("%change_amount%", formatCurrency(difference.abs()))
+                .replace("%change_percent%", percent.toPlainString() + "%");
+    }
+
+    /**
+     * Formats a monetary value with the configured currency prefix and suffix.
+     *
+     * @param value the value to format
+     * @return the formatted value
+     */
+    private String formatCurrency(BigDecimal value) {
+        return GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-prefix")
+                + GUIShop.getINSTANCE().getMiscUtils().economyFormat(value)
+                + GUIShop.getINSTANCE().getConfigManager().getMessageSystem().translate("messages.currency-suffix");
     }
 
     /**

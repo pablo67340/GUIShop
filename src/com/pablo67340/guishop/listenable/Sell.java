@@ -44,7 +44,15 @@ public final class Sell {
     public void sell(Player player) {
         ItemSellReturn result = sellItems(player, GUI.getInventory().getContents(), SellType.INVENTORY);
 
-        result.getNotSold().forEach(player.getInventory()::addItem);
+        for (ItemStack notSold : result.getNotSold()) {
+            if (notSold == null || notSold.getType() == Material.AIR) {
+                continue;
+            }
+            // Drop whatever doesn't fit so a full inventory can't void unsellable items
+            for (ItemStack overflow : player.getInventory().addItem(notSold).values()) {
+                player.getWorld().dropItemNaturally(player.getLocation(), overflow);
+            }
+        }
 
         if (result.getCouldntSell()) {
             GUIShop.getINSTANCE().getMiscUtils().sendPrefix(player, "cant-sell", result.getColdntSellCount());

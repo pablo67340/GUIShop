@@ -39,111 +39,7 @@ import java.util.stream.Collectors;
 
 import com.pablo67340.guishop.util.StringUtil;
 
-public final class Item implements ConfigurationSerializable {
-
-    /**
-     * The name of this {@link Item} when presented on the GUI.
-     */
-    @Getter
-    @Setter
-    private String shopName, buyName, shop, targetShop, name, skullUUID, NBT;
-
-    @Getter
-    @Setter
-    private Integer slot, customModelData;
-
-    @Getter
-    @Setter
-    private int configSlot;
-
-    /**
-     * The Material of this {@link Item}.
-     */
-    @Getter
-    @Setter
-    private String material;
-
-    /**
-     * The price to buy this {@link Item}.
-     */
-    @Getter
-    @Setter
-    private Object buyPrice;
-
-    /**
-     * The mob ID of this item if it's a spawner {@link Item}.
-     */
-    @Getter
-    @Setter
-    private String mobType;
-
-    /**
-     * The reason a resolution may has failed.
-     */
-    @Getter
-    @Setter
-    private String resolveReason;
-
-    /**
-     * The amount of money given when selling this {@link Item}.
-     */
-    @Getter
-    @Setter
-    private Object sellPrice;
-
-    /**
-     * Whether this item, specifically, uses dynamic pricing.
-     * Defaults to true - items inherit global dynamic pricing setting.
-     * Set to false to exempt this specific item from dynamic pricing.
-     */
-    @Getter
-    @Setter
-    private boolean useDynamicPricing = true;
-
-    @Getter
-    @Setter
-    private QuantityValue quantityValue;
-
-    @Getter
-    private boolean resolveFailed = false;
-
-    /**
-     * The slot of this {@link Item} when presented on the GUI.
-     */
-    @Getter
-    @Setter
-    private ItemType itemType = ItemType.DUMMY;
-
-    @Getter
-    @Setter
-    private List<String> buyLore, shopLore, lore, itemFlags;
-
-    @Getter
-    @Setter
-    private List<String> commands;
-    
-    /**
-     * Whether commands should be run as the player (sudo) instead of console.
-     * Defaults to false (run as console).
-     */
-    @Getter
-    @Setter
-    private boolean sudo = false;
-
-    /**
-     * The enchantsments on this {@link Item}.
-     */
-    @Getter
-    @Setter
-    private String[] enchantments;
-
-    @Getter
-    @Setter
-    private PotionInfo potionInfo;
-
-    @Getter
-    @Setter
-    private FireworkInfo fireworkInfo;
+public final class Item extends ItemDefinition implements ConfigurationSerializable {
 
     @Getter
     @Setter
@@ -173,63 +69,8 @@ public final class Item implements ConfigurationSerializable {
         POTION_MATERIALS = new String[]{potionName, splashPotionName, lingerPotionName};
     }
 
-    public boolean hasShopName() {
-        return (shopName != null) && !shopName.isEmpty();
-    }
-
-    public boolean hasName() {
-        return (name != null) && !name.isEmpty();
-    }
-
-    public boolean hasBuyName() {
-        return buyName != null;
-    }
-
-    public boolean hasTargetShop() {
-        return targetShop != null;
-    }
-
-    public boolean hasShopLore() {
-        return (shopLore != null) && !shopLore.isEmpty();
-    }
-
-    public boolean hasLore() {
-        return (lore != null) && !lore.isEmpty();
-    }
-
-    public boolean hasBuyLore() {
-        return (buyLore != null) && !buyLore.isEmpty();
-    }
-
     public boolean hasPermission() {
         return permission != null;
-    }
-
-    public boolean hasEnchantments() {
-        return (enchantments != null) && (enchantments.length != 0) && !enchantments[0].isEmpty();
-    }
-
-    public boolean hasCommands() {
-        return (commands != null) && !commands.isEmpty();
-    }
-
-    /**
-     * If this item has a potion. <br>
-     * If is not a potion, this will always return <code>false</code>
-     *
-     * @return true if the item has a potion, false otherwise
-     */
-    public boolean hasPotion() {
-        return potionInfo != null;
-    }
-
-    /**
-     * If this item has firework info.
-     *
-     * @return true if the item has firework info, false otherwise
-     */
-    public boolean hasFirework() {
-        return fireworkInfo != null;
     }
 
     /**
@@ -262,58 +103,6 @@ public final class Item implements ConfigurationSerializable {
     public boolean isMobSpawner() {
         Optional<XMaterial> mat = XMaterial.matchXMaterial(material);
         return mat.orElse(null) == XMaterial.SPAWNER;
-    }
-
-    /**
-     * Checks whether the item has a defined AND nonzero sell price. <br>
-     * For the sell price to be defined it must be an integer or double.
-     *
-     * @return true if the sell price is valid, false otherwise
-     */
-    public boolean hasSellPrice() {
-        // instanceof does the null-check for us
-        return (sellPrice instanceof BigDecimal && ((BigDecimal) sellPrice).compareTo(BigDecimal.ZERO) > 0)
-                || (sellPrice instanceof Integer && ((Integer) sellPrice) > 0);
-    }
-
-    /**
-     * Checks whether the item has a defined buy price. <br>
-     * For the buy price to be defined it must be an integer or double.
-     *
-     * @return true if the buy price is valid, false otherwise
-     */
-    public boolean hasBuyPrice() {
-        // instanceof does the null-check for us
-        return (buyPrice instanceof BigDecimal) || (buyPrice instanceof Integer);
-    }
-
-    /**
-     * Checks whether the mob type is defined
-     *
-     * @return true if defined, false otherwise
-     */
-    public boolean hasMobType() {
-        return (mobType != null) && !mobType.isEmpty();
-    }
-
-    /**
-     * Assuming the buy price is an integer or a double, get it as a double.
-     * Remember to check {@link #hasBuyPrice()} first
-     *
-     * @return the buy price as a double
-     */
-    public BigDecimal getBuyPriceAsDecimal() {
-        return (buyPrice instanceof BigDecimal) ? (BigDecimal) buyPrice : BigDecimal.valueOf(((Integer) buyPrice).doubleValue());
-    }
-
-    /**
-     * Assuming the sell price is an integer or a double, get it as a double.
-     * Remember to check {@link #hasSellPrice()} first
-     *
-     * @return the sell price as a double
-     */
-    public BigDecimal getSellPriceAsDecimal() {
-        return (sellPrice instanceof BigDecimal) ? (BigDecimal) sellPrice : BigDecimal.valueOf(((Integer) sellPrice).doubleValue());
     }
 
     /**
@@ -531,22 +320,6 @@ public final class Item implements ConfigurationSerializable {
         return null;
     }
 
-
-    public Boolean hasSkullUUID() {
-        return this.skullUUID != null;
-    }
-
-    public Boolean hasCustomModelID() {
-        return this.customModelData != null;
-    }
-
-    public Boolean hasItemFlags() {
-        return (itemFlags != null) && !itemFlags.isEmpty();
-    }
-
-    public Boolean hasNBT() {
-        return NBT != null;
-    }
 
     /**
      * Resolves the PotionType from PotionInfo, handling the 1.20.5+ naming changes.
@@ -1806,48 +1579,11 @@ public final class Item implements ConfigurationSerializable {
         return serialized;
     }
 
-    public void setResolveFailed(String reason) {
-        resolveFailed = true;
-        resolveReason = reason;
-    }
-
     public ItemStack getErrorStack() {
         ItemStack itemStack = new ItemStack(Material.BARRIER);
         ItemMeta im = itemStack.getItemMeta();
         im.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&c" + resolveReason));
         itemStack.setItemMeta(im);
         return itemStack;
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("Buy Name: ");
-        builder.append(this.getBuyName());
-        builder.append(" Buy Price: ");
-        builder.append(this.buyPrice);
-        builder.append(" Config Slot: ");
-        builder.append(this.configSlot);
-        builder.append(" Custom Model Data: ");
-        builder.append(this.customModelData);
-        builder.append(" Item Type: ");
-        builder.append(this.itemType);
-        builder.append(" Material: ");
-        builder.append(this.material);
-        builder.append(" MobType: ");
-        builder.append(this.mobType);
-        builder.append(" Name: ");
-        builder.append(this.name);
-        builder.append(" Resolve Failed: ");
-        builder.append(this.resolveFailed);
-        builder.append(" Shop Name: ");
-        builder.append(this.shopName);
-        builder.append(" Skull UUID: ");
-        builder.append(this.skullUUID);
-        builder.append(" Slot: ");
-        builder.append(this.slot);
-        builder.append(" Target Shop: ");
-        builder.append(this.targetShop);
-        return builder.toString();
     }
 }

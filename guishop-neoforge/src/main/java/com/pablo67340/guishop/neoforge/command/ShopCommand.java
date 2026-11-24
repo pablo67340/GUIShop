@@ -16,6 +16,8 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -30,8 +32,11 @@ public final class ShopCommand {
     }
 
     public static void register(CommandDispatcher<CommandSourceStack> dispatcher, ShopRegistry registry) {
-        SuggestionProvider<CommandSourceStack> shopNames =
-                (context, builder) -> SharedSuggestionProvider.suggest(registry.names(), builder);
+        SuggestionProvider<CommandSourceStack> shopNames = (context, builder) -> {
+            List<String> targets = new ArrayList<>(registry.names());
+            targets.add("menu");
+            return SharedSuggestionProvider.suggest(targets, builder);
+        };
 
         RequiredArgumentBuilder<CommandSourceStack, String> named =
                 Commands.argument("shop", StringArgumentType.word())
@@ -69,13 +74,31 @@ public final class ShopCommand {
                             .withStyle(ChatFormatting.DARK_GRAY)), false);
         }
 
+        NeoShop menu = registry.getMenu();
+        if (menu == null) {
+            source.sendSuccess(() -> Component.literal(" menu.yml not loaded")
+                    .withStyle(ChatFormatting.RED), false);
+        } else {
+            source.sendSuccess(() -> Component.literal(" menu: "
+                            + ShopRegistry.countItems(menu) + " icon(s) across "
+                            + menu.getPages().size() + " page(s)")
+                    .withStyle(ChatFormatting.GRAY), false);
+
+            List<String> broken = registry.brokenMenuTargets();
+            if (!broken.isEmpty()) {
+                source.sendSuccess(() -> Component.literal(" menu icons point at missing shops: "
+                        + String.join(", ", broken)).withStyle(ChatFormatting.RED), false);
+            }
+        }
+
         source.sendSuccess(() -> Component.literal("Use /shop <name> to inspect one.")
                 .withStyle(ChatFormatting.DARK_GRAY), false);
         return registry.names().size();
     }
 
     private static int describeShop(CommandSourceStack source, ShopRegistry registry, String name) {
-        NeoShop shop = registry.get(name);
+        // The menu is not in the shop map, but inspecting it the same way is useful.
+        NeoShop shop = "menu".equalsIgnoreCase(name) ? registry.getMenu() : registry.get(name);
         if (shop == null) {
             source.sendFailure(Component.literal("No shop named '" + name + "'."));
             return 0;
@@ -115,6 +138,9 @@ public final class ShopCommand {
         }
         if (item.getItemType() != ItemType.SHOP) {
             detail.append(" [").append(item.getItemType()).append("]");
+        }
+        if (item.getTargetShop() != null) {
+            detail.append(" -> ").append(item.getTargetShop());
         }
 
         // resolveItem flags unknown ids, which is the common config mistake.

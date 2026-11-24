@@ -65,7 +65,11 @@ public final class GuiShopMod {
     private void onServerStarting(ServerStartingEvent event) {
         int loaded = shopRegistry.loadAll();
         context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
-                + shopRegistry.totalItems() + " item(s).");
+                + shopRegistry.totalItems() + " item(s), menu "
+                + (shopRegistry.getMenu() != null ? "loaded" : "missing") + ".");
+
+        shopRegistry.brokenMenuTargets().forEach(target ->
+                context.logger().warning("Menu icon points at missing shop '" + target + "'."));
 
         // Without this, anything cached since the last flush is lost if the
         // process is killed rather than shut down.

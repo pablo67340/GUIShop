@@ -27,6 +27,9 @@ public final class YamlShopLoader {
     private YamlShopLoader() {
     }
 
+    /** menu.yml nests everything under this key; shop files do not. */
+    private static final String MENU_ROOT_KEY = "Menu";
+
     /**
      * Loads one shop file.
      *
@@ -35,9 +38,38 @@ public final class YamlShopLoader {
      * @return the parsed shop, or null if the file could not be read
      */
     public static NeoShop loadShop(Path file, String name) {
+        return load(file, name, null);
+    }
+
+    /**
+     * Loads menu.yml.
+     * <p>
+     * The menu is the same structure as a shop - a titled, paged grid of items -
+     * so it uses the same model. Its items navigate rather than sell, which the
+     * item type already captures.
+     *
+     * @return the parsed menu, or null if the file could not be read
+     */
+    public static NeoShop loadMenu(Path file) {
+        return load(file, MENU_ROOT_KEY, MENU_ROOT_KEY);
+    }
+
+    /**
+     * @param rootKey the key the body is nested under, or null if it is at the
+     *                top level
+     */
+    private static NeoShop load(Path file, String name, String rootKey) {
         Map<String, Object> root = read(file);
         if (root == null) {
             return null;
+        }
+
+        if (rootKey != null) {
+            root = map(root.get(rootKey));
+            if (root == null) {
+                warn("'" + file.getFileName() + "' has no " + rootKey + " section.");
+                return null;
+            }
         }
 
         NeoShop shop = new NeoShop();
@@ -94,8 +126,10 @@ public final class YamlShopLoader {
         item.setShop(shopName);
         item.setSlot(slot);
         item.setConfigSlot(slot);
-        item.setMaterial(string(data.get("id"), null));
-        item.setItemType(parseType(data.get("type")));
+
+        ItemType type = parseType(data.get("type"), data.get("target-shop") != null);
+        item.setItemType(type);
+        item.setMaterial(materialFor(data.get("id"), type));
 
         item.setShopName(string(data.get("shop-name"), null));
         item.setBuyName(string(data.get("buy-name"), null));
@@ -131,18 +165,31 @@ public final class YamlShopLoader {
     }
 
     /**
-     * Mirrors the Bukkit module's defaulting: an entry with prices but no
-     * declared type is a normal shop item.
+     * Mirrors the Bukkit module's defaulting: an entry with no declared type is
+     * a normal shop item, unless it names a target shop, as the menu's icons do.
      */
-    private static ItemType parseType(Object raw) {
+    private static ItemType parseType(Object raw, boolean hasTargetShop) {
+        ItemType fallback = hasTargetShop ? ItemType.SHOP_SHORTCUT : ItemType.SHOP;
         if (raw == null) {
-            return ItemType.SHOP;
+            return fallback;
         }
         try {
             return ItemType.valueOf(String.valueOf(raw).trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException exception) {
-            return ItemType.SHOP;
+            return fallback;
         }
+    }
+
+    /**
+     * Navigation entries such as PLAYER_BALANCE are conventionally configured
+     * without an id, so give those types their customary icon.
+     */
+    private static String materialFor(Object raw, ItemType type) {
+        String material = string(raw, null);
+        if (material != null && !material.isBlank()) {
+            return material;
+        }
+        return type == ItemType.PLAYER_BALANCE ? "PLAYER_HEAD" : material;
     }
 
     private static Integer parseSlot(String key) {

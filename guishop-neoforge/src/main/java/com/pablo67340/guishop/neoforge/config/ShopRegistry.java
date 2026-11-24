@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.neoforge.config;
 
+import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 
@@ -18,14 +19,40 @@ import java.util.stream.Stream;
 public final class ShopRegistry {
 
     private final Map<String, NeoShop> shops = new LinkedHashMap<>();
+    private NeoShop menu;
 
     /**
-     * Reads every {@code .yml} in the shops directory. Shop names come from the
-     * file names, as in the Bukkit plugin's folder-based layout.
+     * Reads menu.yml and every {@code .yml} in the shops directory.
      *
      * @return the number of shops loaded
      */
     public int loadAll() {
+        loadMenu();
+        return loadShops();
+    }
+
+    private void loadMenu() {
+        menu = null;
+
+        Path menuFile = GuiShopPlatform.get().dataFolder().resolve("menu.yml");
+        if (!Files.isRegularFile(menuFile)) {
+            GuiShopPlatform.get().logger().warning(
+                    "No menu.yml at " + menuFile + ". The shop menu will be unavailable.");
+            return;
+        }
+
+        menu = YamlShopLoader.loadMenu(menuFile);
+        if (menu != null) {
+            GuiShopPlatform.get().logUtil().debugLog("Loaded menu with "
+                    + menu.getPages().size() + " page(s) and " + countItems(menu) + " item(s).");
+        }
+    }
+
+    /**
+     * Reads every {@code .yml} in the shops directory. Shop names come from the
+     * file names, as in the Bukkit plugin's folder-based layout.
+     */
+    private int loadShops() {
         shops.clear();
 
         Path shopsDir = GuiShopPlatform.get().dataFolder().resolve("shops");
@@ -66,6 +93,30 @@ public final class ShopRegistry {
         }
 
         return shops.size();
+    }
+
+    /**
+     * The main menu, or null if menu.yml is missing or unreadable.
+     */
+    public NeoShop getMenu() {
+        return menu;
+    }
+
+    /**
+     * Reports menu icons whose target-shop names a shop that does not exist,
+     * which would otherwise only show up as a dead click.
+     */
+    public List<String> brokenMenuTargets() {
+        if (menu == null) {
+            return List.of();
+        }
+        return menu.getPages().values().stream()
+                .flatMap(page -> page.getItems().values().stream())
+                .map(NeoItem::getTargetShop)
+                .filter(target -> target != null && !target.isBlank())
+                .filter(target -> get(target) == null)
+                .distinct()
+                .toList();
     }
 
     public NeoShop get(String name) {

@@ -1,13 +1,21 @@
 package com.pablo67340.guishop.util;
 
-import com.pablo67340.guishop.GUIShop;
-
 import java.util.*;
 
 public class NameUtil {
 
-    public static String nearestShop(String input) {
-        List<String> availableShops = new ArrayList<>(GUIShop.getINSTANCE().getConfigManager().getShopNames());
+    /**
+     * Finds the configured shop whose name most closely resembles the input,
+     * for "did you mean" suggestions.
+     *
+     * @param input          the name the player typed
+     * @param availableShops the configured shop names to match against
+     * @return the closest match, or null if nothing was similar enough
+     */
+    public static String nearestShop(String input, Collection<String> availableShops) {
+        if (availableShops == null || availableShops.isEmpty()) {
+            return null;
+        }
 
         TreeMap<Double, String> sorted = new TreeMap<>();
 

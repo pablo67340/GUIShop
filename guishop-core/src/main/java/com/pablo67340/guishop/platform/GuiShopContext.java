@@ -8,10 +8,6 @@ import java.nio.file.Path;
  * Everything core needs from the host platform, in one place. Each platform
  * module provides an implementation and registers it with
  * {@link GuiShopPlatform} during startup.
- * <p>
- * The two config flags are here rather than read from a core config model
- * because configuration loading still lives in the platform modules. They move
- * out once core owns the config POJOs.
  */
 public interface GuiShopContext {
 
@@ -30,8 +26,4 @@ public interface GuiShopContext {
     LogUtil logUtil();
 
     PlatformScheduler scheduler();
-
-    boolean isDebugMode();
-
-    boolean isTransactionLog();
 }

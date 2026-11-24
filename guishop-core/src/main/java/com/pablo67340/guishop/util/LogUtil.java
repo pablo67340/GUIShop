@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.util;
 
+import com.pablo67340.guishop.config.BaseConfig;
 import com.pablo67340.guishop.platform.GuiShopContext;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import java.io.IOException;
@@ -60,7 +61,7 @@ public final class LogUtil {
     }
 
     public void transactionLog(String input) {
-        if (context().isTransactionLog()) {
+        if (BaseConfig.isTransactionLog()) {
             context().logger().info("TRANSACTION: " + input);
         }
 
@@ -74,7 +75,7 @@ public final class LogUtil {
     }
 
     public void debugLog(String input) {
-        if (context().isDebugMode()) {
+        if (BaseConfig.isDebugMode()) {
             context().logger().info("DEBUG: " + input);
         }
 

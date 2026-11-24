@@ -217,7 +217,7 @@ public class ItemActionHandler {
      * Open a shop by name.
      */
     private static boolean openShop(Player player, String shopName, ClickContext context) {
-        String nearestShop = NameUtil.nearestShop(shopName);
+        String nearestShop = NameUtil.nearestShop(shopName, GUIShop.getINSTANCE().getConfigManager().getShopNames());
         
         if (nearestShop == null) {
             player.sendMessage(ChatColor.RED + "Shop '" + shopName + "' does not exist.");

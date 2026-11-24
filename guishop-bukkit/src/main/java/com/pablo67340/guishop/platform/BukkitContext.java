@@ -1,7 +1,6 @@
 package com.pablo67340.guishop.platform;
 
 import com.pablo67340.guishop.GUIShop;
-import com.pablo67340.guishop.config.Config;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.SchedulerUtil;
 
@@ -41,16 +40,6 @@ public final class BukkitContext implements GuiShopContext {
     @Override
     public PlatformScheduler scheduler() {
         return scheduler;
-    }
-
-    @Override
-    public boolean isDebugMode() {
-        return Config.isDebugMode();
-    }
-
-    @Override
-    public boolean isTransactionLog() {
-        return Config.isTransactionLog();
     }
 
     private static final class PluginLogger implements PlatformLogger {

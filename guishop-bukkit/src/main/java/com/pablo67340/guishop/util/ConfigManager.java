@@ -545,7 +545,9 @@ public final class ConfigManager {
         }
 
         // The command mode GUIShop should use
-        Config.setCommandsMode(CommandsMode.parseFromConfig(mainConfig.getString("commands-mode", "REGISTER")));
+        Config.setCommandsMode(CommandsMode.parseFromConfig(
+                mainConfig.getString("commands-mode", "REGISTER"),
+                mainConfig.getBoolean("register-commands", true)));
 
         // Signs only?
         Config.setSignsOnly(mainConfig.getBoolean("signs-only", false));

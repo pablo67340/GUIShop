@@ -1,61 +1,30 @@
 package com.pablo67340.guishop.config;
 
-import com.pablo67340.guishop.definition.CommandsMode;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.List;
-
-public final class Config {
-
-    /**
-     * Some configuration booleans to enable/disable things
-     */
-    @Getter
-    @Setter
-    private static boolean signsOnly, disableEscapeBack, soundEnabled,
-            dynamicPricing, debugMode, sellSkullUUID, disableEscapeBackQuantity, transactionLog, hideNonBuyable,
-            abbreviatePrices, showMarketInfo;
+/**
+ * The Bukkit settings holder. Everything platform-independent is inherited from
+ * {@link BaseConfig}, so {@code Config.isDebugMode()} and friends still resolve
+ * here; this class adds only the settings that describe a chest-inventory GUI.
+ */
+public final class Config extends BaseConfig {
 
     /**
-     * The commands mode, determines whether to intercept commands, register
-     * them, or neither
+     * Pagination buttons. Holds live {@link com.pablo67340.guishop.definition.Item}
+     * instances, so it has no meaning off Bukkit.
      */
-    @Getter
-    @Setter
-    private static CommandsMode commandsMode;
-
-    /**
-     * Common Language strings set in configuration
-     */
-    @Getter
-    @Setter
-    private static String sound;
-
-    @Getter
-    @Setter
-    private static AltSellConfig altSellConfig = new AltSellConfig();
-
-    @Getter
-    @Setter
-    private static TitlesConfig titlesConfig = new TitlesConfig();
-
     @Getter
     @Setter
     private static ButtonConfig buttonConfig = new ButtonConfig();
 
-    @Getter
-    @Setter
-    private static LoreConfig loreConfig = new LoreConfig();
-
+    /**
+     * Transaction GUI materials and quantities, in terms of XSeries materials.
+     */
     @Getter
     @Setter
     private static TransactionGuiConfig transactionGuiConfig = new TransactionGuiConfig();
 
-    /**
-     * The list of disabled worlds for GUIShop
-     */
-    @Getter
-    @Setter
-    private static List<String> disabledWorlds;
+    private Config() {
+    }
 }

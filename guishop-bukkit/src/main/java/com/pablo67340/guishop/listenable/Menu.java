@@ -961,7 +961,7 @@ public final class Menu {
          * The currently open shop associated with this Menu instance.
          */
 
-        String nearestShop = NameUtil.nearestShop(shop);
+        String nearestShop = NameUtil.nearestShop(shop, GUIShop.getINSTANCE().getConfigManager().getShopNames());
 
         if (nearestShop != null) {
             // Set hasClicked to prevent any close handlers from interfering

@@ -152,7 +152,7 @@ public class GuishopCommand implements CommandExecutor {
                     
                     GUIShop.getINSTANCE().getLogUtil().debugLog("Edit command arg[1]: '" + args[1] + "'");
 
-                    String nearestShop = NameUtil.nearestShop(args[1]);
+                    String nearestShop = NameUtil.nearestShop(args[1], GUIShop.getINSTANCE().getConfigManager().getShopNames());
 
                     if (nearestShop != null) {
                         // Add to CREATOR before opening so the shop sets up editor handlers
@@ -738,7 +738,7 @@ public class GuishopCommand implements CommandExecutor {
             return;
         }
 
-        String shop = NameUtil.nearestShop(args[2]);
+        String shop = NameUtil.nearestShop(args[2], GUIShop.getINSTANCE().getConfigManager().getShopNames());
         if (shop == null) {
             sender.sendMessage(ChatColor.RED + "No shop matching '" + args[2] + "' was found.");
             Set<String> shopNames = GUIShop.getINSTANCE().getConfigManager().getShopNames();

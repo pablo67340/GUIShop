@@ -1,4 +1,6 @@
 /target/
+/build/
+/.gradle/
 **/*.swp
 .settings/
 dependency-reduced-pom.xml

@@ -41,6 +41,12 @@ public final class ShopBrowserScreen extends Screen {
     private ShopView view;
     private List<ShopEntryData> visible = List.of();
 
+    /**
+     * Lowercased names for the current view, indexed alongside its entries, so
+     * typing in the search box does not re-resolve every name per keystroke.
+     */
+    private List<String> searchKeys = List.of();
+
     private EditBox search;
 
     private int panelLeft;
@@ -92,7 +98,16 @@ public final class ShopBrowserScreen extends Screen {
         back.active = !history.isEmpty();
         addRenderableWidget(back);
 
+        indexSearchKeys();
         applyFilter();
+    }
+
+    private void indexSearchKeys() {
+        List<String> keys = new ArrayList<>(view.entries().size());
+        for (ShopEntryData entry : view.entries()) {
+            keys.add(entry.icon().getHoverName().getString().toLowerCase(Locale.ROOT));
+        }
+        searchKeys = keys;
     }
 
     private void applyFilter() {
@@ -101,9 +116,9 @@ public final class ShopBrowserScreen extends Screen {
             visible = view.entries();
         } else {
             List<ShopEntryData> matches = new ArrayList<>();
-            for (ShopEntryData entry : view.entries()) {
-                if (plainNameOf(entry).toLowerCase(Locale.ROOT).contains(query)) {
-                    matches.add(entry);
+            for (int index = 0; index < view.entries().size(); index++) {
+                if (searchKeys.get(index).contains(query)) {
+                    matches.add(view.entries().get(index));
                 }
             }
             visible = List.copyOf(matches);
@@ -240,10 +255,6 @@ public final class ShopBrowserScreen extends Screen {
                 textLeft, top + 6, UiTheme.TEXT, false);
 
         renderCellPrices(graphics, entry, textLeft, top + 18);
-    }
-
-    private static String plainNameOf(ShopEntryData entry) {
-        return entry.icon().getHoverName().getString();
     }
 
     /**

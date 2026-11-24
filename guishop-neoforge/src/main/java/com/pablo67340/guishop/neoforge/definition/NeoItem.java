@@ -1,18 +1,11 @@
 package com.pablo67340.guishop.neoforge.definition;
 
 import com.pablo67340.guishop.definition.ItemDefinition;
-import com.pablo67340.guishop.neoforge.util.TextUtil;
+import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.component.ItemLore;
-import net.minecraft.core.component.DataComponents;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Locale;
 
 /**
  * The NeoForge half of a shop item: everything that needs the Minecraft
@@ -22,6 +15,9 @@ import java.util.Locale;
  */
 public final class NeoItem extends ItemDefinition {
 
+    private net.minecraft.world.item.Item resolved;
+    private ItemStack cachedStack;
+
     /**
      * Resolves this item's configured material to a Minecraft item.
      * <p>
@@ -30,52 +26,36 @@ public final class NeoItem extends ItemDefinition {
      * accepted so modded items can be used.
      */
     public net.minecraft.world.item.Item resolveItem() {
-        String id = getMaterial();
-        if (id == null || id.isBlank()) {
-            return Items.AIR;
+        if (resolved != null) {
+            return resolved;
         }
 
-        String normalized = id.trim().toLowerCase(Locale.ROOT);
-        if (!normalized.contains(":")) {
-            normalized = "minecraft:" + normalized;
-        }
-
-        ResourceLocation key = ResourceLocation.tryParse(normalized);
+        ResourceLocation key = ItemStackFactory.namespaced(getMaterial());
         if (key == null) {
-            setResolveFailed("'" + id + "' is not a valid item id");
-            return Items.AIR;
+            setResolveFailed("'" + getMaterial() + "' is not a valid item id");
+            resolved = Items.AIR;
+        } else if (!BuiltInRegistries.ITEM.containsKey(key)) {
+            setResolveFailed("no item registered as '" + key + "'");
+            resolved = Items.AIR;
+        } else {
+            resolved = BuiltInRegistries.ITEM.get(key);
         }
 
-        if (!BuiltInRegistries.ITEM.containsKey(key)) {
-            setResolveFailed("no item registered as '" + normalized + "'");
-            return Items.AIR;
-        }
-
-        return BuiltInRegistries.ITEM.get(key);
+        return resolved;
     }
 
     /**
-     * Builds the stack shown in a shop, with the configured display name and
-     * lore applied.
+     * The stack shown in a shop, with every configured component applied.
+     * <p>
+     * Built once and reused: the result only depends on the config, so it is
+     * rebuilt when the config reloads, which replaces these items wholesale.
+     * Callers must treat it as read-only and {@link ItemStack#copy() copy} it
+     * before handing it to a player.
      */
-    public ItemStack toItemStack() {
-        ItemStack stack = new ItemStack(resolveItem());
-
-        String displayName = hasShopName() ? getShopName() : getName();
-        if (displayName != null && !displayName.isBlank()) {
-            stack.set(DataComponents.CUSTOM_NAME, TextUtil.toComponent(displayName));
+    public ItemStack toItemStack(HolderLookup.Provider registries) {
+        if (cachedStack == null) {
+            cachedStack = ItemStackFactory.create(this, registries);
         }
-
-        List<Component> lore = new ArrayList<>();
-        if (hasShopLore()) {
-            getShopLore().forEach(line -> lore.add(TextUtil.toComponent(line)));
-        } else if (hasLore()) {
-            getLore().forEach(line -> lore.add(TextUtil.toComponent(line)));
-        }
-        if (!lore.isEmpty()) {
-            stack.set(DataComponents.LORE, new ItemLore(lore));
-        }
-
-        return stack;
+        return cachedStack;
     }
 }

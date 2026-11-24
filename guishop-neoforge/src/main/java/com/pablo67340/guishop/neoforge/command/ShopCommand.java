@@ -11,7 +11,6 @@ import com.pablo67340.guishop.neoforge.definition.NeoPage;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
 import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
 import com.pablo67340.guishop.neoforge.network.ShopView;
-import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
 import com.pablo67340.guishop.neoforge.util.TextUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -86,7 +85,7 @@ public final class ShopCommand {
             return 0;
         }
 
-        OpenShopPayload catalogue = ShopViewBuilder.build(registry);
+        OpenShopPayload catalogue = registry.catalogue(source.registryAccess());
         ShopView opening = catalogue.shopOrMenu("menu".equalsIgnoreCase(shopName) ? "" : shopName);
 
         PacketDistributor.sendToPlayer(player, new OpenShopPayload(opening, catalogue.shops()));

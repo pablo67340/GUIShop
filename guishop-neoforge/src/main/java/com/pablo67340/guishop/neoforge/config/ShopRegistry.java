@@ -2,7 +2,10 @@ package com.pablo67340.guishop.neoforge.config;
 
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
+import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
+import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
+import net.minecraft.core.HolderLookup;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -22,13 +25,34 @@ public final class ShopRegistry {
     private NeoShop menu;
 
     /**
+     * The catalogue sent to clients, built on first use and discarded on reload.
+     * <p>
+     * Building it resolves every item and assembles its components, so doing
+     * that once per reload rather than once per /shop keeps the command cheap
+     * no matter how large the shops get.
+     */
+    private OpenShopPayload catalogue;
+
+    /**
      * Reads menu.yml and every {@code .yml} in the shops directory.
      *
      * @return the number of shops loaded
      */
     public int loadAll() {
+        catalogue = null;
         loadMenu();
         return loadShops();
+    }
+
+    /**
+     * @param registries the server's registry access, needed to resolve
+     *                   enchantments when the items are assembled
+     */
+    public OpenShopPayload catalogue(HolderLookup.Provider registries) {
+        if (catalogue == null) {
+            catalogue = ShopViewBuilder.build(this, registries);
+        }
+        return catalogue;
     }
 
     private void loadMenu() {

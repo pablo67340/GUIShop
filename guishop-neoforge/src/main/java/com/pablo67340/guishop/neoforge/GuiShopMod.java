@@ -3,6 +3,7 @@ package com.pablo67340.guishop.neoforge;
 import com.pablo67340.guishop.neoforge.command.ShopCommand;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
+import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
 import com.pablo67340.guishop.platform.CancellableTask;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import net.neoforged.bus.api.IEventBus;
@@ -74,6 +75,11 @@ public final class GuiShopMod {
 
         shopRegistry.brokenMenuTargets().forEach(target ->
                 context.logger().warning("Menu icon points at missing shop '" + target + "'."));
+
+        // Built now rather than on the first /shop, so no player pays for
+        // assembling the catalogue.
+        context.logUtil().debugLog("Catalogue warmed, "
+                + ShopViewBuilder.summarise(shopRegistry.catalogue(event.getServer().registryAccess())));
 
         // Without this, anything cached since the last flush is lost if the
         // process is killed rather than shut down.

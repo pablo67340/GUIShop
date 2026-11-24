@@ -1,6 +1,8 @@
 package com.pablo67340.guishop.neoforge.config;
 
+import com.pablo67340.guishop.definition.FireworkInfo;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.definition.PotionInfo;
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoPage;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
@@ -14,6 +16,8 @@ import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -160,12 +164,123 @@ public final class YamlShopLoader {
             item.setSudo(Boolean.parseBoolean(String.valueOf(data.get("sudo"))));
         }
 
-        String enchantments = string(data.get("enchantments"), null);
-        if (enchantments != null) {
-            item.setEnchantments(enchantments.split(" "));
+        item.setEnchantments(enchantments(data.get("enchantments")));
+        item.setItemFlags(spaceSeparated(data.get("item-flags")));
+        item.setSkullUUID(string(data.get("skull-uuid"), null));
+        item.setNBT(string(data.get("nbt"), null));
+
+        if (data.get("custom-model-data") != null) {
+            try {
+                item.setCustomModelData(Integer.parseInt(String.valueOf(data.get("custom-model-data")).trim()));
+            } catch (NumberFormatException exception) {
+                warn(describe(shopName, slotKey) + " has an invalid custom-model-data.");
+            }
         }
 
+        item.setPotionInfo(potionInfo(data.get("potion-info")));
+        item.setFireworkInfo(fireworkInfo(data.get("firework-info")));
+
         return item;
+    }
+
+    /**
+     * Enchantments are one string of {@code NAME:LEVEL} pairs. Both comma and
+     * space separators appear in configs written over the years.
+     */
+    private static String[] enchantments(Object raw) {
+        String text = string(raw, null);
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+
+        String cleaned = text.replaceAll("[,\\s]+$", "").trim();
+        String[] parts = cleaned.contains(",") ? cleaned.split(",") : cleaned.split(" ");
+
+        List<String> entries = new ArrayList<>(parts.length);
+        for (String part : parts) {
+            if (!part.isBlank()) {
+                entries.add(part.trim());
+            }
+        }
+        return entries.isEmpty() ? null : entries.toArray(new String[0]);
+    }
+
+    private static List<String> spaceSeparated(Object raw) {
+        String text = string(raw, null);
+        if (text == null || text.isBlank()) {
+            return null;
+        }
+        return Arrays.stream(text.trim().split("\\s+")).filter(part -> !part.isBlank()).toList();
+    }
+
+    private static PotionInfo potionInfo(Object raw) {
+        Map<String, Object> data = map(raw);
+        if (data == null) {
+            return null;
+        }
+
+        return new PotionInfo(
+                string(data.get("type"), "FIRE_RESISTANCE"),
+                flag(data.get("splash")),
+                flag(data.get("lingering")),
+                flag(data.get("extended")),
+                flag(data.get("upgraded")));
+    }
+
+    private static FireworkInfo fireworkInfo(Object raw) {
+        Map<String, Object> data = map(raw);
+        if (data == null) {
+            return null;
+        }
+
+        List<FireworkInfo.ExplosionInfo> explosions = new ArrayList<>();
+        if (data.get("explosions") instanceof List<?> list) {
+            for (Object element : list) {
+                Map<String, Object> explosion = map(element);
+                if (explosion == null) {
+                    continue;
+                }
+                explosions.add(new FireworkInfo.ExplosionInfo(
+                        string(explosion.get("shape"), "small_ball"),
+                        colours(explosion.get("colors")),
+                        colours(explosion.get("fade-colors")),
+                        flag(explosion.get("flicker")),
+                        flag(explosion.get("trail"))));
+            }
+        }
+
+        return new FireworkInfo(integer(data.get("flight"), 1), explosions);
+    }
+
+    /**
+     * Firework colours are packed RGB integers.
+     */
+    private static List<Integer> colours(Object raw) {
+        if (!(raw instanceof List<?> list)) {
+            return List.of();
+        }
+
+        List<Integer> colours = new ArrayList<>(list.size());
+        for (Object element : list) {
+            if (element instanceof Number number) {
+                colours.add(number.intValue());
+            } else {
+                try {
+                    colours.add(Integer.parseInt(String.valueOf(element).trim()));
+                } catch (NumberFormatException ignored) {
+                    // A malformed colour is skipped rather than failing the item.
+                }
+            }
+        }
+        return colours;
+    }
+
+    private static boolean flag(Object raw) {
+        return raw != null && Boolean.parseBoolean(String.valueOf(raw).trim());
+    }
+
+    private static String describe(String shopName, String slotKey) {
+        return "Shop '" + shopName + "' slot " + slotKey;
     }
 
     /**

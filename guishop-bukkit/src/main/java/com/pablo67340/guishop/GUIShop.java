@@ -445,7 +445,8 @@ public final class GUIShop extends JavaPlugin {
      */
     public void initBuiltInDynamicPricing() {
         try {
-            dynamicPricingManager = new com.pablo67340.guishop.economy.DynamicPricingManager(this);
+            dynamicPricingManager = new com.pablo67340.guishop.economy.DynamicPricingManager(
+                    com.pablo67340.guishop.economy.DynamicPricingConfigLoader.load(this));
             if (dynamicPricingManager.initialize()) {
                 // Set it as the dynamic pricing provider in MiscUtils
                 miscUtils.setDYNAMICPRICING(dynamicPricingManager);

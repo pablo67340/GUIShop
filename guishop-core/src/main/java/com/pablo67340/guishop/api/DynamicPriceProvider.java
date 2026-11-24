@@ -1,15 +1,13 @@
 package com.pablo67340.guishop.api;
 
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-
 import java.math.BigDecimal;
 
 /**
  * Used to hook into GUIShop and provide dynamic pricing. <br>
  * <br>
- * Implementations must be registered with the Bukkit registration system in
- * order for GUIShop to detect and use them.
+ * Implementations must be registered with the host platform's service
+ * registration system in order for GUIShop to detect and use them; on
+ * Bukkit that is the Bukkit services manager.
  */
 public interface DynamicPriceProvider {
 

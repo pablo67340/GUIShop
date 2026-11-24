@@ -1,13 +1,18 @@
 package com.pablo67340.guishop.economy;
 
-import com.pablo67340.guishop.GUIShop;
 import com.pablo67340.guishop.api.DynamicPriceProvider;
+import com.pablo67340.guishop.economy.DynamicPricingSettings.ItemPriceOverride;
+import com.pablo67340.guishop.platform.CancellableTask;
+import com.pablo67340.guishop.platform.GuiShopContext;
+import com.pablo67340.guishop.platform.GuiShopPlatform;
+import com.pablo67340.guishop.util.LogUtil;
 import lombok.Getter;
 
 import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.*;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,53 +30,59 @@ public class DynamicPricingManager implements DynamicPriceProvider {
     @Getter
     private static DynamicPricingManager instance;
     
-    private final GUIShop plugin;
     private Connection connection;
     private final File databaseFile;
-    
+
+    /**
+     * Tuning values, parsed by the platform.
+     */
+    @Getter
+    private final DynamicPricingSettings settings;
+
     // Cache for item stock levels (positive = oversupply, negative = undersupply)
     private final ConcurrentHashMap<String, Integer> stockCache = new ConcurrentHashMap<>();
-    
-    // Task holder for normalization task
-    private final com.pablo67340.guishop.util.SchedulerUtil.TaskHolder normalizationTask = 
-        new com.pablo67340.guishop.util.SchedulerUtil.TaskHolder();
-    
-    // Per-item override settings
-    private final ConcurrentHashMap<String, ItemPriceOverride> itemOverrides = new ConcurrentHashMap<>();
-    
-    // Configuration (global defaults)
-    @Getter private double priceChangePerTransaction = 0.01; // 1% change per item
-    @Getter private double maxPriceMultiplier = 2.0; // Max 200% of base price
-    @Getter private double minPriceMultiplier = 0.5; // Min 50% of base price
-    @Getter private double normalizationRate = 0.001; // Rate prices return to normal
-    @Getter private int normalizationInterval = 300; // Seconds between normalization ticks
-    
+
+    // Handle to the normalization task, so shutdown can stop it
+    private CancellableTask normalizationTask;
+
     private boolean initialized = false;
-    
-    /**
-     * Holds per-item override settings for dynamic pricing.
-     */
-    private static class ItemPriceOverride {
-        final double priceChangePerItem;
-        final double maxMultiplier;
-        final double minMultiplier;
-        // Linked items: when this item is bought/sold, these items are also affected
-        // Key = item name, Value = multiplier (e.g., DIAMOND_BLOCK affects DIAMOND with multiplier 9.0)
-        final java.util.Map<String, Double> affects;
-        
-        ItemPriceOverride(double priceChangePerItem, double maxMultiplier, double minMultiplier, 
-                          java.util.Map<String, Double> affects) {
-            this.priceChangePerItem = priceChangePerItem;
-            this.maxMultiplier = maxMultiplier;
-            this.minMultiplier = minMultiplier;
-            this.affects = affects != null ? affects : new java.util.HashMap<>();
-        }
-    }
-    
-    public DynamicPricingManager(GUIShop plugin) {
-        this.plugin = plugin;
-        this.databaseFile = new File(plugin.getDataFolder(), "Data/dynamic_pricing.db");
+
+    public DynamicPricingManager(DynamicPricingSettings settings) {
+        this.settings = settings != null ? settings : new DynamicPricingSettings();
+        this.databaseFile = context().dataFolder().resolve("Data").resolve("dynamic_pricing.db").toFile();
         instance = this;
+    }
+
+    private static GuiShopContext context() {
+        return GuiShopPlatform.get();
+    }
+
+    private static LogUtil log() {
+        return GuiShopPlatform.get().logUtil();
+    }
+
+    private Map<String, ItemPriceOverride> itemOverrides() {
+        return settings.getItemOverrides();
+    }
+
+    public double getPriceChangePerTransaction() {
+        return settings.getPriceChangePerTransaction();
+    }
+
+    public double getMaxPriceMultiplier() {
+        return settings.getMaxPriceMultiplier();
+    }
+
+    public double getMinPriceMultiplier() {
+        return settings.getMinPriceMultiplier();
+    }
+
+    public double getNormalizationRate() {
+        return settings.getNormalizationRate();
+    }
+
+    public int getNormalizationInterval() {
+        return settings.getNormalizationInterval();
     }
     
     /**
@@ -91,9 +102,6 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             if (!dataDir.exists()) {
                 dataDir.mkdirs();
             }
-            
-            // Load configuration from config.yml
-            loadConfiguration();
             
             // Connect to SQLite database
             String url = "jdbc:sqlite:" + databaseFile.getAbsolutePath();
@@ -119,71 +127,12 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             startNormalizationTask();
             
             initialized = true;
-            plugin.getLogUtil().log("Dynamic pricing system initialized: " + databaseFile.getPath());
+            log().log("Dynamic pricing system initialized: " + databaseFile.getPath());
             return true;
             
         } catch (SQLException e) {
-            plugin.getLogUtil().log("Failed to initialize dynamic pricing database: " + e.getMessage());
+            log().log("Failed to initialize dynamic pricing database: " + e.getMessage());
             return false;
-        }
-    }
-    
-    /**
-     * Load configuration from dynamicpricing.yml
-     */
-    private void loadConfiguration() {
-        File configFile = new File(plugin.getDataFolder(), "dynamicpricing.yml");
-        
-        // Create default config if it doesn't exist
-        if (!configFile.exists()) {
-            plugin.saveResource("dynamicpricing.yml", false);
-        }
-        
-        org.bukkit.configuration.file.FileConfiguration config = 
-            org.bukkit.configuration.file.YamlConfiguration.loadConfiguration(configFile);
-        
-        // Load global defaults
-        priceChangePerTransaction = config.getDouble("price-change-per-item", 0.01);
-        maxPriceMultiplier = config.getDouble("max-price-multiplier", 2.0);
-        minPriceMultiplier = config.getDouble("min-price-multiplier", 0.5);
-        normalizationRate = config.getDouble("normalization-rate", 0.001);
-        normalizationInterval = config.getInt("normalization-interval", 300);
-        
-        // Load per-item overrides
-        itemOverrides.clear();
-        int totalLinks = 0;
-        org.bukkit.configuration.ConfigurationSection overridesSection = config.getConfigurationSection("item-overrides");
-        if (overridesSection != null) {
-            for (String itemKey : overridesSection.getKeys(false)) {
-                org.bukkit.configuration.ConfigurationSection itemSection = overridesSection.getConfigurationSection(itemKey);
-                if (itemSection != null) {
-                    // Use global defaults if not specified for this item
-                    double itemPriceChange = itemSection.getDouble("price-change-per-item", priceChangePerTransaction);
-                    double itemMaxMult = itemSection.getDouble("max-price-multiplier", maxPriceMultiplier);
-                    double itemMinMult = itemSection.getDouble("min-price-multiplier", minPriceMultiplier);
-                    
-                    // Load linked items (affects section)
-                    java.util.Map<String, Double> affects = new java.util.HashMap<>();
-                    org.bukkit.configuration.ConfigurationSection affectsSection = itemSection.getConfigurationSection("affects");
-                    if (affectsSection != null) {
-                        for (String affectedItem : affectsSection.getKeys(false)) {
-                            double multiplier = affectsSection.getDouble(affectedItem, 1.0);
-                            affects.put(affectedItem.toUpperCase(), multiplier);
-                            totalLinks++;
-                            plugin.getLogUtil().debugLog("  -> " + itemKey.toUpperCase() + " affects " + 
-                                affectedItem.toUpperCase() + " with multiplier " + multiplier);
-                        }
-                    }
-                    
-                    // Store with uppercase key for consistent lookup
-                    itemOverrides.put(itemKey.toUpperCase(), new ItemPriceOverride(itemPriceChange, itemMaxMult, itemMinMult, affects));
-                    plugin.getLogUtil().debugLog("Loaded item override for " + itemKey.toUpperCase() + 
-                        ": priceChange=" + itemPriceChange + ", maxMult=" + itemMaxMult + ", minMult=" + itemMinMult +
-                        ", affects=" + affects.size() + " items");
-                }
-            }
-            plugin.getLogUtil().log("Loaded " + itemOverrides.size() + " item-specific dynamic pricing overrides" +
-                (totalLinks > 0 ? " with " + totalLinks + " linked price relationships" : ""));
         }
     }
     
@@ -199,14 +148,14 @@ public class DynamicPricingManager implements DynamicPriceProvider {
                 stockCache.put(rs.getString("item_key"), rs.getInt("stock_level"));
             }
         }
-        plugin.getLogUtil().debugLog("Loaded " + stockCache.size() + " item stock levels into cache");
+        log().debugLog("Loaded " + stockCache.size() + " item stock levels into cache");
     }
     
     /**
      * Start a task that gradually normalizes prices back to base levels.
      */
     private void startNormalizationTask() {
-        com.pablo67340.guishop.util.SchedulerUtil.runTaskTimerAsync(normalizationTask, () -> {
+        normalizationTask = context().scheduler().runTimerAsync(() -> {
             if (!initialized || stockCache.isEmpty()) return;
             
             int normalized = 0;
@@ -215,7 +164,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
                 if (currentStock == 0) continue;
                 
                 // Move stock level toward 0 (equilibrium)
-                int change = (int) Math.ceil(Math.abs(currentStock) * normalizationRate);
+                int change = (int) Math.ceil(Math.abs(currentStock) * settings.getNormalizationRate());
                 if (change < 1) change = 1;
                 
                 int newStock;
@@ -233,7 +182,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             if (normalized > 0) {
                 saveStockCache();
             }
-        }, normalizationInterval * 20L, normalizationInterval * 20L); // Convert seconds to ticks
+        }, settings.getNormalizationInterval() * 20L, settings.getNormalizationInterval() * 20L); // Convert seconds to ticks
     }
     
     /**
@@ -253,7 +202,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             }
             pstmt.executeBatch();
         } catch (SQLException e) {
-            plugin.getLogUtil().debugLog("Failed to save stock cache: " + e.getMessage());
+            log().debugLog("Failed to save stock cache: " + e.getMessage());
         }
     }
     
@@ -268,16 +217,16 @@ public class DynamicPricingManager implements DynamicPriceProvider {
      */
     private double calculateMultiplier(String item, int stockLevel, boolean isBuyPrice) {
         // Get per-item settings or use global defaults
-        double priceChange = priceChangePerTransaction;
-        double maxMult = maxPriceMultiplier;
-        double minMult = minPriceMultiplier;
+        double priceChange = settings.getPriceChangePerTransaction();
+        double maxMult = settings.getMaxPriceMultiplier();
+        double minMult = settings.getMinPriceMultiplier();
         
-        ItemPriceOverride override = itemOverrides.get(item.toUpperCase());
+        ItemPriceOverride override = itemOverrides().get(item.toUpperCase());
         if (override != null) {
-            priceChange = override.priceChangePerItem;
-            maxMult = override.maxMultiplier;
-            minMult = override.minMultiplier;
-            plugin.getLogUtil().debugLog("Using override for " + item + ": priceChange=" + priceChange);
+            priceChange = override.getPriceChangePerItem();
+            maxMult = override.getMaxMultiplier();
+            minMult = override.getMinMultiplier();
+            log().debugLog("Using override for " + item + ": priceChange=" + priceChange);
         }
         
         // For buy prices, undersupply (negative stock) increases price
@@ -309,7 +258,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         BigDecimal adjustedPrice = staticBuyPrice.multiply(BigDecimal.valueOf(multiplier));
         BigDecimal totalPrice = adjustedPrice.multiply(BigDecimal.valueOf(quantity));
         
-        plugin.getLogUtil().debugLog("Dynamic buy price for " + item + " (qty=" + quantity + 
+        log().debugLog("Dynamic buy price for " + item + " (qty=" + quantity + 
             ", stock=" + stockLevel + ", mult=" + String.format("%.4f", multiplier) + 
             "): " + staticBuyPrice + " -> " + adjustedPrice + " (total: " + totalPrice + ")");
         
@@ -328,7 +277,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         BigDecimal adjustedPrice = staticSellPrice.multiply(BigDecimal.valueOf(multiplier));
         BigDecimal totalPrice = adjustedPrice.multiply(BigDecimal.valueOf(quantity));
         
-        plugin.getLogUtil().debugLog("Dynamic sell price for " + item + " (qty=" + quantity + 
+        log().debugLog("Dynamic sell price for " + item + " (qty=" + quantity + 
             ", stock=" + stockLevel + ", mult=" + String.format("%.4f", multiplier) + 
             "): " + staticSellPrice + " -> " + adjustedPrice + " (total: " + totalPrice + ")");
         
@@ -347,7 +296,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         // Update totals in database
         updateItemStats(item, quantity, 0);
         
-        plugin.getLogUtil().debugLog("Item bought: " + item + " x" + quantity + 
+        log().debugLog("Item bought: " + item + " x" + quantity + 
             " (stock: " + currentStock + " -> " + newStock + ")");
         
         // Apply linked price effects to related items
@@ -366,7 +315,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         // Update totals in database
         updateItemStats(item, 0, quantity);
         
-        plugin.getLogUtil().debugLog("Item sold: " + item + " x" + quantity + 
+        log().debugLog("Item sold: " + item + " x" + quantity + 
             " (stock: " + currentStock + " -> " + newStock + ")");
         
         // Apply linked price effects to related items
@@ -382,12 +331,12 @@ public class DynamicPricingManager implements DynamicPriceProvider {
      * @param isBuy true if bought, false if sold
      */
     private void applyLinkedPriceEffects(String item, int quantity, boolean isBuy) {
-        ItemPriceOverride override = itemOverrides.get(item.toUpperCase());
-        if (override == null || override.affects.isEmpty()) {
+        ItemPriceOverride override = itemOverrides().get(item.toUpperCase());
+        if (override == null || override.getAffects().isEmpty()) {
             return;
         }
         
-        for (var entry : override.affects.entrySet()) {
+        for (var entry : override.getAffects().entrySet()) {
             String affectedItem = entry.getKey();
             double multiplier = entry.getValue();
             
@@ -408,7 +357,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             
             stockCache.put(affectedItem, newStock);
             
-            plugin.getLogUtil().debugLog("Linked price effect: " + item + " " + (isBuy ? "buy" : "sell") + 
+            log().debugLog("Linked price effect: " + item + " " + (isBuy ? "buy" : "sell") + 
                 " affected " + affectedItem + " (multiplier=" + multiplier + 
                 ", effectiveQty=" + effectiveQuantity + ", stock: " + currentStock + " -> " + newStock + ")");
         }
@@ -441,7 +390,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogUtil().debugLog("Failed to update item stats: " + e.getMessage());
+            log().debugLog("Failed to update item stats: " + e.getMessage());
         }
     }
     
@@ -478,7 +427,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
             pstmt.setString(1, item);
             pstmt.executeUpdate();
         } catch (SQLException e) {
-            plugin.getLogUtil().debugLog("Failed to reset item: " + e.getMessage());
+            log().debugLog("Failed to reset item: " + e.getMessage());
         }
     }
     
@@ -491,7 +440,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         try (Statement stmt = connection.createStatement()) {
             stmt.executeUpdate("UPDATE item_stock SET stock_level = 0");
         } catch (SQLException e) {
-            plugin.getLogUtil().debugLog("Failed to reset all items: " + e.getMessage());
+            log().debugLog("Failed to reset all items: " + e.getMessage());
         }
     }
     
@@ -502,7 +451,10 @@ public class DynamicPricingManager implements DynamicPriceProvider {
         if (!initialized) return;
         
         // Cancel normalization task
-        com.pablo67340.guishop.util.SchedulerUtil.cancelTask(normalizationTask);
+        if (normalizationTask != null) {
+            normalizationTask.cancel();
+            normalizationTask = null;
+        }
         
         saveStockCache();
         
@@ -511,7 +463,7 @@ public class DynamicPricingManager implements DynamicPriceProvider {
                 connection.close();
             }
         } catch (SQLException e) {
-            plugin.getLogUtil().debugLog("Error closing dynamic pricing database: " + e.getMessage());
+            log().debugLog("Error closing dynamic pricing database: " + e.getMessage());
         }
         
         initialized = false;

@@ -30,12 +30,18 @@ neoForge {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
+val yamlDependency = "org.yaml:snakeyaml:2.3"
+
 /**
- * The core jar, resolved on its own so its classes can be folded into the mod
- * jar. Declared separately rather than reaching into the other project's source
- * sets, which would break the configuration cache.
+ * Everything to fold into the mod jar, resolved on its own. Declared as a
+ * configuration rather than reaching into the other project's source sets,
+ * which would break the configuration cache.
  */
-val bundledCore: Configuration = configurations.create("bundledCore") {
+val bundledLibs: Configuration = configurations.create("bundledLibs") {
     isCanBeConsumed = false
     isCanBeResolved = true
     isTransitive = false
@@ -43,21 +49,33 @@ val bundledCore: Configuration = configurations.create("bundledCore") {
 
 dependencies {
     implementation(project(":guishop-core"))
-    bundledCore(project(":guishop-core"))
+    bundledLibs(project(":guishop-core"))
+
+    // Reads the same shop YAML the Bukkit plugin uses, so an existing server's
+    // configs work unchanged. Minecraft bundles Gson and NeoForge bundles
+    // NightConfig, but neither reads YAML.
+    implementation(yamlDependency)
+    bundledLibs(yamlDependency)
 
     // Development runs load the mod from its class directory, and NeoForge's
-    // module layer will not see core from the plain compile classpath. This puts
-    // it where the game's class loader can find it.
+    // module layer will not see these from the plain compile classpath. This
+    // puts them where the game's class loader can find them.
     add("additionalRuntimeClasspath", project(":guishop-core"))
+    add("additionalRuntimeClasspath", yamlDependency)
 }
 
-// A mod has no "provided" scope for our own shared code, so core ships inside
-// the mod jar. Development runs already see it via the compile classpath; this
-// is what makes the distributable jar self-contained.
+// A mod has no "provided" scope for our own shared code, so core and the YAML
+// parser ship inside the mod jar. Development runs see them via
+// additionalRuntimeClasspath; this is what makes the distributable jar
+// self-contained.
 tasks.jar {
-    from({ bundledCore.map { zipTree(it) } }) {
+    from({ bundledLibs.map { zipTree(it) } }) {
         exclude("META-INF/MANIFEST.MF")
         exclude("META-INF/maven/**")
+        exclude("META-INF/*.SF")
+        exclude("META-INF/*.DSA")
+        exclude("META-INF/*.RSA")
+        exclude("module-info.class")
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

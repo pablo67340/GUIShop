@@ -1,6 +1,8 @@
 package com.pablo67340.guishop.neoforge;
 
 import com.pablo67340.guishop.neoforge.command.ShopCommand;
+import com.pablo67340.guishop.neoforge.config.ShopRegistry;
+import com.pablo67340.guishop.platform.CancellableTask;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
@@ -26,7 +28,12 @@ public final class GuiShopMod {
 
     private static final Logger LOGGER = LoggerFactory.getLogger("GUIShop");
 
+    /** 30 seconds, matching the Bukkit module's flush interval. */
+    private static final long LOG_FLUSH_INTERVAL_TICKS = 600L;
+
     private final NeoForgeContext context;
+    private final ShopRegistry shopRegistry = new ShopRegistry();
+    private CancellableTask logFlushTask;
 
     public GuiShopMod(IEventBus modEventBus, ModContainer modContainer) {
         this.context = new NeoForgeContext(LOGGER);
@@ -52,14 +59,27 @@ public final class GuiShopMod {
     }
 
     private void onRegisterCommands(RegisterCommandsEvent event) {
-        ShopCommand.register(event.getDispatcher());
+        ShopCommand.register(event.getDispatcher(), shopRegistry);
     }
 
     private void onServerStarting(ServerStartingEvent event) {
-        context.logUtil().log("GUIShop starting up on NeoForge.");
+        int loaded = shopRegistry.loadAll();
+        context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
+                + shopRegistry.totalItems() + " item(s).");
+
+        // Without this, anything cached since the last flush is lost if the
+        // process is killed rather than shut down.
+        logFlushTask = context.scheduler().runTimerAsync(
+                () -> context.logUtil().flushLogs(),
+                LOG_FLUSH_INTERVAL_TICKS,
+                LOG_FLUSH_INTERVAL_TICKS);
     }
 
     private void onServerStopped(ServerStoppedEvent event) {
+        if (logFlushTask != null) {
+            logFlushTask.cancel();
+            logFlushTask = null;
+        }
         context.logUtil().flushLogs();
         context.shutdown();
         GuiShopPlatform.clear();

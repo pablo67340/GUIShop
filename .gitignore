@@ -1,6 +1,9 @@
 /target/
 build/
 .gradle/
+# NeoForge development run directory (world, logs, crash reports)
+run/
+runs/
 **/*.swp
 .settings/
 dependency-reduced-pom.xml

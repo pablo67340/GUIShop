@@ -1,6 +1,6 @@
 package com.pablo67340.guishop.definition;
 
-import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.platform.GuiShopPlatform;
 import lombok.Data;
 
 import java.util.Comparator;
@@ -33,7 +33,7 @@ public class MenuItem implements Cloneable {
             if (menuPage.getItems().isEmpty()) {
                 menuPage.setHighestSlot(0);
                 pages.put(entry.getKey(), menuPage);
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Page " + entry.getKey() + " is empty, setting highest slot to 0");
+                GuiShopPlatform.get().logUtil().debugLog("Page " + entry.getKey() + " is empty, setting highest slot to 0");
                 continue;
             }
 
@@ -44,10 +44,10 @@ public class MenuItem implements Cloneable {
                 .orElse(null);
             if (highestPageItem != null) {
             menuPage.setHighestSlot(highestPageItem.getSlot());
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
+                GuiShopPlatform.get().logUtil().debugLog("Highest slot for Page: " + entry.getKey() + " is " + highestPageItem.getSlot());
             } else {
                 menuPage.setHighestSlot(0);
-                GUIShop.getINSTANCE().getLogUtil().debugLog("Page " + entry.getKey() + " has no items, setting highest slot to 0");
+                GuiShopPlatform.get().logUtil().debugLog("Page " + entry.getKey() + " has no items, setting highest slot to 0");
             }
 
             pages.put(entry.getKey(), menuPage);

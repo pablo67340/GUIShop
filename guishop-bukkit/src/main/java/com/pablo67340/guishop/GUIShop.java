@@ -22,6 +22,8 @@ import com.pablo67340.guishop.statistics.StatisticsManager;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.ServicePriority;
+import com.pablo67340.guishop.platform.BukkitContext;
+import com.pablo67340.guishop.platform.GuiShopPlatform;
 import com.pablo67340.guishop.util.ConfigManager;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.MiscUtils;
@@ -142,6 +144,9 @@ public final class GUIShop extends JavaPlugin {
         // Initialize Folia/Paper/Spigot scheduler compatibility
         SchedulerUtil.init(this);
 
+        // Must precede LogUtil, which resolves its log directory through the context
+        GuiShopPlatform.set(new BukkitContext(this));
+
         this.configManager = new ConfigManager();
         this.logUtil = new LogUtil();
         this.commandManager = new CommandManager();
@@ -227,6 +232,9 @@ public final class GUIShop extends JavaPlugin {
         if (economyManager != null) {
             economyManager.shutdown();
         }
+
+        // Last, so the shutdown steps above can still log through it
+        GuiShopPlatform.clear();
     }
 
     /**

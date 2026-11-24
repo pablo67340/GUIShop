@@ -5,9 +5,11 @@ import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoPage;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
+import com.pablo67340.guishop.util.MathUtil;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -143,11 +145,13 @@ public final class YamlShopLoader {
         item.setBuyLore(stringList(data.get("buy-lore")));
         item.setCommands(stringList(data.get("commands")));
 
-        if (data.get("buy-price") != null) {
-            item.setBuyPrice(data.get("buy-price"));
+        Object buyPrice = price(data.get("buy-price"));
+        if (buyPrice != null) {
+            item.setBuyPrice(buyPrice);
         }
-        if (data.get("sell-price") != null) {
-            item.setSellPrice(data.get("sell-price"));
+        Object sellPrice = price(data.get("sell-price"));
+        if (sellPrice != null) {
+            item.setSellPrice(sellPrice);
         }
         if (data.get("use-dynamic-pricing") != null) {
             item.setUseDynamicPricing(Boolean.parseBoolean(String.valueOf(data.get("use-dynamic-pricing"))));
@@ -190,6 +194,30 @@ public final class YamlShopLoader {
             return material;
         }
         return type == ItemType.PLAYER_BALANCE ? "PLAYER_HEAD" : material;
+    }
+
+    /**
+     * Normalises a configured price to a type {@code ItemDefinition} accepts.
+     * <p>
+     * It only recognises {@code BigDecimal} and {@code Integer}, so a raw
+     * {@code Double} straight from the YAML parser would silently read as
+     * having no price at all. The Bukkit module converts the same way.
+     *
+     * @return the price, or null if absent or unparseable
+     */
+    private static Object price(Object raw) {
+        if (raw instanceof Integer) {
+            return raw;
+        }
+        if (raw instanceof Number) {
+            // Via toString so large or precise values are not rounded through a double.
+            return new BigDecimal(raw.toString());
+        }
+        if (raw instanceof String text && !text.isBlank()) {
+            // Tolerates a quoted or abbreviated price such as "1.5k".
+            return MathUtil.tryParseAbbreviated(text.trim());
+        }
+        return null;
     }
 
     private static Integer parseSlot(String key) {

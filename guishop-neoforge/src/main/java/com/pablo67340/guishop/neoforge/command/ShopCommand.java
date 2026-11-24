@@ -2,19 +2,24 @@ package com.pablo67340.guishop.neoforge.command;
 
 import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoPage;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
+import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
+import com.pablo67340.guishop.neoforge.network.ShopView;
+import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
 import com.pablo67340.guishop.neoforge.util.TextUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +28,8 @@ import java.util.Map;
 /**
  * The {@code /shop} command.
  * <p>
- * Reports the shops parsed out of the YAML configs. The screens come later;
- * this is what proves the config reaches the shared core model.
+ * {@code /shop} and {@code /shop <name>} open the screen; {@code /shop info}
+ * prints the same data as text, which is what console and diagnostics use.
  */
 public final class ShopCommand {
 
@@ -38,21 +43,57 @@ public final class ShopCommand {
             return SharedSuggestionProvider.suggest(targets, builder);
         };
 
-        RequiredArgumentBuilder<CommandSourceStack, String> named =
-                Commands.argument("shop", StringArgumentType.word())
-                        .suggests(shopNames)
-                        .executes(context -> describeShop(
-                                context.getSource(),
-                                registry,
-                                StringArgumentType.getString(context, "shop")));
-
         dispatcher.register(Commands.literal("shop")
-                .executes(context -> listShops(context.getSource(), registry))
-                .then(named)
+                .executes(context -> openShop(context.getSource(), registry, ""))
+                // Literals win over the argument, so a shop named "info" or
+                // "reload" would not be reachable here.
+                .then(Commands.literal("info")
+                        .executes(context -> listShops(context.getSource(), registry))
+                        .then(Commands.argument("shop", StringArgumentType.word())
+                                .suggests(shopNames)
+                                .executes(context -> describeShop(
+                                        context.getSource(), registry,
+                                        StringArgumentType.getString(context, "shop")))))
                 .then(Commands.literal("reload")
                         .requires(source -> source.hasPermission(2))
-                        .executes(context -> reload(context.getSource(), registry))));
+                        .executes(context -> reload(context.getSource(), registry)))
+                .then(Commands.argument("shop", StringArgumentType.word())
+                        .suggests(shopNames)
+                        .executes(context -> openShop(
+                                context.getSource(), registry,
+                                StringArgumentType.getString(context, "shop")))));
     }
+
+    // ------------------------------------------------------------------- UI
+
+    private static int openShop(CommandSourceStack source, ShopRegistry registry, String shopName) {
+        ServerPlayer player;
+        try {
+            player = source.getPlayerOrException();
+        } catch (CommandSyntaxException exception) {
+            source.sendFailure(Component.literal("Only a player can open the shop. Try /shop info."));
+            return 0;
+        }
+
+        if (registry.names().isEmpty()) {
+            source.sendFailure(Component.literal(
+                    "No shops are loaded. Place shop YAML files in the guishop/shops directory and run /shop reload."));
+            return 0;
+        }
+
+        if (!shopName.isEmpty() && !"menu".equalsIgnoreCase(shopName) && registry.get(shopName) == null) {
+            source.sendFailure(Component.literal("No shop named '" + shopName + "'."));
+            return 0;
+        }
+
+        OpenShopPayload catalogue = ShopViewBuilder.build(registry);
+        ShopView opening = catalogue.shopOrMenu("menu".equalsIgnoreCase(shopName) ? "" : shopName);
+
+        PacketDistributor.sendToPlayer(player, new OpenShopPayload(opening, catalogue.shops()));
+        return 1;
+    }
+
+    // ---------------------------------------------------------- diagnostics
 
     private static int listShops(CommandSourceStack source, ShopRegistry registry) {
         if (registry.names().isEmpty()) {
@@ -68,8 +109,7 @@ public final class ShopCommand {
             source.sendSuccess(() -> Component.empty()
                     .append(Component.literal(" - ").withStyle(ChatFormatting.DARK_GRAY))
                     .append(TextUtil.toComponent(shop.getTitle()))
-                    .append(Component.literal(" (" + shop.getName() + ") ")
-                            .withStyle(ChatFormatting.GRAY))
+                    .append(Component.literal(" (" + shop.getName() + ") ").withStyle(ChatFormatting.GRAY))
                     .append(Component.literal(ShopRegistry.countItems(shop) + " items")
                             .withStyle(ChatFormatting.DARK_GRAY)), false);
         }
@@ -91,8 +131,6 @@ public final class ShopCommand {
             }
         }
 
-        source.sendSuccess(() -> Component.literal("Use /shop <name> to inspect one.")
-                .withStyle(ChatFormatting.DARK_GRAY), false);
         return registry.names().size();
     }
 
@@ -112,8 +150,7 @@ public final class ShopCommand {
         for (Map.Entry<String, NeoPage> pageEntry : shop.getPages().entrySet()) {
             NeoPage page = pageEntry.getValue();
             source.sendSuccess(() -> Component.literal("  " + pageEntry.getKey()
-                            + ": " + page.getItems().size() + " items, highest slot "
-                            + page.getHighestSlot())
+                            + ": " + page.getItems().size() + " items, highest slot " + page.getHighestSlot())
                     .withStyle(ChatFormatting.GRAY), false);
         }
 
@@ -146,8 +183,7 @@ public final class ShopCommand {
         // resolveItem flags unknown ids, which is the common config mistake.
         item.resolveItem();
         if (item.isResolveFailed()) {
-            return Component.literal(detail + " - " + item.getResolveReason())
-                    .withStyle(ChatFormatting.RED);
+            return Component.literal(detail + " - " + item.getResolveReason()).withStyle(ChatFormatting.RED);
         }
 
         return Component.literal(detail.toString()).withStyle(ChatFormatting.DARK_GRAY);

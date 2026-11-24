@@ -149,4 +149,16 @@ public final class ShopRegistry {
     public int totalItems() {
         return shops.values().stream().mapToInt(ShopRegistry::countItems).sum();
     }
+
+    /**
+     * How many loaded items actually have a price, which is the quickest way to
+     * spot a shop whose prices are mis-typed in the config.
+     */
+    public int tradeableItems() {
+        return (int) shops.values().stream()
+                .flatMap(shop -> shop.getPages().values().stream())
+                .flatMap(page -> page.getItems().values().stream())
+                .filter(item -> item.hasBuyPrice() || item.hasSellPrice())
+                .count();
+    }
 }

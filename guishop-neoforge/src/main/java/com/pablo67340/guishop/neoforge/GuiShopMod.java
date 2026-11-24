@@ -2,6 +2,7 @@ package com.pablo67340.guishop.neoforge;
 
 import com.pablo67340.guishop.neoforge.command.ShopCommand;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
+import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
 import com.pablo67340.guishop.platform.CancellableTask;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import net.neoforged.bus.api.IEventBus;
@@ -50,6 +51,8 @@ public final class GuiShopMod {
 
         context.initLogUtil();
 
+        modEventBus.addListener(GuiShopNetwork::register);
+
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);
@@ -65,7 +68,8 @@ public final class GuiShopMod {
     private void onServerStarting(ServerStartingEvent event) {
         int loaded = shopRegistry.loadAll();
         context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
-                + shopRegistry.totalItems() + " item(s), menu "
+                + shopRegistry.totalItems() + " item(s), "
+                + shopRegistry.tradeableItems() + " priced, menu "
                 + (shopRegistry.getMenu() != null ? "loaded" : "missing") + ".");
 
         shopRegistry.brokenMenuTargets().forEach(target ->

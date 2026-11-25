@@ -39,6 +39,9 @@ final class UiTheme {
     // Text
     static final int TEXT = 0xFFECECF1;
     static final int TEXT_MUTED = 0xFF8B90A0;
+
+    /** A label whose control is disabled, dim enough to read as inactive. */
+    static final int LABEL_OFF = 0xFF535662;
     static final int BUY = 0xFF5FD98A;
     static final int SELL = 0xFFE9B155;
     static final int WARN = 0xFFE86A6A;

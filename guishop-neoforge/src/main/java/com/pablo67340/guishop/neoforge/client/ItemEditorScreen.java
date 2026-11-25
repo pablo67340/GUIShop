@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.neoforge.client;
 
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.neoforge.util.TextUtil;
 import com.pablo67340.guishop.neoforge.network.SaveItemPayload;
 import com.pablo67340.guishop.neoforge.network.ShopAdminPayload;
 import com.pablo67340.guishop.neoforge.network.ShopEntryData;
@@ -147,12 +148,18 @@ final class ItemEditorScreen extends ShopChildScreen {
             int top = formTop() + (position % rows) * ROW_HEIGHT;
 
             if (field.kind() == Kind.CHOOSE) {
-                addRenderableWidget(Button.builder(chooseLabel(field, controlWidth),
+                Button chooser = Button.builder(chooseLabel(field, controlWidth),
                                 button -> choose(field))
                         .bounds(left, top, controlWidth, 15)
-                        .build());
+                        .build();
+                chooser.active = isLive(field);
+                addRenderableWidget(chooser);
             } else {
-                addRenderableWidget(textBox(field, left, top, controlWidth));
+                EditBox box = textBox(field, left, top, controlWidth);
+                if (!isLive(field)) {
+                    box.setEditable(false);
+                }
+                addRenderableWidget(box);
             }
         }
 
@@ -162,10 +169,12 @@ final class ItemEditorScreen extends ShopChildScreen {
             int left = contentLeft() + position * (columnWidth + COLUMN_GAP);
 
             MultiLineEditBox box = new MultiLineEditBox(font, left, listTop, columnWidth, LIST_HEIGHT,
-                    Component.literal("One per line"), Component.literal(field.label()));
+                    Component.literal(isLive(field) ? "One per line" : "Not used by this type"),
+                    Component.literal(field.label()));
             box.setCharacterLimit(MAX_FIELD_LENGTH);
             box.setValue(values.getOrDefault(field.key(), ""));
             box.setValueListener(typed -> values.put(field.key(), typed));
+            box.active = isLive(field);
             addRenderableWidget(box);
         }
 
@@ -222,6 +231,49 @@ final class ItemEditorScreen extends ShopChildScreen {
         return headerBottom() + PREVIEW_HEIGHT;
     }
 
+    // ------------------------------------------------------------- relevance
+
+    /**
+     * Whether a field means anything for the type currently chosen.
+     * <p>
+     * A shortcut has no price and a plain item has no shop to open, so rather
+     * than letting someone fill in a field that will be ignored, the Type
+     * picker decides which fields are live. Switching a menu icon from
+     * SHOP_SHORTCUT to SHOP is how you sell an item straight from the menu
+     * instead of nesting a shop behind it.
+     */
+    private boolean isLive(Field field) {
+        ItemType type = currentType();
+
+        return switch (field.key()) {
+            case "buy-price", "sell-price", "buy-name" -> type.isPurchasable();
+            case "commands" -> type == ItemType.COMMAND;
+            case "target-shop" -> type == ItemType.SHOP_SHORTCUT;
+            // Only a spawner has a mob, whatever the type says.
+            case "mob-type" -> "SPAWNER".equalsIgnoreCase(values.getOrDefault("id", "").trim());
+            default -> true;
+        };
+    }
+
+    /**
+     * What the preview should show.
+     * <p>
+     * The server's icon carries the name, lore and glint it built, so it is
+     * kept while the item is untouched. Once a different item is picked that
+     * icon is of the wrong thing, and a plain stack of the new one is a truer
+     * preview than a stale picture.
+     */
+    private ItemStack previewStack() {
+        String id = values.getOrDefault("id", "");
+
+        if (id.equals(original.getOrDefault("id", ""))) {
+            return entry.icon();
+        }
+
+        ItemStack picked = Choices.stackFor(id);
+        return picked.isEmpty() ? entry.icon() : picked;
+    }
+
     // ---------------------------------------------------------------- choices
 
     /**
@@ -274,13 +326,24 @@ final class ItemEditorScreen extends ShopChildScreen {
     }
 
     /**
-     * An item with no type stored is a plain shop item, which is what the
-     * loader assumes too.
+     * The same rule the loader applies: an entry with no declared type is a
+     * plain shop item, unless it names a shop, which makes it a shortcut.
+     * <p>
+     * Mirrored rather than assumed to be SHOP because menu icons are written
+     * with only a {@code target-shop}, and treating one as a shop item would
+     * grey out the very field that makes it work.
      */
     private ItemType currentType() {
-        String stored = values.getOrDefault("type", "");
+        return typeOf(values);
+    }
+
+    private static ItemType typeOf(Map<String, String> fields) {
+        String stored = fields.getOrDefault("type", "");
+
         if (stored.isBlank()) {
-            return ItemType.SHOP;
+            return fields.getOrDefault("target-shop", "").isBlank()
+                    ? ItemType.SHOP
+                    : ItemType.SHOP_SHORTCUT;
         }
         try {
             return ItemType.valueOf(stored.trim().toUpperCase(Locale.ROOT));
@@ -328,12 +391,46 @@ final class ItemEditorScreen extends ShopChildScreen {
             }
         });
 
+        dropStrandedFields(changed);
+
         if (changed.isEmpty()) {
             setStatus("Nothing changed.", false);
             return;
         }
 
         PacketDistributor.sendToServer(new SaveItemPayload(shopName, index, changed));
+    }
+
+    /**
+     * Clears fields the new type has no use for, by blanking them, which is how
+     * this editor removes a value.
+     * <p>
+     * Only when the type was actually changed here. Turning a menu shortcut
+     * into a sellable item would otherwise leave its {@code target-shop}
+     * behind, and the entry would both open a shop and sell something. Left
+     * alone when the type was not touched, so opening an item and saving it
+     * cannot quietly discard something that was already in the file.
+     */
+    private void dropStrandedFields(Map<String, String> changed) {
+        if (currentType() == originalType()) {
+            return;
+        }
+
+        for (Field field : SIMPLE_FIELDS) {
+            if (!field.key().equals("type") && !isLive(field)
+                    && !values.getOrDefault(field.key(), "").isBlank()) {
+                changed.put(field.key(), "");
+            }
+        }
+        for (Field field : LIST_FIELDS) {
+            if (!isLive(field) && !values.getOrDefault(field.key(), "").isBlank()) {
+                changed.put(field.key(), "");
+            }
+        }
+    }
+
+    private ItemType originalType() {
+        return typeOf(original);
     }
 
     @Override
@@ -379,17 +476,27 @@ final class ItemEditorScreen extends ShopChildScreen {
 
     private void renderPreview(GuiGraphics graphics) {
         int top = headerBottom() + 6;
+        ItemStack preview = previewStack();
 
         // Scaling the pose rather than the sprite keeps the model, the
         // enchantment glint and any overlays.
         graphics.pose().pushPose();
         graphics.pose().translate(contentLeft() + 2, top, 0.0F);
         graphics.pose().scale(2.0F, 2.0F, 1.0F);
-        graphics.renderFakeItem(entry.icon(), 0, 0);
+        graphics.renderFakeItem(preview, 0, 0);
         graphics.pose().popPose();
 
-        graphics.drawString(font, Contrast.readable(entry.icon().getHoverName()),
-                contentLeft() + 42, top + 4, UiTheme.TEXT, false);
+        // The configured shop name wins over the item's own, since that is
+        // what a player will see on the shelf.
+        String configured = values.getOrDefault("shop-name", "");
+        if (configured.isBlank()) {
+            configured = values.getOrDefault("name", "");
+        }
+        Component name = configured.isBlank()
+                ? Contrast.readable(preview.getHoverName())
+                : Contrast.readable(TextUtil.toComponent(configured));
+
+        graphics.drawString(font, name, contentLeft() + 42, top + 4, UiTheme.TEXT, false);
 
         // Only the first line: the preview is a reminder of which item this is,
         // not a second copy of the tooltip.
@@ -405,18 +512,22 @@ final class ItemEditorScreen extends ShopChildScreen {
         int columnWidth = (contentWidth() - COLUMN_GAP) / 2;
 
         for (int position = 0; position < SIMPLE_FIELDS.size(); position++) {
+            Field field = SIMPLE_FIELDS.get(position);
             int left = contentLeft() + (position / rows) * (columnWidth + COLUMN_GAP);
             int top = formTop() + (position % rows) * ROW_HEIGHT;
 
-            graphics.drawString(font, SIMPLE_FIELDS.get(position).label(), left, top + 4,
-                    UiTheme.TEXT_MUTED, false);
+            // Dimmed alongside its disabled control, so the row reads as one
+            // thing that is off rather than a live label with a dead box.
+            graphics.drawString(font, field.label(), left, top + 4,
+                    isLive(field) ? UiTheme.TEXT_MUTED : UiTheme.LABEL_OFF, false);
         }
 
         int listLabelTop = formTop() + rows * ROW_HEIGHT + 4;
         for (int position = 0; position < LIST_FIELDS.size(); position++) {
-            graphics.drawString(font, LIST_FIELDS.get(position).label(),
+            Field field = LIST_FIELDS.get(position);
+            graphics.drawString(font, field.label(),
                     contentLeft() + position * (columnWidth + COLUMN_GAP), listLabelTop,
-                    UiTheme.TEXT_MUTED, false);
+                    isLive(field) ? UiTheme.TEXT_MUTED : UiTheme.LABEL_OFF, false);
         }
     }
 }

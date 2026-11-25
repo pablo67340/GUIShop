@@ -170,6 +170,34 @@ final class Choices {
      * use, while anything modded carries its namespace, since that is the only
      * way to tell two mods' items apart.
      */
+    /**
+     * Turns a configured id back into a stack, for previewing a pick before
+     * the server has seen it.
+     * <p>
+     * The inverse of {@link #configValue(ResourceLocation)}: a bare name is
+     * vanilla, anything with a namespace is taken as written. Case is folded
+     * because configs spell vanilla ids in upper case.
+     *
+     * @return the stack, or empty if nothing is registered under that id
+     */
+    static ItemStack stackFor(String configValue) {
+        if (configValue == null || configValue.isBlank()) {
+            return ItemStack.EMPTY;
+        }
+
+        String trimmed = configValue.trim().toLowerCase(Locale.ROOT);
+        ResourceLocation id = trimmed.indexOf(':') >= 0
+                ? ResourceLocation.tryParse(trimmed)
+                : ResourceLocation.fromNamespaceAndPath(VANILLA, trimmed);
+
+        if (id == null) {
+            return ItemStack.EMPTY;
+        }
+        return BuiltInRegistries.ITEM.getOptional(id)
+                .map(ItemStack::new)
+                .orElse(ItemStack.EMPTY);
+    }
+
     private static String configValue(ResourceLocation id) {
         return VANILLA.equals(id.getNamespace())
                 ? id.getPath().toUpperCase(Locale.ROOT)

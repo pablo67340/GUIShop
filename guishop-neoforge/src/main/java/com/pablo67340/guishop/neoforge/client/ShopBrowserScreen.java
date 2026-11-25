@@ -112,7 +112,7 @@ public final class ShopBrowserScreen extends PanelScreen {
         int controlsTop = headerBottom() + 4;
         int reserved = SETTINGS_WIDTH + 4 + 54
                 + (catalogue.canEdit() ? EDIT_WIDTH + 4 : 0)
-                + (catalogue.canEdit() && editing ? 20 : 0);
+                + (catalogue.canEdit() && editing ? (isMenu() ? 78 : 20) : 0);
 
         search = new EditBox(font, contentLeft(), controlsTop,
                 Math.max(40, contentWidth() - reserved), 16, Component.literal("Search"));
@@ -152,20 +152,23 @@ public final class ShopBrowserScreen extends PanelScreen {
             right -= EDIT_WIDTH + 4;
 
             if (editing) {
-                // On the menu this adds a shop, since the menu's entries are
-                // shortcuts to shops rather than items. Inside a shop it adds
-                // an item. Either way it is the plus where the thing you are
-                // looking at lives.
-                Button add = Button.builder(Component.literal("+"), button -> {
-                            if (isMenu()) {
-                                openNewShop();
-                            } else {
-                                addItem();
-                            }
-                        })
-                        .bounds(right - 16, controlsTop, 16, 16)
-                        .build();
-                addRenderableWidget(add);
+                // The menu can hold both: a shortcut to a shop, or an item
+                // sold straight from the menu for anyone who would rather not
+                // nest shops. Two buttons rather than one that asks, since the
+                // choice is already made by the time it is reached.
+                if (isMenu()) {
+                    addRenderableWidget(Button.builder(
+                                    Component.literal("+Shop"), button -> openNewShop())
+                            .bounds(right - 36, controlsTop, 36, 16)
+                            .build());
+                    right -= 40;
+                }
+
+                addRenderableWidget(Button.builder(
+                                Component.literal(isMenu() ? "+Item" : "+"), button -> addItem())
+                        .bounds(right - (isMenu() ? 34 : 16), controlsTop,
+                                isMenu() ? 34 : 16, 16)
+                        .build());
             }
         }
     }

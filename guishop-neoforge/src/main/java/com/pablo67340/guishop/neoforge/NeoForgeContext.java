@@ -41,6 +41,9 @@ public final class NeoForgeContext implements GuiShopContext {
         // Bukkit plugin keeps its data under plugins/GUIShop.
         this.dataFolder = FMLPaths.GAMEDIR.get().resolve("guishop");
         this.logger = new Slf4jLogger(logger);
+        // A daemon thread, and deliberately never shut down: this context
+        // lives as long as the game does, while a client starts and stops an
+        // integrated server every time a world is opened and closed.
         this.executor = Executors.newSingleThreadScheduledExecutor(runnable -> {
             Thread thread = new Thread(runnable, "GUIShop-Scheduler");
             thread.setDaemon(true);
@@ -92,10 +95,6 @@ public final class NeoForgeContext implements GuiShopContext {
     @Override
     public DynamicPriceProvider dynamicPriceProvider() {
         return null;
-    }
-
-    public void shutdown() {
-        executor.shutdownNow();
     }
 
     private static final class Slf4jLogger implements PlatformLogger {

@@ -111,6 +111,17 @@ public final class GuiShopMod {
                 LOG_FLUSH_INTERVAL_TICKS);
     }
 
+    /**
+     * Tears down what belongs to the server that just stopped, and nothing
+     * else.
+     * <p>
+     * On a client this fires every time a world is closed, while the mod
+     * instance - and so the platform context and its scheduler - lives for the
+     * whole process. Clearing those here left the second world of a session
+     * with no context at all, which the permission API then crashed on during
+     * startup. The scheduler thread is a daemon, so leaving it running does
+     * not hold the game open.
+     */
     private void onServerStopped(ServerStoppedEvent event) {
         if (logFlushTask != null) {
             logFlushTask.cancel();
@@ -118,8 +129,6 @@ public final class GuiShopMod {
         }
         balanceStore.save();
         context.logUtil().flushLogs();
-        context.shutdown();
         GuiShopServer.clear();
-        GuiShopPlatform.clear();
     }
 }

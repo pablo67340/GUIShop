@@ -47,6 +47,19 @@ final class ItemEditorScreen extends ShopChildScreen {
     }
 
     /**
+     * The name an item is shown under.
+     * <p>
+     * Config has two keys for this - {@code shop-name} and {@code name} - which
+     * the item builder treats as one value with a preference order, so the
+     * editor offers one field. Two were an invitation to read "Shop name" as
+     * "the name of the shop this opens" and type the wrong thing into it.
+     */
+    private static final String DISPLAY_NAME = "shop-name";
+
+    /** Superseded by {@link #DISPLAY_NAME}, and cleared when it is set. */
+    private static final String LEGACY_NAME = "name";
+
+    /**
      * The single-line properties, filled down the left column then the right.
      */
     private static final List<Field> SIMPLE_FIELDS = List.of(
@@ -54,14 +67,13 @@ final class ItemEditorScreen extends ShopChildScreen {
             new Field("type", "Type", Kind.CHOOSE),
             new Field("buy-price", "Buy price", Kind.NUMBER),
             new Field("sell-price", "Sell price", Kind.NUMBER),
-            new Field("shop-name", "Shop name", Kind.TEXT),
+            new Field(DISPLAY_NAME, "Display name", Kind.TEXT),
             new Field("buy-name", "Bought name", Kind.TEXT),
-            new Field("name", "Name", Kind.TEXT),
             new Field("enchantments", "Enchantments", Kind.CHOOSE),
             new Field("item-flags", "Hide in tooltip", Kind.CHOOSE),
             new Field("custom-model-data", "Model data", Kind.NUMBER),
             new Field("mob-type", "Spawner mob", Kind.CHOOSE),
-            new Field("target-shop", "Links to shop", Kind.CHOOSE),
+            new Field("target-shop", "Opens shop", Kind.CHOOSE),
             new Field("nbt", "NBT", Kind.TEXT));
 
     /**
@@ -130,6 +142,16 @@ final class ItemEditorScreen extends ShopChildScreen {
         this.entry = entry;
         this.original = new LinkedHashMap<>(values);
         this.values = new LinkedHashMap<>(values);
+
+        // So an item whose name is under the older key still shows it, rather
+        // than an empty box above an item that visibly has a name.
+        if (this.values.getOrDefault(DISPLAY_NAME, "").isBlank()) {
+            String legacy = this.values.getOrDefault(LEGACY_NAME, "");
+            if (!legacy.isBlank()) {
+                this.values.put(DISPLAY_NAME, legacy);
+                this.original.put(DISPLAY_NAME, legacy);
+            }
+        }
     }
 
     // ----------------------------------------------------------------- layout
@@ -454,6 +476,13 @@ final class ItemEditorScreen extends ShopChildScreen {
 
         dropStrandedFields(changed);
 
+        // One field edits both keys, so the one it does not write has to go.
+        // Left behind, it would be a second name waiting to reappear the moment
+        // the first was cleared.
+        if (changed.containsKey(DISPLAY_NAME) && !values.getOrDefault(LEGACY_NAME, "").isBlank()) {
+            changed.put(LEGACY_NAME, "");
+        }
+
         if (changed.isEmpty()) {
             setStatus("Nothing changed.", false);
             return;
@@ -547,12 +576,9 @@ final class ItemEditorScreen extends ShopChildScreen {
         graphics.renderFakeItem(preview, 0, 0);
         graphics.pose().popPose();
 
-        // The configured shop name wins over the item's own, since that is
-        // what a player will see on the shelf.
-        String configured = values.getOrDefault("shop-name", "");
-        if (configured.isBlank()) {
-            configured = values.getOrDefault("name", "");
-        }
+        // The configured name wins over the item's own, since that is what a
+        // player will see on the shelf.
+        String configured = values.getOrDefault(DISPLAY_NAME, "");
         Component name = configured.isBlank()
                 ? Contrast.readable(preview.getHoverName())
                 : Contrast.readable(TextUtil.toComponent(configured));

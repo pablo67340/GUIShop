@@ -138,6 +138,7 @@ public final class ShopViewBuilder {
                 item.hasBuyPrice() ? item.getBuyPriceAsDecimal().doubleValue() : ShopEntryData.NO_PRICE,
                 item.hasSellPrice() ? item.getSellPriceAsDecimal().doubleValue() : ShopEntryData.NO_PRICE,
                 item.getTargetShop() == null ? "" : item.getTargetShop(),
+                item.getItemType() == ItemType.SHOP_SHORTCUT,
                 priceLines(item));
     }
 

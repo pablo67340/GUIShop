@@ -28,7 +28,12 @@ import java.util.List;
  * @param icon       the stack to render, carrying its configured name and lore
  * @param buyPrice   the buy price, or {@link #NO_PRICE} if it cannot be bought
  * @param sellPrice  the sell price, or {@link #NO_PRICE} if it cannot be sold
- * @param targetShop the shop a menu icon opens, or empty for a normal item
+ * @param targetShop the shop this opens, or empty if no shop has been chosen
+ * @param shortcut   whether this entry opens a shop rather than trading. Sent
+ *                   rather than inferred from {@code targetShop}: an entry whose
+ *                   shop has not been chosen yet is still a shortcut, and
+ *                   guessing from an empty string made it look like an item the
+ *                   client would then offer to sell
  * @param priceLines the price lines as configured, already rendered. Built on
  *                   the server because only it has the lore templates, the
  *                   currency format and the live prices; the client would
@@ -40,6 +45,7 @@ public record ShopEntryData(
         double buyPrice,
         double sellPrice,
         String targetShop,
+        boolean shortcut,
         List<Component> priceLines) {
 
     /** Prices are never negative in config, so this cannot collide with a real one. */
@@ -63,7 +69,12 @@ public record ShopEntryData(
     }
 
     public boolean isShortcut() {
-        return !targetShop.isEmpty();
+        return shortcut;
+    }
+
+    /** Whether this shortcut actually has a shop to open yet. */
+    public boolean hasTarget() {
+        return shortcut && !targetShop.isBlank();
     }
 
     private void write(RegistryFriendlyByteBuf buffer) {
@@ -72,6 +83,7 @@ public record ShopEntryData(
         buffer.writeDouble(buyPrice);
         buffer.writeDouble(sellPrice);
         buffer.writeUtf(targetShop);
+        buffer.writeBoolean(shortcut);
         LINES_CODEC.encode(buffer, priceLines);
     }
 
@@ -82,6 +94,7 @@ public record ShopEntryData(
                 buffer.readDouble(),
                 buffer.readDouble(),
                 buffer.readUtf(),
+                buffer.readBoolean(),
                 LINES_CODEC.decode(buffer));
     }
 }

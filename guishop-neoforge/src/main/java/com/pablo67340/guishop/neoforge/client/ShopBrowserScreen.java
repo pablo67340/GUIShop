@@ -273,6 +273,13 @@ public final class ShopBrowserScreen extends PanelScreen {
 
         List<Entry> entries = new ArrayList<>(view.entries().size());
         for (ShopEntryData data : view.entries()) {
+            // A shortcut whose shop has not been chosen yet does nothing, so
+            // only someone who can finish it has any reason to see it. Clicking
+            // the plus adds one straight away, and walking away from the editor
+            // would otherwise leave a dead icon in everyone's menu.
+            if (data.isShortcut() && !data.hasTarget() && !catalogue.canEdit()) {
+                continue;
+            }
             // Built once per rebuild rather than per keystroke.
             String key = data.icon().getHoverName().getString().toLowerCase(Locale.ROOT);
             if (!query.isEmpty() && !key.contains(query)) {
@@ -477,7 +484,8 @@ public final class ShopBrowserScreen extends PanelScreen {
      */
     private void renderCellPrices(GuiGraphics graphics, ShopEntryData entry, int left, int top, int maxWidth) {
         if (entry.isShortcut()) {
-            graphics.drawString(font, "Browse shop", left, top, UiTheme.TEXT_MUTED, false);
+            graphics.drawString(font, entry.hasTarget() ? "Browse shop" : "No shop chosen yet",
+                    left, top, UiTheme.TEXT_MUTED, false);
             return;
         }
 
@@ -512,7 +520,9 @@ public final class ShopBrowserScreen extends PanelScreen {
 
         if (entry.isShortcut()) {
             lines.add(Component.empty());
-            lines.add(muted("Click to open " + entry.targetShop()));
+            lines.add(muted(entry.hasTarget()
+                    ? "Click to open " + entry.targetShop()
+                    : "Unfinished - pick the shop it opens"));
         } else if (!entry.priceLines().isEmpty()) {
             lines.add(Component.empty());
             entry.priceLines().forEach(line -> lines.add(Contrast.readable(line)));
@@ -584,7 +594,11 @@ public final class ShopBrowserScreen extends PanelScreen {
         }
 
         if (entry.data().isShortcut()) {
-            openShop(entry.data().targetShop());
+            if (entry.data().hasTarget()) {
+                openShop(entry.data().targetShop());
+            } else {
+                setStatus("That shop has not been set up yet.", false);
+            }
             return true;
         }
 

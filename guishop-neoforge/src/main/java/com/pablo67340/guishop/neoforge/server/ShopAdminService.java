@@ -143,7 +143,9 @@ public final class ShopAdminService {
         // editor shows what it is and the author can see what to change if
         // they would rather sell something here than open a shop.
         icon.put("type", "SHOP_SHORTCUT");
-        icon.put("name", "&f&l" + shop);
+        // The key the editor's one name field writes, so a generated entry and
+        // an edited one are spelled the same way.
+        icon.put("shop-name", "&f&l" + shop);
         icon.put("lore", List.of("&7Click to browse"));
         icon.put("target-shop", shop);
 
@@ -232,7 +234,7 @@ public final class ShopAdminService {
         item.put("id", isMenu ? "CHEST" : "STONE");
         item.put("type", isMenu ? "SHOP_SHORTCUT" : "ITEM");
         if (isMenu) {
-            item.put("name", "&f&lNew shop");
+            item.put("shop-name", "&f&lNew shop");
         } else {
             item.put("buy-price", 1);
             item.put("sell-price", 1);

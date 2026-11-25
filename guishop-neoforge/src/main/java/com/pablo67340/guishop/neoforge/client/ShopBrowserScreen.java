@@ -193,14 +193,16 @@ public final class ShopBrowserScreen extends Screen {
         graphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelTop + UiTheme.HEADER_HEIGHT,
                 UiTheme.HEADER_BG);
         graphics.fill(panelLeft, panelTop + UiTheme.HEADER_HEIGHT - 1,
-                panelLeft + panelWidth, panelTop + UiTheme.HEADER_HEIGHT, UiTheme.DIVIDER);
+                panelLeft + panelWidth, panelTop + UiTheme.HEADER_HEIGHT, UiTheme.HEADER_BORDER);
 
-        graphics.drawString(font, getTitle(), panelLeft + UiTheme.PADDING, panelTop + 12, UiTheme.TEXT, true);
+        // No shadow: these titles are dark greys on a pale bar, as authored.
+        graphics.drawString(font, getTitle(), panelLeft + UiTheme.PADDING, panelTop + 12,
+                UiTheme.HEADER_TEXT, false);
 
         String counter = visible.size() + (visible.size() == 1 ? " entry" : " entries");
         graphics.drawString(font, counter,
                 panelLeft + panelWidth - UiTheme.PADDING - font.width(counter),
-                panelTop + 13, UiTheme.TEXT_MUTED, false);
+                panelTop + 13, UiTheme.HEADER_MUTED, false);
     }
 
     @Override
@@ -251,7 +253,7 @@ public final class ShopBrowserScreen extends Screen {
 
         // Drawn from the stack's own name so the configured colours and
         // formatting survive, falling back to the vanilla item name.
-        graphics.drawString(font, trimToWidth(entry.icon().getHoverName(), textWidth),
+        graphics.drawString(font, trimToWidth(Contrast.readable(entry.icon().getHoverName()), textWidth),
                 textLeft, top + 6, UiTheme.TEXT, false);
 
         renderCellPrices(graphics, entry, textLeft, top + 18);

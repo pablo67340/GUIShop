@@ -12,8 +12,17 @@ final class UiTheme {
     // Panel
     static final int PANEL_BG = 0xF0121216;
     static final int PANEL_BORDER = 0xFF2E2E3A;
-    static final int HEADER_BG = 0xFF1B1B22;
     static final int DIVIDER = 0xFF2E2E3A;
+
+    /**
+     * The header is light because shop titles were authored against a vanilla
+     * chest's pale title bar, and are routinely dark greys that would be
+     * unreadable on dark chrome.
+     */
+    static final int HEADER_BG = 0xFFC8C8D2;
+    static final int HEADER_BORDER = 0xFF8A8A96;
+    static final int HEADER_TEXT = 0xFF26262E;
+    static final int HEADER_MUTED = 0xFF55555F;
 
     // Cells
     static final int CELL_BG = 0xFF1A1A21;

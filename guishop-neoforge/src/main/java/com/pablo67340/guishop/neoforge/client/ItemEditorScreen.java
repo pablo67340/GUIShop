@@ -94,7 +94,10 @@ final class ItemEditorScreen extends ShopChildScreen {
 
     private static final int LABEL_WIDTH = 74;
     private static final int ROW_HEIGHT = 19;
-    private static final int LIST_HEIGHT = 46;
+    private static final int LIST_HEIGHT = 42;
+
+    /** Room under the lore boxes for the character count vanilla draws there. */
+    private static final int COUNTER_SPACE = 15;
     private static final int COLUMN_GAP = 10;
     private static final int PREVIEW_HEIGHT = 42;
 
@@ -135,46 +138,46 @@ final class ItemEditorScreen extends ShopChildScreen {
     @Override
     protected void init() {
         int rows = (SIMPLE_FIELDS.size() + 1) / 2;
+
+        // COUNTER_SPACE because MultiLineEditBox draws its character count
+        // four pixels under itself; without the room it lands on the footer
+        // divider.
         layoutPanel(470, UiTheme.HEADER_HEIGHT + PREVIEW_HEIGHT + rows * ROW_HEIGHT
-                + 14 + LIST_HEIGHT + UiTheme.FOOTER_HEIGHT + 8);
+                + 14 + LIST_HEIGHT + COUNTER_SPACE + UiTheme.FOOTER_HEIGHT);
 
-        int columnWidth = (contentWidth() - COLUMN_GAP) / 2;
-        int controlWidth = columnWidth - LABEL_WIDTH;
+        for (Slot slot : simpleSlots()) {
+            Field field = slot.field();
 
-        for (int position = 0; position < SIMPLE_FIELDS.size(); position++) {
-            Field field = SIMPLE_FIELDS.get(position);
-            int left = contentLeft() + (position / rows) * (columnWidth + COLUMN_GAP)
-                    + LABEL_WIDTH;
-            int top = formTop() + (position % rows) * ROW_HEIGHT;
+            // A field the type ignores gets no widget at all. It is drawn as a
+            // flat panel instead, which cannot be clicked or tabbed into and,
+            // unlike a non-editable EditBox, actually looks inert.
+            if (!isLive(field)) {
+                continue;
+            }
 
             if (field.kind() == Kind.CHOOSE) {
-                Button chooser = Button.builder(chooseLabel(field, controlWidth),
+                addRenderableWidget(Button.builder(chooseLabel(field, slot.controlWidth()),
                                 button -> choose(field))
-                        .bounds(left, top, controlWidth, 15)
-                        .build();
-                chooser.active = isLive(field);
-                addRenderableWidget(chooser);
+                        .bounds(slot.controlLeft(), slot.top(), slot.controlWidth(), 15)
+                        .build());
             } else {
-                EditBox box = textBox(field, left, top, controlWidth);
-                if (!isLive(field)) {
-                    box.setEditable(false);
-                }
-                addRenderableWidget(box);
+                addRenderableWidget(textBox(field, slot.controlLeft(), slot.top(),
+                        slot.controlWidth()));
             }
         }
 
-        int listTop = formTop() + rows * ROW_HEIGHT + 14;
-        for (int position = 0; position < LIST_FIELDS.size(); position++) {
-            Field field = LIST_FIELDS.get(position);
-            int left = contentLeft() + position * (columnWidth + COLUMN_GAP);
+        for (Slot slot : listSlots()) {
+            Field field = slot.field();
+            if (!isLive(field)) {
+                continue;
+            }
 
-            MultiLineEditBox box = new MultiLineEditBox(font, left, listTop, columnWidth, LIST_HEIGHT,
-                    Component.literal(isLive(field) ? "One per line" : "Not used by this type"),
-                    Component.literal(field.label()));
+            MultiLineEditBox box = new MultiLineEditBox(font, slot.controlLeft(), slot.top(),
+                    slot.controlWidth(), LIST_HEIGHT,
+                    Component.literal("One per line"), Component.literal(field.label()));
             box.setCharacterLimit(MAX_FIELD_LENGTH);
             box.setValue(values.getOrDefault(field.key(), ""));
             box.setValueListener(typed -> values.put(field.key(), typed));
-            box.active = isLive(field);
             addRenderableWidget(box);
         }
 
@@ -229,6 +232,44 @@ final class ItemEditorScreen extends ShopChildScreen {
 
     private int formTop() {
         return headerBottom() + PREVIEW_HEIGHT;
+    }
+
+    /**
+     * Where one field's label and control sit.
+     * <p>
+     * Worked out once and used both to place the widgets and to draw the
+     * labels and the inert fields, so the two cannot drift apart.
+     */
+    private record Slot(Field field, int labelLeft, int controlLeft, int top, int controlWidth) {
+    }
+
+    private int columnWidth() {
+        return (contentWidth() - COLUMN_GAP) / 2;
+    }
+
+    private List<Slot> simpleSlots() {
+        int rows = (SIMPLE_FIELDS.size() + 1) / 2;
+        int columnWidth = columnWidth();
+        List<Slot> slots = new ArrayList<>(SIMPLE_FIELDS.size());
+
+        for (int position = 0; position < SIMPLE_FIELDS.size(); position++) {
+            int labelLeft = contentLeft() + (position / rows) * (columnWidth + COLUMN_GAP);
+            slots.add(new Slot(SIMPLE_FIELDS.get(position), labelLeft, labelLeft + LABEL_WIDTH,
+                    formTop() + (position % rows) * ROW_HEIGHT, columnWidth - LABEL_WIDTH));
+        }
+        return slots;
+    }
+
+    private List<Slot> listSlots() {
+        int columnWidth = columnWidth();
+        int top = formTop() + ((SIMPLE_FIELDS.size() + 1) / 2) * ROW_HEIGHT + 14;
+        List<Slot> slots = new ArrayList<>(LIST_FIELDS.size());
+
+        for (int position = 0; position < LIST_FIELDS.size(); position++) {
+            int left = contentLeft() + position * (columnWidth + COLUMN_GAP);
+            slots.add(new Slot(LIST_FIELDS.get(position), left, left, top, columnWidth));
+        }
+        return slots;
     }
 
     // ------------------------------------------------------------- relevance
@@ -525,26 +566,45 @@ final class ItemEditorScreen extends ShopChildScreen {
     }
 
     private void renderLabels(GuiGraphics graphics) {
-        int rows = (SIMPLE_FIELDS.size() + 1) / 2;
-        int columnWidth = (contentWidth() - COLUMN_GAP) / 2;
-
-        for (int position = 0; position < SIMPLE_FIELDS.size(); position++) {
-            Field field = SIMPLE_FIELDS.get(position);
-            int left = contentLeft() + (position / rows) * (columnWidth + COLUMN_GAP);
-            int top = formTop() + (position % rows) * ROW_HEIGHT;
+        for (Slot slot : simpleSlots()) {
+            boolean live = isLive(slot.field());
 
             // Dimmed alongside its disabled control, so the row reads as one
             // thing that is off rather than a live label with a dead box.
-            graphics.drawString(font, field.label(), left, top + 4,
-                    isLive(field) ? UiTheme.TEXT_MUTED : UiTheme.LABEL_OFF, false);
+            graphics.drawString(font, slot.field().label(), slot.labelLeft(), slot.top() + 4,
+                    live ? UiTheme.TEXT_MUTED : UiTheme.LABEL_OFF, false);
+
+            if (!live) {
+                renderInertField(graphics, slot, 15, "");
+            }
         }
 
-        int listLabelTop = formTop() + rows * ROW_HEIGHT + 4;
-        for (int position = 0; position < LIST_FIELDS.size(); position++) {
-            Field field = LIST_FIELDS.get(position);
-            graphics.drawString(font, field.label(),
-                    contentLeft() + position * (columnWidth + COLUMN_GAP), listLabelTop,
-                    isLive(field) ? UiTheme.TEXT_MUTED : UiTheme.LABEL_OFF, false);
+        for (Slot slot : listSlots()) {
+            boolean live = isLive(slot.field());
+
+            graphics.drawString(font, slot.field().label(), slot.labelLeft(), slot.top() - 10,
+                    live ? UiTheme.TEXT_MUTED : UiTheme.LABEL_OFF, false);
+
+            if (!live) {
+                renderInertField(graphics, slot, LIST_HEIGHT, "Not used by this type");
+            }
+        }
+    }
+
+    /**
+     * Stands in for a field the chosen type ignores.
+     */
+    private void renderInertField(GuiGraphics graphics, Slot slot, int height, String note) {
+        int left = slot.controlLeft();
+        int top = slot.top();
+        int width = slot.controlWidth();
+
+        graphics.fill(left, top, left + width, top + height, UiTheme.FIELD_OFF_BG);
+        graphics.renderOutline(left, top, width, height, UiTheme.FIELD_OFF_BORDER);
+
+        if (!note.isEmpty()) {
+            graphics.drawString(font, font.plainSubstrByWidth(note, width - 8),
+                    left + 4, top + 4, UiTheme.LABEL_OFF, false);
         }
     }
 }

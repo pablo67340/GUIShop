@@ -42,6 +42,17 @@ final class UiTheme {
 
     /** A label whose control is disabled, dim enough to read as inactive. */
     static final int LABEL_OFF = 0xFF535662;
+
+    /**
+     * A field that does not apply, drawn in place of a text box.
+     * <p>
+     * Vanilla's EditBox has no disabled appearance - it keeps the same border
+     * whatever its state and only dims the text - so an inactive field is
+     * drawn here rather than created as a widget nobody can use.
+     */
+    static final int FIELD_OFF_BG = 0xFF14141A;
+
+    static final int FIELD_OFF_BORDER = 0xFF2A2A34;
     static final int BUY = 0xFF5FD98A;
     static final int SELL = 0xFFE9B155;
     static final int WARN = 0xFFE86A6A;

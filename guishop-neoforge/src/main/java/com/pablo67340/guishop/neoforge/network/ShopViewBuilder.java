@@ -14,7 +14,9 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 
 /**
@@ -29,21 +31,29 @@ public final class ShopViewBuilder {
     private ShopViewBuilder() {
     }
 
-    public static OpenShopPayload build(ShopRegistry registry, HolderLookup.Provider registries) {
+    public static Catalogue build(ShopRegistry registry, HolderLookup.Provider registries) {
         NeoShop menu = registry.getMenu();
+        Map<String, List<NeoItem>> items = new LinkedHashMap<>();
 
         List<ShopView> shops = new ArrayList<>();
         for (NeoShop shop : registry.all()) {
-            shops.add(toView(shop, registries));
+            shops.add(toView(shop, registries, items));
         }
 
-        return new OpenShopPayload(
-                menu == null ? ShopView.empty("Menu") : toView(menu, registries),
-                List.copyOf(shops));
+        ShopView menuView = menu == null
+                ? ShopView.empty("Menu")
+                : toView(menu, registries, items);
+
+        // No viewer yet: permission, balance and settings are filled in per
+        // player when the catalogue is sent, which is what forViewer is for.
+        OpenShopPayload payload = new OpenShopPayload(
+                menuView, List.copyOf(shops), false, 0.0D, Map.of(), "");
+        return new Catalogue(payload, Map.copyOf(items));
     }
 
-    private static ShopView toView(NeoShop shop, HolderLookup.Provider registries) {
-        List<ShopEntryData> entries = new ArrayList<>();
+    private static ShopView toView(NeoShop shop, HolderLookup.Provider registries,
+                                   Map<String, List<NeoItem>> index) {
+        List<NeoItem> shown = new ArrayList<>();
 
         for (var page : shop.getPages().values()) {
             // Config order within a page is slot order, which the map does not
@@ -51,10 +61,15 @@ public final class ShopViewBuilder {
             page.getItems().values().stream()
                     .sorted(Comparator.comparing(item -> item.getSlot() == null ? 0 : item.getSlot()))
                     .filter(ShopViewBuilder::isWorthShowing)
-                    .map(item -> toEntry(item, registries))
-                    .forEach(entries::add);
+                    .forEach(shown::add);
         }
 
+        List<ShopEntryData> entries = new ArrayList<>(shown.size());
+        for (NeoItem item : shown) {
+            entries.add(toEntry(item, registries));
+        }
+
+        index.put(Catalogue.key(shop.getName()), List.copyOf(shown));
         return new ShopView(shop.getName(), shop.getTitle(), List.copyOf(entries));
     }
 
@@ -64,9 +79,10 @@ public final class ShopViewBuilder {
      * Written to the debug log on startup so a config whose metadata silently
      * failed to apply is visible without opening the game.
      */
-    public static String summarise(OpenShopPayload catalogue) {
-        List<ShopEntryData> all = new ArrayList<>(catalogue.menu().entries());
-        catalogue.shops().forEach(shop -> all.addAll(shop.entries()));
+    public static String summarise(Catalogue catalogue) {
+        OpenShopPayload payload = catalogue.payload();
+        List<ShopEntryData> all = new ArrayList<>(payload.menu().entries());
+        payload.shops().forEach(shop -> all.addAll(shop.entries()));
 
         return all.size() + " entries: "
                 + count(all, stack -> stack.has(DataComponents.CUSTOM_NAME)) + " named, "
@@ -91,8 +107,8 @@ public final class ShopViewBuilder {
      *
      * @return the sample, or empty if nothing is priced
      */
-    public static String samplePriceLine(OpenShopPayload catalogue) {
-        return catalogue.shops().stream()
+    public static String samplePriceLine(Catalogue catalogue) {
+        return catalogue.payload().shops().stream()
                 .flatMap(shop -> shop.entries().stream())
                 .filter(entry -> !entry.priceLines().isEmpty())
                 .findFirst()

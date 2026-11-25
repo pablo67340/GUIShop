@@ -1,13 +1,17 @@
 package com.pablo67340.guishop.neoforge.client;
 
+import com.pablo67340.guishop.neoforge.network.ItemFieldsPayload;
 import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
+import com.pablo67340.guishop.neoforge.network.RequestItemPayload;
 import com.pablo67340.guishop.neoforge.network.ShopEntryData;
 import com.pablo67340.guishop.neoforge.network.ShopView;
+import com.pablo67340.guishop.neoforge.network.TradeRequestPayload;
+import com.pablo67340.guishop.neoforge.network.TradeResultPayload;
 import com.pablo67340.guishop.neoforge.util.TextUtil;
+import com.pablo67340.guishop.util.MathUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FormattedText;
@@ -15,10 +19,12 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.lwjgl.glfw.GLFW;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
 import java.util.List;
 import java.util.Locale;
@@ -30,109 +36,256 @@ import java.util.Locale;
  * The whole catalogue arrives in one payload, so moving between the menu and a
  * shop is local and instant.
  */
-public final class ShopBrowserScreen extends Screen {
+public final class ShopBrowserScreen extends PanelScreen {
 
-    private final OpenShopPayload catalogue;
+    private OpenShopPayload catalogue;
 
     /** Where "back" goes, so nested navigation unwinds in order. */
-    private final Deque<ShopView> history = new ArrayDeque<>();
+    private final Deque<String> history = new ArrayDeque<>();
 
     private ShopView view;
-    private List<ShopEntryData> visible = List.of();
-
-    /**
-     * Lowercased names for the current view, indexed alongside its entries, so
-     * typing in the search box does not re-resolve every name per keystroke.
-     */
-    private List<String> searchKeys = List.of();
+    private List<Entry> visible = List.of();
 
     private EditBox search;
 
-    private int panelLeft;
-    private int panelTop;
-    private int panelWidth;
-    private int panelHeight;
     private int cellWidth = UiTheme.CELL_WIDTH;
     private int columns = 1;
     private int scroll;
+
+    private double balance;
+
+    /**
+     * When on, clicking an item opens the editor instead of trading. Replaces
+     * the plugin's shift-click, which existed only because a chest inventory
+     * had nowhere to put a button.
+     */
+    private boolean editing;
+
+    /** The last thing the server said about a trade or a save. */
+    private Component status = Component.empty();
+    private boolean statusSuccess = true;
+
+    /**
+     * An entry together with where it sits in the shop as the server sees it.
+     * <p>
+     * Sorting and searching reorder what is drawn, so the position in the list
+     * on screen is no longer the identity the server knows. Carrying the
+     * original index means a request always names the right item.
+     */
+    private record Entry(ShopEntryData data, int index, String searchKey) {
+    }
 
     public ShopBrowserScreen(OpenShopPayload catalogue, ShopView view) {
         super(TextUtil.toComponent(view.title()));
         this.catalogue = catalogue;
         this.view = view;
+        this.balance = catalogue.balance();
+        ClientPrefs.load();
     }
 
     @Override
     protected void init() {
-        panelWidth = Math.min(width - UiTheme.PANEL_MARGIN * 2, UiTheme.PANEL_MAX_WIDTH);
-        panelHeight = Math.min(height - UiTheme.PANEL_MARGIN * 2, 260);
-        panelLeft = (width - panelWidth) / 2;
-        panelTop = (height - panelHeight) / 2;
+        layoutPanel(UiTheme.PANEL_MAX_WIDTH, 260);
 
-        int innerWidth = panelWidth - UiTheme.PADDING * 2 - UiTheme.SCROLLBAR_WIDTH - 2;
+        int innerWidth = contentWidth() - UiTheme.SCROLLBAR_WIDTH - 2;
         columns = Math.max(1, (innerWidth + UiTheme.CELL_GAP) / (UiTheme.CELL_WIDTH + UiTheme.CELL_GAP));
         // Narrow windows get one column that fits, rather than a cell drawn
         // past the panel edge.
         cellWidth = Math.max(60, Math.min(UiTheme.CELL_WIDTH,
                 (innerWidth - (columns - 1) * UiTheme.CELL_GAP) / columns));
 
+        addControls();
+        rebuildEntries();
+    }
+
+    private void addControls() {
         String previousQuery = search == null ? "" : search.getValue();
 
-        search = new EditBox(font, panelLeft + UiTheme.PADDING,
-                panelTop + UiTheme.HEADER_HEIGHT + 4, Math.max(40, panelWidth - UiTheme.PADDING * 2 - 54), 16,
-                Component.literal("Search"));
+        int controlsTop = headerBottom() + 4;
+        int buttons = catalogue.canEdit() ? 2 : 1;
+        int reserved = buttons * 24 + 54;
+
+        search = new EditBox(font, contentLeft(), controlsTop,
+                Math.max(40, contentWidth() - reserved), 16, Component.literal("Search"));
         search.setHint(Component.literal("Search..."));
         search.setMaxLength(48);
         search.setValue(previousQuery);
         search.setResponder(query -> {
             scroll = 0;
-            applyFilter();
+            rebuildEntries();
         });
         addRenderableWidget(search);
 
+        int right = panelRight() - UiTheme.PADDING;
+
         Button back = Button.builder(Component.literal("Back"), button -> goBack())
-                .bounds(panelLeft + panelWidth - UiTheme.PADDING - 50,
-                        panelTop + UiTheme.HEADER_HEIGHT + 4, 50, 16)
+                .bounds(right - 50, controlsTop, 50, 16)
                 .build();
         back.active = !history.isEmpty();
         addRenderableWidget(back);
+        right -= 54;
 
-        indexSearchKeys();
-        applyFilter();
-    }
+        // A gear for everyone: without permission it opens their own display
+        // preferences, which is still worth having.
+        addRenderableWidget(Button.builder(Component.literal("\u2699"), button -> openSettings())
+                .bounds(right - 20, controlsTop, 20, 16)
+                .build());
+        right -= 24;
 
-    private void indexSearchKeys() {
-        List<String> keys = new ArrayList<>(view.entries().size());
-        for (ShopEntryData entry : view.entries()) {
-            keys.add(entry.icon().getHoverName().getString().toLowerCase(Locale.ROOT));
+        if (catalogue.canEdit()) {
+            addRenderableWidget(Button.builder(
+                            Component.literal(editing ? "\u270E*" : "\u270E"),
+                            button -> toggleEditing())
+                    .bounds(right - 20, controlsTop, 20, 16)
+                    .build());
         }
-        searchKeys = keys;
     }
 
-    private void applyFilter() {
+    private void toggleEditing() {
+        editing = !editing;
+        setStatus(editing
+                        ? "Edit mode on. Click an item to edit it."
+                        : "Edit mode off.",
+                true);
+        rebuildWidgets();
+    }
+
+    private void openSettings() {
+        minecraft.setScreen(new SettingsScreen(this, catalogue.canEdit(), catalogue.serverSettings()));
+    }
+
+    // ------------------------------------------------------------- catalogue
+
+    /**
+     * Takes a freshly sent catalogue without disturbing where the player is.
+     * <p>
+     * Called after an edit, when the server resends to everyone. Reopening
+     * would lose the current shop, the search and the scroll position in the
+     * middle of someone working.
+     */
+    void refresh(OpenShopPayload updated) {
+        catalogue = updated;
+        balance = updated.balance();
+
+        ShopView sameView = updated.shopOrMenu(view.name());
+        view = sameView == null ? updated.menu() : sameView;
+
+        rebuildEntries();
+    }
+
+    double balance() {
+        return balance;
+    }
+
+    void setBalance(double value) {
+        balance = value;
+    }
+
+    void onResult(TradeResultPayload result) {
+        status = result.message();
+        statusSuccess = result.success();
+        balance = result.balance();
+    }
+
+    private void setStatus(String message, boolean success) {
+        status = Component.literal(message);
+        statusSuccess = success;
+    }
+
+    /**
+     * Called when a preference changes, since sorting and the affordability
+     * filter both come from them.
+     */
+    void onPrefsChanged() {
+        rebuildEntries();
+    }
+
+    /**
+     * Opens the editor for an entry, once the server has sent its properties.
+     */
+    void openEditor(ItemFieldsPayload fields) {
+        Entry entry = visible.stream()
+                .filter(candidate -> candidate.index() == fields.index())
+                .findFirst()
+                .orElse(null);
+
+        if (entry == null || !fields.shop().equalsIgnoreCase(view.name())) {
+            // The player navigated away while the request was in flight.
+            return;
+        }
+
+        minecraft.setScreen(new ItemEditorScreen(
+                this, view.name(), fields.index(), entry.data(), fields.fields()));
+    }
+
+    // ---------------------------------------------------------------- entries
+
+    /**
+     * Rebuilds what is on screen from the current view, search and preferences.
+     */
+    private void rebuildEntries() {
         String query = search == null ? "" : search.getValue().trim().toLowerCase(Locale.ROOT);
-        if (query.isEmpty()) {
-            visible = view.entries();
-        } else {
-            List<ShopEntryData> matches = new ArrayList<>();
-            for (int index = 0; index < view.entries().size(); index++) {
-                if (searchKeys.get(index).contains(query)) {
-                    matches.add(view.entries().get(index));
-                }
+
+        List<Entry> entries = new ArrayList<>(view.entries().size());
+        for (int index = 0; index < view.entries().size(); index++) {
+            ShopEntryData data = view.entries().get(index);
+
+            // Indexed once per rebuild rather than per keystroke.
+            String key = data.icon().getHoverName().getString().toLowerCase(Locale.ROOT);
+            if (!query.isEmpty() && !key.contains(query)) {
+                continue;
             }
-            visible = List.copyOf(matches);
+            if (ClientPrefs.hideUnaffordable() && isUnaffordable(data)) {
+                continue;
+            }
+            entries.add(new Entry(data, index, key));
         }
+
+        sort(entries);
+        visible = List.copyOf(entries);
         clampScroll();
     }
 
-    // ---------------------------------------------------------------- layout
+    /**
+     * A shortcut is never filtered out by affordability: it opens a shop rather
+     * than costing anything.
+     */
+    private boolean isUnaffordable(ShopEntryData data) {
+        return !data.isShortcut() && data.canBuy() && data.buyPrice() > balance;
+    }
+
+    private void sort(List<Entry> entries) {
+        switch (ClientPrefs.sort()) {
+            case NAME -> entries.sort(Comparator.comparing(Entry::searchKey));
+            case PRICE_LOW -> entries.sort(Comparator.comparingDouble(entry -> sortPrice(entry, true)));
+            case PRICE_HIGH -> entries.sort(Comparator.comparingDouble(
+                    (Entry entry) -> sortPrice(entry, false)).reversed());
+            // Config order is the order the server sent, which is already it.
+            case CONFIG -> {
+            }
+        }
+    }
+
+    /**
+     * What to sort an unpriced entry by: pushed to whichever end is furthest
+     * from where prices start, so shortcuts and oddities do not sit in the
+     * middle of a price-ordered list.
+     */
+    private static double sortPrice(Entry entry, boolean ascending) {
+        if (!entry.data().canBuy()) {
+            return ascending ? Double.MAX_VALUE : -Double.MAX_VALUE;
+        }
+        return entry.data().buyPrice();
+    }
+
+    // ----------------------------------------------------------------- layout
 
     private int gridTop() {
-        return panelTop + UiTheme.HEADER_HEIGHT + 24;
+        return headerBottom() + 24;
     }
 
     private int gridBottom() {
-        return panelTop + panelHeight - UiTheme.FOOTER_HEIGHT;
+        return footerTop();
     }
 
     private int gridHeight() {
@@ -153,7 +306,7 @@ public final class ShopBrowserScreen extends Screen {
     }
 
     private int cellLeft(int column) {
-        return panelLeft + UiTheme.PADDING + column * (cellWidth + UiTheme.CELL_GAP);
+        return contentLeft() + column * (cellWidth + UiTheme.CELL_GAP);
     }
 
     private int cellTop(int row) {
@@ -161,7 +314,7 @@ public final class ShopBrowserScreen extends Screen {
     }
 
     /**
-     * @return the index under the cursor, or -1
+     * @return the index into {@link #visible} under the cursor, or -1
      */
     private int indexAt(double mouseX, double mouseY) {
         if (mouseY < gridTop() || mouseY >= gridBottom()) {
@@ -179,38 +332,25 @@ public final class ShopBrowserScreen extends Screen {
         return -1;
     }
 
-    // --------------------------------------------------------------- render
+    // ----------------------------------------------------------------- render
 
     @Override
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.renderBackground(graphics, mouseX, mouseY, partialTick);
-
-        graphics.fill(panelLeft - 1, panelTop - 1, panelLeft + panelWidth + 1, panelTop + panelHeight + 1,
-                UiTheme.PANEL_BORDER);
-        graphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelTop + panelHeight, UiTheme.PANEL_BG);
-
-        graphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelTop + UiTheme.HEADER_HEIGHT,
-                UiTheme.HEADER_BG);
-        graphics.fill(panelLeft, panelTop + UiTheme.HEADER_HEIGHT - 1,
-                panelLeft + panelWidth, panelTop + UiTheme.HEADER_HEIGHT, UiTheme.HEADER_BORDER);
-
-        // No shadow: these titles are dark greys on a pale bar, as authored.
-        graphics.drawString(font, getTitle(), panelLeft + UiTheme.PADDING, panelTop + 12,
-                UiTheme.HEADER_TEXT, false);
-
-        String counter = visible.size() + (visible.size() == 1 ? " entry" : " entries");
-        graphics.drawString(font, counter,
-                panelLeft + panelWidth - UiTheme.PADDING - font.width(counter),
-                panelTop + 13, UiTheme.HEADER_MUTED, false);
+        renderPanel(graphics, getTitle(), "$" + MathUtil.formatWithCommas(balance));
     }
 
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
+        if (editing) {
+            // A clear reminder, because a click means something different now.
+            graphics.fill(panelLeft, headerBottom(), panelRight(), headerBottom() + 2, UiTheme.SELL);
+        }
+
         if (visible.isEmpty()) {
-            String message = view.isEmpty() ? "This shop has no items." : "Nothing matches that search.";
-            graphics.drawCenteredString(font, message, panelLeft + panelWidth / 2,
+            graphics.drawCenteredString(font, emptyMessage(), panelLeft + panelWidth / 2,
                     gridTop() + gridHeight() / 2 - 4, UiTheme.TEXT_MUTED);
             renderFooter(graphics);
             return;
@@ -220,13 +360,14 @@ public final class ShopBrowserScreen extends Screen {
 
         // Clipped so partially scrolled rows are cut at the grid edge rather
         // than bleeding over the header and footer.
-        graphics.enableScissor(panelLeft, gridTop(), panelLeft + panelWidth, gridBottom());
+        graphics.enableScissor(panelLeft, gridTop(), panelRight(), gridBottom());
         for (int index = 0; index < visible.size(); index++) {
             int top = cellTop(index / columns);
             if (top + UiTheme.CELL_HEIGHT < gridTop() || top > gridBottom()) {
                 continue;
             }
-            renderCell(graphics, visible.get(index), cellLeft(index % columns), top, index == hovered);
+            renderCell(graphics, visible.get(index).data(),
+                    cellLeft(index % columns), top, index == hovered);
         }
         graphics.disableScissor();
 
@@ -234,15 +375,26 @@ public final class ShopBrowserScreen extends Screen {
         renderFooter(graphics);
 
         if (hovered >= 0) {
-            renderCellTooltip(graphics, visible.get(hovered), mouseX, mouseY);
+            renderCellTooltip(graphics, visible.get(hovered).data(), mouseX, mouseY);
         }
+    }
+
+    private String emptyMessage() {
+        if (view.isEmpty()) {
+            return "This shop has no items.";
+        }
+        if (ClientPrefs.hideUnaffordable()) {
+            return "Nothing here you can afford, or nothing matches that search.";
+        }
+        return "Nothing matches that search.";
     }
 
     private void renderCell(GuiGraphics graphics, ShopEntryData entry, int left, int top, boolean hovered) {
         graphics.fill(left, top, left + cellWidth, top + UiTheme.CELL_HEIGHT,
                 hovered ? UiTheme.CELL_BG_HOVER : UiTheme.CELL_BG);
         if (hovered) {
-            graphics.renderOutline(left, top, cellWidth, UiTheme.CELL_HEIGHT, UiTheme.CELL_BORDER_HOVER);
+            graphics.renderOutline(left, top, cellWidth, UiTheme.CELL_HEIGHT,
+                    editing ? UiTheme.SELL : UiTheme.CELL_BORDER_HOVER);
         }
 
         graphics.renderFakeItem(entry.icon(), left + 6, top + 8);
@@ -323,19 +475,16 @@ public final class ShopBrowserScreen extends Screen {
             entry.priceLines().forEach(line -> lines.add(Contrast.readable(line)));
         }
 
+        if (editing) {
+            lines.add(Component.empty());
+            lines.add(coloured("Click to edit", UiTheme.SELL));
+        }
+
         graphics.renderComponentTooltip(font, lines, mouseX, mouseY, stack);
     }
 
     private static Component muted(String text) {
         return coloured(text, UiTheme.TEXT_MUTED);
-    }
-
-    /**
-     * Theme colours carry an alpha byte for the fill calls; text colours must
-     * not, so it is masked off here.
-     */
-    private static Component coloured(String text, int argb) {
-        return Component.literal(text).withStyle(style -> style.withColor(argb & 0xFFFFFF));
     }
 
     private void renderScrollbar(GuiGraphics graphics) {
@@ -344,7 +493,7 @@ public final class ShopBrowserScreen extends Screen {
             return;
         }
 
-        int trackLeft = panelLeft + panelWidth - UiTheme.PADDING + 2;
+        int trackLeft = panelRight() - UiTheme.PADDING + 2;
         int trackRight = trackLeft + UiTheme.SCROLLBAR_WIDTH;
         graphics.fill(trackLeft, gridTop(), trackRight, gridBottom(), UiTheme.SCROLL_TRACK);
 
@@ -354,14 +503,19 @@ public final class ShopBrowserScreen extends Screen {
     }
 
     private void renderFooter(GuiGraphics graphics) {
-        int footerTop = panelTop + panelHeight - UiTheme.FOOTER_HEIGHT;
-        graphics.fill(panelLeft, footerTop, panelLeft + panelWidth, footerTop + 1, UiTheme.DIVIDER);
+        renderFooterDivider(graphics);
+
+        if (!status.getString().isEmpty()) {
+            graphics.drawString(font, status, contentLeft(), footerTop() + 9,
+                    statusSuccess ? UiTheme.BUY : UiTheme.WARN, false);
+            return;
+        }
 
         String hint = history.isEmpty()
-                ? catalogue.shops().size() + " shops loaded"
+                ? visible.size() + (visible.size() == 1 ? " entry" : " entries")
+                + " of " + view.entries().size()
                 : "Backspace to go back";
-        graphics.drawString(font, hint, panelLeft + UiTheme.PADDING, footerTop + 9,
-                UiTheme.TEXT_MUTED, false);
+        graphics.drawString(font, hint, contentLeft(), footerTop() + 9, UiTheme.TEXT_MUTED, false);
     }
 
     // ----------------------------------------------------------------- input
@@ -372,17 +526,32 @@ public final class ShopBrowserScreen extends Screen {
             return true;
         }
 
-        int index = indexAt(mouseX, mouseY);
-        if (index < 0) {
+        int position = indexAt(mouseX, mouseY);
+        if (position < 0) {
             return false;
         }
 
-        ShopEntryData entry = visible.get(index);
-        if (entry.isShortcut()) {
-            openShop(entry.targetShop());
+        Entry entry = visible.get(position);
+
+        if (editing) {
+            // The properties live on the server, so the editor cannot open
+            // until they arrive.
+            PacketDistributor.sendToServer(new RequestItemPayload(view.name(), entry.index()));
+            return true;
         }
 
-        // Buying and selling land here next; the data is already present.
+        if (entry.data().isShortcut()) {
+            openShop(entry.data().targetShop());
+            return true;
+        }
+
+        if (ClientPrefs.confirmPurchases()) {
+            minecraft.setScreen(new TradeScreen(this, view.name(), entry.index(), entry.data()));
+        } else if (entry.data().canBuy()) {
+            PacketDistributor.sendToServer(new TradeRequestPayload(view.name(), entry.index(), 1, false));
+        } else {
+            setStatus("That item cannot be bought.", false);
+        }
         return true;
     }
 
@@ -413,7 +582,7 @@ public final class ShopBrowserScreen extends Screen {
             return;
         }
 
-        history.push(view);
+        history.push(view.name());
         switchTo(target);
     }
 
@@ -421,7 +590,7 @@ public final class ShopBrowserScreen extends Screen {
         if (history.isEmpty()) {
             return;
         }
-        switchTo(history.pop());
+        switchTo(catalogue.shopOrMenu(history.pop()));
     }
 
     /**
@@ -431,13 +600,9 @@ public final class ShopBrowserScreen extends Screen {
     private void switchTo(ShopView target) {
         view = target;
         scroll = 0;
+        status = Component.empty();
         search.setValue("");
         rebuildWidgets();
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
     }
 
     @Override

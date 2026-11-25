@@ -6,12 +6,11 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.neoforge.config.Settings;
+import com.pablo67340.guishop.neoforge.server.GuiShopNetworkSender;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoPage;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
-import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
-import com.pablo67340.guishop.neoforge.network.ShopView;
 import com.pablo67340.guishop.neoforge.util.TextUtil;
 import net.minecraft.ChatFormatting;
 import net.minecraft.commands.CommandSourceStack;
@@ -19,7 +18,6 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
-import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -86,10 +84,8 @@ public final class ShopCommand {
             return 0;
         }
 
-        OpenShopPayload catalogue = registry.catalogue(source.registryAccess());
-        ShopView opening = catalogue.shopOrMenu("menu".equalsIgnoreCase(shopName) ? "" : shopName);
-
-        PacketDistributor.sendToPlayer(player, new OpenShopPayload(opening, catalogue.shops()));
+        // "menu" is spelled out by players but means the default view.
+        GuiShopNetworkSender.sendCatalogue(player, "menu".equalsIgnoreCase(shopName) ? "" : shopName);
         return 1;
     }
 

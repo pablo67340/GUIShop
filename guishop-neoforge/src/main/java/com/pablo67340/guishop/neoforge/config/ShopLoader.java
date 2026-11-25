@@ -42,25 +42,10 @@ public final class ShopLoader {
     }
 
     /**
-     * @param name          the shop's identity, which is the file name without
-     *                      its extension
-     * @param titleFallback what to show as the heading when the file declares
-     *                      no title of its own
-     * @return the parsed shop, or null if the file could not be read
-     */
-    public static NeoShop load(Path file, String name, String titleFallback) {
-        Map<String, Object> document = readDocument(file);
-        if (document == null) {
-            return null;
-        }
-        return fromDocument(document, name, titleFallback);
-    }
-
-    /**
      * Builds a shop from an already-parsed document, which migration also uses
      * so a converted file does not have to be read back from disk.
      */
-    static NeoShop fromDocument(Map<String, Object> document, String name, String titleFallback) {
+    public static NeoShop fromDocument(Map<String, Object> document, String name, String titleFallback) {
         NeoShop shop = new NeoShop();
         shop.setName(name);
         shop.setTitle(string(document.get("title"), titleFallback));
@@ -86,7 +71,7 @@ public final class ShopLoader {
     }
 
     @SuppressWarnings("unchecked")
-    private static Map<String, Object> readDocument(Path file) {
+    static Map<String, Object> readDocument(Path file) {
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
             Map<String, Object> document = GSON.fromJson(reader,
                     new TypeToken<Map<String, Object>>() { }.getType());

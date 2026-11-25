@@ -3,8 +3,11 @@ package com.pablo67340.guishop.neoforge;
 import com.pablo67340.guishop.neoforge.command.ShopCommand;
 import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
+import com.pablo67340.guishop.neoforge.economy.BalanceStore;
 import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
 import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
+import com.pablo67340.guishop.neoforge.permission.GuiShopPermissions;
+import com.pablo67340.guishop.neoforge.server.GuiShopServer;
 import com.pablo67340.guishop.platform.CancellableTask;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import net.neoforged.bus.api.IEventBus;
@@ -36,6 +39,7 @@ public final class GuiShopMod {
 
     private final NeoForgeContext context;
     private final ShopRegistry shopRegistry = new ShopRegistry();
+    private final BalanceStore balanceStore = new BalanceStore();
     private CancellableTask logFlushTask;
 
     public GuiShopMod(IEventBus modEventBus, ModContainer modContainer) {
@@ -59,6 +63,10 @@ public final class GuiShopMod {
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);
 
+        // The permission API posts this on the game bus during server start,
+        // and refuses to answer for a node that was not gathered.
+        NeoForge.EVENT_BUS.addListener(GuiShopPermissions::register);
+
         LOGGER.info("GUIShop {} loaded; data folder {}",
                 modContainer.getModInfo().getVersion(), context.dataFolder());
     }
@@ -71,6 +79,10 @@ public final class GuiShopMod {
         // Before the shops, which take their menu title and price wording from
         // the settings.
         Settings.load();
+
+        balanceStore.setStartingBalance(Settings.getStartingBalance());
+        balanceStore.load();
+        GuiShopServer.set(shopRegistry, balanceStore);
 
         int loaded = shopRegistry.loadAll();
         context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
@@ -88,9 +100,13 @@ public final class GuiShopMod {
         context.logUtil().debugLog("Sample price line: " + ShopViewBuilder.samplePriceLine(catalogue));
 
         // Without this, anything cached since the last flush is lost if the
-        // process is killed rather than shut down.
+        // process is killed rather than shut down. Balances ride along for the
+        // same reason.
         logFlushTask = context.scheduler().runTimerAsync(
-                () -> context.logUtil().flushLogs(),
+                () -> {
+                    context.logUtil().flushLogs();
+                    balanceStore.save();
+                },
                 LOG_FLUSH_INTERVAL_TICKS,
                 LOG_FLUSH_INTERVAL_TICKS);
     }
@@ -100,8 +116,10 @@ public final class GuiShopMod {
             logFlushTask.cancel();
             logFlushTask = null;
         }
+        balanceStore.save();
         context.logUtil().flushLogs();
         context.shutdown();
+        GuiShopServer.clear();
         GuiShopPlatform.clear();
     }
 }

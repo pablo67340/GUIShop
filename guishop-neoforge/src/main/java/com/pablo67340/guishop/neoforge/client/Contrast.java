@@ -19,8 +19,10 @@ import java.util.Optional;
 final class Contrast {
 
     /**
-     * Relative luminance below which text is lifted, and the level it is lifted
-     * to. Both are on the 0-1 scale.
+     * Body text: the luminance below which a colour is considered unreadable,
+     * and the level it is lifted to. Both are on the 0-1 scale. The threshold
+     * is well below the target so only genuinely dark colours are touched and
+     * an authored red stays red.
      */
     private static final double MINIMUM_LUMINANCE = 0.22D;
     private static final double TARGET_LUMINANCE = 0.55D;
@@ -35,17 +37,28 @@ final class Contrast {
      * surface's own readable default.
      */
     static Component readable(Component source) {
+        return readable(source, MINIMUM_LUMINANCE, TARGET_LUMINANCE);
+    }
+
+    /**
+     * As {@link #readable(Component)}, but with caller-chosen thresholds, for
+     * surfaces that need more headroom than body text.
+     *
+     * @param minimum the luminance below which a colour is lifted
+     * @param target  the luminance it is lifted to
+     */
+    static Component readable(Component source, double minimum, double target) {
         MutableComponent result = Component.empty();
 
         source.visit((style, text) -> {
-            result.append(Component.literal(text).withStyle(lift(style)));
+            result.append(Component.literal(text).withStyle(lift(style, minimum, target)));
             return Optional.empty();
         }, Style.EMPTY);
 
         return result;
     }
 
-    private static Style lift(Style style) {
+    private static Style lift(Style style, double minimum, double target) {
         TextColor colour = style.getColor();
         if (colour == null) {
             return style;
@@ -53,11 +66,11 @@ final class Contrast {
 
         int rgb = colour.getValue() & 0xFFFFFF;
         double luminance = luminance(rgb);
-        if (luminance >= MINIMUM_LUMINANCE) {
+        if (luminance >= minimum) {
             return style;
         }
 
-        return style.withColor(TextColor.fromRgb(blendToWhite(rgb, luminance)));
+        return style.withColor(TextColor.fromRgb(blendToWhite(rgb, luminance, target)));
     }
 
     /**
@@ -65,8 +78,8 @@ final class Contrast {
      * rather than stepped, so a very dark colour is lifted further than a
      * borderline one.
      */
-    private static int blendToWhite(int rgb, double luminance) {
-        double amount = Math.min(1.0D, (TARGET_LUMINANCE - luminance) / (1.0D - luminance));
+    private static int blendToWhite(int rgb, double luminance, double target) {
+        double amount = Math.min(1.0D, (target - luminance) / (1.0D - luminance));
 
         int red = channel(rgb >> 16, amount);
         int green = channel(rgb >> 8, amount);

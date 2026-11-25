@@ -14,15 +14,22 @@ final class UiTheme {
     static final int PANEL_BORDER = 0xFF2E2E3A;
     static final int DIVIDER = 0xFF2E2E3A;
 
+    // Header. Dark like the rest of the chrome; shop titles authored as dark
+    // greys for a vanilla chest's pale bar are brightened instead, by
+    // Contrast.readable with HEADER_LUMINANCE.
+    static final int HEADER_BG = 0xFF1C1C24;
+    static final int HEADER_BORDER = 0xFF32323E;
+    static final int HEADER_TEXT = 0xFFF4F4F8;
+    static final int HEADER_MUTED = 0xFF9095A5;
+
     /**
-     * The header is light because shop titles were authored against a vanilla
-     * chest's pale title bar, and are routinely dark greys that would be
-     * unreadable on dark chrome.
+     * Titles are lifted on a wider threshold and to a brighter level than body
+     * text. A title is the largest piece of authored colour on the screen, so
+     * mid-greys that are merely legible as body text still read as murky here.
+     * Saturated colours sit above the threshold and are left as authored.
      */
-    static final int HEADER_BG = 0xFFC8C8D2;
-    static final int HEADER_BORDER = 0xFF8A8A96;
-    static final int HEADER_TEXT = 0xFF26262E;
-    static final int HEADER_MUTED = 0xFF55555F;
+    static final double HEADER_MIN_LUMINANCE = 0.45D;
+    static final double HEADER_TARGET_LUMINANCE = 0.72D;
 
     // Cells
     static final int CELL_BG = 0xFF1A1A21;

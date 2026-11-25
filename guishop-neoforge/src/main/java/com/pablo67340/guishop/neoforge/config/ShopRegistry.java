@@ -28,7 +28,8 @@ import java.util.stream.Stream;
 public final class ShopRegistry {
 
     private static final String JSON_SUFFIX = ".json";
-    private static final String MENU_NAME = "menu";
+    /** The menu's name as a shop, which is also its file name. */
+    public static final String MENU_NAME = "menu";
 
 
     private final Map<String, NeoShop> shops = new LinkedHashMap<>();

@@ -88,7 +88,68 @@ public final class ShopAdminService {
             return;
         }
 
-        reloadAndTell(player, registry, "Created shop '" + name + "'. Add items with Edit mode.");
+        if (!addMenuIcon(registry, name)) {
+            // The shop itself is fine, so this is a warning rather than a
+            // failure; /shop <name> still opens it.
+            reloadAndTell(player, registry, "Created shop '" + name
+                    + "', but could not add it to the menu. Open it with /shop " + name + ".");
+            return;
+        }
+
+        reloadAndTell(player, registry, "Created shop '" + name
+                + "'. It is in the menu; open it and use Edit to add items.");
+    }
+
+    /**
+     * Puts a shortcut to the new shop in the menu.
+     * <p>
+     * Without this the shop would exist and load but nothing would link to it,
+     * so the only way in would be to know its name and type it. A chest with
+     * the shop's name is a plain default the author can then edit like any
+     * other icon.
+     *
+     * @return whether the menu was updated
+     */
+    private static boolean addMenuIcon(ShopRegistry registry, String shop) {
+        Map<String, Object> menu = registry.document(ShopRegistry.MENU_NAME);
+        Path menuFile = registry.file(ShopRegistry.MENU_NAME);
+        if (menu == null || menuFile == null) {
+            return false;
+        }
+
+        Map<String, Object> icon = new LinkedHashMap<>();
+        icon.put("id", "CHEST");
+        icon.put("name", "&f&l" + shop);
+        icon.put("lore", List.of("&7Click to browse"));
+        icon.put("target-shop", shop);
+
+        List<Object> icons = itemsOf(menu);
+        icons.add(icon);
+        menu.put("items", icons);
+
+        return JsonFiles.write(menuFile, menu);
+    }
+
+    /**
+     * Drops any menu icon pointing at a shop that is going away, so the menu
+     * does not keep a button that opens nothing.
+     */
+    private static void removeMenuIcons(ShopRegistry registry, String shop) {
+        Map<String, Object> menu = registry.document(ShopRegistry.MENU_NAME);
+        Path menuFile = registry.file(ShopRegistry.MENU_NAME);
+        if (menu == null || menuFile == null) {
+            return;
+        }
+
+        List<Object> icons = itemsOf(menu);
+        boolean removed = icons.removeIf(entry -> entry instanceof Map<?, ?> map
+                && map.get("target-shop") instanceof String target
+                && target.equalsIgnoreCase(shop));
+
+        if (removed) {
+            menu.put("items", icons);
+            JsonFiles.write(menuFile, menu);
+        }
     }
 
     /**
@@ -111,6 +172,8 @@ public final class ShopAdminService {
             refuse(player, Messages.get("error-saving", "error", exception.getMessage()));
             return;
         }
+
+        removeMenuIcons(registry, name);
 
         reloadAndTell(player, registry,
                 "Deleted shop '" + name + "'. Kept " + backup.getFileName() + ".");

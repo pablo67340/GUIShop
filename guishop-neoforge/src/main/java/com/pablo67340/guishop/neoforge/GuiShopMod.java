@@ -4,6 +4,7 @@ import com.pablo67340.guishop.neoforge.command.ShopCommand;
 import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.economy.BalanceStore;
+import com.pablo67340.guishop.neoforge.menu.GuiShopMenus;
 import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
 import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
 import com.pablo67340.guishop.neoforge.permission.GuiShopPermissions;
@@ -58,6 +59,7 @@ public final class GuiShopMod {
         context.initLogUtil();
 
         modEventBus.addListener(GuiShopNetwork::register);
+        GuiShopMenus.register(modEventBus);
 
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);

@@ -6,6 +6,7 @@ import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.neoforge.config.Messages;
+import com.pablo67340.guishop.neoforge.menu.SellMenu;
 import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.server.GuiShopNetworkSender;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
@@ -19,6 +20,7 @@ import net.minecraft.commands.Commands;
 import net.minecraft.commands.SharedSuggestionProvider;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,6 +63,36 @@ public final class ShopCommand {
                         .executes(context -> openShop(
                                 context.getSource(), registry,
                                 StringArgumentType.getString(context, "shop")))));
+
+        dispatcher.register(Commands.literal("sell")
+                .executes(context -> openSell(context.getSource())));
+    }
+
+    /**
+     * Opens the bulk sell container.
+     * <p>
+     * Deliberately not gated on there being shops loaded: the container hands
+     * back whatever it cannot sell, so the worst an empty config does is give
+     * everything straight back.
+     */
+    private static int openSell(CommandSourceStack source) {
+        ServerPlayer player;
+        try {
+            player = source.getPlayerOrException();
+        } catch (CommandSyntaxException exception) {
+            source.sendFailure(Messages.get("only-player"));
+            return 0;
+        }
+
+        if (!GuiShopNetworkSender.isWorldAllowed(player)) {
+            source.sendFailure(Messages.get("disabled-world"));
+            return 0;
+        }
+
+        player.openMenu(new SimpleMenuProvider(
+                (containerId, inventory, owner) -> new SellMenu(containerId, inventory),
+                Messages.get("sell-title")));
+        return 1;
     }
 
     // ------------------------------------------------------------------- UI

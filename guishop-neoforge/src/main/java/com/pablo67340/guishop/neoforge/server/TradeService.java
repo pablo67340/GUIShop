@@ -11,7 +11,6 @@ import com.pablo67340.guishop.neoforge.network.TradeRequestPayload;
 import com.pablo67340.guishop.neoforge.network.TradeResultPayload;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -20,12 +19,10 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvent;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.ResolvableProfile;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
 /**
  * Carries out a buy or a sell.
@@ -173,56 +170,10 @@ public final class TradeService {
         succeed(player, balances, Messages.get("sell", "money", money(total)));
     }
 
-    /**
-     * Whether a held stack counts as the shop's item.
-     * <p>
-     * Matched on the item alone, not its components, which is what the Bukkit
-     * plugin does: its sell table is keyed by material. So a named or enchanted
-     * sword sells as a plain one. Matching components instead would be stricter
-     * but would make most items unsellable, since a shop entry usually carries
-     * a custom name that a looted item does not.
-     */
-    private static boolean matches(ItemStack held, ItemStack template, NeoItem item) {
-        if (held.isEmpty() || held.getItem() != template.getItem()) {
-            return false;
-        }
-        return headOwnerMatches(held, item);
-    }
-
-    /**
-     * The one exception to matching on the item alone, and only when
-     * {@code sell-skull-uuid} asks for it: a shop selling a specific player's
-     * head would otherwise buy back any head at all.
-     */
-    private static boolean headOwnerMatches(ItemStack held, NeoItem item) {
-        if (!BaseConfig.isSellSkullUUID() || item.getSkullUUID() == null
-                || item.getSkullUUID().isBlank()) {
-            return true;
-        }
-
-        ResolvableProfile profile = held.get(DataComponents.PROFILE);
-        if (profile == null || profile.id().isEmpty()) {
-            return false;
-        }
-
-        // Compared as a UUID rather than as text, so the two spellings of a
-        // uuid - with hyphens and without - are treated as the same owner.
-        UUID wanted = parseUuid(item.getSkullUUID());
-        return wanted != null && wanted.equals(profile.id().get());
-    }
-
-    private static UUID parseUuid(String raw) {
-        try {
-            return UUID.fromString(raw.trim());
-        } catch (IllegalArgumentException exception) {
-            return null;
-        }
-    }
-
     private static int count(ServerPlayer player, ItemStack template, NeoItem item) {
         int total = 0;
         for (ItemStack stack : player.getInventory().items) {
-            if (matches(stack, template, item)) {
+            if (ItemMatching.matches(stack, template, item)) {
                 total += stack.getCount();
             }
         }
@@ -235,7 +186,7 @@ public final class TradeService {
 
         for (int slot = 0; slot < contents.size() && remaining > 0; slot++) {
             ItemStack stack = contents.get(slot);
-            if (!matches(stack, template, item)) {
+            if (!ItemMatching.matches(stack, template, item)) {
                 continue;
             }
 

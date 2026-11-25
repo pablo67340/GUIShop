@@ -48,6 +48,8 @@ public final class Messages {
 
         values.put("sell", "&fYour items were sold, and &a%money% &fwas added to your account.");
         values.put("cant-sell", "&cSorry, but you are not able to sell that item.");
+        values.put("sell-title", "&8&lSell Items");
+        values.put("cant-sell-some", "&e%amount% item(s) could not be sold, and were returned to you.");
         values.put("not-enough-items", "&fYou do not have &c%amount% &fsuch items to sell.");
 
         values.put("command-error",

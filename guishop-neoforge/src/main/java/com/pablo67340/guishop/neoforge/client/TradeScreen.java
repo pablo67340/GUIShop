@@ -30,6 +30,9 @@ final class TradeScreen extends ShopChildScreen {
 
     private static final int MAX_QUANTITY = 36 * 64;
 
+    /** The icon is drawn at triple size, so 48 pixels plus breathing room. */
+    private static final int PREVIEW_HEIGHT = 58;
+
     private final String shopName;
     private final int index;
     private final ShopEntryData entry;
@@ -49,9 +52,9 @@ final class TradeScreen extends ShopChildScreen {
 
     @Override
     protected void init() {
-        layoutPanel(300, 206);
+        layoutPanel(300, UiTheme.HEADER_HEIGHT + PREVIEW_HEIGHT + 42 + 46 + UiTheme.FOOTER_HEIGHT);
 
-        int row = panelTop + UiTheme.HEADER_HEIGHT + 52;
+        int row = presetsTop();
 
         int presetWidth = (contentWidth() - (PRESETS.length - 1) * 4) / PRESETS.length;
         for (int slot = 0; slot < PRESETS.length; slot++) {
@@ -88,6 +91,18 @@ final class TradeScreen extends ShopChildScreen {
         addRenderableWidget(Button.builder(Component.literal("Back"), button -> onClose())
                 .bounds(panelRight() - UiTheme.PADDING - 50, footerTop() + 4, 50, 16)
                 .build());
+    }
+
+    private int previewTop() {
+        return headerBottom() + 8;
+    }
+
+    /**
+     * Below the preview rather than a fixed distance from the header, so the
+     * large icon cannot reach down over the buttons.
+     */
+    private int presetsTop() {
+        return previewTop() + PREVIEW_HEIGHT;
     }
 
     // ------------------------------------------------------------- quantity
@@ -133,7 +148,7 @@ final class TradeScreen extends ShopChildScreen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        int top = panelTop + UiTheme.HEADER_HEIGHT + 8;
+        int top = previewTop();
 
         // Drawn at triple size, which is the "bigger preview" the small grid
         // cell cannot give.
@@ -149,7 +164,7 @@ final class TradeScreen extends ShopChildScreen {
             line += 10;
         }
 
-        renderTotals(graphics, contentLeft(), panelTop + UiTheme.HEADER_HEIGHT + 92);
+        renderTotals(graphics, contentLeft(), presetsTop() + 42);
 
         renderFooterDivider(graphics);
         renderStatus(graphics);
@@ -176,7 +191,7 @@ final class TradeScreen extends ShopChildScreen {
 
     private boolean isOverIcon(int mouseX, int mouseY) {
         int left = contentLeft() + 2;
-        int top = panelTop + UiTheme.HEADER_HEIGHT + 10;
+        int top = previewTop() + 2;
         return mouseX >= left && mouseX < left + 48 && mouseY >= top && mouseY < top + 48;
     }
 

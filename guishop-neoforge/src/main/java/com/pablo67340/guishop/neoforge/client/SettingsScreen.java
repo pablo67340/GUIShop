@@ -6,6 +6,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.network.chat.Component;
+import net.minecraft.util.FormattedCharSequence;
 import net.neoforged.neoforge.network.PacketDistributor;
 
 import java.util.ArrayList;
@@ -21,6 +22,11 @@ import java.util.Map;
  * server tab only appears for someone who may change the server's
  * configuration, and the server checks that again when a change arrives, so
  * hiding the tab is a courtesy rather than the actual protection.
+ * <p>
+ * Each row is measured before the panel is sized: the hint text is wrapped to
+ * whatever space is left beside the control, and the row grows to fit the
+ * wrapped result. A fixed row height would overlap the controls as soon as a
+ * hint was long or the GUI scale was large.
  */
 final class SettingsScreen extends ShopChildScreen {
 
@@ -35,10 +41,15 @@ final class SettingsScreen extends ShopChildScreen {
         }
     }
 
-    private static final int LABEL_WIDTH = 170;
-    private static final int ROW_HEIGHT = 22;
-    private static final int CONTROL_WIDTH = 140;
+    private static final int PANEL_WIDTH = 440;
+    private static final int CONTROL_WIDTH = 120;
+
+    /** Between the label text and the control, so the two never touch. */
+    private static final int COLUMN_GAP = 12;
+
     private static final int TABS_HEIGHT = 22;
+    private static final int CONTROL_HEIGHT = 16;
+    private static final int LINE_HEIGHT = 9;
 
     private final boolean canEdit;
 
@@ -53,6 +64,22 @@ final class SettingsScreen extends ShopChildScreen {
 
     private Tab tab = Tab.DISPLAY;
 
+    /** The rows of the open tab, measured and positioned. */
+    private List<Row> rows = List.of();
+
+    /**
+     * One settings row, already laid out.
+     * <p>
+     * The position is an offset from the top of the form rather than a screen
+     * coordinate, because the panel is centred after the rows are measured and
+     * a screen coordinate taken beforehand would be stale.
+     *
+     * @param hint   the hint wrapped to the label column
+     * @param offset where the row starts, measured from the form's top
+     */
+    private record Row(String label, List<FormattedCharSequence> hint, int offset, int height) {
+    }
+
     SettingsScreen(ShopBrowserScreen parent, boolean canEdit, Map<String, String> serverValues) {
         super(Component.literal("GUIShop settings"), parent);
         this.canEdit = canEdit;
@@ -61,9 +88,15 @@ final class SettingsScreen extends ShopChildScreen {
 
     @Override
     protected void init() {
-        int rows = rowLabels().size();
-        layoutPanel(430, UiTheme.HEADER_HEIGHT + TABS_HEIGHT + rows * ROW_HEIGHT
-                + UiTheme.FOOTER_HEIGHT + 10);
+        // Sized in two passes. The panel's width decides how narrow the label
+        // column is, which decides how many lines each hint wraps to, which is
+        // what the panel's height has to accommodate.
+        layoutPanel(PANEL_WIDTH, height);
+        rows = measureRows();
+
+        int needed = UiTheme.HEADER_HEIGHT + TABS_HEIGHT + totalRowHeight()
+                + UiTheme.FOOTER_HEIGHT + 8;
+        layoutPanel(PANEL_WIDTH, needed);
 
         serverBoxes.clear();
         serverFlags.clear();
@@ -101,38 +134,101 @@ final class SettingsScreen extends ShopChildScreen {
         }
     }
 
+    // ----------------------------------------------------------------- layout
+
+    private int labelWidth() {
+        return contentWidth() - CONTROL_WIDTH - COLUMN_GAP;
+    }
+
+    private int controlLeft() {
+        return panelRight() - UiTheme.PADDING - CONTROL_WIDTH;
+    }
+
     private int formTop() {
         return headerBottom() + TABS_HEIGHT + 4;
     }
 
-    private int controlLeft() {
-        return contentLeft() + LABEL_WIDTH;
+    private int totalRowHeight() {
+        return rows.isEmpty() ? 0 : rows.getLast().offset() + rows.getLast().height();
+    }
+
+    private int rowTop(Row row) {
+        return formTop() + row.offset();
+    }
+
+    /**
+     * Wraps each hint to the label column and stacks the rows, so drawing and
+     * widget placement both read the same measurements.
+     */
+    private List<Row> measureRows() {
+        List<Row> measured = new ArrayList<>();
+        int offset = 0;
+
+        for (Hint hint : hints()) {
+            List<FormattedCharSequence> wrapped =
+                    font.split(Component.literal(hint.hint()), labelWidth());
+
+            int height = Math.max(CONTROL_HEIGHT + 6,
+                    LINE_HEIGHT + wrapped.size() * LINE_HEIGHT + 5);
+
+            measured.add(new Row(hint.label(), wrapped, offset, height));
+            offset += height;
+        }
+        return List.copyOf(measured);
+    }
+
+    private record Hint(String label, String hint) {
+    }
+
+    /**
+     * The rows of whichever tab is open, in order.
+     */
+    private List<Hint> hints() {
+        List<Hint> labels = new ArrayList<>();
+
+        if (tab == Tab.DISPLAY) {
+            labels.add(new Hint("Sort order", "How shop items are ordered"));
+            ClientPrefs.toggles().forEach(toggle ->
+                    labels.add(new Hint(toggle.label(), toggle.hint())));
+        } else {
+            Settings.editable().forEach(spec ->
+                    labels.add(new Hint(spec.label(), spec.hint())));
+        }
+        return labels;
+    }
+
+    /**
+     * Controls sit vertically centred against their row, so a row that grew to
+     * fit two lines of hint does not leave its control stuck at the top.
+     */
+    private int controlTop(int position) {
+        Row row = rows.get(position);
+        return rowTop(row) + (row.height() - CONTROL_HEIGHT) / 2;
     }
 
     // ----------------------------------------------------------- display tab
 
     private void buildDisplayTab() {
-        int row = formTop();
-
         addRenderableWidget(Button.builder(sortLabel(), button -> {
                     ClientPrefs.setSort(ClientPrefs.sort().next());
                     button.setMessage(sortLabel());
                     parent().onPrefsChanged();
                 })
-                .bounds(controlLeft(), row, CONTROL_WIDTH, 16)
+                .bounds(controlLeft(), controlTop(0), CONTROL_WIDTH, CONTROL_HEIGHT)
                 .build());
-        row += ROW_HEIGHT;
 
-        for (ClientPrefs.Toggle toggle : ClientPrefs.toggles()) {
+        List<ClientPrefs.Toggle> toggles = ClientPrefs.toggles();
+        for (int position = 0; position < toggles.size(); position++) {
+            ClientPrefs.Toggle toggle = toggles.get(position);
+
             addRenderableWidget(Button.builder(onOff(toggle.read().getAsBoolean()), click -> {
                         boolean next = !toggle.read().getAsBoolean();
                         toggle.write().accept(next);
                         click.setMessage(onOff(next));
                         parent().onPrefsChanged();
                     })
-                    .bounds(controlLeft(), row, CONTROL_WIDTH, 16)
+                    .bounds(controlLeft(), controlTop(position + 1), CONTROL_WIDTH, CONTROL_HEIGHT)
                     .build());
-            row += ROW_HEIGHT;
         }
     }
 
@@ -143,10 +239,12 @@ final class SettingsScreen extends ShopChildScreen {
     // ------------------------------------------------------------ server tab
 
     private void buildServerTab() {
-        int row = formTop();
+        List<Settings.Spec> specs = Settings.editable();
 
-        for (Settings.Spec spec : Settings.editable()) {
+        for (int position = 0; position < specs.size(); position++) {
+            Settings.Spec spec = specs.get(position);
             String value = serverValues.getOrDefault(spec.key(), "");
+            int top = controlTop(position);
 
             if (spec.kind() == Settings.Kind.FLAG) {
                 String key = spec.key();
@@ -158,18 +256,21 @@ final class SettingsScreen extends ShopChildScreen {
                             serverFlags.put(key, next);
                             click.setMessage(onOff(next));
                         })
-                        .bounds(controlLeft(), row, CONTROL_WIDTH, 16)
+                        .bounds(controlLeft(), top, CONTROL_WIDTH, CONTROL_HEIGHT)
                         .build());
             } else {
-                EditBox box = new EditBox(font, controlLeft(), row, CONTROL_WIDTH, 16,
+                EditBox box = new EditBox(font, controlLeft(), top, CONTROL_WIDTH, CONTROL_HEIGHT,
                         Component.literal(spec.label()));
                 box.setMaxLength(512);
                 box.setValue(value);
+
+                if (spec.kind() == Settings.Kind.NUMBER) {
+                    box.setFilter(typed -> typed.isEmpty() || typed.matches("\\d*\\.?\\d*"));
+                }
+
                 addRenderableWidget(box);
                 serverBoxes.put(spec.key(), box);
             }
-
-            row += ROW_HEIGHT;
         }
 
         addRenderableWidget(Button.builder(Component.literal("Save"), button -> saveServerSettings())
@@ -218,34 +319,16 @@ final class SettingsScreen extends ShopChildScreen {
     }
 
     private void renderLabels(GuiGraphics graphics) {
-        int row = formTop();
-        for (Label label : rowLabels()) {
-            graphics.drawString(font, label.text(), contentLeft(), row, UiTheme.TEXT, false);
-            graphics.drawString(font, label.hint(), contentLeft(), row + 10,
-                    UiTheme.TEXT_MUTED, false);
-            row += ROW_HEIGHT;
+        for (Row row : rows) {
+            graphics.drawString(font, row.label(), contentLeft(), rowTop(row) + 1,
+                    UiTheme.TEXT, false);
+
+            int line = rowTop(row) + 1 + LINE_HEIGHT;
+            for (FormattedCharSequence hint : row.hint()) {
+                graphics.drawString(font, hint, contentLeft(), line, UiTheme.TEXT_MUTED, false);
+                line += LINE_HEIGHT;
+            }
         }
-    }
-
-    private record Label(String text, String hint) {
-    }
-
-    /**
-     * The rows of whichever tab is open, used both for drawing the labels and
-     * for sizing the panel, so the two cannot disagree.
-     */
-    private List<Label> rowLabels() {
-        List<Label> labels = new ArrayList<>();
-
-        if (tab == Tab.DISPLAY) {
-            labels.add(new Label("Sort order", "How shop items are ordered"));
-            ClientPrefs.toggles().forEach(toggle ->
-                    labels.add(new Label(toggle.label(), toggle.hint())));
-        } else {
-            Settings.editable().forEach(spec ->
-                    labels.add(new Label(spec.label(), spec.hint())));
-        }
-        return labels;
     }
 
     private static Component onOff(boolean on) {

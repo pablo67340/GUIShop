@@ -38,6 +38,9 @@ import java.util.Locale;
  */
 public final class ShopBrowserScreen extends PanelScreen {
 
+    private static final int SETTINGS_WIDTH = 52;
+    private static final int EDIT_WIDTH = 42;
+
     private OpenShopPayload catalogue;
 
     /** Where "back" goes, so nested navigation unwinds in order. */
@@ -102,8 +105,8 @@ public final class ShopBrowserScreen extends PanelScreen {
         String previousQuery = search == null ? "" : search.getValue();
 
         int controlsTop = headerBottom() + 4;
-        int buttons = catalogue.canEdit() ? 2 : 1;
-        int reserved = buttons * 24 + 54;
+        int reserved = SETTINGS_WIDTH + 4 + 54
+                + (catalogue.canEdit() ? EDIT_WIDTH + 4 : 0);
 
         search = new EditBox(font, contentLeft(), controlsTop,
                 Math.max(40, contentWidth() - reserved), 16, Component.literal("Search"));
@@ -125,19 +128,21 @@ public final class ShopBrowserScreen extends PanelScreen {
         addRenderableWidget(back);
         right -= 54;
 
-        // A gear for everyone: without permission it opens their own display
-        // preferences, which is still worth having.
-        addRenderableWidget(Button.builder(Component.literal("\u2699"), button -> openSettings())
-                .bounds(right - 20, controlsTop, 20, 16)
+        // Spelled out rather than drawn as a gear glyph: Minecraft falls back
+        // to its unicode font for those, where U+2699 comes out looking like a
+        // ship's wheel.
+        addRenderableWidget(Button.builder(Component.literal("Settings"), button -> openSettings())
+                .bounds(right - SETTINGS_WIDTH, controlsTop, SETTINGS_WIDTH, 16)
                 .build());
-        right -= 24;
+        right -= SETTINGS_WIDTH + 4;
 
         if (catalogue.canEdit()) {
-            addRenderableWidget(Button.builder(
-                            Component.literal(editing ? "\u270E*" : "\u270E"),
+            Button edit = Button.builder(
+                            Component.literal(editing ? "Editing" : "Edit"),
                             button -> toggleEditing())
-                    .bounds(right - 20, controlsTop, 20, 16)
-                    .build());
+                    .bounds(right - EDIT_WIDTH, controlsTop, EDIT_WIDTH, 16)
+                    .build();
+            addRenderableWidget(edit);
         }
     }
 
@@ -175,6 +180,14 @@ public final class ShopBrowserScreen extends PanelScreen {
 
     double balance() {
         return balance;
+    }
+
+    /**
+     * The shops an item could link to, for the editor's shortcut picker. Taken
+     * from the catalogue so the list is exactly what the server loaded.
+     */
+    List<String> shopNames() {
+        return catalogue.shops().stream().map(ShopView::name).toList();
     }
 
     void setBalance(double value) {

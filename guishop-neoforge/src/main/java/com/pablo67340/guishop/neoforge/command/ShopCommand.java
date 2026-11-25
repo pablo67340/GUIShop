@@ -175,7 +175,8 @@ public final class ShopCommand {
         if (item.hasSellPrice()) {
             detail.append(" sell ").append(item.getSellPriceAsDecimal());
         }
-        if (item.getItemType() != ItemType.SHOP) {
+        // SHOP and ITEM both mean an ordinary item, so neither is worth saying.
+        if (item.getItemType() != ItemType.SHOP && item.getItemType() != ItemType.ITEM) {
             detail.append(" [").append(item.getItemType()).append("]");
         }
         if (item.getTargetShop() != null) {

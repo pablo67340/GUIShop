@@ -81,12 +81,11 @@ final class ItemEditorScreen extends ShopChildScreen {
      * UI builds its own controls and drops those entries on sight.
      */
     private static final List<ItemType> TYPES = List.of(
-            ItemType.SHOP, ItemType.ITEM, ItemType.COMMAND,
+            ItemType.ITEM, ItemType.COMMAND,
             ItemType.SHOP_SHORTCUT, ItemType.PLAYER_HEAD, ItemType.DUMMY);
 
     private static final Map<ItemType, String> TYPE_HINTS = Map.of(
-            ItemType.SHOP, "a normal item, bought and sold",
-            ItemType.ITEM, "the same as SHOP",
+            ItemType.ITEM, "a normal item, bought and sold",
             ItemType.COMMAND, "runs commands instead of giving the item",
             ItemType.SHOP_SHORTCUT, "opens another shop",
             ItemType.PLAYER_HEAD, "a player's head",
@@ -400,13 +399,17 @@ final class ItemEditorScreen extends ShopChildScreen {
 
         if (stored.isBlank()) {
             return fields.getOrDefault("target-shop", "").isBlank()
-                    ? ItemType.SHOP
+                    ? ItemType.ITEM
                     : ItemType.SHOP_SHORTCUT;
         }
         try {
-            return ItemType.valueOf(stored.trim().toUpperCase(Locale.ROOT));
+            ItemType parsed = ItemType.valueOf(stored.trim().toUpperCase(Locale.ROOT));
+            // SHOP and ITEM are the same thing to every part of the plugin, so
+            // only one of them is offered. An existing SHOP reads as ITEM
+            // rather than as a type missing from the list.
+            return parsed == ItemType.SHOP ? ItemType.ITEM : parsed;
         } catch (IllegalArgumentException exception) {
-            return ItemType.SHOP;
+            return ItemType.ITEM;
         }
     }
 

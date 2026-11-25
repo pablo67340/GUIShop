@@ -230,7 +230,7 @@ public final class ShopAdminService {
 
         Map<String, Object> item = new LinkedHashMap<>();
         item.put("id", isMenu ? "CHEST" : "STONE");
-        item.put("type", isMenu ? "SHOP_SHORTCUT" : "SHOP");
+        item.put("type", isMenu ? "SHOP_SHORTCUT" : "ITEM");
         if (isMenu) {
             item.put("name", "&f&lNew shop");
         } else {

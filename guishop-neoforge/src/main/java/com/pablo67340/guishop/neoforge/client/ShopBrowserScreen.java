@@ -152,17 +152,11 @@ public final class ShopBrowserScreen extends PanelScreen {
             right -= EDIT_WIDTH + 4;
 
             if (editing) {
-                // Adds whatever the screen is made of: a shop on the menu, an
-                // item inside one. A menu entry starts as a shortcut, and
-                // switching its type in the editor is how it becomes something
-                // sold straight from the menu instead.
-                addRenderableWidget(Button.builder(Component.literal("+"), button -> {
-                            if (isMenu()) {
-                                openNewShop();
-                            } else {
-                                addItem();
-                            }
-                        })
+                // Adds whatever the screen is made of: a shortcut on the menu,
+                // an item inside a shop. The shortcut starts empty and the
+                // shop it opens is created when it is saved, so a menu entry
+                // turned into a plain item never leaves a shop behind.
+                addRenderableWidget(Button.builder(Component.literal("+"), button -> addItem())
                         .bounds(right - 16, controlsTop, 16, 16)
                         .build());
             }
@@ -182,10 +176,6 @@ public final class ShopBrowserScreen extends PanelScreen {
     private void addItem() {
         PacketDistributor.sendToServer(
                 new ShopAdminPayload(ShopAdminPayload.Action.ADD_ITEM, view.name(), 0, ""));
-    }
-
-    private void openNewShop() {
-        minecraft.setScreen(new NewShopScreen(this, shopNames()));
     }
 
     private void toggleEditing() {

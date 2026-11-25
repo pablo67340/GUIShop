@@ -153,18 +153,84 @@ public final class EditService {
         apply(item, request.fields());
         items.set(request.index(), item);
 
+        NewTarget target = createTargetIfMissing(registry, item);
+        if (target.problem() != null) {
+            refuse(player, Component.literal(target.problem()));
+            return;
+        }
+
         if (!JsonFiles.write(file, document)) {
             refuse(player, Messages.get("error-saving", "error", file.getFileName()));
             return;
         }
 
-        registry.refresh(request.shop());
+        if (target.created() != null) {
+            // A new file on disk, so the whole registry is reread rather than
+            // the one shop refreshed.
+            registry.loadAll();
+        } else {
+            registry.refresh(request.shop());
+        }
 
         // Everyone looking at the shop, not just the editor: a price change is
         // not something other players should keep seeing the old value of.
         GuiShopNetworkSender.broadcastCatalogue(player);
 
-        succeed(player, Messages.get("saved", "file", file.getFileName()));
+        succeed(player, target.created() != null
+                ? Component.literal("Saved, and created shop '" + target.created() + "'.")
+                : Messages.get("saved", "file", file.getFileName()));
+    }
+
+    /**
+     * The outcome of possibly creating the shop a shortcut points at.
+     *
+     * @param created the shop that was created, or null if none was needed
+     * @param problem why it could not be created, or null
+     */
+    private record NewTarget(String created, String problem) {
+
+        static final NewTarget NOTHING = new NewTarget(null, null);
+
+        static NewTarget created(String name) {
+            return new NewTarget(name, null);
+        }
+
+        static NewTarget failed(String problem) {
+            return new NewTarget(null, problem);
+        }
+    }
+
+    /**
+     * Creates the shop a saved shortcut points at, if it does not exist yet.
+     * <p>
+     * This is where a shop actually comes into being when it was started from
+     * the menu: the plus button only adds an empty shortcut, so nothing is
+     * written for a shop the author thought about and then abandoned, or for
+     * one whose entry they turned into a plain item instead.
+     *
+     */
+    private static NewTarget createTargetIfMissing(ShopRegistry registry, Map<String, Object> item) {
+        if (!"SHOP_SHORTCUT".equalsIgnoreCase(String.valueOf(item.get("type")))) {
+            return NewTarget.NOTHING;
+        }
+
+        Object raw = item.get("target-shop");
+        if (!(raw instanceof String target) || target.isBlank()) {
+            return NewTarget.NOTHING;
+        }
+
+        String name = target.trim();
+        if (registry.get(name) != null) {
+            return NewTarget.NOTHING;
+        }
+
+        if (!ShopAdminService.isValidName(name)) {
+            return NewTarget.failed("'" + name + "' cannot be a shop name."
+                    + " Use letters, digits, dashes or underscores.");
+        }
+
+        String problem = ShopAdminService.createShopFile(name);
+        return problem == null ? NewTarget.created(name) : NewTarget.failed(problem);
     }
 
     /**

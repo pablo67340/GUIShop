@@ -27,6 +27,14 @@ final class Choices {
     private static final String VANILLA = "minecraft";
 
     /**
+     * Stands for "a shop that does not exist yet" in the shop picker.
+     * <p>
+     * Not a name a shop could have, since the name rule allows no spaces or
+     * dots, so it cannot collide with a real one.
+     */
+    static final String NEW_SHOP = "new shop...";
+
+    /**
      * Built once each: the registries do not change while the game is running,
      * and building the item list means walking a few thousand entries.
      */
@@ -156,6 +164,8 @@ final class Choices {
     static List<PickerScreen.Choice> shops(List<String> names) {
         List<PickerScreen.Choice> built = new ArrayList<>();
         built.add(none("Not a shortcut"));
+        built.add(PickerScreen.Choice.of(NEW_SHOP, Component.literal("New shop..."),
+                "name one that does not exist yet", new ItemStack(Items.WRITABLE_BOOK)));
 
         for (String name : names) {
             built.add(PickerScreen.Choice.of(name, Component.literal(name), "shop", ItemStack.EMPTY));

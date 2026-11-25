@@ -66,25 +66,45 @@ public final class ShopAdminService {
 
     // ------------------------------------------------------------------ shops
 
-    private static void createShop(ServerPlayer player, ShopRegistry registry, String name) {
-        if (!VALID_NAME.matcher(name).matches()) {
-            refuse(player, Component.literal(
-                    "A shop name may only use letters, digits, dashes and underscores."));
-            return;
+    /**
+     * Whether a name could be a shop, without saying whether one exists.
+     */
+    public static boolean isValidName(String name) {
+        return name != null && VALID_NAME.matcher(name.trim()).matches();
+    }
+
+    /**
+     * Writes an empty shop file.
+     * <p>
+     * Shared with {@link EditService}, which creates a shop when a menu
+     * shortcut is saved pointing at one that is not there yet, so that the
+     * name rule and the file's shape are defined once.
+     *
+     * @return null on success, or why it could not be done
+     */
+    static String createShopFile(String name) {
+        if (!isValidName(name)) {
+            return "A shop name may only use letters, digits, dashes and underscores.";
         }
 
-        Path file = shopsFolder().resolve(name + JSON_SUFFIX);
+        Path file = shopsFolder().resolve(name.trim() + JSON_SUFFIX);
         if (Files.exists(file)) {
-            refuse(player, Component.literal("A shop called '" + name + "' already exists."));
-            return;
+            return "A shop called '" + name.trim() + "' already exists.";
         }
 
         Map<String, Object> document = new LinkedHashMap<>();
-        document.put("title", "&8&l" + name);
+        document.put("title", "&8&l" + name.trim());
         document.put("items", new ArrayList<>());
 
-        if (!JsonFiles.write(file, document)) {
-            refuse(player, Messages.get("error-saving", "error", file.getFileName()));
+        return JsonFiles.write(file, document)
+                ? null
+                : "Could not write " + file.getFileName() + ".";
+    }
+
+    private static void createShop(ServerPlayer player, ShopRegistry registry, String name) {
+        String problem = createShopFile(name);
+        if (problem != null) {
+            refuse(player, Component.literal(problem));
             return;
         }
 
@@ -190,11 +210,13 @@ public final class ShopAdminService {
     // ------------------------------------------------------------------ items
 
     /**
-     * Appends a starter item, which the author then edits.
+     * Appends a starter entry, which the author then edits.
      * <p>
-     * Given a price so that it shows up at all: an entry with neither price is
-     * filtered out of the shop as decoration, which would look like the button
-     * had done nothing.
+     * In a shop that is a priced item, since an entry with neither price is
+     * filtered out as decoration and the button would look like it had done
+     * nothing. On the menu it is an empty shortcut instead: the author picks
+     * which shop it opens, and only then, on save, is that shop's file
+     * created. Nothing is written for a shop that was never settled on.
      */
     private static void addItem(ServerPlayer player, ShopRegistry registry, String shop) {
         Map<String, Object> document = registry.document(shop);
@@ -204,11 +226,17 @@ public final class ShopAdminService {
             return;
         }
 
+        boolean isMenu = ShopRegistry.MENU_NAME.equalsIgnoreCase(shop);
+
         Map<String, Object> item = new LinkedHashMap<>();
-        item.put("id", "STONE");
-        item.put("type", "SHOP");
-        item.put("buy-price", 1);
-        item.put("sell-price", 1);
+        item.put("id", isMenu ? "CHEST" : "STONE");
+        item.put("type", isMenu ? "SHOP_SHORTCUT" : "SHOP");
+        if (isMenu) {
+            item.put("name", "&f&lNew shop");
+        } else {
+            item.put("buy-price", 1);
+            item.put("sell-price", 1);
+        }
 
         List<Object> items = itemsOf(document);
         items.add(item);
@@ -221,8 +249,9 @@ public final class ShopAdminService {
 
         registry.refresh(shop);
         GuiShopNetworkSender.broadcastCatalogue(player);
-        succeed(player, Component.literal("Added an item to '" + shop
-                + "'. It is the last one; click it to edit."));
+        succeed(player, Component.literal(isMenu
+                ? "Added a shortcut. Click it and choose which shop it opens."
+                : "Added an item to '" + shop + "'. It is the last one; click it to edit."));
     }
 
     private static void deleteItem(ServerPlayer player, ShopRegistry registry, String shop, int entryId) {

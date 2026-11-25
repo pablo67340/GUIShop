@@ -293,7 +293,13 @@ final class ItemEditorScreen extends ShopChildScreen {
 
             case "target-shop" -> open(new PickerScreen(this, Component.literal("Choose shop"),
                     Choices.shops(parent().shopNames()), values.get("target-shop"),
-                    picked -> set(field, picked)));
+                    picked -> {
+                        if (Choices.NEW_SHOP.equals(picked)) {
+                            nameNewShop(field);
+                        } else {
+                            set(field, picked);
+                        }
+                    }));
 
             case "enchantments" -> open(new EnchantmentEditorScreen(this,
                     values.get("enchantments"), picked -> set(field, picked)));
@@ -308,6 +314,17 @@ final class ItemEditorScreen extends ShopChildScreen {
 
     private void open(net.minecraft.client.gui.screens.Screen screen) {
         minecraft.setScreen(screen);
+    }
+
+    /**
+     * Names a shop that does not exist yet. The name is only recorded here; the
+     * server creates the shop when this item is saved.
+     */
+    private void nameNewShop(Field field) {
+        // Queued rather than opened from inside the picker's callback, which is
+        // running while the picker is closing itself back to this screen.
+        minecraft.tell(() -> minecraft.setScreen(new ShopNameScreen(
+                this, parent().shopNames(), named -> set(field, named))));
     }
 
     private void set(Field field, String value) {

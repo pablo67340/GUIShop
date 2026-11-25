@@ -152,13 +152,19 @@ public final class ShopBrowserScreen extends PanelScreen {
             right -= EDIT_WIDTH + 4;
 
             if (editing) {
-                // Only while editing, and never on the menu: the menu's entries
-                // are shortcuts to shops rather than items, and a stray stone
-                // block in it would just be confusing.
-                Button add = Button.builder(Component.literal("+"), button -> addItem())
+                // On the menu this adds a shop, since the menu's entries are
+                // shortcuts to shops rather than items. Inside a shop it adds
+                // an item. Either way it is the plus where the thing you are
+                // looking at lives.
+                Button add = Button.builder(Component.literal("+"), button -> {
+                            if (isMenu()) {
+                                openNewShop();
+                            } else {
+                                addItem();
+                            }
+                        })
                         .bounds(right - 16, controlsTop, 16, 16)
                         .build();
-                add.active = !isMenu();
                 addRenderableWidget(add);
             }
         }
@@ -168,12 +174,19 @@ public final class ShopBrowserScreen extends PanelScreen {
      * The menu is a shop internally but is not one to add items to.
      */
     private boolean isMenu() {
-        return view.name().equalsIgnoreCase(catalogue.menu().name());
+        // Blank when the menu config is missing, in which case nothing is the
+        // menu rather than everything unnamed being it.
+        String menuName = catalogue.menu().name();
+        return !menuName.isBlank() && view.name().equalsIgnoreCase(menuName);
     }
 
     private void addItem() {
         PacketDistributor.sendToServer(
                 new ShopAdminPayload(ShopAdminPayload.Action.ADD_ITEM, view.name(), 0, ""));
+    }
+
+    private void openNewShop() {
+        minecraft.setScreen(new NewShopScreen(this, shopNames()));
     }
 
     private void toggleEditing() {

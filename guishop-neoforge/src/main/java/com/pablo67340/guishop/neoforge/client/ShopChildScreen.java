@@ -66,8 +66,9 @@ abstract class ShopChildScreen extends PanelScreen {
         if (!hasStatus()) {
             return;
         }
-        graphics.drawString(font, status, footerTextLeft(), footerTop() + 9,
-                statusSuccess ? UiTheme.BUY : UiTheme.WARN, false);
+        int left = footerTextLeft();
+        graphics.drawString(font, trimToWidth(status, panelRight() - UiTheme.PADDING - left),
+                left, footerTop() + 9, statusSuccess ? UiTheme.BUY : UiTheme.WARN, false);
     }
 
     protected void setStatus(String message, boolean success) {

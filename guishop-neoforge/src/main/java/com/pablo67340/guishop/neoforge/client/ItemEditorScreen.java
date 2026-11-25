@@ -135,11 +135,10 @@ final class ItemEditorScreen extends ShopChildScreen {
     private boolean confirmingDelete;
 
     /**
-     * A shop named here that the server will create on save, so that saving can
-     * walk straight into it instead of leaving the author back on the menu
-     * wondering where their new shop went.
+     * A shop to open once the save goes through, so that making one lands the
+     * author inside it rather than back on the menu wondering where it went.
      */
-    private String awaitingShop;
+    private String enterAfterSave;
 
     ItemEditorScreen(ShopBrowserScreen parent, String shopName, int index, ShopEntryData entry,
                      Map<String, String> values) {
@@ -153,8 +152,7 @@ final class ItemEditorScreen extends ShopChildScreen {
         // A shortcut with nowhere to go is what the plus button leaves behind,
         // and the one field that matters is easy to miss among twenty.
         if (entry.isShortcut() && !entry.hasTarget()) {
-            setStatus("Set 'Opens shop' to finish this, or change Type to sell an item here.",
-                    true);
+            setStatus("Pick the shop this opens.", true);
         }
 
         // So an item whose name is under the older key still shows it, rather
@@ -236,6 +234,47 @@ final class ItemEditorScreen extends ShopChildScreen {
                         })
                 .bounds(contentLeft() + 128, footerTop() + 4, 54, 16)
                 .build());
+
+        if (currentType() == ItemType.SHOP_SHORTCUT) {
+            // Saving and then hunting for the icon to click was the long way
+            // round to the only place this entry leads.
+            addRenderableWidget(Button.builder(Component.literal("Edit shop"),
+                            button -> editTargetShop())
+                    .bounds(contentLeft() + 186, footerTop() + 4, 64, 16)
+                    .build());
+        }
+    }
+
+    /**
+     * Goes to the shop this entry opens, saving first so the trip does not
+     * discard what was typed. Names one when there is none yet, which is the
+     * short way through the two pickers that otherwise get you there.
+     */
+    private void editTargetShop() {
+        String target = values.getOrDefault("target-shop", "").trim();
+        if (target.isBlank()) {
+            nameNewShop(fieldFor("target-shop"));
+            setStatus("Name it, then this takes you in.", true);
+            return;
+        }
+
+        enterAfterSave = target;
+        if (!pendingChanges().isEmpty()) {
+            save();
+            return;
+        }
+
+        // Nothing to save, so no server round trip to wait for.
+        ShopBrowserScreen browser = parent();
+        onClose();
+        browser.enterShop(target);
+    }
+
+    private static Field fieldFor(String key) {
+        return SIMPLE_FIELDS.stream()
+                .filter(field -> field.key().equals(key))
+                .findFirst()
+                .orElseThrow();
     }
 
     private void deleteItem() {
@@ -402,7 +441,7 @@ final class ItemEditorScreen extends ShopChildScreen {
         minecraft.tell(() -> minecraft.setScreen(new ShopNameScreen(
                 this, parent().shopNames(), named -> {
                     set(field, named);
-                    awaitingShop = named;
+                    enterAfterSave = named;
                 })));
     }
 
@@ -478,11 +517,22 @@ final class ItemEditorScreen extends ShopChildScreen {
 
     // ------------------------------------------------------------------ save
 
-    /**
-     * Sends only what changed, so a field the editor never touched is not
-     * rewritten and cannot be reformatted by a round trip through the screen.
-     */
     private void save() {
+        Map<String, String> changed = pendingChanges();
+        if (changed.isEmpty()) {
+            setStatus("Nothing changed.", false);
+            return;
+        }
+
+        PacketDistributor.sendToServer(new SaveItemPayload(shopName, index, changed));
+    }
+
+    /**
+     * What a save would send: only what changed, so a field the editor never
+     * touched is not rewritten and cannot be reformatted by a round trip
+     * through the screen.
+     */
+    private Map<String, String> pendingChanges() {
         Map<String, String> changed = new LinkedHashMap<>();
 
         values.forEach((key, value) -> {
@@ -499,13 +549,7 @@ final class ItemEditorScreen extends ShopChildScreen {
         if (changed.containsKey(DISPLAY_NAME) && !values.getOrDefault(LEGACY_NAME, "").isBlank()) {
             changed.put(LEGACY_NAME, "");
         }
-
-        if (changed.isEmpty()) {
-            setStatus("Nothing changed.", false);
-            return;
-        }
-
-        PacketDistributor.sendToServer(new SaveItemPayload(shopName, index, changed));
+        return changed;
     }
 
     /**
@@ -551,12 +595,12 @@ final class ItemEditorScreen extends ShopChildScreen {
         ShopBrowserScreen browser = parent();
         onClose();
 
-        // Only when the shop was named here and the type still means to open
-        // one: the author may have changed their mind and made this a plain
-        // item, in which case no shop was created to walk into.
-        if (awaitingShop != null && currentType() == ItemType.SHOP_SHORTCUT
-                && awaitingShop.equalsIgnoreCase(values.getOrDefault("target-shop", ""))) {
-            browser.enterNewShop(awaitingShop);
+        // Only while the type still means to open a shop: the author may have
+        // changed their mind and made this a plain item, in which case there is
+        // nothing to walk into.
+        if (enterAfterSave != null && currentType() == ItemType.SHOP_SHORTCUT
+                && enterAfterSave.equalsIgnoreCase(values.getOrDefault("target-shop", ""))) {
+            browser.enterShop(enterAfterSave);
         }
     }
 
@@ -572,11 +616,11 @@ final class ItemEditorScreen extends ShopChildScreen {
     }
 
     /**
-     * Clear of the Save and Cancel buttons in the bottom-left.
+     * Clear of the footer buttons, which are one wider for a shortcut.
      */
     @Override
     protected int footerTextLeft() {
-        return contentLeft() + 188;
+        return contentLeft() + (currentType() == ItemType.SHOP_SHORTCUT ? 256 : 188);
     }
 
     @Override
@@ -587,8 +631,11 @@ final class ItemEditorScreen extends ShopChildScreen {
         if (hasStatus()) {
             renderStatus(graphics);
         } else {
-            graphics.drawString(font, "Blank a field to remove it",
-                    footerTextLeft(), footerTop() + 9, UiTheme.TEXT_MUTED, false);
+            int left = footerTextLeft();
+            graphics.drawString(font,
+                    trimToWidth(Component.literal("Blank a field to remove it"),
+                            panelRight() - UiTheme.PADDING - left),
+                    left, footerTop() + 9, UiTheme.TEXT_MUTED, false);
         }
     }
 

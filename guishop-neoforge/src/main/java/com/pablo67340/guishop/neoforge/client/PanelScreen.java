@@ -2,7 +2,10 @@ package com.pablo67340.guishop.neoforge.client;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FormattedText;
+import net.minecraft.util.FormattedCharSequence;
 
 /**
  * The panel chrome every shop screen sits in: a centred rounded-off box with a
@@ -81,6 +84,23 @@ abstract class PanelScreen extends Screen {
                     panelRight() - UiTheme.PADDING - font.width(rightText),
                     panelTop + 13, UiTheme.HEADER_MUTED, false);
         }
+    }
+
+    /**
+     * The text, cut short with an ellipsis if it will not fit.
+     * <p>
+     * Here rather than in each caller because every one of them draws into a
+     * fixed-width panel, and text that runs past the border is the kind of thing
+     * that only shows up once someone writes a longer message.
+     */
+    protected FormattedCharSequence trimToWidth(Component text, int maxWidth) {
+        if (font.width(text) <= maxWidth) {
+            return text.getVisualOrderText();
+        }
+        return Language.getInstance().getVisualOrder(
+                FormattedText.composite(
+                        font.substrByWidth(text, maxWidth - font.width("...")),
+                        FormattedText.of("...")));
     }
 
     protected void renderFooterDivider(GuiGraphics graphics) {

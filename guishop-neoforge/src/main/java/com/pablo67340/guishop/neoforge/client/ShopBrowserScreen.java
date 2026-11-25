@@ -13,10 +13,7 @@ import com.pablo67340.guishop.util.MathUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
-import net.minecraft.locale.Language;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FormattedText;
-import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
@@ -464,16 +461,6 @@ public final class ShopBrowserScreen extends PanelScreen {
      * Keeps the name's styling while clipping it to the cell. The styled form
      * is used when it fits, which is the common case.
      */
-    private FormattedCharSequence trimToWidth(Component name, int maxWidth) {
-        if (font.width(name) <= maxWidth) {
-            return name.getVisualOrderText();
-        }
-        return Language.getInstance().getVisualOrder(
-                FormattedText.composite(
-                        font.substrByWidth(name, maxWidth - font.width("...")),
-                        FormattedText.of("...")));
-    }
-
     /**
      * Draws the detail line under the item name: the server-rendered price
      * lines as the config words them, or what the entry does instead of
@@ -559,7 +546,8 @@ public final class ShopBrowserScreen extends PanelScreen {
         renderFooterDivider(graphics);
 
         if (!status.getString().isEmpty()) {
-            graphics.drawString(font, status, contentLeft(), footerTop() + 9,
+            graphics.drawString(font, trimToWidth(status, contentWidth()),
+                    contentLeft(), footerTop() + 9,
                     statusSuccess ? UiTheme.BUY : UiTheme.WARN, false);
             return;
         }
@@ -651,13 +639,13 @@ public final class ShopBrowserScreen extends PanelScreen {
     }
 
     /**
-     * Walks into a shop that has just been created, with edit mode already on.
+     * Walks into a shop from the editor, with edit mode already on.
      * <p>
-     * The reason to make a shop is to put things in it, and going back out to
-     * the menu to hunt for its new icon is a detour through a screen the author
+     * The reason to open a shop from there is to work on it, and going back out
+     * to the menu to hunt for its icon is a detour through a screen the author
      * has no business being on yet.
      */
-    void enterNewShop(String name) {
+    void enterShop(String name) {
         ShopView target = catalogue.shopOrMenu(name);
         if (!target.name().equalsIgnoreCase(name)) {
             // The catalogue has not caught up; the menu icon still works.
@@ -665,10 +653,16 @@ public final class ShopBrowserScreen extends PanelScreen {
             return;
         }
 
-        history.push(view.name());
+        if (target != view) {
+            history.push(view.name());
+            switchTo(target);
+        }
+
         editing = true;
-        switchTo(target);
-        setStatus("Empty shop. Use + to add an item.", true);
+        rebuildWidgets();
+        setStatus(target.entries().isEmpty()
+                ? "Empty shop. Use + to add an item."
+                : "Edit mode on. Click an item to edit it.", true);
     }
 
     private void goBack() {

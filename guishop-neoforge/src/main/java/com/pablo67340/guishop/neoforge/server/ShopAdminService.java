@@ -119,6 +119,10 @@ public final class ShopAdminService {
 
         Map<String, Object> icon = new LinkedHashMap<>();
         icon.put("id", "CHEST");
+        // Spelled out rather than left to be inferred from target-shop, so the
+        // editor shows what it is and the author can see what to change if
+        // they would rather sell something here than open a shop.
+        icon.put("type", "SHOP_SHORTCUT");
         icon.put("name", "&f&l" + shop);
         icon.put("lore", List.of("&7Click to browse"));
         icon.put("target-shop", shop);

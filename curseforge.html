@@ -1,0 +1,164 @@
+<div style="text-align: center;">
+<img src="https://bryces.site/guishop/banner.jpg" alt="GUIShop Banner" />
+
+<h1>GUIShop Modded Edition</h1>
+<h3>Proper shop screens for NeoForge, built on seven years of GUIShop</h3>
+
+<p><em>Minecraft ${modded.mc.version} on NeoForge ${neoforge.version} or newer</em></p>
+
+<p>
+<a href="https://github.com/pablo67340/GUIShop"><img src="https://img.shields.io/badge/GitHub-Repository-blue" alt="GitHub" /></a>
+<a href="https://github.com/pablo67340/GUIShop/wiki"><img src="https://img.shields.io/badge/Wiki-Documentation-green" alt="Wiki" /></a>
+<a href="https://discord.gg/wm6zMzdBwf"><img src="https://img.shields.io/badge/Discord-Support-purple" alt="Discord" /></a>
+</p>
+</div>
+
+<hr />
+
+<h2>Overview</h2>
+
+<p>GUIShop has been a Bukkit shop plugin since 2018. This is the NeoForge edition, and it is not a port in name only. A plugin can only draw inside a chest inventory, so every shop ever built with GUIShop was a grid of 54 slots with filler panes around the edges and arrows glued to the bottom row. A mod has the whole screen. So that is what this uses.</p>
+
+<p>Shops are real screens. They reflow to the size of your window, they search, they sort, they scroll, and they show the same item tooltips the rest of the game does. Nothing is laid out on a fixed grid, nothing needs a filler pane, and nothing needs a page arrow in slot 48.</p>
+
+<p>Everything a server owner does is done in game. Add a shop, add an item, set its price, pick its material, edit the messages, change the settings. No file editing, no restarts, no reloading.</p>
+
+<hr />
+
+<h2>Install</h2>
+
+<p><strong>This mod is required on the client and the server.</strong> The screens are drawn client side and every price and permission decision is made server side, so both halves have to be present. Single player works with no extra setup.</p>
+
+<hr />
+
+<h2>Features</h2>
+
+<h3>Shops that behave like screens</h3>
+<ul>
+<li>Resizes to the window instead of a fixed 54 slot grid</li>
+<li>Search box, sorting, and a filter that hides what you cannot afford</li>
+<li>Full vanilla item tooltips, including enchantments, potion effects and attribute modifiers</li>
+<li>Configured names, lore and colours are respected, and dark text is lifted so it stays readable on the dark chrome</li>
+</ul>
+
+<h3>Buying and selling</h3>
+<ul>
+<li>Click any item for a quantity selector with buy and sell</li>
+<li><code>/sell</code> opens a container to tip items into. Close it and everything the shops buy is sold, paid for in one go, with whatever they will not buy handed straight back</li>
+<li>Where several shops buy the same item at different prices, the best price for the player wins</li>
+<li>Prices are never read from the client. Every amount is calculated on the server from the config</li>
+</ul>
+
+<h3>Editing, without the shift clicking</h3>
+<ul>
+<li>Press Edit, then click an item. That is the whole interaction</li>
+<li>The editor shows a large preview that updates as you change the item, next to every property it has</li>
+<li>Values come from pickers built off the live registries, so <strong>items, blocks, mobs, enchantments and sounds from other mods are all offered</strong> and none of them can be mistyped</li>
+<li>Sounds have a play button so you can hear one before choosing it</li>
+<li>Fields the chosen item type ignores are drawn as inert, so a shortcut does not ask you for a sell price</li>
+<li>Add and delete shops and items from the interface. Clicking a newly added shop creates it and puts you inside it, ready to fill</li>
+</ul>
+
+<h3>Settings in game</h3>
+<ul>
+<li>A tabbed settings screen: client preferences for every player, server settings for anyone permitted</li>
+<li>Titles, price lore formats, currency formatting, messages, disabled worlds, trade sounds and more</li>
+<li>Changes are applied and written by the server, never by the client</li>
+</ul>
+
+<h3>Item metadata, all of it</h3>
+<p>Everything the plugin ever supported on an item is applied here too:</p>
+<ul>
+<li>Custom names and lore with colour codes</li>
+<li>Enchantments at any level</li>
+<li>Potions, splash potions, lingering potions and tipped arrows</li>
+<li>Fireworks, with multiple explosions, colours, fades, flicker and trail</li>
+<li>Player heads by UUID or by Base64 skin texture</li>
+<li>Mob spawners with any entity type</li>
+<li>Custom model data, item flags and raw NBT</li>
+</ul>
+
+<h3>Economy</h3>
+<p>There is no Vault here, so the mod keeps its own per player balances. Buying charges, selling pays, and the amounts are stored on the server.</p>
+
+<hr />
+
+<h2>Commands</h2>
+
+<pre>
+/shop          Open the shop menu
+/shop &lt;name&gt;   Open a shop directly
+/sell          Open the sell container
+</pre>
+
+<hr />
+
+<h2>Permissions</h2>
+
+<p>Server settings and the editor are available to anyone holding <code>guishop.edit</code>, to operators, and to the owner of a single player world. The node is registered with the NeoForge permission API, so LuckPerms and anything else that implements it will see it.</p>
+
+<p>Permission is checked again on the server for every single change. Nothing is trusted because the client offered it.</p>
+
+<hr />
+
+<h2>Configuration</h2>
+
+<p>Config lives in <code>&lt;game&gt;/guishop/</code> as JSON: one file per shop in <code>shops/</code>, plus <code>menu.json</code>, <code>settings.json</code> and <code>messages.json</code>.</p>
+
+<p><strong>Coming from the Bukkit plugin?</strong> Drop your existing <code>shops/</code> and <code>menu.yml</code> in and they are converted to JSON automatically on first start. Every original is kept as a <code>.yml.bak</code> beside it, so nothing is destroyed and you can always look at what you had.</p>
+
+<p>Slot numbers in an old config are read and then ignored. There is no grid to place things on any more, so ordering is simply the order of the entries in the file.</p>
+
+<h4>A shop file</h4>
+<pre>
+{
+  "title": "&amp;a&amp;lBlocks",
+  "items": [
+    {
+      "id": "STONE",
+      "type": "ITEM",
+      "buy-price": 10,
+      "sell-price": 5,
+      "shop-name": "&amp;7Stone",
+      "lore": ["&amp;fA basic building block"]
+    },
+    {
+      "id": "DIAMOND_SWORD",
+      "type": "ITEM",
+      "buy-price": 500,
+      "enchantments": "SHARPNESS:5 UNBREAKING:3"
+    }
+  ]
+}
+</pre>
+
+<p>You will rarely need to look at this. Everything in it can be set from the editor.</p>
+
+<hr />
+
+<h2>Not in this build yet</h2>
+
+<p>This is an alpha, and it is worth being plain about what is missing. These all exist in the Bukkit plugin and are still to be brought across:</p>
+
+<ul>
+<li>Worth display, which writes sell values into item lore</li>
+<li>Statistics tracking and the placeholder surfaces built on it</li>
+<li>Economy commands: <code>/bal</code>, <code>/pay</code>, and the admin give, take and set commands</li>
+<li>Bundled default configs, so a fresh install currently wants configs from an existing GUIShop setup to start from</li>
+</ul>
+
+<p>Everything listed above the line works. If you hit something that does not, the Discord and the GitHub issues are both read.</p>
+
+<hr />
+
+<h2>The Bukkit plugin</h2>
+
+<p>Still maintained, still separate, and unaffected by any of this. If you run Paper, Spigot, Folia or Bukkit, you want <a href="https://dev.bukkit.org/projects/gui-shop">GUIShop</a> rather than this.</p>
+
+<p>Both editions now sit on one shared core, so pricing, the config model and the shop logic are a single implementation rather than two that drift apart.</p>
+
+<hr />
+
+<div style="text-align: center;">
+<p><em>GUIShop Modded Edition ${project.version}</em></p>
+</div>

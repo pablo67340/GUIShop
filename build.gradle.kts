@@ -18,6 +18,8 @@ val docTokens = mapOf(
         providers.gradleProperty("mcVersionMax").get(),
     "java.version.min" to providers.gradleProperty("javaVersionMin").get(),
     "supported.platforms" to providers.gradleProperty("supportedPlatforms").get(),
+    "modded.mc.version" to providers.gradleProperty("moddedMcVersion").get(),
+    "neoforge.version" to providers.gradleProperty("neoForgeVersion").get(),
 )
 
 // Storefront copy with ${project.version} and friends resolved, for pasting into
@@ -27,7 +29,7 @@ val processDocs = tasks.register<Copy>("processDocs") {
     filteringCharset = "UTF-8"
     filter<ReplaceTokens>("beginToken" to "\${", "endToken" to "}", "tokens" to docTokens)
 
-    from(files("spigot.bbcode", "modrinth.md", "dev-bukkit.html"))
+    from(files("spigot.bbcode", "modrinth.md", "dev-bukkit.html", "curseforge.html"))
     from("wiki") {
         include("*.md")
         into("wiki")

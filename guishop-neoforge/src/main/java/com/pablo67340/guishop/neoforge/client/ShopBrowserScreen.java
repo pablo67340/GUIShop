@@ -3,6 +3,7 @@ package com.pablo67340.guishop.neoforge.client;
 import com.pablo67340.guishop.neoforge.network.ItemFieldsPayload;
 import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
 import com.pablo67340.guishop.neoforge.network.RequestItemPayload;
+import com.pablo67340.guishop.neoforge.network.ShopAdminPayload;
 import com.pablo67340.guishop.neoforge.network.ShopEntryData;
 import com.pablo67340.guishop.neoforge.network.ShopView;
 import com.pablo67340.guishop.neoforge.network.TradeRequestPayload;
@@ -69,13 +70,17 @@ public final class ShopBrowserScreen extends PanelScreen {
     private boolean statusSuccess = true;
 
     /**
-     * An entry together with where it sits in the shop as the server sees it.
+     * An entry and its precomputed search key.
      * <p>
-     * Sorting and searching reorder what is drawn, so the position in the list
-     * on screen is no longer the identity the server knows. Carrying the
-     * original index means a request always names the right item.
+     * The identity used when talking to the server comes from the entry itself
+     * rather than from where it ended up on screen, since sorting and searching
+     * both reorder this list.
      */
-    private record Entry(ShopEntryData data, int index, String searchKey) {
+    private record Entry(ShopEntryData data, String searchKey) {
+
+        int id() {
+            return data.entryId();
+        }
     }
 
     public ShopBrowserScreen(OpenShopPayload catalogue, ShopView view) {
@@ -106,7 +111,8 @@ public final class ShopBrowserScreen extends PanelScreen {
 
         int controlsTop = headerBottom() + 4;
         int reserved = SETTINGS_WIDTH + 4 + 54
-                + (catalogue.canEdit() ? EDIT_WIDTH + 4 : 0);
+                + (catalogue.canEdit() ? EDIT_WIDTH + 4 : 0)
+                + (catalogue.canEdit() && editing ? 20 : 0);
 
         search = new EditBox(font, contentLeft(), controlsTop,
                 Math.max(40, contentWidth() - reserved), 16, Component.literal("Search"));
@@ -143,7 +149,31 @@ public final class ShopBrowserScreen extends PanelScreen {
                     .bounds(right - EDIT_WIDTH, controlsTop, EDIT_WIDTH, 16)
                     .build();
             addRenderableWidget(edit);
+            right -= EDIT_WIDTH + 4;
+
+            if (editing) {
+                // Only while editing, and never on the menu: the menu's entries
+                // are shortcuts to shops rather than items, and a stray stone
+                // block in it would just be confusing.
+                Button add = Button.builder(Component.literal("+"), button -> addItem())
+                        .bounds(right - 16, controlsTop, 16, 16)
+                        .build();
+                add.active = !isMenu();
+                addRenderableWidget(add);
+            }
         }
+    }
+
+    /**
+     * The menu is a shop internally but is not one to add items to.
+     */
+    private boolean isMenu() {
+        return view.name().equalsIgnoreCase(catalogue.menu().name());
+    }
+
+    private void addItem() {
+        PacketDistributor.sendToServer(
+                new ShopAdminPayload(ShopAdminPayload.Action.ADD_ITEM, view.name(), 0, ""));
     }
 
     private void toggleEditing() {
@@ -218,7 +248,7 @@ public final class ShopBrowserScreen extends PanelScreen {
      */
     void openEditor(ItemFieldsPayload fields) {
         Entry entry = visible.stream()
-                .filter(candidate -> candidate.index() == fields.index())
+                .filter(candidate -> candidate.id() == fields.index())
                 .findFirst()
                 .orElse(null);
 
@@ -240,10 +270,8 @@ public final class ShopBrowserScreen extends PanelScreen {
         String query = search == null ? "" : search.getValue().trim().toLowerCase(Locale.ROOT);
 
         List<Entry> entries = new ArrayList<>(view.entries().size());
-        for (int index = 0; index < view.entries().size(); index++) {
-            ShopEntryData data = view.entries().get(index);
-
-            // Indexed once per rebuild rather than per keystroke.
+        for (ShopEntryData data : view.entries()) {
+            // Built once per rebuild rather than per keystroke.
             String key = data.icon().getHoverName().getString().toLowerCase(Locale.ROOT);
             if (!query.isEmpty() && !key.contains(query)) {
                 continue;
@@ -251,7 +279,7 @@ public final class ShopBrowserScreen extends PanelScreen {
             if (ClientPrefs.hideUnaffordable() && isUnaffordable(data)) {
                 continue;
             }
-            entries.add(new Entry(data, index, key));
+            entries.add(new Entry(data, key));
         }
 
         sort(entries);
@@ -549,7 +577,7 @@ public final class ShopBrowserScreen extends PanelScreen {
         if (editing) {
             // The properties live on the server, so the editor cannot open
             // until they arrive.
-            PacketDistributor.sendToServer(new RequestItemPayload(view.name(), entry.index()));
+            PacketDistributor.sendToServer(new RequestItemPayload(view.name(), entry.id()));
             return true;
         }
 
@@ -559,9 +587,9 @@ public final class ShopBrowserScreen extends PanelScreen {
         }
 
         if (ClientPrefs.confirmPurchases()) {
-            minecraft.setScreen(new TradeScreen(this, view.name(), entry.index(), entry.data()));
+            minecraft.setScreen(new TradeScreen(this, view.name(), entry.id(), entry.data()));
         } else if (entry.data().canBuy()) {
-            PacketDistributor.sendToServer(new TradeRequestPayload(view.name(), entry.index(), 1, false));
+            PacketDistributor.sendToServer(new TradeRequestPayload(view.name(), entry.id(), 1, false));
         } else {
             setStatus("That item cannot be bought.", false);
         }

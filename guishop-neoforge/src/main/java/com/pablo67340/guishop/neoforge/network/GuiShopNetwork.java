@@ -2,6 +2,7 @@ package com.pablo67340.guishop.neoforge.network;
 
 import com.pablo67340.guishop.neoforge.server.EditService;
 import com.pablo67340.guishop.neoforge.server.SettingsService;
+import com.pablo67340.guishop.neoforge.server.ShopAdminService;
 import com.pablo67340.guishop.neoforge.server.TradeService;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
@@ -52,6 +53,11 @@ public final class GuiShopNetwork {
                 SaveSettingsPayload.TYPE,
                 SaveSettingsPayload.CODEC,
                 (payload, context) -> onServer(context, player -> SettingsService.handle(player, payload)));
+
+        registrar.playToServer(
+                ShopAdminPayload.TYPE,
+                ShopAdminPayload.CODEC,
+                (payload, context) -> onServer(context, player -> ShopAdminService.handle(player, payload)));
 
         registrar.playToServer(
                 RequestItemPayload.TYPE,

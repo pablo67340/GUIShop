@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.neoforge.config.Messages;
 import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.server.GuiShopNetworkSender;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
@@ -69,7 +70,12 @@ public final class ShopCommand {
         try {
             player = source.getPlayerOrException();
         } catch (CommandSyntaxException exception) {
-            source.sendFailure(Component.literal("Only a player can open the shop. Try /shop info."));
+            source.sendFailure(Messages.get("only-player"));
+            return 0;
+        }
+
+        if (!GuiShopNetworkSender.isWorldAllowed(player)) {
+            source.sendFailure(Messages.get("disabled-world"));
             return 0;
         }
 
@@ -80,7 +86,7 @@ public final class ShopCommand {
         }
 
         if (!shopName.isEmpty() && !"menu".equalsIgnoreCase(shopName) && registry.get(shopName) == null) {
-            source.sendFailure(Component.literal("No shop named '" + shopName + "'."));
+            source.sendFailure(Messages.get("shop-not-found", "shop", shopName));
             return 0;
         }
 

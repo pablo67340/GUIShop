@@ -20,6 +20,11 @@ import java.util.List;
  * components, along with everything else configured on the item, so the client
  * can render it exactly as Minecraft would anywhere else.
  *
+ * @param entryId    identifies this entry to the server. The entry's position in
+ *                   its shop file, which the client treats as opaque and echoes
+ *                   back. Not a list position: the list is filtered and may be
+ *                   sorted, so the two would stop agreeing and a trade or an
+ *                   edit would resolve a different item.
  * @param icon       the stack to render, carrying its configured name and lore
  * @param buyPrice   the buy price, or {@link #NO_PRICE} if it cannot be bought
  * @param sellPrice  the sell price, or {@link #NO_PRICE} if it cannot be sold
@@ -30,6 +35,7 @@ import java.util.List;
  *                   otherwise have to invent its own wording.
  */
 public record ShopEntryData(
+        int entryId,
         ItemStack icon,
         double buyPrice,
         double sellPrice,
@@ -61,6 +67,7 @@ public record ShopEntryData(
     }
 
     private void write(RegistryFriendlyByteBuf buffer) {
+        buffer.writeVarInt(entryId);
         ItemStack.OPTIONAL_STREAM_CODEC.encode(buffer, icon);
         buffer.writeDouble(buyPrice);
         buffer.writeDouble(sellPrice);
@@ -70,6 +77,7 @@ public record ShopEntryData(
 
     private static ShopEntryData read(RegistryFriendlyByteBuf buffer) {
         return new ShopEntryData(
+                buffer.readVarInt(),
                 ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer),
                 buffer.readDouble(),
                 buffer.readDouble(),

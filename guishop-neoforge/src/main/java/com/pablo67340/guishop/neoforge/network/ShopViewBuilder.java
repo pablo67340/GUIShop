@@ -131,6 +131,9 @@ public final class ShopViewBuilder {
 
     private static ShopEntryData toEntry(NeoItem item, HolderLookup.Provider registries) {
         return new ShopEntryData(
+                // The loader sets the slot to the entry's position in the file,
+                // which is the identity both sides agree on.
+                item.getSlot() == null ? 0 : item.getSlot(),
                 item.toItemStack(registries),
                 item.hasBuyPrice() ? item.getBuyPriceAsDecimal().doubleValue() : ShopEntryData.NO_PRICE,
                 item.hasSellPrice() ? item.getSellPriceAsDecimal().doubleValue() : ShopEntryData.NO_PRICE,

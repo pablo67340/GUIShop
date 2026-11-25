@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.neoforge.server;
 
 import com.pablo67340.guishop.neoforge.config.JsonFiles;
+import com.pablo67340.guishop.neoforge.config.Messages;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.network.ItemFieldsPayload;
 import com.pablo67340.guishop.neoforge.network.RequestItemPayload;
@@ -53,7 +54,7 @@ public final class EditService {
      */
     public static void handle(ServerPlayer player, RequestItemPayload request) {
         if (!GuiShopPermissions.canEdit(player)) {
-            refuse(player, "You do not have permission to edit shops.");
+            refuse(player, Messages.get("no-edit-permission"));
             return;
         }
 
@@ -64,13 +65,16 @@ public final class EditService {
 
         Map<String, Object> document = registry.document(request.shop());
         if (document == null) {
-            refuse(player, "No shop named '" + request.shop() + "'.");
+            refuse(player, Messages.get("shop-not-found", "shop", request.shop()));
             return;
         }
 
+        // The id is the entry's position in the file, which is what the loader
+        // records as its slot and what the catalogue sends out, so indexing the
+        // document directly resolves the same item the player clicked.
         List<Object> items = itemsOf(document);
         if (request.index() < 0 || request.index() >= items.size()) {
-            refuse(player, "That item is no longer there. Reopen the shop.");
+            refuse(player, Messages.get("item-gone"));
             return;
         }
 
@@ -119,7 +123,7 @@ public final class EditService {
             // bug or someone probing.
             GuiShopPlatform.get().logger().warning(player.getGameProfile().getName()
                     + " tried to edit a shop item without permission.");
-            refuse(player, "You do not have permission to edit shops.");
+            refuse(player, Messages.get("no-edit-permission"));
             return;
         }
 
@@ -131,13 +135,13 @@ public final class EditService {
         Map<String, Object> document = registry.document(request.shop());
         Path file = registry.file(request.shop());
         if (document == null || file == null) {
-            refuse(player, "No shop named '" + request.shop() + "'.");
+            refuse(player, Messages.get("shop-not-found", "shop", request.shop()));
             return;
         }
 
         List<Object> items = itemsOf(document);
         if (request.index() < 0 || request.index() >= items.size()) {
-            refuse(player, "That item is no longer there. Reopen the shop.");
+            refuse(player, Messages.get("item-gone"));
             return;
         }
 
@@ -150,7 +154,7 @@ public final class EditService {
         items.set(request.index(), item);
 
         if (!JsonFiles.write(file, document)) {
-            refuse(player, "Could not write " + file.getFileName() + ". See the server log.");
+            refuse(player, Messages.get("error-saving", "error", file.getFileName()));
             return;
         }
 
@@ -160,7 +164,7 @@ public final class EditService {
         // not something other players should keep seeing the old value of.
         GuiShopNetworkSender.broadcastCatalogue(player);
 
-        succeed(player, "Saved to " + file.getFileName() + ".");
+        succeed(player, Messages.get("saved", "file", file.getFileName()));
     }
 
     /**
@@ -237,15 +241,15 @@ public final class EditService {
         return items;
     }
 
-    private static void succeed(ServerPlayer player, String message) {
+    private static void succeed(ServerPlayer player, Component message) {
         GuiShopNetworkSender.send(player, new TradeResultPayload(
-                Component.literal(message).withStyle(ChatFormatting.GREEN), true,
+                message, true,
                 GuiShopServer.balances().get(player.getUUID()).doubleValue()));
     }
 
-    private static void refuse(ServerPlayer player, String message) {
+    private static void refuse(ServerPlayer player, Component message) {
         GuiShopNetworkSender.send(player, new TradeResultPayload(
-                Component.literal(message).withStyle(ChatFormatting.RED), false,
+                message, false,
                 GuiShopServer.balances().get(player.getUUID()).doubleValue()));
     }
 }

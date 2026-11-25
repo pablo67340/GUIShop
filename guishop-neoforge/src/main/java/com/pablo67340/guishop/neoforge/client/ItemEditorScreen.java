@@ -2,6 +2,7 @@ package com.pablo67340.guishop.neoforge.client;
 
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.neoforge.network.SaveItemPayload;
+import com.pablo67340.guishop.neoforge.network.ShopAdminPayload;
 import com.pablo67340.guishop.neoforge.network.ShopEntryData;
 import com.pablo67340.guishop.neoforge.network.TradeResultPayload;
 import net.minecraft.client.gui.GuiGraphics;
@@ -115,6 +116,9 @@ final class ItemEditorScreen extends ShopChildScreen {
      */
     private final Map<String, String> values;
 
+    /** Set after the first Delete click, so a second one means it. */
+    private boolean confirmingDelete;
+
     ItemEditorScreen(ShopBrowserScreen parent, String shopName, int index, ShopEntryData entry,
                      Map<String, String> values) {
         super(Component.literal("Edit item"), parent);
@@ -172,6 +176,28 @@ final class ItemEditorScreen extends ShopChildScreen {
         addRenderableWidget(Button.builder(Component.literal("Cancel"), button -> onClose())
                 .bounds(contentLeft() + 64, footerTop() + 4, 60, 16)
                 .build());
+
+        // Two clicks, since there is no undo for removing an entry.
+        addRenderableWidget(Button.builder(
+                        Component.literal(confirmingDelete ? "Sure?" : "Delete"), button -> {
+                            if (confirmingDelete) {
+                                deleteItem();
+                            } else {
+                                confirmingDelete = true;
+                                rebuildWidgets();
+                            }
+                        })
+                .bounds(contentLeft() + 128, footerTop() + 4, 54, 16)
+                .build());
+    }
+
+    private void deleteItem() {
+        confirmingDelete = false;
+        PacketDistributor.sendToServer(
+                new ShopAdminPayload(ShopAdminPayload.Action.DELETE_ITEM, shopName, index, ""));
+        // The server renumbers the remaining entries, so this screen's id is
+        // stale the moment it succeeds.
+        onClose();
     }
 
     private EditBox textBox(Field field, int left, int top, int width) {
@@ -330,6 +356,14 @@ final class ItemEditorScreen extends ShopChildScreen {
         renderLabels(graphics);
     }
 
+    /**
+     * Clear of the Save and Cancel buttons in the bottom-left.
+     */
+    @Override
+    protected int footerTextLeft() {
+        return contentLeft() + 188;
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -339,7 +373,7 @@ final class ItemEditorScreen extends ShopChildScreen {
             renderStatus(graphics);
         } else {
             graphics.drawString(font, "Blank a field to remove it",
-                    contentLeft() + 128, footerTop() + 9, UiTheme.TEXT_MUTED, false);
+                    footerTextLeft(), footerTop() + 9, UiTheme.TEXT_MUTED, false);
         }
     }
 

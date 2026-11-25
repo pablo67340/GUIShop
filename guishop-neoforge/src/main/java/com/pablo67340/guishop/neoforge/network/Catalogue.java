@@ -9,30 +9,39 @@ import java.util.Map;
 /**
  * The catalogue as sent to clients, together with the items behind it.
  * <p>
- * The client identifies an entry by its position in a shop's list, which is all
- * it has. The server needs to turn that back into the real item to price a
- * trade or to edit it, so the same ordering is kept here. Deriving both from
- * one build is what guarantees they agree; computing the order twice would
- * eventually let them drift.
+ * An entry is identified by its position in its shop file, which is what the
+ * loader records as the item's slot. The client is sent that number and echoes
+ * it back, so a request names an item in the file rather than a place in a
+ * list. The list the client shows is filtered and can be re-sorted, so a list
+ * position would mean different things on each side.
  *
  * @param payload the views sent to clients
- * @param items   shop name, lowercased, to its entries in the order the client
- *                sees them
+ * @param items   shop name, lowercased, to its entries
  */
 public record Catalogue(OpenShopPayload payload, Map<String, List<NeoItem>> items) {
 
     /**
-     * The item an entry index refers to.
+     * The item an entry id refers to.
      *
-     * @return the item, or null if the shop or index is unknown, which is what
-     *         a stale or forged request looks like
+     * @param entryId the item's position in its shop file
+     * @return the item, or null if the shop or id is unknown, which is what a
+     *         stale or forged request looks like
      */
-    public NeoItem entryAt(String shop, int index) {
+    public NeoItem entryAt(String shop, int entryId) {
         List<NeoItem> entries = items.get(key(shop));
-        if (entries == null || index < 0 || index >= entries.size()) {
+        if (entries == null) {
             return null;
         }
-        return entries.get(index);
+
+        // Searched rather than indexed because this list has had the
+        // non-tradeable entries filtered out, so an item's id is not its
+        // position here.
+        for (NeoItem item : entries) {
+            if (item.getSlot() != null && item.getSlot() == entryId) {
+                return item;
+            }
+        }
+        return null;
     }
 
     static String key(String shop) {

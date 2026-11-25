@@ -1,11 +1,13 @@
 package com.pablo67340.guishop.neoforge.server;
 
+import com.pablo67340.guishop.config.BaseConfig;
 import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.permission.GuiShopPermissions;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +38,27 @@ public final class GuiShopNetworkSender {
      * @param openShop which shop the screen should start on, or empty for the
      *                 menu
      */
+    /**
+     * Whether this player's current world allows the shop to be opened.
+     * <p>
+     * Checked by dimension id, which is the only stable name a world has here;
+     * Bukkit matched on the world folder's name, which has no equivalent.
+     */
+    public static boolean isWorldAllowed(ServerPlayer player) {
+        List<String> disabled = BaseConfig.getDisabledWorlds();
+        if (disabled == null || disabled.isEmpty()) {
+            return true;
+        }
+
+        String dimension = player.level().dimension().location().toString();
+        String path = player.level().dimension().location().getPath();
+
+        // Either spelling is accepted, so "the_nether" works as well as
+        // "minecraft:the_nether".
+        return disabled.stream().noneMatch(entry ->
+                entry.equalsIgnoreCase(dimension) || entry.equalsIgnoreCase(path));
+    }
+
     public static void sendCatalogue(ServerPlayer player, String openShop) {
         boolean canEdit = GuiShopPermissions.canEdit(player);
 

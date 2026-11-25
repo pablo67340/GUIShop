@@ -9,25 +9,29 @@ import com.pablo67340.guishop.platform.GuiShopPlatform;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.io.Writer;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * The mod's own settings, read from {@code settings.json} in the data folder.
  * <p>
  * This is the NeoForge counterpart to the plugin's {@code config.yml}, trimmed
- * to the settings that still mean something: anything that only existed to lay
- * out a chest inventory is gone. The file is created with defaults on first
- * start, and unknown keys are left alone so a newer file can be read by an
- * older build without losing anything.
+ * to the settings that still mean something. Everything that only existed to
+ * lay out a chest inventory is gone: sign shops, the escape-to-go-back
+ * switches, the alternative sell GUI's button materials, the chest window
+ * titles and the Bukkit command-registration mode. Those are not hidden, they
+ * genuinely have nothing to act on here.
+ * <p>
+ * The file is created with defaults on first start, and keys it does not define
+ * keep their defaults rather than becoming null.
  */
 public final class Settings {
 
@@ -63,6 +67,8 @@ public final class Settings {
         return startingBalance;
     }
 
+    // ------------------------------------------------------------------ specs
+
     /** How the settings screen should present a setting. */
     public enum Kind {
         FLAG,
@@ -71,63 +77,173 @@ public final class Settings {
     }
 
     /**
-     * One setting as the in-game screen shows it.
-     *
-     * @param key   the settings.json key, dotted for nested ones
-     * @param label what to call it on screen
-     * @param kind  which control to draw
-     * @param hint  a short explanation, shown under the control
+     * Which tab a setting belongs on.
      */
-    public record Spec(String key, String label, Kind kind, String hint) {
+    public enum Category {
+        GENERAL("General"),
+        SHOPS("Shops"),
+        CURRENCY("Money"),
+        LORE("Prices", true),
+        MESSAGES("Messages", true);
+
+        private final String label;
+        private final boolean longText;
+
+        Category(String label) {
+            this(label, false);
+        }
+
+        Category(String label, boolean longText) {
+            this.label = label;
+            this.longText = longText;
+        }
+
+        public String label() {
+            return label;
+        }
+
+        /**
+         * Whether this tab's values are long format strings, which want a
+         * full-width box under the label rather than a narrow one beside it.
+         */
+        public boolean isLongText() {
+            return longText;
+        }
     }
 
     /**
-     * The settings the in-game screen can change, in display order.
+     * One setting as the in-game screen shows it.
+     *
+     * @param key      the settings.json key, dotted for nested ones
+     * @param label    what to call it on screen
+     * @param kind     which control to draw
+     * @param hint     a short explanation, shown under the label
+     * @param category which tab it belongs on
+     */
+    public record Spec(String key, String label, Kind kind, String hint, Category category) {
+    }
+
+    /**
+     * Every setting the in-game screen can change.
      * <p>
-     * Deliberately not everything in the file: the lore templates are long
-     * format strings that are far easier to edit in a text editor than through
-     * a game screen, and getting one wrong breaks every price line.
+     * Rebuilt per call rather than cached because the message list is derived
+     * from {@link Messages}, and this is only read when a screen opens.
      */
     public static List<Spec> editable() {
-        return List.of(
-                new Spec("abbreviate-prices", "Abbreviate prices", Kind.FLAG,
-                        "Show 1.5K instead of 1,500"),
-                new Spec("show-market-info", "Show price movement", Kind.FLAG,
-                        "Mark prices that have drifted from their base"),
-                new Spec("hide-non-buyable", "Hide sell-only items", Kind.FLAG,
-                        "Leave items with no buy price out of shops"),
-                new Spec("dynamic-pricing", "Dynamic pricing", Kind.FLAG,
-                        "Let supply and demand move prices"),
+        List<Spec> specs = new ArrayList<>(List.of(
                 new Spec("debug-mode", "Debug logging", Kind.FLAG,
-                        "Write detailed diagnostics to the debug log"),
-                new Spec("currency.prefix", "Currency prefix", Kind.TEXT,
-                        "Goes before the amount, such as $"),
-                new Spec("currency.suffix", "Currency suffix", Kind.TEXT,
-                        "Goes after the amount, such as coins"),
-                new Spec("currency.starting-balance", "Starting balance", Kind.NUMBER,
-                        "What a new player's account opens at"),
+                        "Write detailed diagnostics to the debug log", Category.GENERAL),
+                new Spec("transaction-log", "Transaction log", Kind.FLAG,
+                        "Record every purchase and sale to a log file", Category.GENERAL),
+                new Spec("sound-enabled", "Trade sound", Kind.FLAG,
+                        "Play a sound when a trade goes through", Category.GENERAL),
+                new Spec("sound", "Sound", Kind.TEXT,
+                        "Which sound to play, such as entity.experience_orb.pickup",
+                        Category.GENERAL),
+                new Spec("disabled-worlds", "Disabled worlds", Kind.TEXT,
+                        "Comma-separated dimension ids the shop cannot be opened in",
+                        Category.GENERAL),
+                new Spec("sell-skull-uuid", "Match head owners", Kind.FLAG,
+                        "Only sell a player head if its owner matches the config",
+                        Category.GENERAL),
+
                 new Spec("titles.menu", "Menu title", Kind.TEXT,
-                        "Heading on the main menu, with & colour codes"));
+                        "Heading on the main menu, with & colour codes", Category.SHOPS),
+                new Spec("abbreviate-prices", "Abbreviate prices", Kind.FLAG,
+                        "Show 1.5K instead of 1,500", Category.SHOPS),
+                new Spec("show-market-info", "Show price movement", Kind.FLAG,
+                        "Mark prices that have drifted from their base", Category.SHOPS),
+                new Spec("hide-non-buyable", "Hide sell-only items", Kind.FLAG,
+                        "Leave items with no buy price out of shops", Category.SHOPS),
+                new Spec("dynamic-pricing", "Dynamic pricing", Kind.FLAG,
+                        "Let supply and demand move prices. Not yet active on NeoForge",
+                        Category.SHOPS),
+
+                new Spec("currency.prefix", "Currency prefix", Kind.TEXT,
+                        "Goes before the amount, such as $", Category.CURRENCY),
+                new Spec("currency.suffix", "Currency suffix", Kind.TEXT,
+                        "Goes after the amount, such as coins", Category.CURRENCY),
+                new Spec("currency.starting-balance", "Starting balance", Kind.NUMBER,
+                        "What a new player's account opens at", Category.CURRENCY)));
+
+        // Derived rather than listed, so adding a lore template or a message in
+        // one place puts it on the screen too.
+        defaultLores().keySet().forEach(key -> specs.add(new Spec(
+                "lores." + key, readableKey(key), Kind.TEXT,
+                lorePlaceholders(key), Category.LORE)));
+
+        Messages.keys().forEach(key -> specs.add(new Spec(
+                "messages." + key, readableKey(key), Kind.TEXT,
+                "", Category.MESSAGES)));
+
+        return List.copyOf(specs);
+    }
+
+    /**
+     * Turns a config key into a label, since spelling every one out twice would
+     * only be a chance for them to disagree.
+     */
+    private static String readableKey(String key) {
+        String spaced = key.replace('-', ' ').replace('.', ' ');
+        return Character.toUpperCase(spaced.charAt(0)) + spaced.substring(1);
+    }
+
+    /**
+     * What a price line may substitute, which is the part that is easy to get
+     * wrong by hand.
+     */
+    private static String lorePlaceholders(String key) {
+        return switch (key) {
+            case "buy-market", "sell-market" -> "%amount%, %base_amount%, %trend%";
+            case "trend-up", "trend-down" -> "%change_percent%";
+            case "free", "cannot-buy", "cannot-sell" -> "no placeholders";
+            default -> "%amount%";
+        };
     }
 
     /**
      * The current value of every editable setting, as the screen should show
-     * it. Sent to permitted players so the screen does not need its own copy
-     * of the file.
+     * it. Sent to permitted players so the screen does not need its own copy of
+     * the file.
      */
     public static Map<String, String> currentValues() {
         Map<String, String> values = new LinkedHashMap<>();
+
+        values.put("debug-mode", String.valueOf(BaseConfig.isDebugMode()));
+        values.put("transaction-log", String.valueOf(BaseConfig.isTransactionLog()));
+        values.put("sound-enabled", String.valueOf(BaseConfig.isSoundEnabled()));
+        values.put("sound", nullToEmpty(BaseConfig.getSound()));
+        values.put("disabled-worlds", String.join(", ", disabledWorlds()));
+        values.put("sell-skull-uuid", String.valueOf(BaseConfig.isSellSkullUUID()));
+
+        values.put("titles.menu", nullToEmpty(BaseConfig.getTitlesConfig().getMenuTitle()));
         values.put("abbreviate-prices", String.valueOf(BaseConfig.isAbbreviatePrices()));
         values.put("show-market-info", String.valueOf(BaseConfig.isShowMarketInfo()));
         values.put("hide-non-buyable", String.valueOf(BaseConfig.isHideNonBuyable()));
         values.put("dynamic-pricing", String.valueOf(BaseConfig.isDynamicPricing()));
-        values.put("debug-mode", String.valueOf(BaseConfig.isDebugMode()));
+
         values.put("currency.prefix", currencyPrefix);
         values.put("currency.suffix", currencySuffix);
         values.put("currency.starting-balance", startingBalance.toPlainString());
-        values.put("titles.menu", nullToEmpty(BaseConfig.getTitlesConfig().getMenuTitle()));
+
+        BaseConfig.getLoreConfig().lores.forEach((key, value) ->
+                values.put("lores." + key, nullToEmpty(value)));
+
+        Messages.all().forEach((key, value) -> values.put("messages." + key, value));
+
         return values;
     }
+
+    /**
+     * A null list reads as empty everywhere rather than being guarded at each
+     * use.
+     */
+    private static List<String> disabledWorlds() {
+        List<String> worlds = BaseConfig.getDisabledWorlds();
+        return worlds == null ? List.of() : worlds;
+    }
+
+    // ------------------------------------------------------------------ apply
 
     /**
      * Applies settings changed in game and writes the file.
@@ -139,12 +255,12 @@ public final class Settings {
      */
     public static int apply(Map<String, String> values) {
         Map<String, String> before = currentValues();
-        Set<String> allowed = editable().stream().map(Spec::key).collect(Collectors.toSet());
+        List<String> allowed = editable().stream().map(Spec::key).toList();
 
         int changed = 0;
         for (Map.Entry<String, String> entry : values.entrySet()) {
             String key = entry.getKey();
-            String value = entry.getValue() == null ? "" : entry.getValue().trim();
+            String value = entry.getValue() == null ? "" : entry.getValue();
 
             if (!allowed.contains(key) || value.equals(before.get(key))) {
                 continue;
@@ -155,25 +271,40 @@ public final class Settings {
         }
 
         if (changed > 0) {
-            writeCurrent();
+            write();
         }
         return changed;
     }
 
     /**
-     * @return whether the value was accepted, so an unparseable number does
-     *         not count as a change
+     * @return whether the value was accepted, so an unparseable number does not
+     *         count as a change
      */
     private static boolean set(String key, String value) {
+        if (key.startsWith("lores.")) {
+            BaseConfig.getLoreConfig().lores.put(key.substring("lores.".length()), value);
+            return true;
+        }
+        if (key.startsWith("messages.")) {
+            return Messages.set(key.substring("messages.".length()), value);
+        }
+
         switch (key) {
-            case "abbreviate-prices" -> BaseConfig.setAbbreviatePrices(Boolean.parseBoolean(value));
-            case "show-market-info" -> BaseConfig.setShowMarketInfo(Boolean.parseBoolean(value));
-            case "hide-non-buyable" -> BaseConfig.setHideNonBuyable(Boolean.parseBoolean(value));
-            case "dynamic-pricing" -> BaseConfig.setDynamicPricing(Boolean.parseBoolean(value));
-            case "debug-mode" -> BaseConfig.setDebugMode(Boolean.parseBoolean(value));
+            case "debug-mode" -> BaseConfig.setDebugMode(flag(value));
+            case "transaction-log" -> BaseConfig.setTransactionLog(flag(value));
+            case "sound-enabled" -> BaseConfig.setSoundEnabled(flag(value));
+            case "sound" -> BaseConfig.setSound(value.trim());
+            case "disabled-worlds" -> BaseConfig.setDisabledWorlds(splitList(value));
+            case "sell-skull-uuid" -> BaseConfig.setSellSkullUUID(flag(value));
+
+            case "titles.menu" -> BaseConfig.getTitlesConfig().setMenuTitle(value);
+            case "abbreviate-prices" -> BaseConfig.setAbbreviatePrices(flag(value));
+            case "show-market-info" -> BaseConfig.setShowMarketInfo(flag(value));
+            case "hide-non-buyable" -> BaseConfig.setHideNonBuyable(flag(value));
+            case "dynamic-pricing" -> BaseConfig.setDynamicPricing(flag(value));
+
             case "currency.prefix" -> currencyPrefix = value;
             case "currency.suffix" -> currencySuffix = value;
-            case "titles.menu" -> BaseConfig.getTitlesConfig().setMenuTitle(value);
             case "currency.starting-balance" -> {
                 BigDecimal parsed = decimal(value, null);
                 if (parsed == null || parsed.signum() < 0) {
@@ -188,9 +319,30 @@ public final class Settings {
         return true;
     }
 
+    private static boolean flag(String value) {
+        return Boolean.parseBoolean(value.trim());
+    }
+
+    /**
+     * Blank entries are dropped so a trailing comma does not become a world
+     * named "".
+     */
+    private static List<String> splitList(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(entry -> !entry.isEmpty())
+                .map(entry -> entry.toLowerCase(Locale.ROOT))
+                .toList();
+    }
+
     private static String nullToEmpty(String value) {
         return value == null ? "" : value;
     }
+
+    // ---------------------------------------------------------------- loading
 
     /**
      * Reads the settings file, writing it with defaults if it is absent.
@@ -204,7 +356,8 @@ public final class Settings {
 
         Path file = GuiShopPlatform.get().dataFolder().resolve(FILE_NAME);
         if (!Files.isRegularFile(file)) {
-            writeDefaults(file);
+            write();
+            GuiShopPlatform.get().logger().info("Created " + FILE_NAME + " with default settings.");
             return;
         }
 
@@ -218,14 +371,24 @@ public final class Settings {
         applyDocument(document);
     }
 
-    // ---------------------------------------------------------------- reading
-
     private static void applyDocument(Map<String, Object> document) {
         BaseConfig.setDebugMode(bool(document.get("debug-mode"), BaseConfig.isDebugMode()));
+        BaseConfig.setTransactionLog(bool(document.get("transaction-log"), BaseConfig.isTransactionLog()));
+        BaseConfig.setSoundEnabled(bool(document.get("sound-enabled"), BaseConfig.isSoundEnabled()));
+        BaseConfig.setSellSkullUUID(bool(document.get("sell-skull-uuid"), BaseConfig.isSellSkullUUID()));
         BaseConfig.setAbbreviatePrices(bool(document.get("abbreviate-prices"), BaseConfig.isAbbreviatePrices()));
         BaseConfig.setShowMarketInfo(bool(document.get("show-market-info"), BaseConfig.isShowMarketInfo()));
         BaseConfig.setHideNonBuyable(bool(document.get("hide-non-buyable"), BaseConfig.isHideNonBuyable()));
         BaseConfig.setDynamicPricing(bool(document.get("dynamic-pricing"), BaseConfig.isDynamicPricing()));
+
+        if (document.get("sound") != null) {
+            BaseConfig.setSound(String.valueOf(document.get("sound")));
+        }
+        if (document.get("disabled-worlds") instanceof List<?> list) {
+            BaseConfig.setDisabledWorlds(list.stream()
+                    .map(entry -> String.valueOf(entry).toLowerCase(Locale.ROOT))
+                    .toList());
+        }
 
         Map<String, Object> currency = ShopLoader.map(document.get("currency"));
         if (currency != null) {
@@ -241,7 +404,7 @@ public final class Settings {
         }
 
         // Only keys the file actually defines are overridden, so a partial
-        // lores block keeps the defaults for everything it leaves out.
+        // block keeps the defaults for everything it leaves out.
         Map<String, Object> lores = ShopLoader.map(document.get("lores"));
         if (lores != null) {
             lores.forEach((key, value) -> {
@@ -250,6 +413,8 @@ public final class Settings {
                 }
             });
         }
+
+        Messages.applyDocument(ShopLoader.map(document.get("messages")));
     }
 
     @SuppressWarnings("unchecked")
@@ -293,6 +458,12 @@ public final class Settings {
      */
     private static void applyDefaults() {
         BaseConfig.setDebugMode(false);
+        BaseConfig.setTransactionLog(false);
+        BaseConfig.setSoundEnabled(true);
+        BaseConfig.setSound("entity.experience_orb.pickup");
+        BaseConfig.setDisabledWorlds(List.of());
+        BaseConfig.setSellSkullUUID(false);
+
         BaseConfig.setAbbreviatePrices(true);
         BaseConfig.setShowMarketInfo(false);
         BaseConfig.setHideNonBuyable(false);
@@ -303,8 +474,9 @@ public final class Settings {
         startingBalance = BigDecimal.valueOf(1000);
 
         BaseConfig.getTitlesConfig().setMenuTitle("&8&lShop Menu");
-
         BaseConfig.getLoreConfig().lores.putAll(defaultLores());
+
+        Messages.reset();
     }
 
     private static Map<String, String> defaultLores() {
@@ -321,16 +493,26 @@ public final class Settings {
         return lores;
     }
 
+    // --------------------------------------------------------------- writing
+
     /**
      * Writes the settings as they currently stand.
      * <p>
      * Built from the live values rather than from the file, so a setting
-     * changed in game is written alongside everything that was loaded, and the
-     * lore templates survive even though the screen cannot edit them.
+     * changed in game is written alongside everything that was loaded. One
+     * builder serves both the first-run file and later saves, so the two cannot
+     * drift apart.
      */
-    private static void writeCurrent() {
+    private static void write() {
         Map<String, Object> document = new LinkedHashMap<>();
+
         document.put("debug-mode", BaseConfig.isDebugMode());
+        document.put("transaction-log", BaseConfig.isTransactionLog());
+        document.put("sound-enabled", BaseConfig.isSoundEnabled());
+        document.put("sound", nullToEmpty(BaseConfig.getSound()));
+        document.put("disabled-worlds", disabledWorlds());
+        document.put("sell-skull-uuid", BaseConfig.isSellSkullUUID());
+
         document.put("abbreviate-prices", BaseConfig.isAbbreviatePrices());
         document.put("show-market-info", BaseConfig.isShowMarketInfo());
         document.put("hide-non-buyable", BaseConfig.isHideNonBuyable());
@@ -347,39 +529,8 @@ public final class Settings {
         document.put("titles", titles);
 
         document.put("lores", new LinkedHashMap<>(BaseConfig.getLoreConfig().lores));
+        document.put("messages", Messages.all());
 
         JsonFiles.write(GuiShopPlatform.get().dataFolder().resolve(FILE_NAME), document);
-    }
-
-    private static void writeDefaults(Path file) {
-        Map<String, Object> document = new LinkedHashMap<>();
-        document.put("debug-mode", BaseConfig.isDebugMode());
-        document.put("abbreviate-prices", BaseConfig.isAbbreviatePrices());
-        document.put("show-market-info", BaseConfig.isShowMarketInfo());
-        document.put("hide-non-buyable", BaseConfig.isHideNonBuyable());
-        document.put("dynamic-pricing", BaseConfig.isDynamicPricing());
-
-        Map<String, Object> currency = new LinkedHashMap<>();
-        currency.put("prefix", currencyPrefix);
-        currency.put("suffix", currencySuffix);
-        currency.put("starting-balance", startingBalance);
-        document.put("currency", currency);
-
-        Map<String, Object> titles = new LinkedHashMap<>();
-        titles.put("menu", BaseConfig.getTitlesConfig().getMenuTitle());
-        document.put("titles", titles);
-
-        document.put("lores", defaultLores());
-
-        try {
-            Files.createDirectories(file.getParent());
-            try (Writer writer = Files.newBufferedWriter(file, StandardCharsets.UTF_8)) {
-                GSON.toJson(document, writer);
-            }
-            GuiShopPlatform.get().logger().info("Created " + FILE_NAME + " with default settings.");
-        } catch (IOException exception) {
-            GuiShopPlatform.get().logger().warning(
-                    "Could not create " + FILE_NAME + ": " + exception.getMessage());
-        }
     }
 }

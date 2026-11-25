@@ -52,11 +52,21 @@ abstract class ShopChildScreen extends PanelScreen {
         return !status.getString().isEmpty();
     }
 
+    /**
+     * Where footer text may start without landing on a footer button.
+     * <p>
+     * Overridden by screens that put buttons in the bottom-left, since the
+     * status line would otherwise be drawn straight over them.
+     */
+    protected int footerTextLeft() {
+        return contentLeft();
+    }
+
     protected void renderStatus(GuiGraphics graphics) {
         if (!hasStatus()) {
             return;
         }
-        graphics.drawString(font, status, contentLeft(), footerTop() + 9,
+        graphics.drawString(font, status, footerTextLeft(), footerTop() + 9,
                 statusSuccess ? UiTheme.BUY : UiTheme.WARN, false);
     }
 

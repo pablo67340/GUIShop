@@ -73,7 +73,13 @@ public final class Settings {
     public enum Kind {
         FLAG,
         TEXT,
-        NUMBER
+        NUMBER,
+
+        /**
+         * A registered sound id. Stored as text like any other, but the UI
+         * offers the list rather than leaving it to be spelled correctly.
+         */
+        SOUND
     }
 
     /**
@@ -137,8 +143,8 @@ public final class Settings {
                         "Record every purchase and sale to a log file", Category.GENERAL),
                 new Spec("sound-enabled", "Trade sound", Kind.FLAG,
                         "Play a sound when a trade goes through", Category.GENERAL),
-                new Spec("sound", "Sound", Kind.TEXT,
-                        "Which sound to play, such as entity.experience_orb.pickup",
+                new Spec("sound", "Sound", Kind.SOUND,
+                        "Which sound to play; the list can be listened to",
                         Category.GENERAL),
                 new Spec("disabled-worlds", "Disabled worlds", Kind.TEXT,
                         "Comma-separated dimension ids the shop cannot be opened in",

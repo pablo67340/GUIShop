@@ -380,7 +380,31 @@ final class SettingsScreen extends ShopChildScreen {
             return;
         }
 
+        if (spec.kind() == Settings.Kind.SOUND) {
+            addRenderableWidget(soundButton(spec, left, centred, CONTROL_WIDTH));
+            return;
+        }
+
         addRenderableWidget(box(spec, left, centred, CONTROL_WIDTH));
+    }
+
+    /**
+     * Opens the sound list instead of asking for the id to be typed. No one
+     * remembers these, and a misspelt one fails silently at the moment a trade
+     * completes, which is the worst time to find out.
+     */
+    private Button soundButton(Settings.Spec spec, int left, int top, int width) {
+        String value = pending.getOrDefault(spec.key(), "");
+        return Button.builder(Component.literal(value.isBlank() ? "Choose..." : value),
+                        click -> minecraft.setScreen(new PickerScreen(this,
+                                Component.literal("Choose sound"), Choices.sounds(), value,
+                                picked -> {
+                                    pending.put(spec.key(), picked);
+                                    rebuildWidgets();
+                                },
+                                Choices::playSound)))
+                .bounds(left, top, width, CONTROL_HEIGHT)
+                .build();
     }
 
     private void addStackedBox(Row row, int top) {

@@ -61,6 +61,7 @@ public final class ShopAdminService {
             case DELETE_SHOP -> deleteShop(player, registry, request.shop());
             case ADD_ITEM -> addItem(player, registry, request.shop());
             case DELETE_ITEM -> deleteItem(player, registry, request.shop(), request.entryId());
+            case SETUP_SHOP -> setupShop(player, registry, request.shop(), request.entryId());
         }
     }
 
@@ -254,6 +255,103 @@ public final class ShopAdminService {
         succeed(player, Component.literal(isMenu
                 ? "Added a shortcut. Click it and choose which shop it opens."
                 : "Added an item to '" + shop + "'. It is the last one; click it to edit."));
+    }
+
+    /**
+     * Turns a shortcut that opens nothing into one that opens an empty shop,
+     * and opens it.
+     * <p>
+     * Clicking a shop you have just added should put you in it, ready to add
+     * items. Making the author name the file first, through a picker and a
+     * prompt, was a detour to the same place: the name is taken from what the
+     * entry is already called, and can be changed afterwards like anything
+     * else.
+     */
+    @SuppressWarnings("unchecked")
+    private static void setupShop(ServerPlayer player, ShopRegistry registry, String shop, int entryId) {
+        Map<String, Object> document = registry.document(shop);
+        Path file = registry.file(shop);
+        if (document == null || file == null) {
+            refuse(player, Messages.get("shop-not-found", "shop", shop));
+            return;
+        }
+
+        List<Object> items = itemsOf(document);
+        if (entryId < 0 || entryId >= items.size()
+                || !(items.get(entryId) instanceof Map<?, ?> raw)) {
+            refuse(player, Messages.get("item-gone"));
+            return;
+        }
+        Map<String, Object> entry = (Map<String, Object>) raw;
+
+        // Already set up, by this player a moment ago or by someone else: open
+        // it rather than making a second shop beside the first.
+        if (entry.get("target-shop") instanceof String existing && !existing.isBlank()) {
+            GuiShopNetworkSender.sendCatalogue(player, existing);
+            return;
+        }
+
+        String name = availableName(registry, entry);
+        String problem = createShopFile(name);
+        if (problem != null) {
+            refuse(player, Component.literal(problem));
+            return;
+        }
+
+        entry.put("target-shop", name);
+        items.set(entryId, entry);
+        document.put("items", items);
+
+        if (!JsonFiles.write(file, document)) {
+            refuse(player, Messages.get("error-saving", "error", file.getFileName()));
+            return;
+        }
+
+        // A whole reload: there is a new file, which refresh of one shop would
+        // not pick up.
+        registry.loadAll();
+        GuiShopNetworkSender.broadcastCatalogue(player);
+        GuiShopNetworkSender.sendCatalogue(player, name);
+        succeed(player, Component.literal("Created shop '" + name + "'."));
+    }
+
+    /**
+     * A free shop name based on what the entry is called.
+     * <p>
+     * Colour codes and anything a file name cannot hold come out, and a number
+     * is added if that name is taken, so clicking three unnamed shortcuts gives
+     * three shops rather than one error twice.
+     */
+    private static String availableName(ShopRegistry registry, Map<String, Object> entry) {
+        String label = firstString(entry, "shop-name", "name", "id");
+        String base = label.replaceAll("[&\u00a7].", "").replaceAll("[^A-Za-z0-9_-]+", "_");
+        base = base.replaceAll("^_+|_+$", "");
+        if (base.isEmpty()) {
+            base = "Shop";
+        }
+        if (base.length() > 28) {
+            base = base.substring(0, 28);
+        }
+
+        String candidate = base;
+        for (int suffix = 2; exists(registry, candidate); suffix++) {
+            candidate = base + suffix;
+        }
+        return candidate;
+    }
+
+    private static boolean exists(ShopRegistry registry, String name) {
+        return registry.document(name) != null
+                || Files.exists(shopsFolder().resolve(name + JSON_SUFFIX));
+    }
+
+    private static String firstString(Map<String, Object> entry, String... keys) {
+        for (String key : keys) {
+            if (entry.get(key) instanceof String value && !value.isBlank()) {
+                return value;
+            }
+        }
+        return "";
     }
 
     private static void deleteItem(ServerPlayer player, ShopRegistry registry, String shop, int entryId) {

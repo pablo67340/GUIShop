@@ -9,8 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 /**
  * Asks the server to create or remove a shop, or an item within one.
  * <p>
- * One payload for all four because they share a permission check and a
- * response; four near-identical packets would only be four places to forget it.
+ * One payload for all of them because they share a permission check and a
+ * response; a packet each would only be more places to forget it.
  * <p>
  * Like every other request from a client this names what to act on and nothing
  * more. The server decides whether the asker may, what the file is called and
@@ -28,7 +28,14 @@ public record ShopAdminPayload(Action action, String shop, int entryId, String v
         CREATE_SHOP,
         DELETE_SHOP,
         ADD_ITEM,
-        DELETE_ITEM
+        DELETE_ITEM,
+
+        /**
+         * Gives a shortcut that has no shop yet a real one, named after the
+         * entry, and opens it. The client cannot do this itself: it would have
+         * to pick the file name, which is the server's business.
+         */
+        SETUP_SHOP
     }
 
     /** Long enough for any sensible shop name, short enough to bound the packet. */

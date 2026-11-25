@@ -46,10 +46,16 @@ final class PickerScreen extends PanelScreen {
 
     private static final int ROW_HEIGHT = 18;
 
+    /** The play button's cell, when the list has something to play. */
+    private static final int PREVIEW_WIDTH = 16;
+
     private final Screen parent;
     private final List<Choice> choices;
     private final String current;
     private final Consumer<String> onPick;
+
+    /** Plays a choice without picking it, or null if there is nothing to hear. */
+    private final Consumer<String> onPreview;
 
     private List<Choice> visible;
     private EditBox search;
@@ -61,11 +67,22 @@ final class PickerScreen extends PanelScreen {
      */
     PickerScreen(Screen parent, Component title, List<Choice> choices, String current,
                  Consumer<String> onPick) {
+        this(parent, title, choices, current, onPick, null);
+    }
+
+    /**
+     * @param onPreview given a value to try out without choosing it, for a list
+     *                  whose entries cannot be judged by their name. Null for
+     *                  one where they can
+     */
+    PickerScreen(Screen parent, Component title, List<Choice> choices, String current,
+                 Consumer<String> onPick, Consumer<String> onPreview) {
         super(title);
         this.parent = parent;
         this.choices = choices;
         this.current = current == null ? "" : current;
         this.onPick = onPick;
+        this.onPreview = onPreview;
         this.visible = choices;
     }
 
@@ -204,8 +221,9 @@ final class PickerScreen extends PanelScreen {
                     panelLeft + panelWidth / 2, listTop() + listHeight() / 2 - 4, UiTheme.TEXT_MUTED);
         }
 
-        graphics.drawString(font, "Click to choose", contentLeft(), footerTop() + 9,
-                UiTheme.TEXT_MUTED, false);
+        graphics.drawString(font,
+                onPreview == null ? "Click to choose" : "Click to choose, or > to hear it",
+                contentLeft(), footerTop() + 9, UiTheme.TEXT_MUTED, false);
     }
 
     private void renderRow(GuiGraphics graphics, Choice choice, int top, boolean hovered) {
@@ -228,10 +246,27 @@ final class PickerScreen extends PanelScreen {
         // Right-aligned so the labels stay in one column, and dropped entirely
         // when the label already fills the row.
         int detailWidth = font.width(choice.detail());
-        int detailLeft = panelRight() - UiTheme.PADDING - UiTheme.SCROLLBAR_WIDTH - detailWidth;
+        int detailLeft = detailRight() - detailWidth;
         if (detailLeft > textLeft + font.width(choice.label()) + 8) {
             graphics.drawString(font, choice.detail(), detailLeft, top + 5, UiTheme.TEXT_MUTED, false);
         }
+
+        if (onPreview != null) {
+            int left = previewLeft();
+            graphics.fill(left, top + 2, left + PREVIEW_WIDTH, top + ROW_HEIGHT - 3,
+                    hovered ? UiTheme.CELL_BORDER_HOVER : UiTheme.CELL_BG);
+            graphics.drawCenteredString(font, ">", left + PREVIEW_WIDTH / 2, top + 5, UiTheme.TEXT);
+        }
+    }
+
+    private int previewLeft() {
+        return panelRight() - UiTheme.PADDING - UiTheme.SCROLLBAR_WIDTH - PREVIEW_WIDTH;
+    }
+
+    /** Where right-aligned detail text ends, clear of the play button. */
+    private int detailRight() {
+        int right = panelRight() - UiTheme.PADDING - UiTheme.SCROLLBAR_WIDTH;
+        return onPreview == null ? right : right - PREVIEW_WIDTH - 4;
     }
 
     private void renderScrollbar(GuiGraphics graphics) {
@@ -260,6 +295,13 @@ final class PickerScreen extends PanelScreen {
         int index = indexAt(mouseX, mouseY);
         if (index < 0) {
             return false;
+        }
+
+        // Hearing one must not choose it, or there would be no way to listen
+        // through a list without committing to the last thing played.
+        if (onPreview != null && mouseX >= previewLeft() && mouseX < previewLeft() + PREVIEW_WIDTH) {
+            onPreview.accept(visible.get(index).value());
+            return true;
         }
 
         onPick.accept(visible.get(index).value());

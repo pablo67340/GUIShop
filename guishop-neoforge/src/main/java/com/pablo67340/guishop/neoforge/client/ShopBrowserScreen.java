@@ -201,6 +201,15 @@ public final class ShopBrowserScreen extends PanelScreen {
         catalogue = updated;
         balance = updated.balance();
 
+        // Unless the server named a shop to show, which it does when it has
+        // just made one on the player's behalf and there is nowhere else they
+        // would rather be.
+        if (!updated.openShop().isBlank()
+                && !updated.openShop().equalsIgnoreCase(view.name())) {
+            enterShop(updated.openShop());
+            return;
+        }
+
         ShopView sameView = updated.shopOrMenu(view.name());
         view = sameView == null ? updated.menu() : sameView;
 
@@ -428,7 +437,9 @@ public final class ShopBrowserScreen extends PanelScreen {
 
     private String emptyMessage() {
         if (view.isEmpty()) {
-            return "This shop has no items.";
+            return editing
+                    ? "No items configured. Press + to add one."
+                    : "No items configured.";
         }
         if (ClientPrefs.hideUnaffordable()) {
             return "Nothing here you can afford, or nothing matches that search.";
@@ -584,6 +595,11 @@ public final class ShopBrowserScreen extends PanelScreen {
         if (entry.data().isShortcut()) {
             if (entry.data().hasTarget()) {
                 openShop(entry.data().targetShop());
+            } else if (catalogue.canEdit()) {
+                // Nothing to open yet, so make it. The server names it, writes
+                // it and sends the catalogue back open on it.
+                PacketDistributor.sendToServer(new ShopAdminPayload(
+                        ShopAdminPayload.Action.SETUP_SHOP, view.name(), entry.id(), ""));
             } else {
                 setStatus("That shop has not been set up yet.", false);
             }
@@ -655,11 +671,12 @@ public final class ShopBrowserScreen extends PanelScreen {
 
         if (target != view) {
             history.push(view.name());
-            switchTo(target);
         }
 
+        // Before switching, so the controls are built with the Edit button
+        // already lit rather than rebuilt a second time.
         editing = true;
-        rebuildWidgets();
+        switchTo(target);
         setStatus(target.entries().isEmpty()
                 ? "Empty shop. Use + to add an item."
                 : "Edit mode on. Click an item to edit it.", true);

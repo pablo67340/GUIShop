@@ -253,8 +253,7 @@ final class ItemEditorScreen extends ShopChildScreen {
     private void editTargetShop() {
         String target = values.getOrDefault("target-shop", "").trim();
         if (target.isBlank()) {
-            nameNewShop(fieldFor("target-shop"));
-            setStatus("Name it, then this takes you in.", true);
+            setupShop();
             return;
         }
 
@@ -270,11 +269,23 @@ final class ItemEditorScreen extends ShopChildScreen {
         browser.enterShop(target);
     }
 
-    private static Field fieldFor(String key) {
-        return SIMPLE_FIELDS.stream()
-                .filter(field -> field.key().equals(key))
-                .findFirst()
-                .orElseThrow();
+    /**
+     * Has the server make this entry a real shop and open it, named after what
+     * the entry is already called.
+     * <p>
+     * Asking for a name first was a prompt in the way of the only thing anyone
+     * wants at this point, and it can be renamed later like anything else.
+     * Pending edits go first: the server rewrites the same entry, so anything
+     * unsent here would be overwritten.
+     */
+    private void setupShop() {
+        Map<String, String> changed = pendingChanges();
+        if (!changed.isEmpty()) {
+            PacketDistributor.sendToServer(new SaveItemPayload(shopName, index, changed));
+        }
+        PacketDistributor.sendToServer(new ShopAdminPayload(
+                ShopAdminPayload.Action.SETUP_SHOP, shopName, index, ""));
+        onClose();
     }
 
     private void deleteItem() {

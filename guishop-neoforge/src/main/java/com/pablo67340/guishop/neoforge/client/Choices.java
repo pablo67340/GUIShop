@@ -1,10 +1,12 @@
 package com.pablo67340.guishop.neoforge.client;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.sounds.SoundEvent;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -12,6 +14,7 @@ import net.minecraft.world.item.SpawnEggItem;
 import net.minecraft.world.item.enchantment.Enchantment;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 
@@ -40,8 +43,53 @@ final class Choices {
      */
     private static List<PickerScreen.Choice> items;
     private static List<PickerScreen.Choice> entities;
+    private static List<PickerScreen.Choice> sounds;
 
     private Choices() {
+    }
+
+    /**
+     * Every registered sound, sorted by name.
+     * <p>
+     * Sorted because sound ids group into families - every block, every mob -
+     * and registry order scatters them, which makes the list impossible to
+     * browse. There is no judging one of these by its id, so the picker gives
+     * them a play button.
+     */
+    static List<PickerScreen.Choice> sounds() {
+        if (sounds != null) {
+            return sounds;
+        }
+
+        List<PickerScreen.Choice> built = new ArrayList<>();
+        for (var entry : BuiltInRegistries.SOUND_EVENT.entrySet()) {
+            ResourceLocation id = entry.getKey().location();
+            built.add(PickerScreen.Choice.of(configValue(id), Component.literal(id.getPath()),
+                    id.getNamespace(), new ItemStack(Items.NOTE_BLOCK)));
+        }
+
+        built.sort(Comparator.comparing(choice -> choice.label().getString()));
+        sounds = List.copyOf(built);
+        return sounds;
+    }
+
+    /**
+     * Plays a sound for the picker, on the client that asked.
+     * <p>
+     * Nothing happens for an id the registry does not know, which is what a
+     * config typed by hand can leave behind.
+     */
+    static void playSound(String configValue) {
+        ResourceLocation id = ResourceLocation.tryParse(configValue.trim().toLowerCase(Locale.ROOT));
+        SoundEvent sound = id == null ? null : BuiltInRegistries.SOUND_EVENT.get(id);
+        if (sound == null) {
+            return;
+        }
+
+        // Full volume rather than the quarter that forUI defaults to: this is
+        // being listened to on purpose, not played behind a button click.
+        Minecraft.getInstance().getSoundManager().play(
+                SimpleSoundInstance.forUI(sound, 1.0F, 1.0F));
     }
 
     /**

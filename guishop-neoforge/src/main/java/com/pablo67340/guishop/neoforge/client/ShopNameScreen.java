@@ -27,22 +27,33 @@ final class ShopNameScreen extends PanelScreen {
     private final Screen parent;
     private final List<String> existing;
     private final Consumer<String> onNamed;
+    private final String suggestion;
 
     private EditBox name;
     private Button confirm;
 
-    ShopNameScreen(Screen parent, List<String> existing, Consumer<String> onNamed) {
+    /**
+     * @param suggestion what to start the box with, or empty for none. The
+     *                   entry's own display name, when that happens to be a
+     *                   usable file name, since someone who typed "Gems" on the
+     *                   icon has already said what the shop is called
+     */
+    ShopNameScreen(Screen parent, List<String> existing, String suggestion,
+                   Consumer<String> onNamed) {
         super(Component.literal("New shop"));
         this.parent = parent;
         this.existing = existing;
         this.onNamed = onNamed;
+        this.suggestion = suggestion == null || !VALID_NAME.matcher(suggestion).matches()
+                ? "" : suggestion;
     }
 
     @Override
     protected void init() {
         layoutPanel(280, UiTheme.HEADER_HEIGHT + 62 + UiTheme.FOOTER_HEIGHT);
 
-        String typed = name == null ? "" : name.getValue();
+        // Only on the first build; a resize must not undo an edit.
+        String typed = name == null ? suggestion : name.getValue();
 
         name = new EditBox(font, contentLeft(), headerBottom() + 22, contentWidth(), 18,
                 Component.literal("Shop name"));

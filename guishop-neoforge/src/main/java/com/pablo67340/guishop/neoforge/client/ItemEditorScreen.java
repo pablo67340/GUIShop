@@ -439,10 +439,20 @@ final class ItemEditorScreen extends ShopChildScreen {
         // Queued rather than opened from inside the picker's callback, which is
         // running while the picker is closing itself back to this screen.
         minecraft.tell(() -> minecraft.setScreen(new ShopNameScreen(
-                this, parent().shopNames(), named -> {
+                this, parent().shopNames(), suggestedShopName(), named -> {
                     set(field, named);
                     enterAfterSave = named;
                 })));
+    }
+
+    /**
+     * The display name as a shop name, when it can be one. An icon labelled
+     * "Gems" has already said what the shop behind it is called; colour codes
+     * and anything else a file name cannot hold are dropped, and the prompt
+     * ignores the suggestion if what is left is unusable.
+     */
+    private String suggestedShopName() {
+        return values.getOrDefault(DISPLAY_NAME, "").replaceAll("[&§].", "").trim();
     }
 
     private void set(Field field, String value) {

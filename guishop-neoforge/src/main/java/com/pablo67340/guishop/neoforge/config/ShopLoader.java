@@ -1,5 +1,8 @@
 package com.pablo67340.guishop.neoforge.config;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
+import com.google.gson.reflect.TypeToken;
 import com.pablo67340.guishop.definition.FireworkInfo;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.definition.PotionInfo;
@@ -8,11 +11,10 @@ import com.pablo67340.guishop.neoforge.definition.NeoPage;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import com.pablo67340.guishop.util.MathUtil;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.io.Reader;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -23,115 +25,92 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * Reads GUIShop's shop YAML into the shared core model.
+ * Reads a shop or the menu from its JSON file.
  * <p>
- * The format is the Bukkit plugin's, so an existing server's {@code shops/}
- * directory can be dropped in unchanged.
+ * The format is a title and a flat, ordered list of items. There are no pages
+ * or slot numbers: the screen reflows its contents, so position in the list is
+ * the only ordering that matters.
  */
-public final class YamlShopLoader {
+public final class ShopLoader {
 
-    private YamlShopLoader() {
+    private static final Gson GSON = new Gson();
+
+    /** The single page the flat item list is held in, to fit the shared model. */
+    static final String PAGE_KEY = "0";
+
+    private ShopLoader() {
     }
 
-    /** menu.yml nests everything under this key; shop files do not. */
-    private static final String MENU_ROOT_KEY = "Menu";
-
     /**
-     * Loads one shop file.
-     *
-     * @param file the shop YAML
-     * @param name the shop name, which is the file name without its extension
+     * @param name          the shop's identity, which is the file name without
+     *                      its extension
+     * @param titleFallback what to show as the heading when the file declares
+     *                      no title of its own
      * @return the parsed shop, or null if the file could not be read
      */
-    public static NeoShop loadShop(Path file, String name) {
-        return load(file, name, null);
-    }
-
-    /**
-     * Loads menu.yml.
-     * <p>
-     * The menu is the same structure as a shop - a titled, paged grid of items -
-     * so it uses the same model. Its items navigate rather than sell, which the
-     * item type already captures.
-     *
-     * @return the parsed menu, or null if the file could not be read
-     */
-    public static NeoShop loadMenu(Path file) {
-        return load(file, MENU_ROOT_KEY, MENU_ROOT_KEY);
-    }
-
-    /**
-     * @param rootKey the key the body is nested under, or null if it is at the
-     *                top level
-     */
-    private static NeoShop load(Path file, String name, String rootKey) {
-        Map<String, Object> root = read(file);
-        if (root == null) {
+    public static NeoShop load(Path file, String name, String titleFallback) {
+        Map<String, Object> document = readDocument(file);
+        if (document == null) {
             return null;
         }
+        return fromDocument(document, name, titleFallback);
+    }
 
-        if (rootKey != null) {
-            root = map(root.get(rootKey));
-            if (root == null) {
-                warn("'" + file.getFileName() + "' has no " + rootKey + " section.");
-                return null;
-            }
-        }
-
+    /**
+     * Builds a shop from an already-parsed document, which migration also uses
+     * so a converted file does not have to be read back from disk.
+     */
+    static NeoShop fromDocument(Map<String, Object> document, String name, String titleFallback) {
         NeoShop shop = new NeoShop();
         shop.setName(name);
-        shop.setTitle(string(root.get("title"), name));
-        shop.setConfiguredRows(integer(root.get("rows"), 0));
+        shop.setTitle(string(document.get("title"), titleFallback));
 
-        Map<String, Object> pages = map(root.get("pages"));
-        if (pages == null) {
-            warn("Shop '" + name + "' has no pages section.");
-            return shop;
-        }
+        NeoPage page = new NeoPage();
+        List<?> items = document.get("items") instanceof List<?> list ? list : List.of();
 
-        for (Map.Entry<String, Object> pageEntry : pages.entrySet()) {
-            Map<String, Object> pageData = map(pageEntry.getValue());
-            if (pageData == null) {
+        int index = 0;
+        for (Object element : items) {
+            Map<String, Object> data = map(element);
+            if (data == null) {
                 continue;
             }
 
-            NeoPage page = new NeoPage();
-            // A page may set its own row count, otherwise the shop's applies.
-            page.setConfiguredRows(integer(pageData.get("rows"), shop.getConfiguredRows()));
-
-            Map<String, Object> items = map(pageData.get("items"));
-            if (items != null) {
-                for (Map.Entry<String, Object> itemEntry : items.entrySet()) {
-                    Map<String, Object> itemData = map(itemEntry.getValue());
-                    if (itemData == null) {
-                        continue;
-                    }
-
-                    NeoItem item = readItem(itemData, itemEntry.getKey(), name);
-                    if (item != null) {
-                        page.getItems().put(itemEntry.getKey(), item);
-                    }
-                }
-            }
-
-            shop.getPages().put(pageEntry.getKey(), page);
+            NeoItem item = readItem(data, index, name);
+            page.getItems().put(String.valueOf(index), item);
+            index++;
         }
 
+        shop.getPages().put(PAGE_KEY, page);
         shop.determineHighestSlots();
         return shop;
     }
 
-    private static NeoItem readItem(Map<String, Object> data, String slotKey, String shopName) {
-        Integer slot = parseSlot(slotKey);
-        if (slot == null) {
-            warn("Shop '" + shopName + "' has a non-numeric slot '" + slotKey + "'.");
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> readDocument(Path file) {
+        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
+            Map<String, Object> document = GSON.fromJson(reader,
+                    new TypeToken<Map<String, Object>>() { }.getType());
+            if (document == null) {
+                warn("Could not read " + file.getFileName() + ": empty document.");
+            }
+            return document;
+        } catch (IOException | JsonSyntaxException exception) {
+            warn("Could not read " + file.getFileName() + ": " + exception.getMessage());
             return null;
         }
+    }
 
+    // ------------------------------------------------------------------ items
+
+    /**
+     * @param index the item's position in the list, used for ordering and to
+     *              identify it in diagnostics
+     */
+    private static NeoItem readItem(Map<String, Object> data, int index, String shopName) {
         NeoItem item = new NeoItem();
         item.setShop(shopName);
-        item.setSlot(slot);
-        item.setConfigSlot(slot);
+        item.setSlot(index);
+        item.setConfigSlot(index);
 
         ItemType type = parseType(data.get("type"), data.get("target-shop") != null);
         item.setItemType(type);
@@ -143,6 +122,7 @@ public final class YamlShopLoader {
         item.setTargetShop(string(data.get("target-shop"), null));
         item.setMobType(string(data.get("mob-type"), null));
         item.setNBT(string(data.get("nbt"), null));
+        item.setSkullUUID(string(data.get("skull-uuid"), null));
 
         item.setShopLore(stringList(data.get("shop-lore")));
         item.setLore(stringList(data.get("lore")));
@@ -157,30 +137,53 @@ public final class YamlShopLoader {
         if (sellPrice != null) {
             item.setSellPrice(sellPrice);
         }
+
         if (data.get("use-dynamic-pricing") != null) {
-            item.setUseDynamicPricing(Boolean.parseBoolean(String.valueOf(data.get("use-dynamic-pricing"))));
+            item.setUseDynamicPricing(flag(data.get("use-dynamic-pricing")));
         }
         if (data.get("sudo") != null) {
-            item.setSudo(Boolean.parseBoolean(String.valueOf(data.get("sudo"))));
+            item.setSudo(flag(data.get("sudo")));
         }
 
         item.setEnchantments(enchantments(data.get("enchantments")));
         item.setItemFlags(spaceSeparated(data.get("item-flags")));
-        item.setSkullUUID(string(data.get("skull-uuid"), null));
-        item.setNBT(string(data.get("nbt"), null));
 
         if (data.get("custom-model-data") != null) {
-            try {
-                item.setCustomModelData(Integer.parseInt(String.valueOf(data.get("custom-model-data")).trim()));
-            } catch (NumberFormatException exception) {
-                warn(describe(shopName, slotKey) + " has an invalid custom-model-data.");
-            }
+            item.setCustomModelData(integer(data.get("custom-model-data"), 0));
         }
 
         item.setPotionInfo(potionInfo(data.get("potion-info")));
         item.setFireworkInfo(fireworkInfo(data.get("firework-info")));
 
         return item;
+    }
+
+    /**
+     * An entry with no declared type is a normal shop item, unless it names a
+     * target shop, as the menu's icons do.
+     */
+    private static ItemType parseType(Object raw, boolean hasTargetShop) {
+        ItemType fallback = hasTargetShop ? ItemType.SHOP_SHORTCUT : ItemType.SHOP;
+        if (raw == null) {
+            return fallback;
+        }
+        try {
+            return ItemType.valueOf(String.valueOf(raw).trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException exception) {
+            return fallback;
+        }
+    }
+
+    /**
+     * Navigation entries such as PLAYER_BALANCE are conventionally configured
+     * without an id, so give those types their customary icon.
+     */
+    private static String materialFor(Object raw, ItemType type) {
+        String material = string(raw, null);
+        if (material != null && !material.isBlank()) {
+            return material;
+        }
+        return type == ItemType.PLAYER_BALANCE ? "PLAYER_HEAD" : null;
     }
 
     /**
@@ -252,9 +255,7 @@ public final class YamlShopLoader {
         return new FireworkInfo(integer(data.get("flight"), 1), explosions);
     }
 
-    /**
-     * Firework colours are packed RGB integers.
-     */
+    /** Firework colours are packed RGB integers. */
     private static List<Integer> colours(Object raw) {
         if (!(raw instanceof List<?> list)) {
             return List.of();
@@ -275,48 +276,13 @@ public final class YamlShopLoader {
         return colours;
     }
 
-    private static boolean flag(Object raw) {
-        return raw != null && Boolean.parseBoolean(String.valueOf(raw).trim());
-    }
-
-    private static String describe(String shopName, String slotKey) {
-        return "Shop '" + shopName + "' slot " + slotKey;
-    }
-
-    /**
-     * Mirrors the Bukkit module's defaulting: an entry with no declared type is
-     * a normal shop item, unless it names a target shop, as the menu's icons do.
-     */
-    private static ItemType parseType(Object raw, boolean hasTargetShop) {
-        ItemType fallback = hasTargetShop ? ItemType.SHOP_SHORTCUT : ItemType.SHOP;
-        if (raw == null) {
-            return fallback;
-        }
-        try {
-            return ItemType.valueOf(String.valueOf(raw).trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException exception) {
-            return fallback;
-        }
-    }
-
-    /**
-     * Navigation entries such as PLAYER_BALANCE are conventionally configured
-     * without an id, so give those types their customary icon.
-     */
-    private static String materialFor(Object raw, ItemType type) {
-        String material = string(raw, null);
-        if (material != null && !material.isBlank()) {
-            return material;
-        }
-        return type == ItemType.PLAYER_BALANCE ? "PLAYER_HEAD" : material;
-    }
+    // -------------------------------------------------------------- utilities
 
     /**
      * Normalises a configured price to a type {@code ItemDefinition} accepts.
      * <p>
      * It only recognises {@code BigDecimal} and {@code Integer}, so a raw
-     * {@code Double} straight from the YAML parser would silently read as
-     * having no price at all. The Bukkit module converts the same way.
+     * {@code Double} from either parser would silently read as no price at all.
      *
      * @return the price, or null if absent or unparseable
      */
@@ -325,7 +291,7 @@ public final class YamlShopLoader {
             return raw;
         }
         if (raw instanceof Number) {
-            // Via toString so large or precise values are not rounded through a double.
+            // Via toString so values are not rounded through a double.
             return new BigDecimal(raw.toString());
         }
         if (raw instanceof String text && !text.isBlank()) {
@@ -333,28 +299,6 @@ public final class YamlShopLoader {
             return MathUtil.tryParseAbbreviated(text.trim());
         }
         return null;
-    }
-
-    private static Integer parseSlot(String key) {
-        try {
-            return Integer.parseInt(key.trim());
-        } catch (NumberFormatException exception) {
-            return null;
-        }
-    }
-
-    private static Map<String, Object> read(Path file) {
-        try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            Object loaded = new Yaml().load(reader);
-            Map<String, Object> root = map(loaded);
-            if (root == null) {
-                warn("Could not read " + file.getFileName() + ": not a YAML mapping.");
-            }
-            return root;
-        } catch (IOException | RuntimeException exception) {
-            warn("Could not read " + file.getFileName() + ": " + exception.getMessage());
-            return null;
-        }
     }
 
     @SuppressWarnings("unchecked")
@@ -374,6 +318,10 @@ public final class YamlShopLoader {
         return value == null ? fallback : String.valueOf(value);
     }
 
+    /**
+     * JSON numbers arrive as doubles, so an integer field has to be narrowed
+     * rather than parsed from its text form.
+     */
     static int integer(Object value, int fallback) {
         if (value instanceof Number number) {
             return number.intValue();
@@ -383,6 +331,10 @@ public final class YamlShopLoader {
         } catch (NumberFormatException exception) {
             return fallback;
         }
+    }
+
+    private static boolean flag(Object raw) {
+        return raw != null && Boolean.parseBoolean(String.valueOf(raw).trim());
     }
 
     private static void warn(String message) {

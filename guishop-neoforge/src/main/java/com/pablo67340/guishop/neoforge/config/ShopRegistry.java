@@ -13,13 +13,27 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Stream;
 
 /**
  * Discovers and holds the shops defined under {@code <datafolder>/shops}.
+ * <p>
+ * Shops are JSON. A legacy {@code .yml} from the Bukkit plugin is converted on
+ * first sight, so an existing server's configs carry over without being
+ * rewritten by hand.
  */
 public final class ShopRegistry {
+
+    private static final String JSON_SUFFIX = ".json";
+    private static final String MENU_NAME = "menu";
+
+    /**
+     * Shown when menu.json declares no title. The chest GUI took the menu's
+     * title from config.yml, so a migrated menu usually has none of its own.
+     */
+    private static final String MENU_TITLE = "Shop Menu";
 
     private final Map<String, NeoShop> shops = new LinkedHashMap<>();
     private NeoShop menu;
@@ -34,7 +48,7 @@ public final class ShopRegistry {
     private OpenShopPayload catalogue;
 
     /**
-     * Reads menu.yml and every {@code .yml} in the shops directory.
+     * Reads the menu and every shop, converting any legacy YAML first.
      *
      * @return the number of shops loaded
      */
@@ -55,27 +69,32 @@ public final class ShopRegistry {
         return catalogue;
     }
 
+    // ----------------------------------------------------------------- loading
+
     private void loadMenu() {
         menu = null;
 
-        Path menuFile = GuiShopPlatform.get().dataFolder().resolve("menu.yml");
-        if (!Files.isRegularFile(menuFile)) {
+        Path dataFolder = GuiShopPlatform.get().dataFolder();
+        Path json = dataFolder.resolve(MENU_NAME + JSON_SUFFIX);
+
+        Map<String, Object> converted = convertIfLegacy(
+                dataFolder.resolve("menu.yml"), json, MENU_NAME, true);
+
+        if (converted != null) {
+            menu = ShopLoader.fromDocument(converted, MENU_NAME, MENU_TITLE);
+        } else if (Files.isRegularFile(json)) {
+            menu = ShopLoader.load(json, MENU_NAME, MENU_TITLE);
+        } else {
             GuiShopPlatform.get().logger().warning(
-                    "No menu.yml at " + menuFile + ". The shop menu will be unavailable.");
+                    "No " + json.getFileName() + " in " + dataFolder + ". The shop menu will be unavailable.");
             return;
         }
 
-        menu = YamlShopLoader.loadMenu(menuFile);
         if (menu != null) {
-            GuiShopPlatform.get().logUtil().debugLog("Loaded menu with "
-                    + menu.getPages().size() + " page(s) and " + countItems(menu) + " item(s).");
+            GuiShopPlatform.get().logUtil().debugLog("Loaded menu with " + countItems(menu) + " item(s).");
         }
     }
 
-    /**
-     * Reads every {@code .yml} in the shops directory. Shop names come from the
-     * file names, as in the Bukkit plugin's folder-based layout.
-     */
     private int loadShops() {
         shops.clear();
 
@@ -86,41 +105,66 @@ public final class ShopRegistry {
             return 0;
         }
 
-        List<Path> files;
-        try (Stream<Path> stream = Files.list(shopsDir)) {
-            files = stream
-                    .filter(Files::isRegularFile)
-                    .filter(path -> {
-                        String name = path.getFileName().toString().toLowerCase();
-                        return name.endsWith(".yml") || name.endsWith(".yaml");
-                    })
-                    .sorted()
-                    .toList();
-        } catch (IOException exception) {
-            GuiShopPlatform.get().logger().warning(
-                    "Could not list " + shopsDir + ": " + exception.getMessage());
-            return 0;
-        }
+        convertLegacyShops(shopsDir);
 
-        for (Path file : files) {
-            String fileName = file.getFileName().toString();
-            String name = fileName.substring(0, fileName.lastIndexOf('.'));
+        for (Path file : filesWithSuffix(shopsDir, JSON_SUFFIX)) {
+            String name = withoutSuffix(file, JSON_SUFFIX);
 
-            NeoShop shop = YamlShopLoader.loadShop(file, name);
+            // A shop's file name doubles as a readable title, unlike the menu's.
+            NeoShop shop = ShopLoader.load(file, name, name);
             if (shop == null) {
                 continue;
             }
 
             shops.put(name, shop);
-            GuiShopPlatform.get().logUtil().debugLog("Loaded shop '" + name + "' with "
-                    + shop.getPages().size() + " page(s) and " + countItems(shop) + " item(s).");
+            GuiShopPlatform.get().logUtil().debugLog(
+                    "Loaded shop '" + name + "' with " + countItems(shop) + " item(s).");
         }
 
         return shops.size();
     }
 
     /**
-     * The main menu, or null if menu.yml is missing or unreadable.
+     * Converts every legacy shop file before loading, so a mixed directory ends
+     * up consistently on JSON.
+     */
+    private void convertLegacyShops(Path shopsDir) {
+        for (Path file : filesWithSuffix(shopsDir, ".yml")) {
+            String name = withoutSuffix(file, ".yml");
+            convertIfLegacy(file, shopsDir.resolve(name + JSON_SUFFIX), name, false);
+        }
+    }
+
+    private Map<String, Object> convertIfLegacy(Path yaml, Path json, String name, boolean isMenu) {
+        if (!Files.isRegularFile(yaml)) {
+            return null;
+        }
+        return ShopMigrator.migrate(yaml, json, name, isMenu);
+    }
+
+    private static List<Path> filesWithSuffix(Path directory, String suffix) {
+        try (Stream<Path> stream = Files.list(directory)) {
+            return stream
+                    .filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(suffix))
+                    .sorted()
+                    .toList();
+        } catch (IOException exception) {
+            GuiShopPlatform.get().logger().warning(
+                    "Could not list " + directory + ": " + exception.getMessage());
+            return List.of();
+        }
+    }
+
+    private static String withoutSuffix(Path file, String suffix) {
+        String name = file.getFileName().toString();
+        return name.substring(0, name.length() - suffix.length());
+    }
+
+    // ------------------------------------------------------------------ access
+
+    /**
+     * The main menu, or null if it is missing or unreadable.
      */
     public NeoShop getMenu() {
         return menu;
@@ -148,7 +192,7 @@ public final class ShopRegistry {
         if (exact != null) {
             return exact;
         }
-        // Shop names are configured by file name, so be forgiving about case.
+        // Shop names come from file names, so be forgiving about case.
         return shops.entrySet().stream()
                 .filter(entry -> entry.getKey().equalsIgnoreCase(name))
                 .map(Map.Entry::getValue)

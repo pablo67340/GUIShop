@@ -1,9 +1,12 @@
 package com.pablo67340.guishop.neoforge.network;
 
+import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
+import com.pablo67340.guishop.neoforge.util.TextUtil;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.network.chat.Component;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.component.ItemLore;
@@ -78,7 +81,24 @@ public final class ShopViewBuilder {
                 + count(all, stack -> stack.has(DataComponents.FIREWORKS)) + " fireworks, "
                 + count(all, stack -> stack.has(DataComponents.PROFILE)) + " heads, "
                 + count(all, stack -> stack.has(DataComponents.CUSTOM_MODEL_DATA)) + " custom models, "
-                + count(all, stack -> stack.has(DataComponents.CUSTOM_DATA)) + " with nbt";
+                + count(all, stack -> stack.has(DataComponents.CUSTOM_DATA)) + " with nbt, "
+                + all.stream().filter(entry -> !entry.priceLines().isEmpty()).count() + " with price lines";
+    }
+
+    /**
+     * One rendered price line, so the configured wording and currency format
+     * can be confirmed from the log rather than by opening the game.
+     *
+     * @return the sample, or empty if nothing is priced
+     */
+    public static String samplePriceLine(OpenShopPayload catalogue) {
+        return catalogue.shops().stream()
+                .flatMap(shop -> shop.entries().stream())
+                .filter(entry -> !entry.priceLines().isEmpty())
+                .findFirst()
+                .map(entry -> entry.icon().getHoverName().getString() + " -> "
+                        + entry.priceLines().stream().map(Component::getString).toList())
+                .orElse("");
     }
 
     private static long count(List<ShopEntryData> entries, Predicate<ItemStack> predicate) {
@@ -90,8 +110,7 @@ public final class ShopViewBuilder {
             return false;
         }
         // Shortcuts carry the menu; everything else must actually be tradeable.
-        return item.getItemType() == com.pablo67340.guishop.definition.ItemType.SHOP_SHORTCUT
-                || item.getItemType().isPurchasable();
+        return item.getItemType() == ItemType.SHOP_SHORTCUT || item.getItemType().isPurchasable();
     }
 
     private static ShopEntryData toEntry(NeoItem item, HolderLookup.Provider registries) {
@@ -99,6 +118,38 @@ public final class ShopViewBuilder {
                 item.toItemStack(registries),
                 item.hasBuyPrice() ? item.getBuyPriceAsDecimal().doubleValue() : ShopEntryData.NO_PRICE,
                 item.hasSellPrice() ? item.getSellPriceAsDecimal().doubleValue() : ShopEntryData.NO_PRICE,
-                item.getTargetShop() == null ? "" : item.getTargetShop());
+                item.getTargetShop() == null ? "" : item.getTargetShop(),
+                priceLines(item));
+    }
+
+    /**
+     * The configured buy and sell lines for a single unit.
+     * <p>
+     * Built here rather than on the client because the templates, the currency
+     * format and any live pricing are all server-side. A shortcut gets none:
+     * it opens a shop rather than trading.
+     * <p>
+     * The "cannot buy" and "cannot sell" lines are deliberately omitted when
+     * the item has the other price, since a sell-only item reading "Cannot buy"
+     * on every row is noise rather than information.
+     */
+    private static List<Component> priceLines(NeoItem item) {
+        if (item.getItemType() == ItemType.SHOP_SHORTCUT) {
+            return List.of();
+        }
+
+        List<Component> lines = new ArrayList<>(2);
+        if (item.hasBuyPrice()) {
+            lines.add(TextUtil.toComponent(item.getBuyLore(1)));
+        }
+        if (item.hasSellPrice()) {
+            lines.add(TextUtil.toComponent(item.getSellLore(1)));
+        }
+
+        if (lines.isEmpty()) {
+            // Nothing is priced, so say so once rather than twice.
+            lines.add(TextUtil.toComponent(item.getBuyLore(1)));
+        }
+        return List.copyOf(lines);
     }
 }

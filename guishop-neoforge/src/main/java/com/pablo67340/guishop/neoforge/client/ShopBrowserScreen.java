@@ -4,7 +4,6 @@ import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
 import com.pablo67340.guishop.neoforge.network.ShopEntryData;
 import com.pablo67340.guishop.neoforge.network.ShopView;
 import com.pablo67340.guishop.neoforge.util.TextUtil;
-import com.pablo67340.guishop.util.MathUtil;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
@@ -256,7 +255,7 @@ public final class ShopBrowserScreen extends Screen {
         graphics.drawString(font, trimToWidth(Contrast.readable(entry.icon().getHoverName()), textWidth),
                 textLeft, top + 6, UiTheme.TEXT, false);
 
-        renderCellPrices(graphics, entry, textLeft, top + 18);
+        renderCellPrices(graphics, entry, textLeft, top + 18, textWidth);
     }
 
     /**
@@ -274,29 +273,28 @@ public final class ShopBrowserScreen extends Screen {
     }
 
     /**
-     * Draws the single detail line under the item name: either its prices, or
-     * what the entry does instead of trading.
+     * Draws the detail line under the item name: the server-rendered price
+     * lines as the config words them, or what the entry does instead of
+     * trading.
+     * <p>
+     * Lines that will not fit are left out rather than clipped, since the
+     * tooltip shows all of them anyway.
      */
-    private void renderCellPrices(GuiGraphics graphics, ShopEntryData entry, int left, int top) {
+    private void renderCellPrices(GuiGraphics graphics, ShopEntryData entry, int left, int top, int maxWidth) {
         if (entry.isShortcut()) {
             graphics.drawString(font, "Browse shop", left, top, UiTheme.TEXT_MUTED, false);
             return;
         }
 
-        if (!entry.canBuy() && !entry.canSell()) {
-            graphics.drawString(font, "Not tradeable", left, top, UiTheme.TEXT_MUTED, false);
-            return;
-        }
-
         int cursor = left;
-        if (entry.canBuy()) {
-            String buy = "B " + MathUtil.formatWithCommas(entry.buyPrice());
-            graphics.drawString(font, buy, cursor, top, UiTheme.BUY, false);
-            cursor += font.width(buy) + 6;
-        }
-        if (entry.canSell()) {
-            graphics.drawString(font, "S " + MathUtil.formatWithCommas(entry.sellPrice()),
-                    cursor, top, UiTheme.SELL, false);
+        for (Component line : entry.priceLines()) {
+            Component readable = Contrast.readable(line);
+            int lineWidth = font.width(readable);
+            if (cursor > left && cursor + lineWidth > left + maxWidth) {
+                break;
+            }
+            graphics.drawString(font, readable, cursor, top, UiTheme.TEXT, false);
+            cursor += lineWidth + 6;
         }
     }
 
@@ -320,17 +318,9 @@ public final class ShopBrowserScreen extends Screen {
         if (entry.isShortcut()) {
             lines.add(Component.empty());
             lines.add(muted("Click to open " + entry.targetShop()));
-        } else if (entry.canBuy() || entry.canSell()) {
+        } else if (!entry.priceLines().isEmpty()) {
             lines.add(Component.empty());
-            if (entry.canBuy()) {
-                lines.add(coloured("Buy: " + MathUtil.formatWithCommas(entry.buyPrice()), UiTheme.BUY));
-            }
-            if (entry.canSell()) {
-                lines.add(coloured("Sell: " + MathUtil.formatWithCommas(entry.sellPrice()), UiTheme.SELL));
-            }
-        } else {
-            lines.add(Component.empty());
-            lines.add(coloured("Not tradeable", UiTheme.WARN));
+            entry.priceLines().forEach(line -> lines.add(Contrast.readable(line)));
         }
 
         graphics.renderComponentTooltip(font, lines, mouseX, mouseY, stack);

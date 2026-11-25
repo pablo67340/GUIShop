@@ -1,6 +1,7 @@
 package com.pablo67340.guishop.neoforge;
 
 import com.pablo67340.guishop.neoforge.command.ShopCommand;
+import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
 import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
@@ -67,6 +68,10 @@ public final class GuiShopMod {
     }
 
     private void onServerStarting(ServerStartingEvent event) {
+        // Before the shops, which take their menu title and price wording from
+        // the settings.
+        Settings.load();
+
         int loaded = shopRegistry.loadAll();
         context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
                 + shopRegistry.totalItems() + " item(s), "
@@ -78,8 +83,9 @@ public final class GuiShopMod {
 
         // Built now rather than on the first /shop, so no player pays for
         // assembling the catalogue.
-        context.logUtil().debugLog("Catalogue warmed, "
-                + ShopViewBuilder.summarise(shopRegistry.catalogue(event.getServer().registryAccess())));
+        var catalogue = shopRegistry.catalogue(event.getServer().registryAccess());
+        context.logUtil().debugLog("Catalogue warmed, " + ShopViewBuilder.summarise(catalogue));
+        context.logUtil().debugLog("Sample price line: " + ShopViewBuilder.samplePriceLine(catalogue));
 
         // Without this, anything cached since the last flush is lost if the
         // process is killed rather than shut down.

@@ -1,9 +1,11 @@
 package com.pablo67340.guishop.platform;
 
 import com.pablo67340.guishop.GUIShop;
+import com.pablo67340.guishop.api.DynamicPriceProvider;
 import com.pablo67340.guishop.util.LogUtil;
 import com.pablo67340.guishop.util.SchedulerUtil;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.logging.Level;
 
@@ -40,6 +42,18 @@ public final class BukkitContext implements GuiShopContext {
     @Override
     public PlatformScheduler scheduler() {
         return scheduler;
+    }
+
+    @Override
+    public String formatCurrency(BigDecimal value) {
+        return plugin.getConfigManager().getMessageSystem().translate("messages.currency-prefix")
+                + plugin.getMiscUtils().economyFormat(value)
+                + plugin.getConfigManager().getMessageSystem().translate("messages.currency-suffix");
+    }
+
+    @Override
+    public DynamicPriceProvider dynamicPriceProvider() {
+        return plugin.getMiscUtils().getDYNAMICPRICING();
     }
 
     private static final class PluginLogger implements PlatformLogger {

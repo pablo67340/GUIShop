@@ -1,13 +1,18 @@
 package com.pablo67340.guishop.neoforge;
 
+import com.pablo67340.guishop.api.DynamicPriceProvider;
+import com.pablo67340.guishop.config.BaseConfig;
+import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.platform.CancellableTask;
 import com.pablo67340.guishop.platform.GuiShopContext;
 import com.pablo67340.guishop.platform.PlatformLogger;
 import com.pablo67340.guishop.platform.PlatformScheduler;
 import com.pablo67340.guishop.util.LogUtil;
+import com.pablo67340.guishop.util.MathUtil;
 import net.neoforged.fml.loading.FMLPaths;
 import org.slf4j.Logger;
 
+import java.math.BigDecimal;
 import java.nio.file.Path;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -70,6 +75,23 @@ public final class NeoForgeContext implements GuiShopContext {
     @Override
     public PlatformScheduler scheduler() {
         return scheduler;
+    }
+
+    @Override
+    public String formatCurrency(BigDecimal value) {
+        String amount = BaseConfig.isAbbreviatePrices()
+                ? MathUtil.formatAbbreviated(value)
+                : MathUtil.formatWithCommas(value);
+        return Settings.getCurrencyPrefix() + amount + Settings.getCurrencySuffix();
+    }
+
+    /**
+     * Always null for now: dynamic pricing needs the stock database, which this
+     * platform does not set up yet, and core treats null as "price statically".
+     */
+    @Override
+    public DynamicPriceProvider dynamicPriceProvider() {
+        return null;
     }
 
     public void shutdown() {

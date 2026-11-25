@@ -5,6 +5,7 @@ import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.config.ShopRegistry;
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoPage;
@@ -76,7 +77,7 @@ public final class ShopCommand {
 
         if (registry.names().isEmpty()) {
             source.sendFailure(Component.literal(
-                    "No shops are loaded. Place shop YAML files in the guishop/shops directory and run /shop reload."));
+                    "No shops are loaded. Place shop files in the guishop/shops directory and run /shop reload."));
             return 0;
         }
 
@@ -97,7 +98,7 @@ public final class ShopCommand {
     private static int listShops(CommandSourceStack source, ShopRegistry registry) {
         if (registry.names().isEmpty()) {
             source.sendFailure(Component.literal(
-                    "No shops are loaded. Place shop YAML files in the guishop/shops directory and run /shop reload."));
+                    "No shops are loaded. Place shop files in the guishop/shops directory and run /shop reload."));
             return 0;
         }
 
@@ -189,6 +190,10 @@ public final class ShopCommand {
     }
 
     private static int reload(CommandSourceStack source, ShopRegistry registry) {
+        // Before the shops, which take their menu title and price wording from
+        // the settings.
+        Settings.load();
+
         int loaded = registry.loadAll();
         source.sendSuccess(() -> Component.literal("GUIShop reloaded: " + loaded + " shop(s), "
                 + registry.totalItems() + " item(s).").withStyle(ChatFormatting.GREEN), true);

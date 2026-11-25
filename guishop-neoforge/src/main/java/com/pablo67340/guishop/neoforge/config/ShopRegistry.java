@@ -1,5 +1,6 @@
 package com.pablo67340.guishop.neoforge.config;
 
+import com.pablo67340.guishop.config.BaseConfig;
 import com.pablo67340.guishop.neoforge.definition.NeoItem;
 import com.pablo67340.guishop.neoforge.definition.NeoShop;
 import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
@@ -29,11 +30,6 @@ public final class ShopRegistry {
     private static final String JSON_SUFFIX = ".json";
     private static final String MENU_NAME = "menu";
 
-    /**
-     * Shown when menu.json declares no title. The chest GUI took the menu's
-     * title from config.yml, so a migrated menu usually has none of its own.
-     */
-    private static final String MENU_TITLE = "Shop Menu";
 
     private final Map<String, NeoShop> shops = new LinkedHashMap<>();
     private NeoShop menu;
@@ -80,10 +76,14 @@ public final class ShopRegistry {
         Map<String, Object> converted = convertIfLegacy(
                 dataFolder.resolve("menu.yml"), json, MENU_NAME, true);
 
+        // The chest GUI took the menu's title from config.yml, so a migrated
+        // menu.json has none of its own and the setting still supplies it.
+        String title = BaseConfig.getTitlesConfig().getMenuTitle();
+
         if (converted != null) {
-            menu = ShopLoader.fromDocument(converted, MENU_NAME, MENU_TITLE);
+            menu = ShopLoader.fromDocument(converted, MENU_NAME, title);
         } else if (Files.isRegularFile(json)) {
-            menu = ShopLoader.load(json, MENU_NAME, MENU_TITLE);
+            menu = ShopLoader.load(json, MENU_NAME, title);
         } else {
             GuiShopPlatform.get().logger().warning(
                     "No " + json.getFileName() + " in " + dataFolder + ". The shop menu will be unavailable.");

@@ -1,10 +1,15 @@
 package com.pablo67340.guishop.definition;
 
+import com.pablo67340.guishop.api.DynamicPriceProvider;
+import com.pablo67340.guishop.config.BaseConfig;
+import com.pablo67340.guishop.platform.GuiShopPlatform;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The platform-independent description of a shop item: everything a shop entry
@@ -228,6 +233,157 @@ public abstract class ItemDefinition {
      */
     public BigDecimal getSellPriceAsDecimal() {
         return (sellPrice instanceof BigDecimal) ? (BigDecimal) sellPrice : BigDecimal.valueOf(((Integer) sellPrice).doubleValue());
+    }
+
+    // --------------------------------------------------------------- pricing
+
+    /**
+     * Whether live pricing should be consulted for this item, which needs both
+     * the global setting and the item's own opt-in.
+     */
+    public boolean shouldUseDynamicPricing() {
+        return BaseConfig.isDynamicPricing() && useDynamicPricing;
+    }
+
+    /**
+     * The buy price for a quantity, through the live-pricing provider when one
+     * applies and a plain multiplication otherwise.
+     *
+     * @param quantity how many of the item are being bought
+     */
+    public BigDecimal calculateBuyPrice(int quantity) {
+        // A sell price must be defined for dynamic pricing to have a spread.
+        if (shouldUseDynamicPricing() && hasSellPrice()) {
+            DynamicPriceProvider provider = GuiShopPlatform.get().dynamicPriceProvider();
+            if (provider != null) {
+                return provider.calculateBuyPrice(getItemString(), quantity,
+                        getBuyPriceAsDecimal(), getSellPriceAsDecimal());
+            }
+        }
+        return getBuyPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
+    }
+
+    /**
+     * The sell price for a quantity, through the live-pricing provider when one
+     * applies and a plain multiplication otherwise.
+     *
+     * @param quantity how many of the item are being sold
+     */
+    public BigDecimal calculateSellPrice(int quantity) {
+        // A buy price must be defined for dynamic pricing to have a spread.
+        if (shouldUseDynamicPricing() && hasBuyPrice()) {
+            DynamicPriceProvider provider = GuiShopPlatform.get().dynamicPriceProvider();
+            if (provider != null) {
+                return provider.calculateSellPrice(getItemString(), quantity,
+                        getBuyPriceAsDecimal(), getSellPriceAsDecimal());
+            }
+        }
+        return getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity));
+    }
+
+    /**
+     * The key this item is tracked under for live pricing. Spawners carry their
+     * mob type so each one is priced separately.
+     * <p>
+     * The format is relied on by stored pricing data, so it must not change.
+     */
+    public String getItemString() {
+        if (isMobSpawner() && hasMobType()) {
+            return material.toUpperCase(Locale.ROOT) + ":spawner:" + mobType.toLowerCase(Locale.ROOT);
+        }
+        return material.toUpperCase(Locale.ROOT);
+    }
+
+    /**
+     * Whether this item is a mob spawner, which is priced per mob type.
+     * <p>
+     * Overridden where the platform can identify spawners more reliably than by
+     * name across game versions.
+     */
+    public boolean isMobSpawner() {
+        return material != null && material.toUpperCase(Locale.ROOT).endsWith("SPAWNER");
+    }
+
+    // ------------------------------------------------------------ price lore
+
+    /**
+     * The configured line describing this item's buy price, or the configured
+     * line explaining why it cannot be bought.
+     *
+     * @param quantity how many of the item the price should cover
+     */
+    public String getBuyLore(int quantity) {
+        if (hasBuyPrice()) {
+            BigDecimal buyPrice = getBuyPriceAsDecimal();
+            if (buyPrice.compareTo(BigDecimal.ZERO) > 0) {
+                return buildPriceLore("buy", "buy-market",
+                        buyPrice.multiply(BigDecimal.valueOf(quantity)),
+                        calculateBuyPrice(quantity));
+            }
+            // A buy price of zero is a giveaway rather than a missing price.
+            return lore("free");
+        }
+        return lore("cannot-buy");
+    }
+
+    /**
+     * The configured line describing this item's sell price, or the configured
+     * line explaining why it cannot be sold.
+     *
+     * @param quantity how many of the item the price should cover
+     */
+    public String getSellLore(int quantity) {
+        if (hasSellPrice()) {
+            return buildPriceLore("sell", "sell-market",
+                    getSellPriceAsDecimal().multiply(BigDecimal.valueOf(quantity)),
+                    calculateSellPrice(quantity));
+        }
+        return lore("cannot-sell");
+    }
+
+    /**
+     * Fills in one of the price templates.
+     * <p>
+     * The market template is only used when the live price has actually drifted
+     * from the configured one, so a statically priced item always reads as a
+     * plain price rather than as an unchanged market price.
+     *
+     * @param plainKey     the lore key for the standard price line
+     * @param marketKey    the lore key for the price line showing movement
+     * @param baseTotal    the configured price for the quantity
+     * @param currentTotal the live price for the quantity
+     */
+    private String buildPriceLore(String plainKey, String marketKey, BigDecimal baseTotal, BigDecimal currentTotal) {
+        String currentAmount = formatCurrency(currentTotal);
+        String marketTemplate = lore(marketKey);
+
+        if (!BaseConfig.isShowMarketInfo() || marketTemplate == null
+                || baseTotal.compareTo(BigDecimal.ZERO) <= 0
+                || baseTotal.compareTo(currentTotal) == 0) {
+            String plain = lore(plainKey);
+            return plain == null ? currentAmount : plain.replace("%amount%", currentAmount);
+        }
+
+        BigDecimal difference = currentTotal.subtract(baseTotal);
+        BigDecimal percent = difference.abs().multiply(BigDecimal.valueOf(100))
+                .divide(baseTotal, 2, RoundingMode.HALF_UP);
+        String trend = BaseConfig.getLoreConfig().lores
+                .getOrDefault(difference.signum() > 0 ? "trend-up" : "trend-down", "");
+
+        // Trend goes in first so its own placeholders resolve below.
+        return marketTemplate.replace("%trend%", trend)
+                .replace("%amount%", currentAmount)
+                .replace("%base_amount%", formatCurrency(baseTotal))
+                .replace("%change_amount%", formatCurrency(difference.abs()))
+                .replace("%change_percent%", percent.toPlainString() + "%");
+    }
+
+    private String formatCurrency(BigDecimal value) {
+        return GuiShopPlatform.get().formatCurrency(value);
+    }
+
+    private static String lore(String key) {
+        return BaseConfig.getLoreConfig().lores.get(key);
     }
 
     public Boolean hasSkullUUID() {

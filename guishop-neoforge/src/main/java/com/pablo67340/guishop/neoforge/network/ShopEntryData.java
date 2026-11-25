@@ -3,6 +3,8 @@ package com.pablo67340.guishop.neoforge.network;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
@@ -22,12 +24,17 @@ import java.util.List;
  * @param buyPrice   the buy price, or {@link #NO_PRICE} if it cannot be bought
  * @param sellPrice  the sell price, or {@link #NO_PRICE} if it cannot be sold
  * @param targetShop the shop a menu icon opens, or empty for a normal item
+ * @param priceLines the price lines as configured, already rendered. Built on
+ *                   the server because only it has the lore templates, the
+ *                   currency format and the live prices; the client would
+ *                   otherwise have to invent its own wording.
  */
 public record ShopEntryData(
         ItemStack icon,
         double buyPrice,
         double sellPrice,
-        String targetShop) {
+        String targetShop,
+        List<Component> priceLines) {
 
     /** Prices are never negative in config, so this cannot collide with a real one. */
     public static final double NO_PRICE = -1.0D;
@@ -37,6 +44,9 @@ public record ShopEntryData(
 
     public static final StreamCodec<RegistryFriendlyByteBuf, List<ShopEntryData>> LIST_CODEC =
             CODEC.apply(ByteBufCodecs.list());
+
+    private static final StreamCodec<RegistryFriendlyByteBuf, List<Component>> LINES_CODEC =
+            ComponentSerialization.STREAM_CODEC.apply(ByteBufCodecs.list());
 
     public boolean canBuy() {
         return buyPrice > NO_PRICE;
@@ -55,6 +65,7 @@ public record ShopEntryData(
         buffer.writeDouble(buyPrice);
         buffer.writeDouble(sellPrice);
         buffer.writeUtf(targetShop);
+        LINES_CODEC.encode(buffer, priceLines);
     }
 
     private static ShopEntryData read(RegistryFriendlyByteBuf buffer) {
@@ -62,6 +73,7 @@ public record ShopEntryData(
                 ItemStack.OPTIONAL_STREAM_CODEC.decode(buffer),
                 buffer.readDouble(),
                 buffer.readDouble(),
-                buffer.readUtf());
+                buffer.readUtf(),
+                LINES_CODEC.decode(buffer));
     }
 }

@@ -134,6 +134,13 @@ final class ItemEditorScreen extends ShopChildScreen {
     /** Set after the first Delete click, so a second one means it. */
     private boolean confirmingDelete;
 
+    /**
+     * A shop named here that the server will create on save, so that saving can
+     * walk straight into it instead of leaving the author back on the menu
+     * wondering where their new shop went.
+     */
+    private String awaitingShop;
+
     ItemEditorScreen(ShopBrowserScreen parent, String shopName, int index, ShopEntryData entry,
                      Map<String, String> values) {
         super(Component.literal("Edit item"), parent);
@@ -142,6 +149,13 @@ final class ItemEditorScreen extends ShopChildScreen {
         this.entry = entry;
         this.original = new LinkedHashMap<>(values);
         this.values = new LinkedHashMap<>(values);
+
+        // A shortcut with nowhere to go is what the plus button leaves behind,
+        // and the one field that matters is easy to miss among twenty.
+        if (entry.isShortcut() && !entry.hasTarget()) {
+            setStatus("Set 'Opens shop' to finish this, or change Type to sell an item here.",
+                    true);
+        }
 
         // So an item whose name is under the older key still shows it, rather
         // than an empty box above an item that visibly has a name.
@@ -386,7 +400,10 @@ final class ItemEditorScreen extends ShopChildScreen {
         // Queued rather than opened from inside the picker's callback, which is
         // running while the picker is closing itself back to this screen.
         minecraft.tell(() -> minecraft.setScreen(new ShopNameScreen(
-                this, parent().shopNames(), named -> set(field, named))));
+                this, parent().shopNames(), named -> {
+                    set(field, named);
+                    awaitingShop = named;
+                })));
     }
 
     private void set(Field field, String value) {
@@ -525,10 +542,21 @@ final class ItemEditorScreen extends ShopChildScreen {
 
     @Override
     protected void onServerResult(TradeResultPayload result) {
-        if (result.success()) {
-            // The browser already has the new catalogue by now, so going back
-            // shows the edit rather than the old values.
-            onClose();
+        if (!result.success()) {
+            return;
+        }
+
+        // The browser already has the new catalogue by now, so going back shows
+        // the edit rather than the old values.
+        ShopBrowserScreen browser = parent();
+        onClose();
+
+        // Only when the shop was named here and the type still means to open
+        // one: the author may have changed their mind and made this a plain
+        // item, in which case no shop was created to walk into.
+        if (awaitingShop != null && currentType() == ItemType.SHOP_SHORTCUT
+                && awaitingShop.equalsIgnoreCase(values.getOrDefault("target-shop", ""))) {
+            browser.enterNewShop(awaitingShop);
         }
     }
 

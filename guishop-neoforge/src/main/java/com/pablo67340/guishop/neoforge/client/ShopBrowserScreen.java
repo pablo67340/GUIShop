@@ -635,12 +635,40 @@ public final class ShopBrowserScreen extends PanelScreen {
 
     private void openShop(String name) {
         ShopView target = catalogue.shopOrMenu(name);
+
+        // shopOrMenu falls back to the menu, so a shortcut naming a shop that
+        // has been deleted or renamed would quietly do nothing at all.
+        if (!target.name().equalsIgnoreCase(name)) {
+            setStatus("There is no shop called '" + name + "' any more.", false);
+            return;
+        }
         if (target == view) {
             return;
         }
 
         history.push(view.name());
         switchTo(target);
+    }
+
+    /**
+     * Walks into a shop that has just been created, with edit mode already on.
+     * <p>
+     * The reason to make a shop is to put things in it, and going back out to
+     * the menu to hunt for its new icon is a detour through a screen the author
+     * has no business being on yet.
+     */
+    void enterNewShop(String name) {
+        ShopView target = catalogue.shopOrMenu(name);
+        if (!target.name().equalsIgnoreCase(name)) {
+            // The catalogue has not caught up; the menu icon still works.
+            setStatus("Created '" + name + "'. Open it from the menu to fill it.", true);
+            return;
+        }
+
+        history.push(view.name());
+        editing = true;
+        switchTo(target);
+        setStatus("Empty shop. Use + to add an item.", true);
     }
 
     private void goBack() {

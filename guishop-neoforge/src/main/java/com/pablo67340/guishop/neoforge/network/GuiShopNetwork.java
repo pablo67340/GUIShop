@@ -68,6 +68,11 @@ public final class GuiShopNetwork {
                 ItemFieldsPayload.TYPE,
                 ItemFieldsPayload.CODEC,
                 GuiShopNetwork::handleItemFields);
+
+        registrar.playToClient(
+                WorthPayload.TYPE,
+                WorthPayload.CODEC,
+                GuiShopNetwork::handleWorth);
     }
 
     /**
@@ -98,5 +103,9 @@ public final class GuiShopNetwork {
 
     private static void handleItemFields(ItemFieldsPayload payload, IPayloadContext context) {
         context.enqueueWork(() -> com.pablo67340.guishop.neoforge.client.ClientShopUi.openEditor(payload));
+    }
+
+    private static void handleWorth(WorthPayload payload, IPayloadContext context) {
+        context.enqueueWork(() -> com.pablo67340.guishop.neoforge.client.ClientShopUi.acceptWorth(payload));
     }
 }

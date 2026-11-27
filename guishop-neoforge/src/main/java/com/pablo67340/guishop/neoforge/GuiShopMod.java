@@ -9,6 +9,10 @@ import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
 import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
 import com.pablo67340.guishop.neoforge.permission.GuiShopPermissions;
 import com.pablo67340.guishop.neoforge.server.GuiShopServer;
+import com.pablo67340.guishop.neoforge.server.PlayerConnection;
+import com.pablo67340.guishop.neoforge.server.WorthTable;
+import com.pablo67340.guishop.neoforge.statistics.StatisticsStore;
+import com.pablo67340.guishop.neoforge.storage.GuiShopDatabase;
 import com.pablo67340.guishop.platform.CancellableTask;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 import net.neoforged.bus.api.IEventBus;
@@ -40,7 +44,9 @@ public final class GuiShopMod {
 
     private final NeoForgeContext context;
     private final ShopRegistry shopRegistry = new ShopRegistry();
+    private final GuiShopDatabase database = new GuiShopDatabase();
     private final BalanceStore balanceStore = new BalanceStore();
+    private final StatisticsStore statisticsStore = new StatisticsStore();
     private CancellableTask logFlushTask;
 
     public GuiShopMod(IEventBus modEventBus, ModContainer modContainer) {
@@ -64,6 +70,8 @@ public final class GuiShopMod {
         NeoForge.EVENT_BUS.addListener(this::onRegisterCommands);
         NeoForge.EVENT_BUS.addListener(this::onServerStarting);
         NeoForge.EVENT_BUS.addListener(this::onServerStopped);
+        NeoForge.EVENT_BUS.addListener(PlayerConnection::onJoin);
+        NeoForge.EVENT_BUS.addListener(PlayerConnection::onQuit);
 
         // The permission API posts this on the game bus during server start,
         // and refuses to answer for a node that was not gathered.
@@ -82,9 +90,17 @@ public final class GuiShopMod {
         // the settings.
         Settings.load();
 
+        // Before the stores, which ask it whether it opened.
+        database.open();
+        balanceStore.attach(database);
         balanceStore.setStartingBalance(Settings.getStartingBalance());
         balanceStore.load();
-        GuiShopServer.set(shopRegistry, balanceStore);
+        statisticsStore.attach(database);
+        GuiShopServer.set(shopRegistry, balanceStore, statisticsStore);
+
+        // A client keeps this class across worlds, so a table built for the
+        // last world would otherwise be sent to the player joining this one.
+        WorthTable.invalidate();
 
         int loaded = shopRegistry.loadAll();
         context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
@@ -108,6 +124,7 @@ public final class GuiShopMod {
                 () -> {
                     context.logUtil().flushLogs();
                     balanceStore.save();
+                    statisticsStore.flush();
                 },
                 LOG_FLUSH_INTERVAL_TICKS,
                 LOG_FLUSH_INTERVAL_TICKS);
@@ -130,7 +147,12 @@ public final class GuiShopMod {
             logFlushTask = null;
         }
         balanceStore.save();
+        statisticsStore.flush();
         context.logUtil().flushLogs();
+        // Closed with the server rather than with the process: a client opens
+        // and closes a world repeatedly, and holding the file open across that
+        // would keep a lock on a database belonging to a world nobody is in.
+        database.close();
         GuiShopServer.clear();
     }
 }

@@ -49,7 +49,7 @@ public final class SellService {
         int refused = 0;
 
         // Kept in encounter order so the log reads like the chest looked.
-        Map<String, Integer> soldByItem = new LinkedHashMap<>();
+        Map<String, Sold> soldByItem = new LinkedHashMap<>();
         List<ItemStack> giveBack = new ArrayList<>();
 
         for (int slot = 0; slot < container.getContainerSize(); slot++) {
@@ -67,9 +67,12 @@ public final class SellService {
             }
 
             int quantity = stack.getCount();
-            earned = earned.add(entry.calculateSellPrice(quantity));
+            BigDecimal value = entry.calculateSellPrice(quantity);
+            earned = earned.add(value);
             sold += quantity;
-            soldByItem.merge(entry.getMaterial(), quantity, Integer::sum);
+            // Gathered per item rather than only as a total, because the
+            // statistics record one row per item sold, not one per screenful.
+            soldByItem.merge(entry.getMaterial(), new Sold(quantity, value), Sold::plus);
         }
 
         container.setChanged();
@@ -83,7 +86,7 @@ public final class SellService {
     }
 
     private static void pay(ServerPlayer player, BigDecimal earned, int sold,
-                            Map<String, Integer> soldByItem) {
+                            Map<String, Sold> soldByItem) {
         if (sold == 0) {
             return;
         }
@@ -93,12 +96,34 @@ public final class SellService {
         BigDecimal total = earned.setScale(2, RoundingMode.HALF_UP);
 
         GuiShopServer.balances().deposit(player.getUUID(), total);
+        soldByItem.forEach((material, entry) -> GuiShopServer.statistics()
+                .recordSale(player.getUUID(), material, entry.quantity(), entry.value()));
         player.sendSystemMessage(Messages.chat("sell", "money", money(total)));
 
         GuiShopPlatform.get().logUtil().transactionLog(
                 "Player " + player.getGameProfile().getName() + " sold " + sold + " items ("
                         + soldByItem.size() + " different) for " + total.toPlainString()
-                        + " from the sell screen. Items: " + soldByItem);
+                        + " from the sell screen. Items: " + quantities(soldByItem));
+    }
+
+    /**
+     * Just the counts, for the log line, which has never carried per-item
+     * money and does not need to start.
+     */
+    private static Map<String, Integer> quantities(Map<String, Sold> soldByItem) {
+        Map<String, Integer> counts = new LinkedHashMap<>();
+        soldByItem.forEach((material, entry) -> counts.put(material, entry.quantity()));
+        return counts;
+    }
+
+    /**
+     * How much of one item went through, and what it fetched.
+     */
+    private record Sold(int quantity, BigDecimal value) {
+
+        Sold plus(Sold other) {
+            return new Sold(quantity + other.quantity, value.add(other.value));
+        }
     }
 
     /**

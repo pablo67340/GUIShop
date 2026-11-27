@@ -233,12 +233,27 @@ final class SettingsScreen extends ShopChildScreen {
     }
 
     /**
+     * Whether this setting's control goes on its own line under the label.
+     * <p>
+     * Decided per setting rather than per tab. A tab of format strings wants
+     * the full width for every one of them, but the Worth tab mixes those
+     * with plain switches, and a switch rendered as a stacked text box would
+     * ask the reader to type the word "true".
+     */
+    private boolean isStacked(Settings.Spec spec) {
+        Settings.Category category = category();
+        if (category == null || !category.isLongText() || spec == null) {
+            return false;
+        }
+        return spec.kind() != Settings.Kind.FLAG && spec.kind() != Settings.Kind.SOUND;
+    }
+
+    /**
      * Where a label's text may run to before it would reach a control sitting
      * beside it. The whole content width when the control is underneath.
      */
-    private int labelWidth() {
-        Settings.Category category = category();
-        if (category != null && category.isLongText()) {
+    private int labelWidth(Settings.Spec spec) {
+        if (isStacked(spec)) {
             return contentWidth() - UiTheme.SCROLLBAR_WIDTH - 4;
         }
         return contentWidth() - CONTROL_WIDTH - COLUMN_GAP - UiTheme.SCROLLBAR_WIDTH;
@@ -252,21 +267,18 @@ final class SettingsScreen extends ShopChildScreen {
             List<FormattedCharSequence> wrapped =
                     template.hint() == null || template.hint().isBlank()
                             ? List.of()
-                            : font.split(Component.literal(template.hint()), labelWidth());
+                            : font.split(Component.literal(template.hint()), labelWidth(template.spec()));
 
             measured.add(new Row(template.label(), wrapped, template.spec(), template.shopName(),
-                    offset, heightOf(wrapped.size())));
+                    offset, heightOf(template.spec(), wrapped.size())));
             offset += measured.getLast().height();
         }
         return List.copyOf(measured);
     }
 
-    private int heightOf(int hintLines) {
-        Settings.Category category = category();
-        boolean stacked = category != null && category.isLongText();
-
+    private int heightOf(Settings.Spec spec, int hintLines) {
         int text = LINE_HEIGHT + hintLines * LINE_HEIGHT;
-        return stacked
+        return isStacked(spec)
                 ? text + CONTROL_HEIGHT + 7
                 : Math.max(CONTROL_HEIGHT + 6, text + 5);
     }
@@ -312,7 +324,6 @@ final class SettingsScreen extends ShopChildScreen {
      */
     private void buildRows() {
         Settings.Category category = category();
-        boolean stacked = category != null && category.isLongText();
 
         for (int position = 0; position < rows.size(); position++) {
             Row row = rows.get(position);
@@ -326,7 +337,7 @@ final class SettingsScreen extends ShopChildScreen {
                 buildManageRow(row, top);
             } else if (category == null) {
                 buildOwnRow(position, top);
-            } else if (stacked) {
+            } else if (isStacked(row.spec())) {
                 addStackedBox(row, top);
             } else {
                 addBesideControl(row, top);

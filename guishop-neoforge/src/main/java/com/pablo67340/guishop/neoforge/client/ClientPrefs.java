@@ -55,6 +55,7 @@ final class ClientPrefs {
     private static Sort sort = Sort.CONFIG;
     private static boolean confirmPurchases = true;
     private static boolean hideUnaffordable;
+    private static boolean showWorth = true;
 
     private ClientPrefs() {
     }
@@ -87,6 +88,29 @@ final class ClientPrefs {
     }
 
     /**
+     * Whether to write sell values into item tooltips.
+     * <p>
+     * Mine rather than the server's, which is the point: the plugin's
+     * {@code /gs toggleworth} had to be a server command that remembered a
+     * preference per player, because the server was drawing the lore. Here it
+     * is a switch on the machine doing the drawing.
+     */
+    static boolean showWorth() {
+        return showWorth;
+    }
+
+    static void setShowWorth(boolean value) {
+        showWorth = value;
+        save();
+    }
+
+    /** Flips the worth display and says what it is now. */
+    static boolean toggleWorth() {
+        setShowWorth(!showWorth);
+        return showWorth;
+    }
+
+    /**
      * The preferences the settings screen offers, so it does not need its own
      * list of them.
      */
@@ -97,7 +121,10 @@ final class ClientPrefs {
                         ClientPrefs::confirmPurchases, ClientPrefs::setConfirmPurchases),
                 new Toggle("Hide what I cannot afford",
                         "Leave items out of the list while your balance is too low",
-                        ClientPrefs::hideUnaffordable, ClientPrefs::setHideUnaffordable));
+                        ClientPrefs::hideUnaffordable, ClientPrefs::setHideUnaffordable),
+                new Toggle("Show worth in tooltips",
+                        "Add what an item sells for to its tooltip, anywhere in the game",
+                        ClientPrefs::showWorth, ClientPrefs::setShowWorth));
     }
 
     /**
@@ -126,12 +153,14 @@ final class ClientPrefs {
             sort = parseSort(stored.get("sort"));
             confirmPurchases = bool(stored.get("confirm-purchases"), true);
             hideUnaffordable = bool(stored.get("hide-unaffordable"), false);
+            showWorth = bool(stored.get("show-worth"), true);
         } catch (IOException | JsonSyntaxException exception) {
             // Preferences are not worth bothering the player about; the
             // defaults are perfectly usable.
             sort = Sort.CONFIG;
             confirmPurchases = true;
             hideUnaffordable = false;
+            showWorth = true;
         }
     }
 
@@ -140,6 +169,7 @@ final class ClientPrefs {
         document.put("sort", sort.name());
         document.put("confirm-purchases", confirmPurchases);
         document.put("hide-unaffordable", hideUnaffordable);
+        document.put("show-worth", showWorth);
 
         try {
             Path file = file();

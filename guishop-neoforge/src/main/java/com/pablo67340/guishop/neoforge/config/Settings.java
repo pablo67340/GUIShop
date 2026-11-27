@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 import com.pablo67340.guishop.config.BaseConfig;
+import com.pablo67340.guishop.config.WorthConfig;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
 
 import java.io.IOException;
@@ -89,6 +90,7 @@ public final class Settings {
         GENERAL("General"),
         SHOPS("Shops"),
         CURRENCY("Money"),
+        WORTH("Worth", true),
         LORE("Prices", true),
         MESSAGES("Messages", true);
 
@@ -170,7 +172,28 @@ public final class Settings {
                 new Spec("currency.suffix", "Currency suffix", Kind.TEXT,
                         "Goes after the amount, such as coins", Category.CURRENCY),
                 new Spec("currency.starting-balance", "Starting balance", Kind.NUMBER,
-                        "What a new player's account opens at", Category.CURRENCY)));
+                        "What a new player's account opens at", Category.CURRENCY),
+
+                new Spec("worth.enabled", "Show worth in tooltips", Kind.FLAG,
+                        "Add sell values to item tooltips everywhere in the game",
+                        Category.WORTH),
+                new Spec("worth.format", "Worth line", Kind.TEXT,
+                        "%worth%, %worth_single%, %amount%", Category.WORTH),
+                new Spec("worth.only-sellable", "Only priced items", Kind.FLAG,
+                        "Say nothing at all about an item no shop buys", Category.WORTH),
+                new Spec("worth.not-sellable-format", "Unsellable line", Kind.TEXT,
+                        "Shown instead, when the setting above is off", Category.WORTH),
+                new Spec("worth.position-top", "Put it near the top", Kind.FLAG,
+                        "Under the item's name rather than at the end of the tooltip",
+                        Category.WORTH),
+                new Spec("worth.blank-line", "Separate it", Kind.FLAG,
+                        "Leave an empty line between the worth and the rest", Category.WORTH),
+                new Spec("worth.hidden-names", "Skip items named", Kind.TEXT,
+                        "Comma-separated text; an item whose name contains any of it"
+                                + " gets no worth line", Category.WORTH),
+                new Spec("worth.hidden-lore", "Skip items with lore", Kind.TEXT,
+                        "Comma-separated text matched against the existing tooltip",
+                        Category.WORTH)));
 
         // Derived rather than listed, so adding a lore template or a message in
         // one place puts it on the screen too.
@@ -231,6 +254,15 @@ public final class Settings {
         values.put("currency.prefix", currencyPrefix);
         values.put("currency.suffix", currencySuffix);
         values.put("currency.starting-balance", startingBalance.toPlainString());
+
+        values.put("worth.enabled", String.valueOf(WorthConfig.isEnabled()));
+        values.put("worth.format", nullToEmpty(WorthConfig.getFormat()));
+        values.put("worth.only-sellable", String.valueOf(WorthConfig.isOnlyShowSellable()));
+        values.put("worth.not-sellable-format", nullToEmpty(WorthConfig.getNotSellableFormat()));
+        values.put("worth.position-top", String.valueOf(WorthConfig.isPositionTop()));
+        values.put("worth.blank-line", String.valueOf(WorthConfig.isAddBlankLine()));
+        values.put("worth.hidden-names", String.join(", ", WorthConfig.getBlacklistedItemNames()));
+        values.put("worth.hidden-lore", String.join(", ", WorthConfig.getIgnoreLoreContaining()));
 
         BaseConfig.getLoreConfig().lores.forEach((key, value) ->
                 values.put("lores." + key, nullToEmpty(value)));
@@ -309,6 +341,15 @@ public final class Settings {
             case "hide-non-buyable" -> BaseConfig.setHideNonBuyable(flag(value));
             case "dynamic-pricing" -> BaseConfig.setDynamicPricing(flag(value));
 
+            case "worth.enabled" -> WorthConfig.setEnabled(flag(value));
+            case "worth.format" -> WorthConfig.setFormat(value);
+            case "worth.only-sellable" -> WorthConfig.setOnlyShowSellable(flag(value));
+            case "worth.not-sellable-format" -> WorthConfig.setNotSellableFormat(value);
+            case "worth.position-top" -> WorthConfig.setPosition(flag(value) ? "TOP" : "BOTTOM");
+            case "worth.blank-line" -> WorthConfig.setAddBlankLine(flag(value));
+            case "worth.hidden-names" -> WorthConfig.setBlacklistedItemNames(splitPatterns(value));
+            case "worth.hidden-lore" -> WorthConfig.setIgnoreLoreContaining(splitPatterns(value));
+
             case "currency.prefix" -> currencyPrefix = value;
             case "currency.suffix" -> currencySuffix = value;
             case "currency.starting-balance" -> {
@@ -342,6 +383,21 @@ public final class Settings {
                 .filter(entry -> !entry.isEmpty())
                 .map(entry -> entry.toLowerCase(Locale.ROOT))
                 .toList();
+    }
+
+    /**
+     * The same, keeping the author's capitalisation. These are matched against
+     * item names case-insensitively, so lowercasing them would only make the
+     * settings screen show "backpack" back to someone who typed "Backpack".
+     */
+    private static List<String> splitPatterns(String value) {
+        if (value == null || value.isBlank()) {
+            return new ArrayList<>();
+        }
+        return Arrays.stream(value.split(","))
+                .map(String::trim)
+                .filter(entry -> !entry.isEmpty())
+                .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
     }
 
     private static String nullToEmpty(String value) {
@@ -403,6 +459,22 @@ public final class Settings {
             startingBalance = decimal(currency.get("starting-balance"), startingBalance);
         }
 
+        Map<String, Object> worth = ShopLoader.map(document.get("worth"));
+        if (worth != null) {
+            WorthConfig.setEnabled(bool(worth.get("enabled"), WorthConfig.isEnabled()));
+            WorthConfig.setFormat(ShopLoader.string(worth.get("format"), WorthConfig.getFormat()));
+            WorthConfig.setOnlyShowSellable(
+                    bool(worth.get("only-sellable"), WorthConfig.isOnlyShowSellable()));
+            WorthConfig.setNotSellableFormat(ShopLoader.string(
+                    worth.get("not-sellable-format"), WorthConfig.getNotSellableFormat()));
+            WorthConfig.setAddBlankLine(bool(worth.get("blank-line"), WorthConfig.isAddBlankLine()));
+            if (worth.get("position-top") != null) {
+                WorthConfig.setPosition(bool(worth.get("position-top"), false) ? "TOP" : "BOTTOM");
+            }
+            WorthConfig.setBlacklistedItemNames(stringList(worth.get("hidden-names")));
+            WorthConfig.setIgnoreLoreContaining(stringList(worth.get("hidden-lore")));
+        }
+
         Map<String, Object> titles = ShopLoader.map(document.get("titles"));
         if (titles != null) {
             BaseConfig.getTitlesConfig().setMenuTitle(
@@ -432,6 +504,23 @@ public final class Settings {
                     "Could not read " + FILE_NAME + ": " + exception.getMessage());
             return null;
         }
+    }
+
+    /**
+     * A list of strings from the file, which may be absent or a single string
+     * rather than a list.
+     */
+    private static List<String> stringList(Object raw) {
+        if (raw instanceof List<?> list) {
+            return list.stream()
+                    .map(String::valueOf)
+                    .filter(entry -> !entry.isBlank())
+                    .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
+        }
+        if (raw == null || String.valueOf(raw).isBlank()) {
+            return new ArrayList<>();
+        }
+        return splitPatterns(String.valueOf(raw));
     }
 
     private static boolean bool(Object raw, boolean fallback) {
@@ -478,6 +567,20 @@ public final class Settings {
         currencyPrefix = "$";
         currencySuffix = "";
         startingBalance = BigDecimal.valueOf(1000);
+
+        // The plugin's worth.yml defaults, minus the settings that only
+        // existed because it was rewriting lore inside packets: the inventory
+        // blacklist, the armour slots and the player-inventory-only switch all
+        // described where the rewriting was allowed to happen, and nothing is
+        // being rewritten here.
+        WorthConfig.setEnabled(true);
+        WorthConfig.setFormat("&7Worth: &a%worth%");
+        WorthConfig.setOnlyShowSellable(true);
+        WorthConfig.setNotSellableFormat("&7Worth: &cNot sellable");
+        WorthConfig.setPosition("BOTTOM");
+        WorthConfig.setAddBlankLine(true);
+        WorthConfig.setBlacklistedItemNames(new ArrayList<>());
+        WorthConfig.setIgnoreLoreContaining(new ArrayList<>());
 
         BaseConfig.getTitlesConfig().setMenuTitle("&8&lShop Menu");
         BaseConfig.getLoreConfig().lores.putAll(defaultLores());
@@ -529,6 +632,17 @@ public final class Settings {
         currency.put("suffix", currencySuffix);
         currency.put("starting-balance", startingBalance);
         document.put("currency", currency);
+
+        Map<String, Object> worth = new LinkedHashMap<>();
+        worth.put("enabled", WorthConfig.isEnabled());
+        worth.put("format", nullToEmpty(WorthConfig.getFormat()));
+        worth.put("only-sellable", WorthConfig.isOnlyShowSellable());
+        worth.put("not-sellable-format", nullToEmpty(WorthConfig.getNotSellableFormat()));
+        worth.put("position-top", WorthConfig.isPositionTop());
+        worth.put("blank-line", WorthConfig.isAddBlankLine());
+        worth.put("hidden-names", WorthConfig.getBlacklistedItemNames());
+        worth.put("hidden-lore", WorthConfig.getIgnoreLoreContaining());
+        document.put("worth", worth);
 
         Map<String, Object> titles = new LinkedHashMap<>();
         titles.put("menu", BaseConfig.getTitlesConfig().getMenuTitle());

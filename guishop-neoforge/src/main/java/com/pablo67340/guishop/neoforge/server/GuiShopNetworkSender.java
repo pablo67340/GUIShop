@@ -4,6 +4,7 @@ import com.pablo67340.guishop.config.BaseConfig;
 import com.pablo67340.guishop.neoforge.config.Settings;
 import com.pablo67340.guishop.neoforge.permission.GuiShopPermissions;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 
@@ -74,10 +75,37 @@ public final class GuiShopNetworkSender {
     /**
      * Resends the catalogue to everyone who could be looking at it, so an edit
      * shows up without each player reopening the shop.
+     * <p>
+     * The worth table goes with it. Every caller of this has just changed
+     * something that could move a price, and sending the two together is one
+     * fewer thing for a future caller to forget.
      */
     public static void broadcastCatalogue(ServerPlayer editor) {
+        WorthTable.invalidate();
         for (ServerPlayer player : editor.server.getPlayerList().getPlayers()) {
             sendCatalogue(player);
+            sendWorth(player);
+        }
+    }
+
+    /**
+     * Sends the table the client draws worth tooltips from.
+     */
+    public static void sendWorth(ServerPlayer player) {
+        send(player, WorthTable.current(player.server));
+    }
+
+    /**
+     * Rebuilds the worth table and sends it to everyone.
+     * <p>
+     * Called after anything that could move a sell price: an edited item, a
+     * reload, a settings change. Prices in tooltips that quietly disagree with
+     * the till are worse than no tooltip at all.
+     */
+    public static void broadcastWorth(MinecraftServer server) {
+        WorthTable.invalidate();
+        for (ServerPlayer player : server.getPlayerList().getPlayers()) {
+            sendWorth(player);
         }
     }
 }

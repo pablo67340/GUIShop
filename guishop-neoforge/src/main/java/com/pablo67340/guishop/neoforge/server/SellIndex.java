@@ -8,6 +8,7 @@ import net.minecraft.world.item.ItemStack;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -57,6 +58,23 @@ final class SellIndex {
                 Comparator.comparing(NeoItem::getSellPriceAsDecimal).reversed()));
 
         return new SellIndex(byItem);
+    }
+
+    /**
+     * The best-paying entry for each item anything will buy.
+     * <p>
+     * What the worth tooltip is built from, so the number a player reads is
+     * taken from the same table that prices their sale rather than from a
+     * second lookup that could disagree with it.
+     */
+    Map<Item, NeoItem> best() {
+        Map<Item, NeoItem> best = new LinkedHashMap<>();
+        byItem.forEach((item, candidates) -> {
+            if (!candidates.isEmpty()) {
+                best.put(item, candidates.getFirst());
+            }
+        });
+        return best;
     }
 
     /**

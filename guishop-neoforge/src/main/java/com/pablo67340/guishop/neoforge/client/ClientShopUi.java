@@ -3,6 +3,7 @@ package com.pablo67340.guishop.neoforge.client;
 import com.pablo67340.guishop.neoforge.network.ItemFieldsPayload;
 import com.pablo67340.guishop.neoforge.network.OpenShopPayload;
 import com.pablo67340.guishop.neoforge.network.TradeResultPayload;
+import com.pablo67340.guishop.neoforge.network.WorthPayload;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 
@@ -51,6 +52,13 @@ public final class ClientShopUi {
         if (Minecraft.getInstance().screen instanceof ShopBrowserScreen browser) {
             browser.openEditor(fields);
         }
+    }
+
+    /**
+     * Takes the server's table of sell prices, for the worth tooltips.
+     */
+    public static void acceptWorth(WorthPayload payload) {
+        WorthTooltip.accept(payload);
     }
 
     /**

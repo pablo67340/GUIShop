@@ -35,6 +35,23 @@ repositories {
 }
 
 val yamlDependency = "org.yaml:snakeyaml:2.3"
+val sqliteDependency = "org.xerial:sqlite-jdbc:3.47.1.0"
+
+/**
+ * The native sqlite builds worth carrying, as paths inside the driver jar.
+ * <p>
+ * The driver ships 25 of them and they are 20 MB uncompressed, which is thirty
+ * times the rest of the mod put together. These five cover every machine a
+ * Minecraft server realistically runs on. Anything else falls back to the JSON
+ * store rather than failing, which is what [GuiShopDatabase] is for.
+ */
+val keptSqliteNatives = listOf(
+    "org/sqlite/native/Windows/x86_64",
+    "org/sqlite/native/Linux/x86_64",
+    "org/sqlite/native/Linux/aarch64",
+    "org/sqlite/native/Mac/x86_64",
+    "org/sqlite/native/Mac/aarch64",
+)
 
 /**
  * Everything to fold into the mod jar, resolved on its own. Declared as a
@@ -57,11 +74,18 @@ dependencies {
     implementation(yamlDependency)
     bundledLibs(yamlDependency)
 
+    // Balances and statistics. Paper and Spigot ship a JDBC driver, which is
+    // why the plugin can just ask for one; nothing in Minecraft or NeoForge
+    // does, so it travels with us.
+    implementation(sqliteDependency)
+    bundledLibs(sqliteDependency)
+
     // Development runs load the mod from its class directory, and NeoForge's
     // module layer will not see these from the plain compile classpath. This
     // puts them where the game's class loader can find them.
     add("additionalRuntimeClasspath", project(":guishop-core"))
     add("additionalRuntimeClasspath", yamlDependency)
+    add("additionalRuntimeClasspath", sqliteDependency)
 }
 
 // A mod has no "provided" scope for our own shared code, so core and the YAML
@@ -76,6 +100,15 @@ tasks.jar {
         exclude("META-INF/*.DSA")
         exclude("META-INF/*.RSA")
         exclude("module-info.class")
+
+        // Written as a predicate rather than a list of the unwanted paths, so
+        // a platform added by a future driver release is dropped by default
+        // instead of quietly adding megabytes.
+        val kept = keptSqliteNatives
+        exclude { element ->
+            val path = element.relativePath.pathString.replace('\\', '/')
+            path.startsWith("org/sqlite/native/") && kept.none { path.startsWith("$it/") }
+        }
     }
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

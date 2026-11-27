@@ -93,6 +93,8 @@ public final class TradeService {
 
         if (item.getItemType() == ItemType.COMMAND) {
             runCommands(player, item, quantity);
+            GuiShopServer.statistics().recordPurchase(
+                    player.getUUID(), item.getMaterial(), quantity, total);
             succeed(player, balances, Messages.get("purchase", "taken", money(total)));
             return;
         }
@@ -106,6 +108,10 @@ public final class TradeService {
         }
 
         int dropped = give(player, template, quantity);
+        // Counted even when some was dropped: it was bought and paid for, and
+        // it is on the floor rather than gone.
+        GuiShopServer.statistics().recordPurchase(
+                player.getUUID(), item.getMaterial(), quantity, total);
         succeed(player, balances, Messages.get("purchase", "taken", money(total)));
 
         if (dropped > 0) {
@@ -167,6 +173,8 @@ public final class TradeService {
 
         BigDecimal total = item.calculateSellPrice(quantity);
         balances.deposit(player.getUUID(), total);
+        GuiShopServer.statistics().recordSale(
+                player.getUUID(), item.getMaterial(), quantity, total);
         succeed(player, balances, Messages.get("sell", "money", money(total)));
     }
 

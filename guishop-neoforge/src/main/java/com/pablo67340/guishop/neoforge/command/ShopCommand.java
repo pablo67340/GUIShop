@@ -4,6 +4,7 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import com.mojang.brigadier.suggestion.SuggestionProvider;
+import com.mojang.brigadier.tree.LiteralCommandNode;
 import com.pablo67340.guishop.definition.ItemType;
 import com.pablo67340.guishop.neoforge.config.Messages;
 import com.pablo67340.guishop.neoforge.menu.SellMenu;
@@ -44,10 +45,12 @@ public final class ShopCommand {
             return SharedSuggestionProvider.suggest(targets, builder);
         };
 
-        dispatcher.register(Commands.literal("shop")
+        LiteralCommandNode<CommandSourceStack> root = dispatcher.register(Commands.literal("shop")
                 .executes(context -> openShop(context.getSource(), registry, ""))
-                // Literals win over the argument, so a shop named "info" or
-                // "reload" would not be reachable here.
+                // Literals win over the argument, so a shop named "info",
+                // "reload", "eco" or "stats" would not be reachable here.
+                .then(EconomyCommands.adminTree())
+                .then(EconomyCommands.statsTree())
                 .then(Commands.literal("info")
                         .executes(context -> listShops(context.getSource(), registry))
                         .then(Commands.argument("shop", StringArgumentType.word())
@@ -64,8 +67,15 @@ public final class ShopCommand {
                                 context.getSource(), registry,
                                 StringArgumentType.getString(context, "shop")))));
 
+        // The plugin's root command, kept so muscle memory and old wiki pages
+        // still work. A redirect rather than a second tree, so the two cannot
+        // drift apart as subcommands are added.
+        dispatcher.register(Commands.literal("gs").redirect(root));
+
         dispatcher.register(Commands.literal("sell")
                 .executes(context -> openSell(context.getSource())));
+
+        EconomyCommands.register(dispatcher);
     }
 
     /**
@@ -230,6 +240,13 @@ public final class ShopCommand {
         Settings.load();
 
         int loaded = registry.loadAll();
+
+        // Everyone's worth tooltips are now quoting the old config, including
+        // for items the reload may have removed from sale entirely.
+        if (source.getServer() != null) {
+            GuiShopNetworkSender.broadcastWorth(source.getServer());
+        }
+
         source.sendSuccess(() -> Component.literal("GUIShop reloaded: " + loaded + " shop(s), "
                 + registry.totalItems() + " item(s).").withStyle(ChatFormatting.GREEN), true);
         return loaded;

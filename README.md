@@ -5,7 +5,7 @@ Proper shop screens for NeoForge, built on over a decade of GUIShop.
 **Minecraft 1.21.1, NeoForge 21.1.267 or newer. Required on both the client and the server.**
 
 [![GitHub](https://img.shields.io/badge/GitHub-Repository-blue)](https://github.com/pablo67340/GUIShop)
-[![CurseForge](https://img.shields.io/badge/CurseForge-Download-orange)](https://www.curseforge.com/projects/1829693)
+[![CurseForge](https://img.shields.io/badge/CurseForge-Download-orange)](https://www.curseforge.com/minecraft/mc-mods/guishop-extended)
 [![Discord](https://img.shields.io/badge/Discord-Support-purple)](https://discord.gg/wm6zMzdBwf)
 
 > This is the `neoforge-port` branch. It holds the NeoForge mod, plus the shared

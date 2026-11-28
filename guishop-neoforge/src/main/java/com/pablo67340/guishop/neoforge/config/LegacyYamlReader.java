@@ -1,8 +1,8 @@
 package com.pablo67340.guishop.neoforge.config;
 
 import com.pablo67340.guishop.definition.ItemType;
+import com.pablo67340.guishop.neoforge.lib.BundledLibraries;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -139,12 +139,16 @@ final class LegacyYamlReader {
 
     private static Map<String, Object> parse(Path file) {
         try (Reader reader = Files.newBufferedReader(file, StandardCharsets.UTF_8)) {
-            Map<String, Object> root = asMap(new Yaml().load(reader));
+            // snakeyaml is loaded by BundledLibraries, so it cannot be named
+            // here. One call, and what comes back is plain maps and lists.
+            Class<?> type = BundledLibraries.load("org.yaml.snakeyaml.Yaml");
+            Object yaml = type.getConstructor().newInstance();
+            Map<String, Object> root = asMap(type.getMethod("load", Reader.class).invoke(yaml, reader));
             if (root == null) {
                 warn("Could not read " + file.getFileName() + ": not a YAML mapping.");
             }
             return root;
-        } catch (IOException | RuntimeException exception) {
+        } catch (IOException | ReflectiveOperationException | RuntimeException exception) {
             warn("Could not read " + file.getFileName() + ": " + exception.getMessage());
             return null;
         }

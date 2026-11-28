@@ -54,11 +54,26 @@ val keptSqliteNatives = listOf(
 )
 
 /**
- * Everything to fold into the mod jar, resolved on its own. Declared as a
+ * Our own code to fold into the mod jar, resolved on its own. Declared as a
  * configuration rather than reaching into the other project's source sets,
  * which would break the configuration cache.
  */
 val bundledLibs: Configuration = configurations.create("bundledLibs") {
+    isCanBeConsumed = false
+    isCanBeResolved = true
+    isTransitive = false
+}
+
+/**
+ * Third party code, which goes under a prefix rather than at the jar root.
+ * <p>
+ * A mod jar is a module and a module exports every package in it, so shipping
+ * these at the root offers `org.sqlite` and `org.yaml.snakeyaml` to the game's
+ * module layer. Any other mod or hybrid server that supplies the same packages
+ * then fails to resolve, which takes the whole server down rather than just us.
+ * `BundledLibraries` loads them back out of the prefix at runtime.
+ */
+val isolatedLibs: Configuration = configurations.create("isolatedLibs") {
     isCanBeConsumed = false
     isCanBeResolved = true
     isTransitive = false
@@ -71,14 +86,12 @@ dependencies {
     // Reads the same shop YAML the Bukkit plugin uses, so an existing server's
     // configs work unchanged. Minecraft bundles Gson and NeoForge bundles
     // NightConfig, but neither reads YAML.
-    implementation(yamlDependency)
-    bundledLibs(yamlDependency)
+    isolatedLibs(yamlDependency)
 
     // Balances and statistics. Paper and Spigot ship a JDBC driver, which is
     // why the plugin can just ask for one; nothing in Minecraft or NeoForge
     // does, so it travels with us.
-    implementation(sqliteDependency)
-    bundledLibs(sqliteDependency)
+    isolatedLibs(sqliteDependency)
 
     // Development runs load the mod from its class directory, and NeoForge's
     // module layer will not see these from the plain compile classpath. This
@@ -100,6 +113,20 @@ tasks.jar {
         exclude("META-INF/*.DSA")
         exclude("META-INF/*.RSA")
         exclude("module-info.class")
+    }
+
+    from({ isolatedLibs.map { zipTree(it) } }) {
+        exclude("META-INF/MANIFEST.MF")
+        exclude("META-INF/*.SF")
+        exclude("META-INF/*.DSA")
+        exclude("META-INF/*.RSA")
+        exclude("module-info.class")
+
+        // Multi-release overlays and GraalVM hints. Nothing reads either once
+        // the jar is no longer the unit being loaded from, and the classes
+        // they replace are all present in the base copy.
+        exclude("META-INF/versions/**")
+        exclude("META-INF/native-image/**")
 
         // Written as a predicate rather than a list of the unwanted paths, so
         // a platform added by a future driver release is dropped by default
@@ -109,7 +136,11 @@ tasks.jar {
             val path = element.relativePath.pathString.replace('\\', '/')
             path.startsWith("org/sqlite/native/") && kept.none { path.startsWith("$it/") }
         }
+
+        // Must match BundledLibraries.PREFIX.
+        into("guishoplibs")
     }
+
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }
 

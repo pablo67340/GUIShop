@@ -1,8 +1,9 @@
 package com.pablo67340.guishop.neoforge.storage;
 
+import com.pablo67340.guishop.neoforge.lib.BundledLibraries;
 import com.pablo67340.guishop.platform.GuiShopPlatform;
-import org.sqlite.SQLiteDataSource;
 
+import javax.sql.DataSource;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -63,14 +64,19 @@ public final class GuiShopDatabase {
             // Through the data source rather than DriverManager, which finds
             // its drivers by service loader. Under NeoForge's module layer the
             // driver is in our own jar and the service lookup does not see it.
-            SQLiteDataSource source = new SQLiteDataSource();
-            source.setUrl("jdbc:sqlite:" + file.toAbsolutePath());
+            // Reflectively, because the driver is loaded by BundledLibraries
+            // and so is not a type this module can name. DataSource and
+            // Connection are JDK interfaces, which is all the rest needs.
+            Class<?> type = BundledLibraries.load("org.sqlite.SQLiteDataSource");
+            DataSource source = (DataSource) type.getConstructor().newInstance();
+            type.getMethod("setUrl", String.class)
+                    .invoke(source, "jdbc:sqlite:" + file.toAbsolutePath());
             connection = source.getConnection();
             createTables();
             GuiShopPlatform.get().logger().info("Opened " + RELATIVE_PATH + ".");
             return true;
-        } catch (SQLException exception) {
-            warnUnavailable(exception.getMessage());
+        } catch (SQLException | ReflectiveOperationException exception) {
+            warnUnavailable(String.valueOf(exception.getMessage()));
             return false;
         } catch (LinkageError error) {
             // What an unsupported platform looks like: the classes are here,

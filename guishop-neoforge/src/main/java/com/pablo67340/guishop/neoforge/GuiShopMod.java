@@ -7,6 +7,7 @@ import com.pablo67340.guishop.neoforge.economy.BalanceStore;
 import com.pablo67340.guishop.neoforge.menu.GuiShopMenus;
 import com.pablo67340.guishop.neoforge.network.GuiShopNetwork;
 import com.pablo67340.guishop.neoforge.network.ShopViewBuilder;
+import com.pablo67340.guishop.neoforge.defaults.DefaultShops;
 import com.pablo67340.guishop.neoforge.permission.GuiShopPermissions;
 import com.pablo67340.guishop.neoforge.server.GuiShopServer;
 import com.pablo67340.guishop.neoforge.server.PlayerConnection;
@@ -101,6 +102,10 @@ public final class GuiShopMod {
         // A client keeps this class across worlds, so a table built for the
         // last world would otherwise be sent to the player joining this one.
         WorthTable.invalidate();
+
+        // Before loading, so a first run has something to load. Does nothing
+        // once any shop exists.
+        DefaultShops.generateIfMissing(event.getServer());
 
         int loaded = shopRegistry.loadAll();
         context.logUtil().log("GUIShop loaded " + loaded + " shop(s) with "
